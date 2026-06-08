@@ -43,6 +43,7 @@
 | [OpenHands](https://github.com/All-Hands-AI/OpenHands) (原 OpenDevin) | ~67k | Code Agent 的完整产品化案例，沙箱执行、人机协作、安全边界设计都有参考价值 |
 | [Dify](https://github.com/langgenius/dify) | ~143k | 可视化 Agent+RAG 平台，看它如何处理多租户、权限、审计日志等产品化问题 |
 | [SuperAGI](https://github.com/TransformerOptimus/SuperAGI) | ~16k | 企业级 Agent 管理平台，多 Agent 监控、工具复用、生产部署的方案参考 |
+| [OpenClaw](https://github.com/openclaw/openclaw) | ~347k | **GitHub 历史 Star 数最高的软件仓库**。四层架构（Gateway→Agent→Skills→Memory）是课程中 Harness 三层模型的生产级范本；SKILL.md 的"文档即工具定义"思路是对 JSON Schema 的互补；自托管、本地优先、多模型路由 |
 
 ---
 
@@ -59,12 +60,13 @@
 
 ## 建议的精读顺序
 
-如果时间有限，优先看这四个：
+如果时间有限，优先看这五个：
 
 1. **smolagents** — 代码量不大，花一个下午读完核心循环，你就会真正理解 ReAct Agent 是怎么工作的
 2. **LangGraph** — 生产标准，文档质量高，边看边理解状态图编排
 3. **Letta** — 记忆系统设计思路独一无二，能开阔视野
 4. **OpenHands** — 看一个成熟 Code Agent 产品怎么处理安全、沙箱、人机协作
+5. **OpenClaw** — 看分层架构如何落地为工程化的 Agent 平台，Gateway/Agent/Skills/Memory 四层解耦值得反复研究
 
 ---
 
@@ -83,6 +85,7 @@
 | 代码 Agent（终端） | OpenCode / Claude Code |
 | 代码 Agent（VS Code） | Cline |
 | 企业级部署 | SuperAGI |
+| 自托管个人 Agent 平台 | OpenClaw |
 
 ---
 
