@@ -8,11 +8,12 @@
 
 ## 目录
 
-1. [第一课：Orchestration -- Agent 的调度大脑](#第一课orchestration----agent-的调度大脑)
-2. [第二课：Memory -- Agent 的记忆系统](#第二课memory----agent-的记忆系统)
-3. [第三课：Evaluation -- 如何衡量 Agent 的好坏](#第三课evaluation----如何衡量-agent-的好坏)
-4. [第四课：Guardrails -- 让 Agent 在安全边界内运行](#第四课guardrails----让-agent-在安全边界内运行)
-5. [第五课：Observability -- 看清楚 Agent 在做什么](#第五课observability----看清楚-agent-在做什么)
+1. [第零课：Agent Harness -- 运行时引擎](#第零课agent-harness----运行时引擎)
+2. [第一课：Orchestration -- Agent 的调度大脑](#第一课orchestration----agent-的调度大脑)
+3. [第二课：Memory -- Agent 的记忆系统](#第二课memory----agent-的记忆系统)
+4. [第三课：Evaluation -- 如何衡量 Agent 的好坏](#第三课evaluation----如何衡量-agent-的好坏)
+5. [第四课：Guardrails -- 让 Agent 在安全边界内运行](#第四课guardrails----让-agent-在安全边界内运行)
+6. [第五课：Observability -- 看清楚 Agent 在做什么](#第五课observability----看清楚-agent-在做什么)
 
 ---
 
@@ -21,11 +22,12 @@
 ### 🎯 学习目标
 
 完成本阶段后，你将能够：
-1. 根据任务复杂度选择合适的编排模式（Chain / Router / Plan-Execute / ReAct Loop / Graph）
-2. 为 Agent 设计分层记忆系统（短期 / 工作 / 长期），并知道每层的适用场景
-3. 从零搭建 Agent 评测框架，包含端到端评测和步骤级评测
-4. 实现输入/输出 Guardrails，设计合理的 Human-in-the-Loop 确认策略
-5. 为 Agent 集成 Tracing，能快速定位失败原因
+1. 设计 Agent Harness 的三层架构（驱动层 / 控制层 / 管理层），理解各框架的 Harness 差异本质
+2. 根据任务复杂度选择合适的编排模式（Chain / Router / Plan-Execute / ReAct Loop / Graph）
+3. 为 Agent 设计分层记忆系统（短期 / 工作 / 长期），并知道每层的适用场景
+4. 从零搭建 Agent 评测框架，包含端到端评测和步骤级评测
+5. 实现输入/输出 Guardrails，设计合理的 Human-in-the-Loop 确认策略
+6. 为 Agent 集成 Tracing，能快速定位失败原因
 
 ### 📥 前置输入
 
@@ -38,19 +40,21 @@
 
 ### 🏋️ 练习任务
 
-1. **编排模式对比实验**：用同一个任务（如"研究一个技术问题并输出报告"），分别用 Plan-Execute 和 ReAct Loop 两种模式实现，对比效率和结果质量
-2. **记忆系统实现**：为你的桥梁项目 Agent 添加工作记忆（用 JSON 文件或 SQLite）和长期记忆（用向量数据库）
-3. **评测框架搭建**：为你的 Agent 构建一个至少 20 条任务的评测集，包含正常场景、边界场景和对抗场景
-4. **Guardrails 实现**：为工具的输入和输出添加校验逻辑，定义至少 3 个需要 Human-in-the-Loop 的场景
-5. **Tracing 集成**：使用 Langfuse 或手动实现，记录 Agent 每次运行的完整 Trace
+1. **Harness 重构**：将你在阶段二写的"裸循环"Agent，重构为三层 Harness 架构（驱动层 / 控制层 / 管理层），对比重构前后的代码可维护性
+2. **编排模式对比实验**：用同一个任务（如"研究一个技术问题并输出报告"），分别用 Plan-Execute 和 ReAct Loop 两种模式实现，对比效率和结果质量
+3. **记忆系统实现**：为你的桥梁项目 Agent 添加工作记忆（用 JSON 文件或 SQLite）和长期记忆（用向量数据库）
+4. **评测框架搭建**：为你的 Agent 构建一个至少 20 条任务的评测集，包含正常场景、边界场景和对抗场景
+5. **Guardrails 实现**：为工具的输入和输出添加校验逻辑，定义至少 3 个需要 Human-in-the-Loop 的场景
+6. **Tracing 集成**：使用 Langfuse 或手动实现，记录 Agent 每次运行的完整 Trace
 
 ### 📦 交付物
 
-1. 一份编排模式对比报告（含实验数据和分析）
-2. 一个带记忆系统的 Agent（可在此基础上继续开发）
-3. 一套评测框架（评测集 + 评测脚本 + 一次完整的评测报告）
-4. 一个带 Guardrails 和 Human-in-the-Loop 的 Agent
-5. 一个可追踪的 Agent（Tracing 数据可从外部查看）
+1. 一个重构为三层 Harness 架构的 Agent（附重构前后的代码和对比分析）
+2. 一份编排模式对比报告（含实验数据和分析）
+3. 一个带记忆系统的 Agent（可在此基础上继续开发）
+4. 一套评测框架（评测集 + 评测脚本 + 一次完整的评测报告）
+5. 一个带 Guardrails 和 Human-in-the-Loop 的 Agent
+6. 一个可追踪的 Agent（Tracing 数据可从外部查看）
 
 ### ✅ 验收标准
 
@@ -62,7 +66,244 @@
 
 ---
 
-> **本阶段与阶段二的衔接**：阶段二的"文件整理 Agent 桥梁项目"在复盘时会发现 5 类问题（死循环 / 遗忘 / 无法衡量好坏 / 越界操作 / 黑盒调试）。本阶段的 5 个主题就是这 5 类问题的系统性解决方案。建议在学习每个主题时，回看你的复盘报告，思考"这个方案能解决我当时遇到的哪个具体问题？"
+> **本阶段与阶段二的衔接**：阶段二的"文件整理 Agent 桥梁项目"在复盘时会发现 5 类问题（死循环 / 遗忘 / 无法衡量好坏 / 越界操作 / 黑盒调试）。本阶段的 6 个主题中，Harness（第零课）是所有这些问题的**统一入口**——它把驱动、控制、管理三层解耦，让你可以单独优化每一层而不牵动全局；而编排、记忆、评测、护栏、观测则分别解决 5 类具体问题。建议在学习每个主题时，回看你的复盘报告和阶段二的"裸循环"代码，思考"Harness 的设计能否让这个问题更容易解决？"
+
+---
+
+## 第零课：Agent Harness —— 运行时引擎
+
+在正式进入编排、记忆、评测等高级主题之前，我们需要先建立一个基础概念：**无论你的 Agent 采用什么编排模式，它都需要一个"运行时"来驱动——这就是 Harness。**
+
+阶段二的桥梁项目中，你已经手写过 Harness——那个 `for step in range(max_steps)` 循环。本课的目标是：**把这个"裸循环"提升为有意识的架构设计**。
+
+### 0.1 什么是 Harness
+
+Harness 是 Agent 的**运行时引擎**。它不参与具体的推理（那是 LLM 的事），也不执行具体的工具（那是 Tool 的事），它只做一件事：**驱动 Agent 循环，直到任务完成或被终止**。
+
+```
+
+
+
+###      ┌─────────────────────────────────────────────┐
+###      │              Agent Harness                  │
+###      │                                             │
+###      │  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
+###      │  │  驱动层   │  │  控制层   │  │  管理层   │  │
+###      │  │          │  │          │  │          │  │
+###      │  │ • 循环   │  │ • 停止   │  │ • 上下文 │  │
+###      │  │ • 步骤   │  │ • 超时   │  │ • 工具   │  │
+###      │  │ • 调用   │  │ • 重试   │  │ • 记忆   │  │
+###      │  └──────────┘  └──────────┘  └──────────┘  │
+###      │                    │                        │
+###      │     ┌──────────────┼──────────────┐         │
+###      │     ▼              ▼              ▼         │
+###      │  ┌──────┐    ┌──────────┐   ┌──────────┐   │
+###      │  │ LLM  │    │ 停止条件  │   │ 上下文窗口│   │
+###      │  │ 推理 │    │  判断器   │   │  管理器  │   │
+###      │  └──────┘    └──────────┘   └──────────┘   │
+###      │                                             │
+###      └─────────────────────────────────────────────┘
+```
+
+
+
+### 0.2 之前的问题：为什么需要把 Harness 显式化
+
+阶段二中，你的 Agent 代码大概是这样的：
+
+```python
+def run_agent(user_query):
+    messages = [system_prompt, user_query]
+    for i in range(10):          # 驱动 + 控制混在一起
+        response = llm(messages)
+        if "Final" in response:   # 停止条件硬编码
+            return response
+        tool = parse_tool(response)
+        result = execute(tool)
+        messages.append(result)
+```
+
+这能工作，但当你遇到以下场景时，问题就暴露了：
+
+- **场景A**：想从 `for` 循环改为支持条件分支的图结构 → 需要重写整个 `run_agent` 函数
+- **场景B**：想在工具执行前插入权限检查 → 要在 `execute(tool)` 前后手动加代码，容易遗漏
+- **场景C**：想记录每一步的耗时和 Token 消耗 → 要在循环里加大量 `time.time()` 和日志代码
+- **场景D**：想支持多个 Agent 并发执行 → 裸循环无法并行
+
+**这些问题的根源**：驱动逻辑、控制逻辑、管理逻辑被揉在了一起。Harness 显式化的目标，就是把三者**解耦**为独立可配置的模块。
+
+### 0.3 Harness 的三层架构
+
+#### 驱动层（Drive Layer）
+
+**职责**：启动并维持 Agent 循环。
+
+```python
+class DriveLayer:
+    """驱动层：只管'下一步是什么'"""
+    def __init__(self, max_steps=20):
+        self.max_steps = max_steps
+        self.current_step = 0
+
+    def has_next(self) -> bool:
+        return self.current_step < self.max_steps
+
+    def step(self):
+        self.current_step += 1
+        return self.current_step
+```
+
+设计要点：
+- 最大步数限制是**硬约束**，防止失控
+- 驱动层不关心每一步做什么——它只管理"步数"这个计数器和"是否继续"这个判断
+- 后续升级为异步驱动时（支持工具调用的非阻塞等待），只需要修改这一层
+
+#### 控制层（Control Layer）
+
+**职责**：决定"什么时候停"和"出错了怎么办"。
+
+```python
+class ControlLayer:
+    """控制层：判断循环是否应该终止"""
+    def __init__(self):
+        self.stop_conditions = [
+            self._check_final_answer,      # LLM输出了最终答案
+            self._check_timeout,            # 超时
+            self._check_loop_detected,      # 检测到死循环
+            self._check_token_budget,       # Token预算耗尽
+        ]
+
+    def should_stop(self, agent_state: dict) -> tuple[bool, str]:
+        """返回 (是否停止, 停止原因)"""
+        for condition in self.stop_conditions:
+            stop, reason = condition(agent_state)
+            if stop:
+                return True, reason
+        return False, ""
+
+    def handle_error(self, error: Exception, agent_state: dict) -> str:
+        """错误恢复策略"""
+        # 可以注入反思提示、切换工具、触发降级等
+        ...
+```
+
+设计要点：
+- 停止条件是**组合式**的，可以按需求增减
+- 每种停止条件都是独立可测试的函数
+- 错误恢复策略与控制逻辑属于同一层——它们都影响"是否继续"
+
+#### 管理层（Management Layer）
+
+**职责**：管理 Agent 运行所需的资源和状态。
+
+```python
+class ManagementLayer:
+    """管理层：管理上下文、工具、记忆"""
+    def __init__(self, max_context_tokens=100000):
+        self.max_context_tokens = max_context_tokens
+        self.tool_registry = ToolRegistry()
+        self.memory_manager = MemoryManager()
+
+    def manage_context(self, messages: list) -> list:
+        """上下文窗口管理：压缩、裁剪、优先级排序"""
+        ...
+
+    def register_tool(self, tool: Tool):
+        """工具注册与发现"""
+        ...
+
+    def inject_memory(self, messages: list) -> list:
+        """在LLM调用前注入相关记忆"""
+        ...
+```
+
+### 0.4 完整的 Harness 架构
+
+三层协同工作时：
+
+```python
+class AgentHarness:
+    """Agent 运行时引擎"""
+    def __init__(self, llm, tools, config):
+        self.llm = llm
+        self.drive = DriveLayer(max_steps=config.max_steps)
+        self.control = ControlLayer()
+        self.management = ManagementLayer(max_context_tokens=config.max_tokens)
+
+        # 注册工具到管理层
+        for tool in tools:
+            self.management.register_tool(tool)
+
+    def run(self, user_query: str) -> AgentResult:
+        # 初始状态
+        state = AgentState(user_query=user_query)
+        state.messages = self.management.inject_memory(
+            [SystemMessage(self.build_system_prompt()), UserMessage(user_query)]
+        )
+
+        # 驱动循环
+        while self.drive.has_next():
+            step_num = self.drive.step()
+            state.current_step = step_num
+
+            # ---- 管理层：上下文裁剪 ----
+            state.messages = self.management.manage_context(state.messages)
+
+            # ---- LLM 推理 ----
+            try:
+                response = self.llm.generate(state.messages)
+            except Exception as e:
+                # ---- 控制层：错误恢复 ----
+                recovery = self.control.handle_error(e, state)
+                if recovery == "abort":
+                    return AgentResult(status="error", error=str(e))
+                state.messages.append(AssistantMessage(recovery))
+                continue
+
+            state.messages.append(AssistantMessage(response))
+            state.last_response = response
+
+            # ---- 控制层：停止条件检查 ----
+            should_stop, reason = self.control.should_stop(state)
+            if should_stop:
+                return AgentResult(status="stopped", reason=reason, output=response)
+
+            # ---- 解析并执行工具 ----
+            tool_calls = self._parse_tool_calls(response)
+            for tc in tool_calls:
+                tool = self.management.tool_registry.get(tc.name)
+                result = tool.execute(tc.args)
+                state.messages.append(ToolResultMessage(result))
+
+        # 达到最大步数
+        return AgentResult(status="max_steps_reached", output=state.last_response)
+```
+
+### 0.5 Harness 与后续课程的关系
+
+理解了 Harness 后，你会发现后续的每个主题都是在强化 Harness 的某一层：
+
+| 后续课程 | 强化的 Harness 层 | 具体关系 |
+|---------|------------------|---------|
+| **Orchestration（编排）** | 驱动层 | 编排模式决定了 Harness 用什么方式驱动循环——简单循环、状态图还是 DAG |
+| **Memory（记忆）** | 管理层 | 记忆系统是管理层的一部分，Harness 负责在合适的时机注入和更新记忆 |
+| **Evaluation（评测）** | 控制层 | 评测结果反馈到控制层，影响停止条件、重试策略的配置 |
+| **Guardrails（护栏）** | 控制层 | Guardrails 是控制层的安全检查插件，在工具执行前/后触发 |
+| **Observability（观测）** | 全部三层 | Tracing 和日志贯穿 Harness 的所有层，是调试的"眼睛" |
+
+**一句话总结**：编排决定 Harness"用什么节奏跳舞"，记忆和工具是 Harness 的"舞伴"，护栏是"安全绳"，观测是"镜子"。但 Harness 本身是那个"跳舞的人"。
+
+### 0.6 主流框架的 Harness 设计对比
+
+| 框架 | Harness 实现 | 驱动模式 | 特色 |
+|------|------------|---------|------|
+| **LangGraph** | `StateGraph` + `Checkpointer` | 状态图驱动的循环 | 显式状态管理，支持分支和回退 |
+| **CrewAI** | `Crew` + `Task` + `Process` | 层级任务分发（顺序/层级） | 角色驱动的任务分配 |
+| **AutoGen** | `ConversableAgent` + `GroupChat` | 对话驱动的多Agent交换 | 基于聊天消息的驱动 |
+| **smolagents** | `CodeAgent.run()` | 代码生成+沙箱执行 | 极简驱动，code-as-action |
+| **你的 ReAct Agent** | `for step in range(n)` | 裸循环 | 最简单但缺乏防护 |
+
+理解这个对比后，你就不会被框架名称所迷惑——它们本质上是对 Harness 三层做了不同的权衡和设计选择。
 
 ---
 

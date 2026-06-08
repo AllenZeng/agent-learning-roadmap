@@ -994,6 +994,43 @@ def _detect_loop(self, history: List[str], threshold: int = 3) -> bool:
 
 **4. 无法撤销。** 如果第3步的工具调用产生了错误的结果，ReAct很难"回退"到第2步重新选择路径。这是线性推理链的固有局限。
 
+#### 2.2.6 你刚刚写的这个循环，就是最简Harness
+
+回顾上面的 `ReActAgent` 代码，把业务逻辑（LLM推理、工具执行）剥离后，剩下的骨架是什么？
+
+```python
+class ReActAgent:
+    def run(self, user_query):
+        for step in range(self.max_steps):     # ← 循环控制
+            response = self.llm_call(...)       # ← 调用推理引擎
+            if "Final Answer" in response:      # ← 停止条件判断
+                return ...
+            tool_name, args = self._parse(...)  # ← 解析动作
+            observation = self.tools[tool_name](...)# ← 执行工具
+            conversation += observation          # ← 管理上下文
+```
+
+这个骨架就是 **Agent Harness（运行时引擎）**——它是Agent的"操作系统层"，负责驱动整个循环但不参与具体的推理或工具执行。
+
+Harness不是一个框架特有的概念，而是所有Agent系统的通用抽象。你在阶段二的ReAct Agent中写的那个 `while/for` 循环就是最简Harness；LangGraph的 `StateGraph` 是更强大的Harness；Claude Code的内部循环也是Harness。**不同框架的本质差异，很大程度上就是Harness设计的差异。**
+
+Harness的核心职责是三层：
+
+| 层次 | 职责 | 对应代码 |
+|------|------|---------|
+| **驱动层** | 启动循环、管理步骤迭代、调用LLM | `for step in range(max_steps)` |
+| **控制层** | 停止条件、超时、错误恢复、循环检测 | `if "Final Answer" in response` |
+| **管理层** | 上下文窗口管理、工具注册、记忆注入 | `conversation += observation` |
+
+一个经常被问到的问题：**Harness和Orchestration（编排）有什么区别？**
+
+> - **Orchestration** 决定"怎么走"——是链式的还是图式的、是Plan-then-Execute还是ReAct Loop。它关注的是**流程模式**。
+> - **Harness** 负责"走路"——无论你选择了什么流程模式，Harness都以一致的方式驱动每一步、管理状态、处理异常。它关注的是**运行时执行**。
+>
+> 类比：Orchestration是你的驾驶路线规划（走高速还是走国道），Harness是你的汽车引擎（不管什么路线，引擎都负责让车动起来）。
+
+`stage-03-architecture.md` 的第一课会在Orchestration之前，先系统性讲解Harness的架构设计。从阶段三起，你将不再手写"裸循环"，而是有意识地设计Harness的每一层。
+
 ---
 
 ## 第三课：RAG——给Agent接入知识
