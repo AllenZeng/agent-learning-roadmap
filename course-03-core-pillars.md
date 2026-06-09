@@ -2203,7 +2203,7 @@ class SimpleMemory:
 
 ---
 
-> **下一课程预告：课程四——Agent 架构深入。** 我们将深入 Agent 的架构设计：Harness（运行时引擎）、Orchestration（编排调度）、Memory 架构深入（向量数据库 / MemGPT / 记忆衰减）、Evaluation（评测）、Guardrails（安全护栏）、Observability（可观测性）。有了本课程的理论基础，你会发现那些架构设计变得容易理解——它们本质上就是对 LLM + Tool Use + RAG + Memory + Prompt Engineering 的工程化封装与增强。
+> **下一课程预告：课程四——Agent 架构深入。** 我们将从 Context Engineering（上下文工程）出发，深入 Agent 的架构设计：Harness（运行时引擎）、Orchestration（编排调度）、Memory 架构深入（向量数据库 / MemGPT / 记忆衰减）、Evaluation（评测）、Guardrails（安全护栏）、Observability（可观测性）。有了本课程的理论基础，你会发现那些架构设计变得容易理解——它们本质上就是对 LLM + Tool Use + RAG + Memory + Prompt Engineering 的工程化封装与增强。
 
 ---
 
