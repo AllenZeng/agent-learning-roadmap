@@ -10,7 +10,7 @@
 **设计特点**：
 
 - **以学习路径组织知识，而非概念堆砌**：每个阶段回答"现在应该学什么、为什么现在学、学完能做什么"
-- **先拆零件，再讲组装**：课程三逐一拆解五大支柱（LLM / Tool Use / RAG / Memory / Prompt Engineering），课程四讲它们的工程化组装（Harness / Context Engineering / Orchestration / Memory 架构 / Evaluation / Guardrails / Observability）
+- **先拆零件，再讲组装**：课程三逐一拆解五大核心模块（LLM / Tool Use / RAG / Memory / Prompt Engineering），课程四讲它们的工程化组装（Harness / Context Engineering / Orchestration / Memory 架构 / Evaluation / Guardrails / Observability）
 - **从技术走向产品**：课程五专门覆盖交互设计、可靠性、成本控制、安全合规、失败模式——解决"能跑"和"能上线"之间的鸿沟
 - **理论和动手并重**：每门课程都有验收标准，课程六用三个递进项目整合全部知识
 - **生态跟进独立成章**：MCP、A2A、Computer Use、Multi-Agent、RL 等快速变化的内容放在课程七，不干扰主线
@@ -61,9 +61,9 @@
 
 ## 课程三：Agent 底层核心
 
-**定位**：理解并实现支撑 Agent 的五大核心技术支柱。
+**定位**：理解并实现构成 Agent 的五大核心模块。
 
-| 支柱 | 核心内容 | 实践目标 |
+| 核心模块 | 核心内容 | 实践目标 |
 |------|---------|---------|
 | **LLM 原理** | Transformer（Self-Attention / Multi-Head Attention）、Tokenization（BPE、对工具调用的影响）、Context Window（Lost in the Middle、注意力 O(n²)）、采样策略（Temperature / Top-p / Top-k） | 理解模型为什么会"不听话" |
 | **Tool Use** | JSON Schema 定义工具、工具描述的黄金法则、工具选择核心问题（时机 / 选择 / 参数） | 实现一个能调用 API/数据库的 Agent |
@@ -71,7 +71,7 @@
 | **Memory** | 短期记忆（滑动窗口 / 摘要压缩 / 重要性过滤）、长期记忆（跨会话持久化）、三层上下文架构（热数据 / 温数据 / 冷数据） | 让 Agent 不再"转瞬即忘" |
 | **Prompt Engineering** | System Prompt 设计、Few-shot Prompting、Chain-of-Thought、结构化输出 | 写出稳定可控的提示词 |
 
-**ReAct：五大支柱的联合运用**：实现 ReAct 循环（Thought → Action → Observation），停止条件设计，循环检测与防护。
+**ReAct：五大核心模块的运行时引擎**：ReAct 循环将各模块串联为 Thought → Action → Observation 的决策链路，包含停止条件设计、循环检测与防护。
 
 **实践里程碑**：实现一个 ReAct Agent（Python/TypeScript），支持 3+ 个工具，具备跨会话记忆。10 条测试任务成功 >= 7 条，能按 tool selection / prompt / schema / 上下文管理 / memory 分类失败原因。
 
@@ -153,13 +153,13 @@
 课程二（Agent演进）
     │
     v
-课程三（底层核心·五大支柱）←──────── 动手起点
+课程三（底层核心·五大核心模块）
     │
     v
-课程四（架构深入）         课程七（发展趋势）← 可并行，低优先级
+课程四（架构深入）         课程七（发展趋势）← 可并行
     │                         ↑
     v                         │
-课程五（走向生产环境）────────┘
+课程五（走向生产环境）────────────┘
     │
     v
 课程六（项目实战）
