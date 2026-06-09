@@ -28,19 +28,19 @@
 
 ## 目录
 
-- [第一课：LLM原理——Agent的大脑](#第一课llm原理agent的大脑)
-- [第二课：Tool Use深入](#第二课tool-use深入)
-- [第三课：RAG——给Agent接入知识](#第三课rag给agent接入知识)
-- [第四课：Prompt Engineering](#第四课prompt-engineering)
-- [第五课：Memory 基础 —— Agent 不能每次都从头开始](#第五课memory-基础--agent-不能每次都从头开始)
+- [第一课：LLM 原理 —— Agent 的大脑](#第一课llm-原理--agent-的大脑)
+- [第二课：Tool Use —— 让 Agent 能够行动](#第二课tool-use--让-agent-能够行动)
+- [第三课：RAG —— 给 Agent 接入外部知识](#第三课rag--给-agent-接入外部知识)
+- [第四课：Prompt Engineering —— 让 Agent 输出可控](#第四课prompt-engineering--让-agent-输出可控)
+- [第五课：Memory —— 让 Agent 不再转瞬即忘](#第五课memory--让-agent-不再转瞬即忘)
 - [总结：五大核心模块构成 Agent](#总结五大核心模块构成-agent)
 - [练习任务](#练习任务)
 - [验收标准](#验收标准)
-- [第六课（桥梁项目）：文件整理 Agent —— 从单次调用到多步自主](#第六课桥梁项目文件整理-agent--从单次调用到多步自主)
+- [第六课：桥梁项目 —— 文件整理 Agent](#第六课桥梁项目--文件整理-agent)
 
 ---
 
-## 第一课：LLM原理——Agent的大脑
+## 第一课：LLM 原理 —— Agent 的大脑
 
 如果把Agent比作一个人，那么LLM就是它的大脑。大脑能不能思考清楚、能不能记住足够多的上下文、能不能稳定地做决策，直接决定了这个Agent的上限。在动手搭建Agent之前，我们必须先理解这个"大脑"的运作机制。
 
@@ -547,7 +547,7 @@ def sample_next_token(logits, temperature=0.7, top_p=0.9, top_k=50):
 
 ---
 
-## 第二课：Tool Use深入
+## 第二课：Tool Use —— 让 Agent 能够行动
 
 ### 2.1 从文本生成到工具调用
 
@@ -1015,7 +1015,7 @@ Harness的核心职责是三层：
 
 ---
 
-## 第三课：RAG——给Agent接入知识
+## 第三课：RAG —— 给 Agent 接入外部知识
 
 ### 3.1 RAG的演进历史
 
@@ -1484,7 +1484,7 @@ Agent 需要从多种来源获取知识：
 
 ---
 
-## 第四课：Prompt Engineering
+## 第四课：Prompt Engineering —— 让 Agent 输出可控
 
 ### 4.1 System Prompt设计
 
@@ -1939,7 +1939,7 @@ Instructor的设计哲学是：**用Pydantic作为Schema定义语言，利用其
 
 ---
 
-## 第五课：Memory 基础 —— Agent 不能每次都从头开始
+## 第五课：Memory —— 让 Agent 不再转瞬即忘
 
 ### 5.1 Memory 基础
 
@@ -2263,7 +2263,7 @@ class SimpleMemory:
 
 ---
 
-## 第六课（桥梁项目）：文件整理 Agent —— 从单次调用到多步自主
+## 第六课：桥梁项目 —— 文件整理 Agent
 
 ### 为什么需要这个桥梁项目？
 
