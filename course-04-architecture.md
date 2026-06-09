@@ -2075,6 +2075,94 @@ def step_level_score(actual_trajectory, ideal_trajectory):
 
 ---
 
+### 3.3+ Agent 测试金字塔：评测之外的工程测试
+
+Evaluation（评测）回答的是"Agent 整体做得好不好"，但 Agent 作为一个软件系统，还需要**工程测试**来保证每个组件的正确性。两者缺一不可：
+
+```
+        ┌──────────────┐
+        │  端到端评测    │  ← 课程四第三课：任务成功率、LLM-as-Judge
+        │  (E2E Eval)   │
+       ┌┴──────────────┴┐
+       │   集成测试       │  ← Agent 循环 + 真实工具：给定初始状态，验证完整决策链
+       │ (Integration)   │
+      ┌┴─────────────────┴┐
+      │    组件测试        │  ← 工具定义 / Prompt 模板 / 记忆检索的独立验证
+      │  (Component)       │
+     ┌┴────────────────────┴┐
+     │    单元测试           │  ← 工具函数 / Schema 校验 / 参数解析的确定性测试
+     │   (Unit)             │
+     └──────────────────────┘
+```
+
+**每一层的含义和做法**：
+
+**单元测试（Unit Test）——确定性代码的验证**
+
+Agent 系统中也有大量确定性代码，应该用传统单元测试覆盖：
+- 工具函数的正确性（输入→输出）
+- JSON Schema 校验逻辑（合法/非法参数的识别）
+- 循环检测器的判断逻辑
+- 上下文压缩/截断的边界条件
+
+```python
+# 示例：测试工具 Schema 校验
+def test_weather_tool_schema():
+    schema = get_weather_schema()
+    assert validate_args(schema, {"city": "Beijing"}) == True
+    assert validate_args(schema, {"city": 123}) == False  # 类型错误
+    assert validate_args(schema, {}) == False  # 缺少必填参数
+```
+
+**组件测试（Component Test）——Agent 子系统的独立验证**
+
+在隔离环境下测试 Agent 的单个子系统：
+- Prompt 模板的回归测试：修改 Prompt 后，用固定输入验证输出行为一致性
+- 工具选择逻辑：给定标准用户输入，验证 Agent 是否正确选择了工具（不实际执行）
+- 记忆检索：给定已知记忆库，验证检索召回率
+- RAG chunking 策略：验证不同 chunk 参数对检索结果的影响
+
+```python
+# 示例：Prompt 回归测试
+def test_prompt_regression():
+    prompt_v2 = load_prompt("system_v2.md")
+    for case in regression_cases:
+        response = llm_call(prompt_v2, case["input"])
+        assert case["expected_tool"] in response  # 确保仍会选择正确工具
+```
+
+**集成测试（Integration Test）——Agent 循环的端到端验证**
+
+在受控环境中运行完整 Agent 循环，但使用 mock 工具：
+- 验证 Agent 在"工具返回固定结果"时能做出正确决策
+- 验证 Agent 在"工具返回错误"时能正确恢复
+- 验证 Agent 的停止条件在各种场景下正确触发
+- 混沌工程：随机注入故障（超时、错误返回、空结果），验证恢复能力
+
+```python
+# 示例：故障注入集成测试
+def test_agent_recovers_from_tool_timeout():
+    tools = {"search": mock_timeout_search}  # 模拟超时
+    agent = ReActAgent(llm, tools)
+    result = agent.run("查询北京天气")
+    assert result.status != "error"  # Agent 应能优雅处理超时
+    assert "重试" in agent.steps or "降级" in agent.steps
+```
+
+**测试金字塔与 Evaluation 的分工**：
+
+| 维度 | 工程测试（本小节） | Evaluation（第三课主体） |
+|------|-------------------|------------------------|
+| 回答什么问题 | "组件对不对" | "Agent 好不好" |
+| 执行方式 | 自动化、确定性 | 需要评判（人工或 LLM） |
+| 频率 | 每次提交运行 | 每次发布/每日运行 |
+| 典型工具 | pytest、GitHub Actions | Braintrust、LangSmith |
+| 失败意味着 | 代码 bug | 设计或 Prompt 需要优化 |
+
+> **实战建议**：在课程三的桥梁项目中，你至少应该写 5 条单元测试（工具校验）+ 3 条组件测试（Prompt 回归）+ 2 条集成测试（故障注入）。这会让你在进入课程五时，对 Agent 的可靠性有一个量化的基线。
+
+---
+
 ### 3.4 LLM-as-Judge
 
 #### 3.4.1 之前的痛点：人工评估太贵太慢
@@ -3262,6 +3350,48 @@ class DistributedAgentTracer:
 | **Observability** | 如何看清 Agent 内部发生了什么？ | Tracing + 可视化 + 回放 + 错误分类 |
 
 **动手里程碑提示**：学完本课程后，你应该有能力构建一个多步骤 Agent（规划→执行→反思→修正），配有精心管理的上下文窗口、记忆系统和可观测性。下一课程我们将进入产品化能力的学习。
+
+---
+
+## 补充专题：MCP 协议 —— 工具标准化的工程实践
+
+在课程三中，我们学习了工具调用的基础——用 JSON Schema 定义工具，让 LLM 选择并填充参数。但在真实工程中，一个关键问题浮现：**每个 Agent 框架对工具的定义格式不同，导致工具无法跨框架复用**。
+
+### 为什么需要工具标准化
+
+如果你开发了一个天气查询工具，想让 LangChain Agent、AutoGen Agent、以及你自己写的 ReAct Agent 都能使用它，在 MCP 出现之前你需要为每个框架写一个适配层。M 个工具 × N 个框架 = M×N 个适配器——这是生态碎片化的根本原因。
+
+### MCP 解决了什么
+
+2024 年 11 月，Anthropic 发布了 **Model Context Protocol (MCP)**。它的核心思想类比于 USB：USB 出现前，键盘、鼠标、打印机各有各的接口；USB 出现后，一个接口连接所有外设。MCP 试图成为 Agent 工具生态的"USB 接口"。
+
+MCP 定义了三种能力：
+- **Tools（工具）**：Agent 可执行的操作（类似 Function Calling，但跨模型/框架统一）
+- **Resources（资源）**：Agent 可读取的数据（只读，URI 标识）
+- **Prompts（提示词模板）**：工具提供者内置的领域专业知识
+
+通信采用 JSON-RPC 2.0，支持三种传输方式：
+- **stdio**：本地进程通信，零网络配置
+- **SSE/Streamable HTTP**：远程部署，支持流式响应
+
+### 对课程四架构设计的启示
+
+MCP 的出现影响了 Agent 架构中的工具管理层设计：
+
+```
+传统架构：Agent → 工具适配层 → 工具A/工具B/工具C（每个工具格式不同）
+MCP 架构：Agent → MCP Client → [JSON-RPC] → MCP Server → 工具A/B/C（统一格式）
+```
+
+这意味着在 Harness 的管理层（Management Layer）中，工具注册不再直接绑定具体实现，而是通过 MCP Client 发现和调用。工具的"热插拔"成为可能——Agent 可以在运行时发现新的 MCP Server，获取其能力列表，并在需要时调用。
+
+### 你应该做什么
+
+1. **了解 MCP 的核心概念**（Tools/Resources/Prompts 的语义区别）
+2. **为你的 Agent 项目接入至少 1 个 MCP Server**（如文件系统 Server、GitHub Server）
+3. **比较 MCP 工具调用和原生 JSON Schema 工具调用的差异**——MCP 的额外开销（进程通信、协议解析）是否值得其带来的标准化收益？
+
+> **深入阅读**：课程七第一课有 MCP 协议的完整讲解（协议架构、安全模型、与 A2A 的分工）。这里建立基本概念即可，课间可选择性深入。
 
 ---
 
