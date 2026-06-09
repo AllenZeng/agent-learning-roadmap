@@ -6,7 +6,7 @@
 
 ## 阶段概览
 
-> ⚠️ **重要定位说明**：阶段五是"跟进生态"，不是"主线必修"。本阶段的 MCP、A2A、Computer Use、Multi-Agent、Code Agent、RL for Agent 都是重要方向，但在你完成阶段三到阶段五的主线（Tool Use → Orchestration → Memory → Evaluation → Guardrails → 产品化）之前，不建议在这上面投入过多时间。本阶段的学习节奏是"了解 + 尝试 + 定期回顾"，而非"深度掌握"。建议每周花 2-4 小时浏览本阶段的更新内容，保持对前沿的敏感度，但主线精力仍放在前三阶段的实践上。
+> ⚠️ **重要定位说明**：阶段五是"跟进生态"，不是"主线必修"。本阶段的 MCP、A2A、Computer Use、Multi-Agent、Code Agent、RL for Agent 都是重要方向，但在你完成阶段三到阶段五的主线（Tool Use → Orchestration → Memory → Evaluation → Guardrails → 产品化）之前，不建议在这上面投入过多时间。本阶段的学习节奏是"了解 + 尝试 + 定期回顾"，而非"深度掌握"。建议定期浏览本阶段的更新内容，保持对前沿的敏感度，但主线精力仍放在前三阶段的实践上。
 
 ### 🎯 学习目标
 
