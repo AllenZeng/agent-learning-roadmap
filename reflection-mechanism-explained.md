@@ -161,4 +161,4 @@ Reflection 是蓝框（评价）和绿框（决策）构成的外部循环。
 
 ---
 
-> 本文是对阶段二中 Reflection 范式的深入补充，建议在学习 `course-02-evolution.md` 的 Reflection 小节时配合阅读。
+> 本文是对课程二中 Reflection 范式的深入补充，建议在学习 `course-02-evolution.md` 的 Reflection 小节时配合阅读。
