@@ -28,19 +28,18 @@
 
 ## 目录
 
-- [第一课：LLM 原理 —— Agent 的大脑](#第一课llm-原理--agent-的大脑)
-- [第二课：Tool Use —— 让 Agent 能够行动](#第二课tool-use--让-agent-能够行动)
-- [第三课：RAG —— 给 Agent 接入外部知识](#第三课rag--给-agent-接入外部知识)
-- [第四课：Prompt Engineering —— 让 Agent 输出可控](#第四课prompt-engineering--让-agent-输出可控)
-- [第五课：Memory —— 让 Agent 不再转瞬即忘](#第五课memory--让-agent-不再转瞬即忘)
+- [第一章：LLM 原理 —— Agent 的大脑](#第一章llm-原理--agent-的大脑)
+- [第二章：Tool Use —— 让 Agent 能够行动](#第二章tool-use--让-agent-能够行动)
+- [第三章：RAG —— 给 Agent 接入外部知识](#第三章rag--给-agent-接入外部知识)
+- [第四章：Prompt Engineering —— 让 Agent 输出可控](#第四章prompt-engineering--让-agent-输出可控)
+- [第五章：Memory —— 让 Agent 不再转瞬即忘](#第五章memory--让-agent-不再转瞬即忘)
+- [第六章：ReAct —— 将五大模块串联为决策循环](#第六章react--将五大模块串联为决策循环)
 - [总结：五大核心模块构成 Agent](#总结五大核心模块构成-agent)
-- [练习任务](#练习任务)
-- [验收标准](#验收标准)
-- [第六课：桥梁项目 —— 文件整理 Agent](#第六课桥梁项目--文件整理-agent)
+- [附加实践：桥梁项目 —— 文件整理 Agent](#附加实践桥梁项目--文件整理-agent)
 
 ---
 
-## 第一课：LLM 原理 —— Agent 的大脑
+## 第一章：LLM 原理 —— Agent 的大脑
 
 如果把Agent比作一个人，那么LLM就是它的大脑。大脑能不能思考清楚、能不能记住足够多的上下文、能不能稳定地做决策，直接决定了这个Agent的上限。在动手搭建Agent之前，我们必须先理解这个"大脑"的运作机制。
 
@@ -547,7 +546,7 @@ def sample_next_token(logits, temperature=0.7, top_p=0.9, top_k=50):
 
 ---
 
-## 第二课：Tool Use —— 让 Agent 能够行动
+## 第二章：Tool Use —— 让 Agent 能够行动
 
 ### 2.1 从文本生成到工具调用
 
@@ -711,311 +710,11 @@ LLM (2022): "等于4" (可能算错——LLM本质是语言模型，不是计算
 
 ---
 
-### 2.2 ReAct模式详解
-
-#### 2.2.1 论文背景
-
-2022年，Google Brain团队的Yao等人发表了论文《ReAct: Synergizing Reasoning and Acting in Language Models》。这篇论文在Agent研究领域的地位，怎么强调都不为过——它奠定了几乎全部现代Agent架构的基础模式。
-
-#### 2.2.2 之前的方法：两种极端
-
-在ReAct之前，人们让LLM做复杂任务的方式大致分成两派：
-
-**Reasoning-only派（以Chain-of-Thought为代表）**：
-```
-问: 除了苹果之外，小明有多少个水果？他有3个苹果、5个橙子。
-CoT: "苹果不算在'除了苹果之外'里，所以只看橙子。小明有5个橙子。答案是5。"
-
-问题：如果LLM不知道小明的水果数量（这是用户刚说的），它无法验证。
-      CoT只能基于已有知识推理，无法获取新信息。还容易产生幻觉。
-```
-
-**Acting-only派（以早期的Tool-augmented LM为代表）**：
-```
-问: 旧金山金门大桥有多长？
-Acting: → 搜索"金门大桥 长度" → 得到搜索结果 → 输出长度
-
-问题：如果搜索结果包含矛盾信息（不同来源给出不同长度），
-      Acting-only无法进行推理和判断，只能机械地复述搜索结果。
-```
-
-**核心矛盾**：推理需要封闭世界的逻辑一致性，行动需要开放世界的信息获取。ReAct之前，没人把这两者统一起来。
-
-#### 2.2.3 ReAct的核心思想
-
-ReAct的核心是一个循环：**Thought → Action → Observation → Thought → ...**
-
-```
-┌──────────────────────────────────────────────┐
-│                 ReAct Loop                     │
-│                                                │
-│   ┌──────────┐     ┌──────────┐               │
-│   │ Thought  │────>│  Action  │               │
-│   │ (思考)   │     │ (行动)   │               │
-│   └──────────┘     └────┬─────┘               │
-│         ^                │                     │
-│         │                v                     │
-│         │          ┌──────────┐               │
-│         │          │   Tool   │ (外部世界)     │
-│         │          └────┬─────┘               │
-│         │                │                     │
-│         └───────┐        v                     │
-│              ┌──────────────┐                  │
-│              │ Observation  │                  │
-│              │  (观察结果)  │                  │
-│              └──────────────┘                  │
-└──────────────────────────────────────────────┘
-
-循环终止条件：Thought判断任务已完成 → 输出Final Answer
-```
-
-每一步都在做"思考-行动-观察"的三拍子：**思考指导行动，行动结果反馈给思考。** 这不就是人类解决问题的基本模式吗？
-
-#### 2.2.4 完整代码示例：实现一个ReAct Agent
-
-下面是一个简化的ReAct Agent实现，帮助你理解每个环节：
-
-```python
-import re
-import json
-from typing import List, Dict, Any, Callable
-
-class ReActAgent:
-    """一个简化的ReAct Agent实现"""
-
-    def __init__(self, llm_call: Callable, tools: Dict[str, Callable]):
-        """
-        Args:
-            llm_call: 调用LLM的函数，接受prompt字符串，返回响应字符串
-            tools: 工具字典，key为工具名，value为可调用的工具函数
-        """
-        self.llm_call = llm_call
-        self.tools = tools
-        self.max_steps = 10  # 防止无限循环
-
-    def _build_system_prompt(self) -> str:
-        """构建包含ReAct指令和工具描述的System Prompt"""
-        tool_descriptions = []
-        for name, func in self.tools.items():
-            # 从函数的docstring中读取工具描述
-            doc = func.__doc__ or "无描述"
-            tool_descriptions.append(f"- {name}: {doc.strip()}")
-
-        return f"""你是一个能使用工具的智能Agent。请按照ReAct模式解决问题。
-
-## 可用工具
-{chr(10).join(tool_descriptions)}
-
-## 回答格式
-你必须严格按照以下格式输出。每次只能输出一个Thought/Action/Observation/Final Answer块。
-
-Thought: [你对当前情况的推理和分析]
-Action: [工具名称]([参数JSON])
-Observation: [工具返回的结果]
-
-... (重复Thought/Action/Observation直到问题解决)
-
-Thought: [最终推理，确认任务完成]
-Final Answer: [最终回答]
-
-## 规则
-1. 每次只能调用一个工具
-2. 必须等待Observation后才能继续
-3. 工具参数必须使用合法的JSON格式
-4. 如果工具调用失败，在Thought中分析原因并尝试修正
-"""
-
-    def _parse_action(self, text: str) -> tuple:
-        """从LLM输出中解析Action"""
-        match = re.search(r'Action:\s*(\w+)\((.*?)\)', text, re.DOTALL)
-        if not match:
-            return None, None
-        tool_name = match.group(1)
-        try:
-            args = json.loads(match.group(2))
-        except json.JSONDecodeError:
-            args = {}
-        return tool_name, args
-
-    def run(self, user_query: str) -> str:
-        """执行ReAct循环"""
-        # 初始化对话历史
-        conversation = self._build_system_prompt()
-        conversation += f"\n\n## 用户问题\n{user_query}\n\n"
-
-        for step in range(self.max_steps):
-            print(f"\n{'='*50}")
-            print(f"Step {step + 1}")
-            print(f"{'='*50}")
-
-            # 调用LLM获取下一步的Thought和Action
-            response = self.llm_call(conversation)
-            conversation += response + "\n"
-            print(f"LLM输出:\n{response}")
-
-            # 检查是否是最终回答
-            if "Final Answer:" in response:
-                final = response.split("Final Answer:")[-1].strip()
-                print(f"\n🎯 任务完成: {final}")
-                return final
-
-            # 解析Action
-            tool_name, args = self._parse_action(response)
-            if tool_name is None:
-                # LLM没有输出有效的Action，提示它继续
-                conversation += "Observation: 没有检测到有效的工具调用，请使用Action: tool_name({...})格式\n"
-                continue
-
-            # 执行工具
-            if tool_name not in self.tools:
-                observation = f"错误：工具'{tool_name}'不存在。可用工具：{list(self.tools.keys())}"
-            else:
-                try:
-                    result = self.tools[tool_name](**args)
-                    observation = str(result)
-                except Exception as e:
-                    observation = f"工具调用失败：{str(e)}"
-
-            # 将观察结果追加到对话历史
-            conversation += f"Observation: {observation}\n"
-            print(f"Observation: {observation}")
-
-        return "达到最大步数限制，任务未能完成。"
-
-
-# ============================================
-# 使用示例
-# ============================================
-
-def search_database(query: str) -> str:
-    """在内部数据库中搜索信息。参数query为搜索关键词。"""
-    # 模拟数据库
-    database = {
-        "北京天气": "北京今日晴，温度18-26°C，湿度45%，风力3级",
-        "上海天气": "上海今日多云转阴，温度22-28°C，湿度70%，风力2级",
-        "北京到上海": "北京到上海高铁约4.5小时，二等座553元",
-    }
-    return database.get(query, f"未找到关于'{query}'的信息")
-
-def calculate(expression: str) -> str:
-    """计算数学表达式。参数expression为数学表达式字符串，如'1+2*3'。"""
-    try:
-        result = eval(expression)  # 生产环境请用更安全的方式
-        return str(result)
-    except Exception as e:
-        return f"计算错误: {e}"
-
-# 模拟LLM调用（实际使用时替换为真实的API调用）
-def mock_llm(prompt: str) -> str:
-    """模拟LLM的ReAct推理"""
-    if "北京" in prompt and "上海" in prompt and "天气" in prompt:
-        return """Thought: 用户想比较北京和上海的天气，我需要分别查询两个城市的天气信息。
-Action: search_database({"query": "北京天气"})"""
-    elif "北京天气" in prompt:
-        return """Thought: 获取到了北京的天气信息，接下来需要查询上海的天气。
-Action: search_database({"query": "上海天气"})"""
-    elif "上海天气" in prompt:
-        return """Thought: 现在已经获取了北京和上海的天气信息。北京晴，18-26°C；上海多云转阴，22-28°C。我可以总结比较结果了。
-Final Answer: 北京今日晴，温度18-26°C，较为舒适；上海今日多云转阴，温度22-28°C，湿度较高（70%）。相比之下，北京天气更好，适合户外活动。"""
-    return "Thought: 不清楚下一步该做什么。\nFinal Answer: 抱歉，我无法完成这个任务。"
-
-# 运行Agent
-agent = ReActAgent(
-    llm_call=mock_llm,
-    tools={"search_database": search_database, "calculate": calculate}
-)
-
-# result = agent.run("比较一下北京和上海今天的天气")
-```
-
-**执行流程可视化**：
-
-```
-Step 1:
-  Thought: 用户想比较北京和上海的天气，需要分别查询
-  Action: search_database({"query": "北京天气"})
-  Observation: 北京今日晴，温度18-26°C，湿度45%
-
-Step 2:
-  Thought: 获取到了北京的天气，接下来查上海
-  Action: search_database({"query": "上海天气"})
-  Observation: 上海今日多云转阴，温度22-28°C，湿度70%
-
-Step 3:
-  Thought: 两城市天气都已获取，可以比较了
-  Final Answer: 北京晴18-26°C，上海多云22-28°C...
-```
-
-#### 2.2.5 ReAct的局限性
-
-ReAct虽然优雅，但在实践中会遇到几个问题：
-
-**1. Token消耗大。** 每一步的Thought/Action/Observation都在消耗上下文窗口。一个复杂任务可能经过10+轮循环，上下文很满时可能触发截断。
-
-**2. 容易死循环。** 如果工具返回的结果让LLM困惑，它可能反复调用同一个工具，陷入循环。常见模式：调用工具A → 结果不满意 → 调用工具B → 结果也不满意 → 回到工具A...
-
-```python
-# 防护措施：检测重复的工具调用
-def _detect_loop(self, history: List[str], threshold: int = 3) -> bool:
-    """检测是否陷入了工具调用的死循环"""
-    recent_actions = []
-    for msg in history[-10:]:  # 只看最近10轮
-        match = re.search(r'Action:\s*(\w+)\((.*?)\)', msg)
-        if match:
-            recent_actions.append((match.group(1), match.group(2)))
-
-    if len(recent_actions) >= threshold:
-        # 检查最近threshold个action是否完全相同
-        last_n = recent_actions[-threshold:]
-        if len(set(last_n)) == 1:
-            return True
-    return False
-```
-
-**3. 缺乏高层次规划。** ReAct在每一步只考虑"下一步做什么"，缺乏对整体任务的结构化分解。对于复杂任务，可能走了一条很绕的路才到达终点，甚至走错方向。后来的Plan-and-Solve、Tree-of-Thoughts等方法试图解决这个问题。
-
-**4. 无法撤销。** 如果第3步的工具调用产生了错误的结果，ReAct很难"回退"到第2步重新选择路径。这是线性推理链的固有局限。
-
-#### 2.2.6 你刚刚写的这个循环，就是最简Harness
-
-回顾上面的 `ReActAgent` 代码，把业务逻辑（LLM推理、工具执行）剥离后，剩下的骨架是什么？
-
-```python
-class ReActAgent:
-    def run(self, user_query):
-        for step in range(self.max_steps):     # ← 循环控制
-            response = self.llm_call(...)       # ← 调用推理引擎
-            if "Final Answer" in response:      # ← 停止条件判断
-                return ...
-            tool_name, args = self._parse(...)  # ← 解析动作
-            observation = self.tools[tool_name](...)# ← 执行工具
-            conversation += observation          # ← 管理上下文
-```
-
-这个骨架就是 **Agent Harness（运行时引擎）**——它是Agent的"操作系统层"，负责驱动整个循环但不参与具体的推理或工具执行。
-
-Harness不是一个框架特有的概念，而是所有Agent系统的通用抽象。你在课程三的ReAct Agent中写的那个 `while/for` 循环就是最简Harness；LangGraph的 `StateGraph` 是更强大的Harness；Claude Code的内部循环也是Harness。**不同框架的本质差异，很大程度上就是Harness设计的差异。**
-
-Harness的核心职责是三层：
-
-| 层次 | 职责 | 对应代码 |
-|------|------|---------|
-| **驱动层** | 启动循环、管理步骤迭代、调用LLM | `for step in range(max_steps)` |
-| **控制层** | 停止条件、超时、错误恢复、循环检测 | `if "Final Answer" in response` |
-| **管理层** | 上下文窗口管理、工具注册、记忆注入 | `conversation += observation` |
-
-一个经常被问到的问题：**Harness和Orchestration（编排）有什么区别？**
-
-> - **Orchestration** 决定"怎么走"——是链式的还是图式的、是Plan-then-Execute还是ReAct Loop。它关注的是**流程模式**。
-> - **Harness** 负责"走路"——无论你选择了什么流程模式，Harness都以一致的方式驱动每一步、管理状态、处理异常。它关注的是**运行时执行**。
->
-> 类比：Orchestration是你的驾驶路线规划（走高速还是走国道），Harness是你的汽车引擎（不管什么路线，引擎都负责让车动起来）。
-
-`course-04-architecture.md` 的第一课会在Orchestration之前，先系统性讲解Harness的架构设计。从课程三起，你将不再使用"裸循环"，而是有意识地设计Harness的每一层。
+> **Tool Use 与 ReAct**：工具调用的能力需要通过 ReAct 循环来驱动——LLM 在循环中思考、选择工具、观察结果。完整的 ReAct 实现请见[ReAct：将五大模块串联为决策循环](#react将五大模块串联为决策循环)一章。
 
 ---
 
-## 第三课：RAG —— 给 Agent 接入外部知识
+## 第三章：RAG —— 给 Agent 接入外部知识
 
 ### 3.1 RAG的演进历史
 
@@ -1484,7 +1183,7 @@ Agent 需要从多种来源获取知识：
 
 ---
 
-## 第四课：Prompt Engineering —— 让 Agent 输出可控
+## 第四章：Prompt Engineering —— 让 Agent 输出可控
 
 ### 4.1 System Prompt设计
 
@@ -1939,7 +1638,7 @@ Instructor的设计哲学是：**用Pydantic作为Schema定义语言，利用其
 
 ---
 
-## 第五课：Memory —— 让 Agent 不再转瞬即忘
+## 第五章：Memory —— 让 Agent 不再转瞬即忘
 
 ### 5.1 Memory 基础
 
@@ -2176,6 +1875,452 @@ class SimpleMemory:
 
 ---
 
+## 第六章：ReAct —— 将五大模块串联为决策循环
+
+前五课逐一拆解了 Agent 的五大核心模块：LLM 是大脑，Tool Use 是手，RAG 是外部知识库，Memory 是经验积累，Prompt Engineering 是行为规范。但你可能已经注意到一个问题：**这些模块各自独立，谁来协调它们？**
+
+答案是 ReAct。
+
+ReAct（Reasoning + Acting）由 Yao 等人在 2022 年 10 月提出，核心思想简洁而深刻：**让 LLM 在"推理"和"行动"之间交替循环**——推理（Thought）决定下一步做什么，行动（Action）去执行，观察（Observation）执行结果，再基于结果继续推理。这个循环将五大核心模块串联为一个有机整体。
+
+### 为什么 ReAct 是 Agent 的"心脏"
+
+看一个具体例子来感受 ReAct 与其他模式的区别：
+
+```
+用户问题: "2024年诺贝尔物理学奖得主的主要贡献是什么？"
+
+纯 LLM（无 ReAct）:
+  → 凭训练记忆直接回答（可能正确，可能过时，可能幻觉）
+
+LLM + 单次工具调用:
+  → 搜索一次 → 拿到结果 → 回答（如果第一次搜索结果不完整，无法补救）
+
+ReAct Agent:
+  Thought: 用户问的是2024年诺贝尔物理学奖，我需要查最新的信息
+  Action: search("2024 Nobel Prize Physics winner")
+  Observation: 搜索结果显示John Hopfield和Geoffrey Hinton获奖
+  Thought: 找到了得主，但用户问的是"主要贡献"，我需要更详细的信息
+  Action: search("John Hopfield contribution Nobel Prize 2024")
+  Observation: Hopfield因"Hopfield网络"获奖，这是一种...
+  Thought: 还需要查Hinton的贡献
+  Action: search("Geoffrey Hinton contribution Nobel Prize 2024")
+  Observation: Hinton因"玻尔兹曼机"和深度学习基础工作获奖
+  Thought: 信息齐全了，可以综合回答
+  Final Answer: 2024年诺贝尔物理学奖授予John Hopfield和Geoffrey Hinton...
+```
+
+ReAct 的关键在于：**每一步观察都可能改变下一步决策**。它不是在走预设流程，而是根据实际情况动态调整策略。
+
+### ReAct 循环的完整实现
+
+以下是 ReAct Agent 核心循环的完整实现，不依赖任何高级框架：
+
+```python
+import json
+import re
+from typing import Any
+
+class ReActAgent:
+    """ReAct Agent 核心实现。
+
+    五大模块在 ReAct 中的角色：
+    - LLM：_think() 中调用，负责理解当前状态并决定下一步
+    - Tool Use：_execute_action() 中调用具体工具，结果注入 Observation
+    - RAG：search_knowledge_base 工具在 Action 阶段检索外部知识
+    - Memory：conversation_history 保存会话轨迹，外部 memory 提供跨会话上下文
+    - Prompt Engineering：_build_system_prompt() 构建行为规范、工具描述和输出格式
+    """
+
+    def __init__(self, llm_client, tools: dict, system_prompt: str = "",
+                 max_steps: int = 10, memory=None):
+        self.llm = llm_client
+        self.tools = tools              # {"tool_name": callable}
+        self.tools_schema = self._build_tools_schema(tools)
+        self.system_prompt = system_prompt
+        self.max_steps = max_steps      # 防止死循环
+        self.memory = memory            # 可选的跨会话记忆（Memory 模块）
+        self.conversation_history: list[dict] = []
+
+    # ── 工具 Schema 构建（Tool Use 模块的工程化） ──
+
+    def _build_tools_schema(self, tools: dict) -> str:
+        """将工具字典格式化为 LLM 可理解的描述。
+
+        每个工具必须有 __name__ 和 __doc__，docstring 中需包含参数说明。
+        例如：
+            def search(query: str) -> str:
+                '''搜索互联网获取实时信息。
+                Args:
+                    query: 搜索关键词，支持中英文。'''
+        """
+        lines = []
+        for name, func in tools.items():
+            lines.append(f"- {name}: {func.__doc__ or '(无描述)'}")
+        return "\n".join(lines)
+
+    # ── System Prompt 构建（Prompt Engineering 模块的核心） ──
+
+    def _build_system_prompt(self) -> str:
+        """构建完整的 System Prompt——融合角色、工具、记忆和行为规范。"""
+        prompt_parts = []
+
+        # 1. 角色和基础行为规范
+        if self.system_prompt:
+            prompt_parts.append(self.system_prompt)
+
+        # 2. 工作流程说明（CoT 引导）
+        prompt_parts.append("""
+## 工作方式
+
+你通过以下循环来完成任务：
+
+1. **Thought**：分析当前状态，决定下一步做什么。思考时考虑：
+   - 用户的核心需求是什么？
+   - 目前已经获得了哪些信息？还缺什么？
+   - 如果上一步失败了，原因是什么？换个什么方法？
+2. **Action**：执行具体操作。格式为：
+   Action: tool_name
+   Action Input: {"param1": "value1", "param2": "value2"}
+3. **Observation**：观察工具返回的结果，回到第 1 步。
+4. 当任务完成时，输出：Final Answer: [你的最终回答]
+   
+
+## 重要规则
+
+- 每次只执行一个 Action
+- 对危险操作（删除、修改文件、发邮件），先描述你要做什么，不要直接执行
+- 如果连续 3 次工具调用返回错误，停止重试并报告原因
+- 不要编造工具返回结果中没有的信息
+""")
+
+        # 3. 工具列表
+        prompt_parts.append("## 可用工具\n")
+        prompt_parts.append(self.tools_schema)
+
+        # 4. 跨会话记忆注入（Memory 模块）
+        if self.memory:
+            memory_context = self.memory.generate_memory_prompt()
+            if memory_context:
+                prompt_parts.append(f"\n{memory_context}")
+
+        return "\n".join(prompt_parts)
+
+    # ── 主循环 ──
+
+    def run(self, user_input: str) -> str:
+        """执行 ReAct 循环，直到任务完成或达到最大步数。
+
+        循环结构：
+            Thought → Action → Observation → Thought → Action → ... → Final Answer
+
+        每次循环都是一个完整的"推理-行动-观察"三元组。
+        """
+        # 初始化：用户输入作为第一条消息
+        self.conversation_history = [
+            {"role": "system", "content": self._build_system_prompt()},
+            {"role": "user",   "content": user_input}
+        ]
+
+        step = 0
+        action_history = []  # 用于检测重复 Action（循环检测）
+
+        while step < self.max_steps:
+            step += 1
+            print(f"\n{'='*60}")
+            print(f"Step {step}/{self.max_steps}")
+            print(f"{'='*60}")
+
+            # ── Phase 1: Thought（推理） ──
+            # LLM 分析当前状态，输出 Thought + Action 或 Final Answer
+            response = self._think()
+
+            # ── Phase 2: 解析 LLM 输出 ──
+            # 检查是否为 Final Answer
+            final_answer = self._parse_final_answer(response)
+            if final_answer:
+                print(f"\n✅ 任务完成")
+                return final_answer
+
+            # 解析 Action
+            action_name, action_input = self._parse_action(response)
+            if not action_name:
+                # LLM 没有输出有效的 Action，尝试恢复
+                print("⚠️  未能解析出有效的 Action，让 LLM 重新思考...")
+                self.conversation_history.append({
+                    "role": "user",
+                    "content": "你的上一条回复中没有有效的 Action。请按格式输出 Action: tool_name 和 Action Input。"
+                })
+                continue
+
+            # ── Phase 2.5: 循环检测 ──
+            action_key = f"{action_name}:{json.dumps(action_input, sort_keys=True)}"
+            if action_key in action_history[-3:]:  # 最近3步内重复
+                print(f"⚠️  检测到重复 Action: {action_key}")
+                self.conversation_history.append({
+                    "role": "user",
+                    "content": (
+                        f"你刚才重复了相同的 Action ({action_name})。"
+                        f"这可能是死循环。请检查："
+                        f"1. 这个 Action 的返回结果是否和上次一样？"
+                        f"2. 是否需要换一种方法？"
+                        f"3. 是否已经有足够信息回答用户了？"
+                    )
+                })
+                continue
+            action_history.append(action_key)
+
+            # ── Phase 3: Action（执行） ──
+            print(f"\n🔧 Action: {action_name}")
+            print(f"📥 Input:  {json.dumps(action_input, ensure_ascii=False)}")
+
+            observation = self._execute_action(action_name, action_input)
+            print(f"📤 Output: {str(observation)[:300]}")
+
+            # ── Phase 4: Observation（观察结果注入上下文） ──
+            # 将 Thought+Action 和 Observation 追加到对话历史
+            self.conversation_history.append({
+                "role": "assistant",
+                "content": response
+            })
+            self.conversation_history.append({
+                "role": "user",
+                "content": f"Observation: {observation}"
+            })
+
+        # 达到最大步数仍未完成
+        return (
+            f"任务未能在 {self.max_steps} 步内完成。"
+            f"最后的状态：{self.conversation_history[-1]['content'][:500]}"
+        )
+
+    # ── LLM 推理（LLM 模块的核心调用） ──
+
+    def _think(self) -> str:
+        """调用 LLM 进行推理。
+
+        Temperature 选择：推理阶段使用 0.3-0.5，在逻辑严谨和灵活性之间平衡。
+        工具选择阶段实际需要更低 temperature，但单次调用无法分开控制，
+        这是课程四 Harness 要解决的问题之一。
+        """
+        try:
+            response = self.llm.chat.completions.create(
+                model="gpt-4",
+                messages=self.conversation_history,
+                temperature=0.3,
+                max_tokens=2000
+            )
+            content = response.choices[0].message.content
+            print(f"\n💭 Thought:\n{content[:500]}")
+            return content
+        except Exception as e:
+            print(f"❌ LLM 调用失败: {e}")
+            return f"LLM 调用出错: {e}"
+
+    # ── Action 解析 ──
+
+    def _parse_action(self, response: str) -> tuple[str | None, dict | None]:
+        """从 LLM 输出中解析 Action 和参数。
+
+        支持两种格式：
+        1. Action: tool_name\nAction Input: {"key": "value"}
+        2. ```json\n{"action": "tool_name", "action_input": {...}}\n```
+        """
+        # 格式 1：标准 ReAct 格式
+        action_match = re.search(r'Action:\s*(\S+)', response)
+        input_match = re.search(r'Action Input:\s*(\{.*?\})', response, re.DOTALL)
+
+        if action_match and input_match:
+            action_name = action_match.group(1).strip()
+            try:
+                action_input = json.loads(input_match.group(1))
+                return action_name, action_input
+            except json.JSONDecodeError:
+                print(f"⚠️  Action Input 不是合法 JSON: {input_match.group(1)[:200]}")
+                return action_name, None
+
+        # 格式 2：JSON 块
+        json_match = re.search(r'```json\s*(.*?)\s*```', response, re.DOTALL)
+        if json_match:
+            try:
+                data = json.loads(json_match.group(1))
+                return data.get("action"), data.get("action_input", {})
+            except json.JSONDecodeError:
+                pass
+
+        return None, None
+
+    def _parse_final_answer(self, response: str) -> str | None:
+        """检查 LLM 是否输出了 Final Answer。"""
+        match = re.search(r'Final Answer:\s*(.*)', response, re.DOTALL)
+        if match:
+            return match.group(1).strip()
+        return None
+
+    # ── 工具执行（Tool Use 模块的运行时） ──
+
+    def _execute_action(self, action_name: str, action_input: dict) -> str:
+        """执行工具调用并返回 Observation。
+
+        工具执行是 Agent 与外部世界交互的唯一通道。
+        所有 RAG 检索、Memory 读写、API 调用都通过这一层完成。
+        """
+        if action_name not in self.tools:
+            available = ", ".join(self.tools.keys())
+            return f"错误：没有名为 '{action_name}' 的工具。可用工具：{available}"
+
+        try:
+            result = self.tools[action_name](**action_input)
+            return str(result)
+        except TypeError as e:
+            return f"参数错误：{e}。请检查 Action Input 的字段是否与工具定义一致。"
+        except Exception as e:
+            return f"工具执行出错：{e}"
+```
+
+### 执行流程可视化
+
+```
+用户输入："帮我查一下最新AI新闻，整理成中文简报"
+    │
+    v
+┌─────────────────────────────────────────────────────────────┐
+│ ReAct 循环                                                    │
+│                                                              │
+│  ┌──────────────────────────────────────────────────────┐    │
+│  │ Step 1                                                │    │
+│  │   💭 Thought: 需要搜索最新AI新闻，先用英文搜覆盖面更广  │    │
+│  │   🔧 Action: search("latest AI news 2026")            │    │
+│  │   📤 Observation: [10条新闻标题和摘要]                  │    │
+│  └──────────────────────────────────────────────────────┘    │
+│       │                                                       │
+│       v                                                       │
+│  ┌──────────────────────────────────────────────────────┐    │
+│  │ Step 2                                                │    │
+│  │   💭 Thought: 结果偏技术，补充搜索中文来源              │    │
+│  │   🔧 Action: search("AI 人工智能 最新动态 2026")       │    │
+│  │   📤 Observation: [8条中文新闻]                        │    │
+│  └──────────────────────────────────────────────────────┘    │
+│       │                                                       │
+│       v                                                       │
+│  ┌──────────────────────────────────────────────────────┐    │
+│  │ Step 3                                                │    │
+│  │   💭 Thought: 信息足够，可以整理为分类简报              │    │
+│  │   📝 Final Answer: # 2026年6月 AI 新闻简报...          │    │
+│  └──────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 五大模块在 ReAct 中的角色一览
+
+```
+                     ┌──────────────────────┐
+                     │  Prompt Engineering   │
+                     │  _build_system_prompt │
+                     │  角色·规则·工具描述   │
+                     └──────────┬───────────┘
+                                │ 注入 System Prompt
+                                v
+    ┌──────────┐     ┌──────────────────┐     ┌──────────┐
+    │  Memory  │────>│  conversation_    │<────│   RAG    │
+    │  跨会话   │注入 │  history          │ 注入│ 知识检索  │
+    │  记忆    │     │  (上下文窗口)      │     │  结果    │
+    └──────────┘     └────────┬─────────┘     └──────────┘
+                              │
+                              v
+                     ┌──────────────────┐
+                     │       LLM        │
+                     │   _think() 调用   │
+                     │   推理+决策       │
+                     └────────┬─────────┘
+                              │ 输出 Thought + Action
+                              v
+                     ┌──────────────────┐
+                     │    Tool Use      │
+                     │ _execute_action  │
+                     │ 执行工具·返回结果 │
+                     └────────┬─────────┘
+                              │ Observation
+                              v
+                     ┌──────────────────┐
+                     │  conversation_    │
+                     │  history.append   │──> 回到 LLM，下一轮思考
+                     └──────────────────┘
+```
+
+每个模块在循环中的具体职责：
+
+| 模块 | 在 ReAct 中的位置 | 具体职责 |
+|------|-----------------|---------|
+| **Prompt Engineering** | 循环启动前 | `_build_system_prompt()` 构建角色、规则、工具描述、CoT 引导 |
+| **Memory** | 循环启动前 + 每步追加 | 启动时注入跨会话记忆；每步将 Thought/Action/Observation 追加到 conversation_history |
+| **LLM** | 每步的 Thought 阶段 | `_think()` 分析当前状态，决定下一步行动 |
+| **Tool Use** | 每步的 Action 阶段 | `_execute_action()` 执行具体工具（搜索、读文件、调 API） |
+| **RAG** | Action 阶段的工具之一 | 作为 search/knowledge_base 工具被调用，结果以 Observation 形式注入 |
+
+### 循环检测：防止 Agent "鬼打墙"
+
+Agent 最常见的失败模式之一是死循环——LLM 反复执行相同的 Action 却期望不同的结果。在上面的实现中，`action_history` 记录了最近的操作签名，当检测到 3 步内重复相同的 Action 时，会主动提醒 LLM 检查是否陷入循环。
+
+更完整的循环检测策略（课程四 Orchestration 会深入）：
+
+```python
+class LoopDetector:
+    """检测并打破 Agent 循环。"""
+
+    def __init__(self, window_size: int = 5):
+        self.action_history: list[str] = []
+        self.window_size = window_size
+
+    def check(self, action_name: str, action_input: dict) -> str | None:
+        """检查当前 Action 是否构成循环。返回干预消息，None 表示正常。"""
+        key = f"{action_name}:{json.dumps(action_input, sort_keys=True)}"
+        self.action_history.append(key)
+
+        recent = self.action_history[-self.window_size:]
+
+        # 检测 1：严格重复（同一 Action 连续出现 3 次）
+        if len(recent) >= 3 and len(set(recent[-3:])) == 1:
+            return (
+                f"检测到死循环：Action '{action_name}' 已连续执行 3 次。"
+                f"请停止当前策略，考虑：结果是否每次相同？是否需要换一种方法？"
+                f"是否已经有足够信息来回答用户？"
+            )
+
+        # 检测 2：ABAB 模式（两个 Action 交替执行）
+        if len(recent) >= 4:
+            if recent[-4] == recent[-2] and recent[-3] == recent[-1]:
+                return (
+                    f"检测到交替循环：'{recent[-2]}' 和 '{recent[-1]}' 交替执行。"
+                    f"请检查这两个 Action 的返回结果，判断是否需要改变策略。"
+                )
+
+        # 检测 3：Observation 内容不变（不同 Action 但结果相同）
+        # 需要在上一层配合，比较 Observation 内容
+
+        return None  # 无循环
+```
+
+### ReAct 的局限性——以及课程四的答案
+
+完成上述实现后，你可能会注意到几个问题：
+
+1. **单层循环不够用**：复杂任务（如"写一个 Web 应用"）需要先规划子任务，每个子任务内部再有独立的 ReAct 循环。这需要**分层编排**（Orchestration）。
+
+2. **上下文窗口会不断膨胀**：每步的 Thought + Action + Observation 累积起来，长任务会撑爆上下文窗口。这需要**上下文工程**（Context Engineering）——课程四的核心主题。
+
+3. **无法知道 Agent 做得对不对**：Agent 完成了任务，但完成得好不好？有没有做多余的动作？这需要**评测体系**（Evaluation）。
+
+4. **遇到意外会很难调试**：Agent 多步执行后出错，回溯每一步发生了什么很痛苦。这需要**可观测性**（Observability）。
+
+这些问题不是 ReAct 的缺陷，而是单层 ReAct 循环的自然边界——它们正是课程四要系统解决的。
+
+---
+
+> **ReAct 小结**：ReAct 是五大核心模块的运行时引擎。Prompt Engineering 设定规则，Memory 保存上下文，LLM 负责推理，Tool Use 负责执行，RAG 作为工具之一提供外部知识——ReAct 循环让它们协同工作。你现在可以跑一个完整的 Agent 了。接下来要解决的问题是：如何让它更稳定、更容易调试、更可评估。
+
+---
+
 ## 总结：五大核心模块构成 Agent
 
 回顾这五课内容，每个核心模块都是围绕 LLM 的一个根本局限而发展出来的：
@@ -2230,10 +2375,6 @@ class SimpleMemory:
 
 ---
 
-> **下一课程预告：课程四——Agent 架构深入。** 我们将从 Context Engineering（上下文工程）出发，深入 Agent 的架构设计：Harness（运行时引擎）、Orchestration（编排调度）、Memory 架构深入（向量数据库 / MemGPT / 记忆衰减）、Evaluation（评测）、Guardrails（安全护栏）、Observability（可观测性）。有了本课程的理论基础，你会发现那些架构设计变得容易理解——它们本质上就是对 LLM + Tool Use + RAG + Memory + Prompt Engineering 的工程化封装与增强。
-
----
-
 ## 练习任务
 
 1. **ReAct Agent 实现**：实现一个 ReAct Agent 循环，不依赖 LangChain 等高级框架
@@ -2263,7 +2404,7 @@ class SimpleMemory:
 
 ---
 
-## 第六课：桥梁项目 —— 文件整理 Agent
+## 附加实践：桥梁项目 —— 文件整理 Agent
 
 ### 为什么需要这个桥梁项目？
 
@@ -2273,7 +2414,7 @@ class SimpleMemory:
 
 换句话说，**先踩坑，再学理论，理解会更深刻**。
 
-### 5.1 项目需求
+### 1 项目需求
 
 **功能描述**：给出一个目录路径，Agent 自动分析目录中的所有文件，按规则分类整理（如按文件类型、按日期、按项目等），并输出整理报告。
 
@@ -2283,7 +2424,7 @@ class SimpleMemory:
 3. 用户确认后，逐步执行整理操作
 4. 整理完成后输出总结报告
 
-### 5.2 实现步骤
+### 2 实现步骤
 
 **Step 1：定义工具集**
 
@@ -2348,7 +2489,7 @@ test_dirs/
 
 对每个测试目录，预先定义"理想整理结果"，用于后续评估。
 
-### 5.3 复盘模板
+### 3 复盘模板
 
 完成项目后，用以下模板写一份复盘报告（这是课程四的重要输入）：
 
@@ -2380,7 +2521,7 @@ test_dirs/
 - 你希望有一个什么样的评测框架来帮你迭代？
 ```
 
-### 5.4 桥梁项目 → 课程四的导航
+### 4 桥梁项目 → 课程四的导航
 
 完成复盘后，你会发现：
 
