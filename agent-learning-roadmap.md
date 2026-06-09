@@ -33,11 +33,11 @@
 
 ## 课程一：初识Agent
 
-**定位**：建立感性认知，不写代码。先"看见"Agent，建立直觉。
+**定位**：建立感性认知，先"看见"Agent，建立直觉。
 
 - **Agent 概念辨析**：理解 Agent vs Chatbot vs Workflow 的本质区别——Chatbot 只能"说"，Workflow 是固定流水线，Agent 是自己决定怎么做。核心定义公式：`Agent = LLM + Tool Use + 循环决策`
 - **为什么现在谈 Agent**：GPT-3.5/ChatGPT 让大众体验到了 LLM 的能力，但光"说"不够，需要"做"。Agent 是 LLM 能力从"对话"到"行动"的自然延伸
-- **体验主流产品**：亲手使用 Claude Code、Cursor、Devin/OpenHands、GPT-Researcher 等产品，带着问题去用——"它什么时候自己做决定？什么时候问我？什么时候做错了？"
+- **体验主流产品**：使用 Claude Code、Cursor、Devin/OpenHands、GPT-Researcher 等产品，带着问题去用——"它什么时候自己做决定？什么时候问我？什么时候做错了？"
 - **产品拆解模板**：用 9 维度观察框架（用户输入 / 规划时机 / 工具调用 / 用户确认 / 失败恢复 / 类型判断 / 惊喜与失望 / 改进建议）分析至少 3 款产品
 
 **动手里程碑**：用产品拆解模板完成 3 份分析报告，每份覆盖全部 9 个维度。
@@ -46,7 +46,7 @@
 
 ## 课程二：Agent 核心能力的演进
 
-**定位**：不写代码，但深入理解四大核心能力的来龙去脉。为课程三的动手做理论准备。
+**定位**：深入理解四大核心能力的来龙去脉。为课程三的动手做理论准备。
 
 - **Agent 概念的历史渊源**：从强化学习的 Agent（Bellman 1957 → DQN 2013 → AlphaGo 2016），到软件 Agent（BDI 模型），再到 Russell & Norvig 四种 Agent 类型。理解传统 Agent 的根本痛点：封闭规则空间，无法泛化
 - **LLM 带来的范式革命**：GPT-3 涌现能力（2020）→ ReAct（2022.10）首次将推理和行动融合为循环 → Toolformer（2023.2）让模型自监督学会用工具。关键转折：从"LLM 作为聊天机器人"到"LLM 作为自主决策核心"
@@ -61,7 +61,7 @@
 
 ## 课程三：Agent 底层核心
 
-**定位**：开始动手写代码。理解并实现支撑 Agent 的五大核心技术支柱。
+**定位**：理解并实现支撑 Agent 的五大核心技术支柱。
 
 | 支柱 | 核心内容 | 实践目标 |
 |------|---------|---------|
@@ -73,7 +73,7 @@
 
 **ReAct：五大支柱的联合运用**：实现 ReAct 循环（Thought → Action → Observation），停止条件设计，循环检测与防护。
 
-**动手里程碑**：从零写一个 ReAct Agent（Python/TypeScript），支持 3+ 个工具，具备跨会话记忆。10 条测试任务成功 >= 7 条，能按 tool selection / prompt / schema / 上下文管理 / memory 分类失败原因。
+**动手里程碑**：实现一个 ReAct Agent（Python/TypeScript），支持 3+ 个工具，具备跨会话记忆。10 条测试任务成功 >= 7 条，能按 tool selection / prompt / schema / 上下文管理 / memory 分类失败原因。
 
 ---
 

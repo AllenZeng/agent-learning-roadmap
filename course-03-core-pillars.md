@@ -1054,7 +1054,7 @@ Harness的核心职责是三层：
 >
 > 类比：Orchestration是你的驾驶路线规划（走高速还是走国道），Harness是你的汽车引擎（不管什么路线，引擎都负责让车动起来）。
 
-`course-04-architecture.md` 的第一课会在Orchestration之前，先系统性讲解Harness的架构设计。从课程三起，你将不再手写"裸循环"，而是有意识地设计Harness的每一层。
+`course-04-architecture.md` 的第一课会在Orchestration之前，先系统性讲解Harness的架构设计。从课程三起，你将不再使用"裸循环"，而是有意识地设计Harness的每一层。
 
 ---
 
