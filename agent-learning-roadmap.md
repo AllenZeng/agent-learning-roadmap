@@ -1,6 +1,34 @@
-# Agent 开发与产品知识体系 & 路线图
+# Agent 学习路线图
 
-一套从入门到精通的系统性学习路径，分为七个课程。
+## 课程基本介绍
+
+这是一套从"第一次接触 Agent"到"能设计、实现、评估并上线 Agent 产品"的系统性学习路径，共七个课程。
+
+**学什么**：Agent 不是单一模型能力，而是一套由 LLM、工具调用、知识检索、记忆系统、提示工程、运行时控制、上下文工程、编排调度、评测体系、安全护栏和可观测性共同组成的系统。七个课程从认知建立开始，逐层深入到架构设计、工程实践和产品落地，最后以持续跟进生态收尾。
+
+**怎么学**：每门课程都有明确的目标和动手里程碑——不只是"读过"，而是"做过"。先建立直觉、再理解范式、再深入核心、再进入架构、最后回归产品。
+
+**设计特点**：
+
+- **以学习路径组织知识，而非概念堆砌**：每个阶段回答"现在应该学什么、为什么现在学、学完能做什么"
+- **先拆零件，再讲组装**：课程三逐一拆解五大支柱（LLM / Tool Use / RAG / Memory / Prompt Engineering），课程四讲它们的工程化组装（Harness / Context Engineering / Orchestration / Memory 架构 / Evaluation / Guardrails / Observability）
+- **从技术走向产品**：课程五专门覆盖交互设计、可靠性、成本控制、安全合规、失败模式——解决"能跑"和"能上线"之间的鸿沟
+- **理论和动手并重**：每门课程都有验收标准，课程六用三个递进项目整合全部知识
+- **生态跟进独立成章**：MCP、A2A、Computer Use、Multi-Agent、RL 等快速变化的内容放在课程七，不干扰主线
+
+---
+
+## 目录
+
+- [课程一：初识Agent](#课程一初识agent)
+- [课程二：Agent 当前的演进](#课程二agent-当前的演进)
+- [课程三：Agent 底层核心](#课程三agent-底层核心)
+- [课程四：Agent 架构深入](#课程四agent-架构深入)
+- [课程五：Agent 走向生产环境](#课程五agent-走向生产环境)
+- [课程六：Agent 项目实战](#课程六agent-项目实战)
+- [课程七：Agent 最新发展趋势](#课程七agent-最新发展趋势)
+- [课程依赖关系](#课程依赖关系)
+- [推荐学习资源](#推荐学习资源)
 
 ---
 
@@ -28,9 +56,7 @@
 - **核心范式三：Reflection（反思）**：Self-Refine（2023）→ Reflexion（2023）。关键洞察：Reflection 不是模型架构的能力，而是系统设计的能力
 - **核心范式四：Multi-Agent（多智能体协作）**：AutoGen（2023）→ CrewAI（2024）→ 动态 Agent 团队。四种架构：层级式 / 对话式 / 辩论式 / 发布-订阅式
 
-- **代码阅读过渡：从理论到实践的桥梁**：阅读 smolagents 等轻量框架源码，带着 5 个问题去读——ReAct 循环在哪？Tool Use 怎么实现的？Planning 如何触发？Reflection 长什么样？停止条件是什么？推荐入口：`src/smolagents/agents.py` → `run()` 和 `_step()`
-
-**动手里程碑**：能用"之前有什么问题 → 提出者怎么想的 → 带来了什么变化"的框架讲清楚每个范式；能判断一篇 Agent 论文或产品公告属于哪个范式；能阅读开源 Agent 框架源码并画出核心执行流程。
+**动手里程碑**：能用"之前有什么问题 → 提出者怎么想的 → 带来了什么变化"的框架讲清楚每个范式；能判断一篇 Agent 论文或产品公告属于哪个范式。
 
 ---
 
@@ -40,9 +66,9 @@
 
 | 支柱 | 核心内容 | 实践目标 |
 |------|---------|---------|
-| **LLM 原理** | Transformer（Self-Attention / Multi-Head Attention）、Tokenization（BPE、对工具调用的影响）、Context Window（Lost in the Middle、注意力 O(n²)）、采样策略（Temperature / Top-p / Top-k）、多模态 LLM 对 Agent 的影响（视觉输入改变工具返回形态、Computer Use 范式） | 理解模型为什么会"不听话" |
+| **LLM 原理** | Transformer（Self-Attention / Multi-Head Attention）、Tokenization（BPE、对工具调用的影响）、Context Window（Lost in the Middle、注意力 O(n²)）、采样策略（Temperature / Top-p / Top-k） | 理解模型为什么会"不听话" |
 | **Tool Use** | JSON Schema 定义工具、工具描述的黄金法则、工具选择核心问题（时机 / 选择 / 参数） | 实现一个能调用 API/数据库的 Agent |
-| **RAG** | Embedding 与向量检索、Chunking 策略、混合检索 + Rerank、数据管线（多源接入 / 数据清洗与标准化 / 新鲜度管理 / 知识图谱互补） | 给 Agent 接入知识库，理解 RAG 不只是"检索+生成" |
+| **RAG** | Embedding 与向量检索、Chunking 策略、混合检索 + Rerank | 给 Agent 接入知识库 |
 | **Memory** | 短期记忆（滑动窗口 / 摘要压缩 / 重要性过滤）、长期记忆（跨会话持久化）、三层上下文架构（热数据 / 温数据 / 冷数据） | 让 Agent 不再"转瞬即忘" |
 | **Prompt Engineering** | System Prompt 设计、Few-shot Prompting、Chain-of-Thought、结构化输出 | 写出稳定可控的提示词 |
 
@@ -59,16 +85,14 @@
 | 主题 | 关键概念 | 推荐框架/工具 |
 |------|---------|------------|
 | **Harness（运行时引擎）** | 三层架构：驱动层 / 控制层 / 管理层；Harness vs Orchestration 的区别 | 主流框架的 Harness 设计对比 |
-| **Skill 与 Plugin** | Tool → Skill → Plugin 三层抽象关系；Skill 核心设计要素（声明式描述、触发条件、工具集、上下文注入、知识库、输出 Schema）；动态加载与路由；与 MCP 的关系 | Claude Code Skills、ChatGPT GPTs、MCP |
+| **Context Engineering** | 上下文窗口的工程化管理：信息密度优先、位置即优先级、分层管理、性价比思维；Prompt / RAG / Memory / Tool 结果如何在同一窗口里高效编排 | — |
 | **Orchestration** | 四种模式：Chain / Router / Plan-Execute / ReAct Loop / Graph | LangGraph、CrewAI、AutoGen |
 | **Memory 架构深入** | 向量数据库选型、MemGPT 虚拟内存思想、记忆衰减与更新策略、多 Agent 共享记忆 | Mem0、Letta |
 | **Evaluation** | 端到端评测 vs 步骤级评测、LLM-as-Judge、评测集构建方法论 | Braintrust、LangSmith、Ragas |
 | **Guardrails** | 输入护栏（Prompt Injection 防御）、输出护栏（工具参数校验、事实性校验）、Human-in-the-Loop 五级审批策略 | Guardrails-AI、自定义中间件 |
 | **Observability** | Tracing 架构、关键指标（延迟分解、Token 消耗、错误分类）、调试与决策归因 | Langfuse、LangSmith、Phoenix |
-| **Agent 测试金字塔** | 四层测试体系：Unit（工具解析、Schema 验证）→ Component（单步推理、Memory 读写）→ Integration（多步链路、工具调用链）→ E2E（完整任务 + LLM-as-Judge），与评测的互补关系 | pytest、自定义测试工具 |
-| **MCP 协议入门** | Model Context Protocol 三大能力（Tools / Resources / Prompts）、JSON-RPC 传输层（stdio / SSE / Streamable HTTP）、对 Harness 管理层架构的影响。课程七有完整深入版本 | MCP Python/TypeScript SDK |
 
-**动手里程碑**：将课程三的"裸循环"重构为三层 Harness 架构；构建多步骤 Agent（规划→执行→反思→修正），配有记忆和可观测性；Guardrails 至少拦截 1 次真实的越界行为；至少编写单元测试和集成测试各 3 个。
+**动手里程碑**：将课程三的"裸循环"重构为三层 Harness 架构；构建多步骤 Agent（规划→执行→反思→修正），配有记忆和可观测性；Guardrails 至少拦截 1 次真实的越界行为。
 
 ---
 
@@ -82,10 +106,8 @@
 - **产品评价体系**：六大核心指标——任务完成率、平均步数、用户干预率、Token 效率、用户满意度、留存率。Agent A/B 测试的特殊挑战
 - **安全合规**：Prompt Injection 防御体系、数据脱敏与审计日志、GDPR / SOC2 合规要点
 - **失败模式清单**：工具调用类（选择错误 / 参数错误 / 死循环）、上下文管理类（遗漏约束 / RAG 误导）、决策逻辑类（过早执行 / 权限不明）
-- **部署与基础设施**：容器化部署（Dockerfile 最佳实践、健康检查、优雅关闭）、多环境管理（dev / staging / prod 配置策略）、CI/CD 流水线（含 Prompt 版本管理）、服务编排与弹性伸缩（sticky session、任务队列）、监控告警（四层监控指标、Agent 专属告警规则）
-- **Agent 经济学与伦理责任**：自建 vs API 成本对比、定价模式选择（按次 / 订阅 / Freemium / 混合）、ROI 评估框架；伦理四维度——透明度义务（用户有权知道在跟 Agent 交互）、偏见与公平性（训练数据与工具设计偏见缓解）、可问责性（Agent 决策的追溯与审计）、环境影响（大模型推理的碳足迹意识）
 
-**动手里程碑**：流式输出延迟感知 <= 500ms；常见故障可自动恢复；单任务平均 Token 消耗降低 >= 20%；失败模式清单覆盖 >= 5 种类型；完成 Docker 化部署并能通过健康检查；撰写一份 Agent 产品的经济学评估与伦理合规清单。
+**动手里程碑**：流式输出延迟感知 <= 500ms；常见故障可自动恢复；单任务平均 Token 消耗降低 >= 20%；失败模式清单覆盖 >= 5 种类型。
 
 ---
 
@@ -115,9 +137,7 @@
 
 | 方向 | 关注内容 | 与主线关联 |
 |------|---------|----------|
-| **MCP / A2A** | MCP 协议深入（Streamable HTTP、Session 管理、安全模型）、A2A 协议（Agent 间发现与协作）。基础内容已在课程四的"补充专题"中覆盖 | ⭐⭐⭐⭐⭐ 必修（基础在课程四，深入在课程七） |
-| **Fine-tuning for Agent** | Prompt Engineering 的天花板在哪？三个方向——Function Calling 微调（提升工具选择准确率）、领域知识微调（LoRA 注入专业知识）、Agent 轨迹微调（模仿优秀决策路径）。决策框架：何时微调 vs 优化 Prompt | ⭐⭐⭐⭐ 工具调用准确率遇瓶颈时深入 |
-| **Skill / Plugin 生态** | 能力封装与复用——将工具+提示词+知识打包为可组合、可分发的产品单元；Claude Code Skills、ChatGPT GPTs、MCP Marketplace 等生态对比；与 MCP/A2A 的协同关系。深入内容在课程四的 Skill 专题 | ⭐⭐⭐⭐ 构建可复用 Agent 能力时深入 |
+| **MCP / A2A** | Model Context Protocol（工具标准化）、Agent-to-Agent 协议 | ⭐⭐⭐⭐⭐ 必修 |
 | **Computer Use** | GUI Agent（截屏分析 + 元素定位 + 操作执行）、浏览器自动化（Playwright + LLM） | ⭐⭐⭐ 了解 + Demo |
 | **Multi-Agent** | 四种架构模式深入、框架对比（AutoGen vs CrewAI vs LangGraph） | ⭐⭐⭐⭐ 单Agent准确率遇瓶颈时深入 |
 | **Code Agent** | 里程碑：Copilot(2021) → SWE-bench(2023) → Devin(2024) → Claude Code(2025) | ⭐⭐⭐⭐⭐ 日常使用就是学习 |
@@ -138,9 +158,9 @@
     │
     v
 课程四（架构深入）         课程七（发展趋势）← 可并行，低优先级
-    │  └─ MCP 基础 ────────→ （课程四含 MCP 入门专题，课程七为完整深入版）
-    v
-课程五（走向生产环境）
+    │                         ↑
+    v                         │
+课程五（走向生产环境）────────┘
     │
     v
 课程六（项目实战）
@@ -148,20 +168,17 @@
 
 - 课程一 → 课程二 → 课程三：顺序依赖，不可跳
 - 课程三 → 课程四 → 课程五：顺序依赖，不可跳
-- 课程七：可在课程三之后随时开始，与课程四/五/六并行。MCP 基础建议先看课程四的"补充专题"，再进入课程七的深入内容
+- 课程七：可在课程三之后随时开始，与课程四/五/六并行
 - 课程六：依赖课程一至课程五的学习，但可将项目拆分为阶段性交付
 
 ---
 
 ## 推荐学习资源
 
-- **必读论文**：ReAct、Toolformer、AutoGPT 论文、Voyager（Minecraft Agent）、SWE-Agent、Self-Refine、Reflexion
-- **博客**：Anthropic Research Blog、Lilian Weng（OpenAI）的 Agent 系列、LangChain Blog、MCP 官方博客（modelcontextprotocol.io）
+- **必读论文**：ReAct、Toolformer、AutoGPT 论文、Voyager（Minecraft Agent）、SWE-Agent
+- **博客**：Anthropic Research Blog、Lilian Weng（OpenAI）的 Agent 系列、LangChain Blog
 - **课程**：DeepLearning.AI 的 Functions/Tools/Agents 系列、Berkeley LLM Agents MOOC
 - **代码阅读**：[smolagents](https://github.com/huggingface/smolagents)（HuggingFace 轻量 Agent 框架，适合入门阅读）、[Mem0](https://github.com/mem0ai/mem0)（Memory 层参考实现）
 - **协议标准**：[MCP 规范](https://modelcontextprotocol.io/)（工具标准化）、[A2A 协议](https://github.com/google/A2A)（Agent 间通信）
-- **社区**：LangChain Discord、Anthropic Developer Discord、r/LocalLLaMA、HuggingFace 社区
-
----
-
-> 这条路线的核心思想是：**先理解原理，再动手实践，最后回归产品**。不要一开始就陷入框架细节——手写一个 ReAct Agent 理解本质，比直接调 LangChain 有价值得多。相比早期版本，当前版本补充了多模态 LLM、数据管线、Skill/Plugin 能力封装、Agent 测试金字塔、MCP 协议入门、部署与基础设施、经济学与伦理责任、Fine-tuning 等关键主题，覆盖 Agent 从理论到上线的完整链路。
+- **社区**：LangChain Discord、Anthropic Developer Discord、r/LocalLLaMA
+- **参考项目**：详见 [reference-projects.md](reference-projects.md)
