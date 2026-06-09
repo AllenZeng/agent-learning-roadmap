@@ -59,6 +59,7 @@
 | 主题 | 关键概念 | 推荐框架/工具 |
 |------|---------|------------|
 | **Harness（运行时引擎）** | 三层架构：驱动层 / 控制层 / 管理层；Harness vs Orchestration 的区别 | 主流框架的 Harness 设计对比 |
+| **Skill 与 Plugin** | Tool → Skill → Plugin 三层抽象关系；Skill 核心设计要素（声明式描述、触发条件、工具集、上下文注入、知识库、输出 Schema）；动态加载与路由；与 MCP 的关系 | Claude Code Skills、ChatGPT GPTs、MCP |
 | **Orchestration** | 四种模式：Chain / Router / Plan-Execute / ReAct Loop / Graph | LangGraph、CrewAI、AutoGen |
 | **Memory 架构深入** | 向量数据库选型、MemGPT 虚拟内存思想、记忆衰减与更新策略、多 Agent 共享记忆 | Mem0、Letta |
 | **Evaluation** | 端到端评测 vs 步骤级评测、LLM-as-Judge、评测集构建方法论 | Braintrust、LangSmith、Ragas |
@@ -116,6 +117,7 @@
 |------|---------|----------|
 | **MCP / A2A** | MCP 协议深入（Streamable HTTP、Session 管理、安全模型）、A2A 协议（Agent 间发现与协作）。基础内容已在课程四的"补充专题"中覆盖 | ⭐⭐⭐⭐⭐ 必修（基础在课程四，深入在课程七） |
 | **Fine-tuning for Agent** | Prompt Engineering 的天花板在哪？三个方向——Function Calling 微调（提升工具选择准确率）、领域知识微调（LoRA 注入专业知识）、Agent 轨迹微调（模仿优秀决策路径）。决策框架：何时微调 vs 优化 Prompt | ⭐⭐⭐⭐ 工具调用准确率遇瓶颈时深入 |
+| **Skill / Plugin 生态** | 能力封装与复用——将工具+提示词+知识打包为可组合、可分发的产品单元；Claude Code Skills、ChatGPT GPTs、MCP Marketplace 等生态对比；与 MCP/A2A 的协同关系。深入内容在课程四的 Skill 专题 | ⭐⭐⭐⭐ 构建可复用 Agent 能力时深入 |
 | **Computer Use** | GUI Agent（截屏分析 + 元素定位 + 操作执行）、浏览器自动化（Playwright + LLM） | ⭐⭐⭐ 了解 + Demo |
 | **Multi-Agent** | 四种架构模式深入、框架对比（AutoGen vs CrewAI vs LangGraph） | ⭐⭐⭐⭐ 单Agent准确率遇瓶颈时深入 |
 | **Code Agent** | 里程碑：Copilot(2021) → SWE-bench(2023) → Devin(2024) → Claude Code(2025) | ⭐⭐⭐⭐⭐ 日常使用就是学习 |
@@ -162,4 +164,4 @@
 
 ---
 
-> 这条路线的核心思想是：**先理解原理，再动手实践，最后回归产品**。不要一开始就陷入框架细节——手写一个 ReAct Agent 理解本质，比直接调 LangChain 有价值得多。相比早期版本，当前版本补充了多模态 LLM、数据管线、Agent 测试金字塔、MCP 协议入门、部署与基础设施、经济学与伦理责任、Fine-tuning 等关键主题，覆盖 Agent 从理论到上线的完整链路。
+> 这条路线的核心思想是：**先理解原理，再动手实践，最后回归产品**。不要一开始就陷入框架细节——手写一个 ReAct Agent 理解本质，比直接调 LangChain 有价值得多。相比早期版本，当前版本补充了多模态 LLM、数据管线、Skill/Plugin 能力封装、Agent 测试金字塔、MCP 协议入门、部署与基础设施、经济学与伦理责任、Fine-tuning 等关键主题，覆盖 Agent 从理论到上线的完整链路。

@@ -55,12 +55,13 @@
 |------|------------|---------|------------|
 | **MCP / A2A** | ⭐⭐⭐⭐⭐ MCP 基础已在课程四学习，本课是深入版 | 当你需要开发 MCP Server 或设计多 Agent 协作协议时 | MCP 深入阅读 + A2A 了解概念 |
 | **Fine-tuning for Agent** | ⭐⭐⭐⭐ 直接影响工具调用准确率和领域适配 | 当 Prompt Engineering 达到瓶颈，或需要使用开源模型时 | 了解决策框架 + 跑一个微调实验 |
+| **Skill / Plugin 生态** | ⭐⭐⭐⭐ 能力封装与复用是 Agent 产品化的关键 | 当你需要将工具+提示词+知识打包为可复用单元，或为产品设计插件系统时 | 理解 Skill → Plugin 层次关系 + 在项目中实践一次能力封装 |
 | **Computer Use** | ⭐⭐⭐ 特定场景需求 | 当你需要操作没有 API 的软件时 | 了解原理 + 跑一个 Demo |
 | **Multi-Agent** | ⭐⭐⭐⭐ 复杂任务需要分工 | 当单 Agent 的准确率遇到瓶颈时 | 深入理解四种模式，但不要为了 Multi 而 Multi |
 | **Code Agent** | ⭐⭐⭐⭐⭐ 对开发者最直接相关 | 作为日常工具使用是最佳学习方式 | 深度使用（如 Claude Code）+ 了解技术架构 |
 | **RL for Agent** | ⭐⭐ 前沿方向 | 当你有了大量使用数据，需要系统性优化 Agent 策略时 | 了解概念和适用场景即可 |
 
-**经验法则**：如果你在做 Agent 产品，MCP 和 Code Agent 优先级最高。如果你在做研究，Multi-Agent 和 RL 更值得深入。Computer Use 等有了具体需求再看也不迟。
+**经验法则**：如果你在做 Agent 产品，MCP、Skill/Plugin 生态和 Code Agent 优先级最高。如果你在做研究，Multi-Agent 和 RL 更值得深入。Computer Use 等有了具体需求再看也不迟。
 
 ---
 
@@ -1407,11 +1408,12 @@ Fine-tuning（微调）在这些场景下提供了替代或补充方案。
 
 ## 小结
 
-课程七覆盖了Agent领域的六个前沿方向：
+课程七覆盖了Agent领域的七个前沿方向：
 
 1. **MCP与A2A**解决了Agent生态的标准化问题——MCP 基础在课程四已学习，本课提供了协议架构和安全模型的深入讲解
-2. **Computer Use**突破API限制，让Agent进入图形界面操作的世界，覆盖传统自动化无法触达的场景
-3. **Multi-Agent系统**将单体Agent扩展为协作团队，通过分工、冗余、竞争提升整体能力
-4. **Code Agent**是Agent落地最成功的垂直领域之一，从代码补全演进到独立完成软件工程任务
-5. **RL for Agent**从系统优化层面解决Agent行为的提升问题，让Agent从经验中学习而非仅依赖手工Prompt
-6. **Fine-tuning for Agent**在 Prompt 方法达到天花板后，通过微调提升工具调用准确率、领域适配和策略行为
+2. **Fine-tuning for Agent**在 Prompt 方法达到天花板后，通过微调提升工具调用准确率、领域适配和策略行为
+3. **Skill / Plugin 生态**解决 Agent 能力的封装与复用问题——将工具+提示词+知识打包为可组合、可分发的产品单元
+4. **Computer Use**突破API限制，让Agent进入图形界面操作的世界，覆盖传统自动化无法触达的场景
+5. **Multi-Agent系统**将单体Agent扩展为协作团队，通过分工、冗余、竞争提升整体能力
+6. **Code Agent**是Agent落地最成功的垂直领域之一，从代码补全演进到独立完成软件工程任务
+7. **RL for Agent**从系统优化层面解决Agent行为的提升问题，让Agent从经验中学习而非仅依赖手工Prompt
