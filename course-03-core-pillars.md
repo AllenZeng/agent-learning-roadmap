@@ -1,46 +1,21 @@
 # 课程三：Agent 底层核心 —— 五大核心模块
 
-> **难度**：中级 | **先修要求**：Python基础、HTTP协议、基本的机器学习概念
->
-> **课程导语**：课程一是让你看见 Agent，课程二是让你理解 Agent 的核心能力演进，课程三是让你动手实现。本课程的五大核心模块是构建 Agent 的基本单元——理解它们，才能理解后续的架构设计。
->
-> **课程导语**：我们将深入 Agent 的底层技术栈，从 LLM 的运作原理开始，到工具调用、知识检索、记忆管理、提示工程，逐一拆解。这五大核心模块都是围绕 LLM 的根本局限而发展出来的——Tool Use 解决"只能说不"的问题，RAG 解决"知识过时"的问题，Memory 解决"转瞬即忘"的问题，Prompt Engineering 解决"输出不可控"的问题。ReAct 则是将这些模块串联为可运行的决策循环。每一个技术点，我们都会追问三个问题：它解决了什么痛点？设计者是怎么想到的？未来会走向何方？
+---
+
+## 课程导言
+
+课程一是让你看见 Agent，课程二是让你理解 Agent 的核心能力演进，课程三是让你动手实现。
+
+我们将深入 Agent 的底层技术栈，从 LLM 的运作原理开始，到工具调用、知识检索、记忆管理、提示工程，逐一拆解。这五大核心模块都是围绕 LLM 的根本局限而发展出来的——Tool Use 解决"只能说不"的问题，RAG 解决"知识过时"的问题，Memory 解决"转瞬即忘"的问题，Prompt Engineering 解决"输出不可控"的问题。ReAct 则是将这些模块串联为可运行的决策循环。
+
+每一个技术点，我们都会追问三个问题：它解决了什么痛点？设计者是怎么想到的？未来会走向何方？
 
 ---
 
-## 目录
-
-1. [第一课：LLM原理——Agent的大脑](#第一课llm原理agent的大脑)
-   - 1.1 Transformer架构
-   - 1.2 Tokenization（分词）
-   - 1.3 Context Window（上下文窗口）
-   - 1.4 Temperature、Top-p、Top-k等采样策略
-2. [第二课：Tool Use深入](#第二课tool-use深入)
-   - 2.1 从文本生成到工具调用
-   - 2.2 ReAct模式详解
-3. [第三课：RAG——给Agent接入知识](#第三课rag给agent接入知识)
-   - 3.1 RAG的演进历史
-   - 3.2 Embedding与向量检索
-   - 3.3 Chunking策略
-4. [第四课：Prompt Engineering](#第四课prompt-engineering)
-   - 4.1 System Prompt设计
-   - 4.2 Few-shot Prompting
-   - 4.3 Chain-of-Thought
-   - 4.4 结构化输出
-5. [第五课：Memory 基础](#51-memory-基础)
-   - 5.1 Memory 基础
-   - 5.2 短期记忆：上下文窗口管理
-   - 5.3 长期记忆：跨会话持久化
-   - 5.4 Memory 最简实现
-6. [第六课（桥梁项目）：文件整理Agent](#第六课桥梁项目文件整理-agent--从单次调用到多步自主)
-
----
-
-## 课程概览
-
-### 🎯 学习目标
+## 学习目标
 
 完成本课程后，你将能够：
+
 1. 理解 Transformer 的核心机制（Self-Attention、Multi-Head Attention），并解释为什么它适合作为 Agent 的基础模型
 2. 掌握 Tokenization 对工具调用的影响，能在设计工具时做出正确的命名和描述决策
 3. 理解上下文窗口的工作原理和"Lost in the Middle"现象，能制定有效的上下文管理策略
@@ -49,37 +24,19 @@
 6. 理解 Memory 的分层概念（短期/长期），实现最简的跨会话记忆持久化
 7. 写出结构清晰、行为可控的 System Prompt
 
-### 📥 前置输入
+---
 
-- 已完成课程一（初识Agent）和课程二（Agent演进）的认知学习
-- 熟悉 Python，能独立完成函数编写和 API 调用
-- 有 OpenAI API Key 或 Anthropic API Key
-- 安装了 Python 3.10+ 及必要的开发工具
+## 目录
 
-### 🏋️ 练习任务
-
-1. **ReAct Agent 实现**：从零实现一个 ReAct Agent 循环，不依赖 LangChain 等高级框架
-2. **RAG 系统搭建**：构建一个能检索本地文档并回答问题的 RAG 系统
-3. **Memory 最简实现**：为你的 Agent 添加基于 JSON 文件的跨会话记忆（记住用户偏好、近期任务）
-4. **Prompt 迭代**：对同一个 Agent，写 3 个版本的 System Prompt，对比行为差异
-5. **最小评测集**：为你的 Agent 准备 10 条测试任务，记录每次的成功/失败
-
-### 📦 交付物
-
-1. 一个 CLI Agent，支持 search（搜索知识库）、read_file（读取本地文件）、calculator（计算器）3 个工具，并具备跨会话记忆能力
-2. 一份 RAG 系统设计文档（包含 chunk 大小选择、embedding 模型选择、检索策略的理由）
-3. 一份 Memory 实现说明（短期管理策略 + 长期记忆结构 + 记忆注入时机）
-4. 一份 Prompt 迭代记录（3 个版本的 System Prompt + 行为对比）
-5. 一份评测集（10 条任务）和实测结果
-
-### ✅ 验收标准
-
-- Agent 能正确选择工具（tool selection 准确率 ≥ 70%）
-- 10 条测试任务中成功完成 ≥ 7 条
-- 能解释每次失败的原因，并按 tool selection / prompt / schema / 上下文管理 / memory 分类
-- RAG 系统的检索 Top-5 召回率 ≥ 60%（在自己的文档集上测试）
-- Memory 能在两次独立会话之间正确恢复用户偏好和最近任务记录
-- System Prompt 的第三版比第一版有明显改进（用评测集验证）
+- [第一课：LLM原理——Agent的大脑](#第一课llm原理agent的大脑)
+- [第二课：Tool Use深入](#第二课tool-use深入)
+- [第三课：RAG——给Agent接入知识](#第三课rag给agent接入知识)
+- [第四课：Prompt Engineering](#第四课prompt-engineering)
+- [第五课：Memory 基础 —— Agent 不能每次都从头开始](#第五课memory-基础--agent-不能每次都从头开始)
+- [总结：五大核心模块构成 Agent](#总结五大核心模块构成-agent)
+- [练习任务](#练习任务)
+- [验收标准](#验收标准)
+- [第六课（桥梁项目）：文件整理 Agent —— 从单次调用到多步自主](#第六课桥梁项目文件整理-agent--从单次调用到多步自主)
 
 ---
 
@@ -2274,6 +2231,35 @@ class SimpleMemory:
 ---
 
 > **下一课程预告：课程四——Agent 架构深入。** 我们将从 Context Engineering（上下文工程）出发，深入 Agent 的架构设计：Harness（运行时引擎）、Orchestration（编排调度）、Memory 架构深入（向量数据库 / MemGPT / 记忆衰减）、Evaluation（评测）、Guardrails（安全护栏）、Observability（可观测性）。有了本课程的理论基础，你会发现那些架构设计变得容易理解——它们本质上就是对 LLM + Tool Use + RAG + Memory + Prompt Engineering 的工程化封装与增强。
+
+---
+
+## 练习任务
+
+1. **ReAct Agent 实现**：实现一个 ReAct Agent 循环，不依赖 LangChain 等高级框架
+2. **RAG 系统搭建**：构建一个能检索本地文档并回答问题的 RAG 系统
+3. **Memory 最简实现**：为你的 Agent 添加基于 JSON 文件的跨会话记忆（记住用户偏好、近期任务）
+4. **Prompt 迭代**：对同一个 Agent，写 3 个版本的 System Prompt，对比行为差异
+5. **最小评测集**：为你的 Agent 准备 10 条测试任务，记录每次的成功/失败
+
+**交付物**：
+
+1. 一个 CLI Agent，支持 search（搜索知识库）、read_file（读取本地文件）、calculator（计算器）3 个工具，并具备跨会话记忆能力
+2. 一份 RAG 系统设计文档（包含 chunk 大小选择、embedding 模型选择、检索策略的理由）
+3. 一份 Memory 实现说明（短期管理策略 + 长期记忆结构 + 记忆注入时机）
+4. 一份 Prompt 迭代记录（3 个版本的 System Prompt + 行为对比）
+5. 一份评测集（10 条任务）和实测结果
+
+---
+
+## 验收标准
+
+- Agent 能正确选择工具（tool selection 准确率 ≥ 70%）
+- 10 条测试任务中成功完成 ≥ 7 条
+- 能解释每次失败的原因，并按 tool selection / prompt / schema / 上下文管理 / memory 分类
+- RAG 系统的检索 Top-5 召回率 ≥ 60%（在自己的文档集上测试）
+- Memory 能在两次独立会话之间正确恢复用户偏好和最近任务记录
+- System Prompt 的第三版比第一版有明显改进（用评测集验证）
 
 ---
 
