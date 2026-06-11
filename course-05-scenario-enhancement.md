@@ -627,30 +627,37 @@ def assemble_context(query: str, ranked_chunks: list[Chunk]) -> str:
 
 ### 3.1 问题代入：Agent 总是忘记、重复或带错历史
 
-你做了一个写作助手。用户第一天说：
+回到 1.1 那个知识助手。你花了 20 分钟告诉它：
 
 ```text
-以后给我写技术文章时，先给结构，再给正文；语气保持直接，不要营销化。
+以后写技术文章，先给我大纲确认，再展开正文。语气直接，不要营销化。
 ```
 
-第二天用户说：
+第二天你打开新会话："帮我写一篇 Agent Memory 的技术文章。"它输出了一篇以"在当今这个 AI 时代……"开头的营销风文章，没有先给你大纲。你盯着屏幕：昨天说的全白费了。
 
-```text
-帮我写一篇关于 Agent 工具调用的文章。
-```
+这是会话级别的遗忘。还有任务级别的遗忘：你让 Agent 整理一个 50 篇文档的目录，整理到一半你关掉了电脑。下次打开，Agent 不知道读过哪些文件、哪些已整理、草稿在哪、你确认过哪些结构——它从零开始，把前一半的活重做了一遍。
 
-如果系统没有 Memory，Agent 不知道用户之前的偏好，用户需要重复说明。
+这两类遗忘根因相同：**LLM 的"记忆"完全依赖上下文窗口中的文本，会话关闭后上下文清零，一切归零。** 课程三的 State 管理解决了"单次任务内的状态延续"，但跨会话、跨任务的状态延续需要新的机制——Memory。
 
-再看一个长任务场景。用户让 Agent 整理一个目录下的资料，整理到一半中断。下次继续时，Agent 不知道：
+但要小心：Memory 是双刃剑。错误记忆、过期偏好、敏感信息如果被不加区分地长期保存，Memory 会从"个性化助手"退化为"长期污染源"。所以在动手之前，必须先想清楚什么值得记住、什么必须遗忘。
 
-- 已经读过哪些文件。
-- 哪些文件已经整理。
-- 当前输出草稿在哪里。
-- 用户已经确认过哪些结构。
+### 3.2 技术演进背景：ChatGPT 的记忆之路
 
-这类问题都和状态延续有关。但要注意：并不是所有历史都应该长期保存。错误记忆、过期偏好、隐私信息如果被长期写入，会让系统变得更危险。
+2022 年 11 月 ChatGPT 发布时，它有一个让所有用户"哇"的瞬间——它能记住当前对话里的上下文。你说"我叫张三"，后面问"我叫什么"，它能答出来。
 
-### 3.2 对问题的思考：不是所有历史都应该变成记忆
+但关掉浏览器标签页，重新打开——它什么都不记得。
+
+这不是 bug，这是设计如此。当时的 LLM API 是无状态的，每次请求是独立的。对话历史由前端应用保存在客户端，服务端不知道你是谁、上次聊了什么。
+
+2023 年，随着 ChatGPT 用户突破 1 亿，"记忆"成为排名前三的用户诉求。但 OpenAI 花了整整一年才在 2024 年 2 月推出 Memory 功能。为什么这么慢？因为 Memory 比看起来危险得多：
+
+- 如果模型自作主张记住了用户的健康信息，隐私怎么办？
+- 如果记住了用户随口说的一个错误观点，未来任务都被带偏怎么办？
+- 如果用户不知道系统"记住"了什么，信任从何而来？
+
+OpenAI 的解决方案很克制：Memory 默认关闭（后来改为用户可管理），每条记忆可查看可删除，敏感内容自动过滤不写入。这个设计哲学——"宁可少记，不可乱记"——值得每个 Memory 系统设计者参考。
+
+### 3.3 对问题的思考：不是所有历史都应该变成记忆
 
 Memory 经常被误解成"把聊天记录存起来"。这不够准确，也很危险。
 
@@ -675,7 +682,7 @@ Memory 的关键问题不是"存什么"，而是：
 
 如果没有这些问题的答案，Memory 会从"个性化能力"变成"长期污染源"。
 
-### 3.3 解决方案：Memory 的读写更新机制
+### 3.4 解决方案：Memory 的读写更新机制
 
 Memory 设计可以拆成五个环节：
 
@@ -732,6 +739,72 @@ Memory 不一定都放向量库。常见存储包括：
 - 读取时需要精确匹配，还是语义召回？
 - 记忆是否需要用户查看、编辑和删除？
 
+Memory 核心接口骨架——注意写入前的决策比存储本身更重要：
+
+```python
+class AgentMemory:
+    """Memory 的核心不是存储，是写入决策和召回过滤"""
+    
+    def __init__(self):
+        self.preferences = {}        # 用户偏好：精确 key-value
+        self.facts = []              # 长期事实：带时间戳和来源
+        self.task_log = []           # 任务历史：成功/失败经验
+        self.session_state = {}      # 会话状态：当前会话内有效
+    
+    # ── 写入前必须经过决策 ──
+    def should_remember(self, candidate: dict) -> bool:
+        """不是所有信息都值得写入长期记忆"""
+        if candidate.get("sensitive"):
+            return False            # 敏感信息不自动写入
+        if candidate.get("expires_at") and is_expired(candidate):
+            return False            # 已过期
+        if candidate.get("confidence", 0) < 0.8:
+            return False            # 低置信度的推断不写入
+        if candidate.get("type") == "temporary":
+            return False            # 一次性临时约束不写入
+        return True
+    
+    # ── 写入（分类存储）──
+    def write(self, entry: dict):
+        if not self.should_remember(entry):
+            return
+        store = {
+            "preference": self.preferences,
+            "fact": self.facts,
+            "task_result": self.task_log
+        }.get(entry["type"])
+        if store is not None:
+            store.append({**entry, "recorded_at": now()})
+    
+    # ── 召回：相关性过滤，不全量注入 ──
+    def recall(self, current_task: str, limit: int = 5) -> list[dict]:
+        """只召回与当前任务相关的记忆"""
+        relevant = []
+        # 精确匹配：用户偏好中与当前任务关键词相关的
+        for key, val in self.preferences.items():
+            if any(kw in current_task for kw in key.split()):
+                relevant.append({"key": key, "value": val, "score": 1.0})
+        # 语义召回：长期事实和任务历史
+        task_vec = embed(current_task)
+        for fact in self.facts:
+            score = cosine_sim(task_vec, embed(fact["content"]))
+            if score > 0.6:
+                relevant.append({**fact, "score": score})
+        # 排序、截断、去重
+        relevant.sort(key=lambda x: x["score"], reverse=True)
+        return deduplicate(relevant)[:limit]
+    
+    # ── 过期与遗忘 ──
+    def decay(self):
+        """定期清理：过期记忆降权或删除"""
+        cutoff = now() - timedelta(days=90)
+        self.facts = [f for f in self.facts 
+                      if f.get("recorded_at", cutoff) > cutoff]
+        self.task_log = self.task_log[-500:]  # 只保留最近 500 条
+```
+
+> **设计要点**：`should_remember` 的保守策略是整个 Memory 系统可靠性的基石。宁可漏记一些无害信息，不可写入一条有害信息。召回时的相关性过滤避免把所有记忆全量塞进上下文——那会让模型注意力被无关历史淹没。
+
 #### 召回
 
 Memory 召回应该按任务相关性，而不是全部注入。
@@ -756,7 +829,7 @@ Memory 召回应该按任务相关性，而不是全部注入。
 
 Memory 没有遗忘机制，就会越来越不可信。
 
-### 3.4 迭代路径：从会话状态到长期记忆
+### 3.5 迭代路径：从会话状态到长期记忆
 
 Memory 建议按阶段迭代：
 
@@ -771,7 +844,7 @@ Memory 建议按阶段迭代：
 
 建议不要一开始就做自动长期记忆。先做任务状态和显式偏好，风险更低，也更容易评测。
 
-### 3.5 常见失败与修正
+### 3.6 常见失败与修正
 
 | 失败模式 | 表现 | 可能原因 | 修正方向 |
 |---|---|---|---|
@@ -782,7 +855,7 @@ Memory 建议按阶段迭代：
 | 上下文膨胀 | 记忆太多导致模型忽略当前目标 | 全量注入 | 只注入相关记忆，做摘要 |
 | 用户不信任 | 用户不知道系统记住了什么 | 没有可见管理界面 | 提供查看、编辑、删除 |
 
-### 3.6 判断边界：什么时候不需要 Memory
+### 3.7 判断边界：什么时候不需要 Memory
 
 以下场景不建议引入长期 Memory：
 
@@ -799,6 +872,8 @@ Memory 建议按阶段迭代：
 如果系统只需要完成当前任务，优先保存任务状态。
 如果系统需要跨任务理解用户或项目，才考虑长期 Memory。
 ```
+
+> **这个故事还没完。** Memory 让 Agent 记住了用户偏好，但新的问题出现了：用户给了一个多步骤的复杂任务——"做发布准备：检查 README、跑测试、整理 changelog、生成 checklist"。Agent 在第 4 步之后开始漂移，偏离原始目标。Memory 解决的是"记住什么"，但它不管"任务怎么组织"。这就是下一章要讲的 Planning。
 
 ---
 
