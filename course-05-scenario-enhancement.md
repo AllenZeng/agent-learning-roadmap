@@ -881,33 +881,38 @@ Memory 建议按阶段迭代：
 
 ### 4.1 问题代入：任务变长后 Agent 开始漂移
 
-用户说：
+回到 1.1 的知识助手。你给它一个多步骤任务：
 
 ```text
-帮我为这个项目做发布准备：检查 README，运行测试，整理 changelog，生成发布 checklist。
+帮我做发布准备：检查 README 完整性、跑一遍测试、整理 changelog、生成 release checklist。
 ```
 
-如果你把这个目标直接交给裸 ReAct 循环，它可能会：
+Agent 开始工作。第一步，它读了 README，写了一段评论。第二步，它……开始读 `notes/` 目录下的其他文件。第三步，它搜索了点什么。五分钟后你回来检查，发现它偏离原始目标，不知道在做什么。你翻 trace 才发现：它在第 4 步之后就再也没碰过任何和"发布"相关的操作。
 
-- 先读 README，然后忘记运行测试。
-- 运行测试失败后继续写 changelog。
-- 读了很多无关文件。
-- 重复检查同一个目录。
-- 没有产出 checklist 就提前停止。
+根因不是工具不好用，不是 State 丢了，不是没记住偏好。根因是：**裸 ReAct 循环没有"全局任务结构"的概念。** 它每步都在做局部最优的决策，但局部最优之和不一定能到达目标。就像一个没有导航的司机，每个路口都选看起来对的方向，但可能永远到不了目的地。
 
-这不是工具问题，而是任务组织问题。
+任务越长，越需要一种机制来回答：
 
-任务越长，越需要明确：
+- 要做哪些步骤？步骤之间的依赖关系是什么？
+- 哪些步骤可以并行执行？
+- 哪些步骤执行前需要用户确认？
+- 某一步失败后，是重试、跳过、重规划还是停止？
 
-- 要做哪些步骤？
-- 步骤之间有什么依赖？
-- 哪些步骤可以并行？
-- 哪些步骤需要用户确认？
-- 失败后是重试、跳过、重规划还是停止？
+这就是 Planning / Workflow Patterns 要解决的核心问题。
 
-Planning / Workflow Patterns 解决的是复杂任务如何组织。
+### 4.2 技术演进背景：从 ReAct 到 LangGraph
 
-### 4.2 对问题的思考：任务组织比单步决策更重要
+Planning 在 Agent 领域不是一开始就有的。回顾一下演进：
+
+**2022 年 10 月，ReAct 论文（Yao et al.）。** 论文的核心发现是：让 LLM 在"推理"和"行动"之间交替循环，能大幅提升复杂任务的完成率。但 ReAct 的模式是"每一步临场判断"——模型看到当前 Observation，决定下一步 Action。这对 3-5 步的任务有效，但步数一多就暴露了问题：模型没有全局视野，容易漂移。
+
+**2023 年初，Plan-and-Execute 模式出现。** 思路很直接：让模型先把整个任务拆成执行计划，用户确认后再逐步执行。这解决了 ReAct 的"没有全局视图"问题，但引入了新问题——计划可能不可执行（模型列出的步骤在实际环境中无法完成），或者环境变化后原计划不再适用。
+
+**2023 年下半年，图结构（Graph）思想兴起。** LangGraph、CrewAI 等框架开始把任务建模成节点和边的图——每个节点是一个动作或判断，边代表状态迁移，失败后可以跳回特定节点重试。图结构本质上是对 Plan-and-Execute 的泛化：计划不再是一维的步骤列表，而是一个可以有分支、回溯、并行路径的有向图。
+
+**2024 年至今，Workflow Patterns 成为共识。** Anthropic 的"Building Effective Agents"文章确立了一个重要观点：大多数 Agent 场景不需要复杂的 Graph，简单的 Chain 或 Router 就能覆盖。关键不是"用不用 LangGraph"，而是"根据任务形态选择对应模式"。
+
+### 4.3 对问题的思考：任务组织比单步决策更重要
 
 ReAct Loop 擅长动态决策，但不擅长天然保证全局结构。
 
@@ -929,7 +934,7 @@ ReAct Loop 擅长动态决策，但不擅长天然保证全局结构。
 - 用户是否需要确认计划？
 - 失败后是否需要回到某个节点？
 
-### 4.3 解决方案：常见任务组织模式
+### 4.4 解决方案：常见任务组织模式
 
 #### Chain
 
@@ -980,7 +985,73 @@ Graph 把任务建模成节点和边：
 
 Graph 适合复杂状态机、需要回放和恢复的任务。缺点是建模和调试成本高。
 
-### 4.4 迭代路径：从固定步骤到可回放图结构
+四种核心模式的关键接口骨架——核心区别在于"谁决定下一步"：
+
+```python
+# ── Chain：固定顺序，确定性最强 ──
+def chain_execute(steps: list[Step], context: dict) -> dict:
+    """每步的输出是下一步的输入，无分支"""
+    for i, step in enumerate(steps):
+        result = execute_step(step, context)
+        if result.status == "error" and not step.allow_skip:
+            return {"status": "failed", "failed_at": i, "error": result.error}
+        context[step.name] = result.output
+    return {"status": "completed", "context": context}
+
+# ── Router：根据输入特征选择路径 ──
+def router_execute(query: str, routes: dict[str, list[Step]]) -> dict:
+    """分类器决定走哪条路径，失败时走 default 兜底"""
+    category = classify(query, list(routes.keys()))
+    selected = routes.get(category, routes["default"])
+    return chain_execute(selected, {"query": query})
+
+# ── Plan-Execute：先规划再执行，支持中途重规划 ──
+def plan_execute(goal: str, tools: dict, max_retries: int = 2) -> dict:
+    """生成计划 → 用户确认 → 逐步执行 → 失败时重规划"""
+    plan = generate_plan(goal, tools)        # 结构化步骤列表
+    if not user_confirm(plan):
+        return {"status": "rejected"}
+    
+    for step in plan.steps:
+        result = execute_step(step)
+        if result.status == "error":
+            if step.retries < max_retries:
+                # 重规划：从当前状态生成新的后续步骤
+                new_steps = replan(goal, plan.completed_steps, result.error)
+                plan.replace_remaining(new_steps)
+                continue
+            else:
+                return {"status": "failed", "step": step, "error": result.error}
+        plan.mark_completed(step)
+    
+    return {"status": "completed", "result": plan.final_output}
+
+# ── Graph：节点+边+状态机 ──
+class WorkflowGraph:
+    """节点是动作，边是条件跳转，每个节点有失败出口"""
+    def __init__(self):
+        self.nodes: dict[str, Node] = {}   # name → Node(action, next, on_error)
+        self.edges: list[Edge] = []         # (from, to, condition)
+    
+    def add_node(self, name: str, action: callable, 
+                 on_success: str = None, on_error: str = None):
+        self.nodes[name] = Node(action, on_success, on_error)
+    
+    def run(self, entry: str, context: dict) -> dict:
+        current = entry
+        visited = set()
+        while current and current not in visited:
+            visited.add(current)
+            node = self.nodes[current]
+            result = node.action(context)
+            context[node.name] = result
+            current = node.on_error if result.error else node.on_success
+        return {"status": "completed", "context": context}
+```
+
+> **选择指南**：任务步骤完全固定 → Chain；多类型入口 → Router；需要全局规划且有验证需求 → Plan-Execute；状态复杂、分支多、需要回放和恢复 → Graph。不要把简单任务硬塞进 Graph——那就像用 Kubernetes 部署一个静态网页。
+
+### 4.5 迭代路径：从固定步骤到可回放图结构
 
 Planning / Workflow Patterns 可以这样迭代：
 
@@ -995,7 +1066,7 @@ Planning / Workflow Patterns 可以这样迭代：
 
 初学阶段建议做到 V2 或 V3。Graph 等到状态和分支真的复杂时再引入。
 
-### 4.5 常见失败与修正
+### 4.6 常见失败与修正
 
 | 失败模式 | 表现 | 可能原因 | 修正方向 |
 |---|---|---|---|
@@ -1006,7 +1077,7 @@ Planning / Workflow Patterns 可以这样迭代：
 | 过度工程化 | 小任务也上 Graph | 技术驱动 | 从 Chain / Router 开始 |
 | 用户不买账 | 计划不符合用户真实目标 | 缺少确认节点 | 计划执行前让用户确认 |
 
-### 4.6 判断边界：什么时候不需要 Planning
+### 4.7 判断边界：什么时候不需要 Planning
 
 以下场景不需要复杂 Planning：
 
@@ -1020,9 +1091,11 @@ Planning / Workflow Patterns 可以这样迭代：
 实用判断：
 
 ```text
-如果失败主要是“漏步骤、走偏、无法恢复”，考虑 Planning。
-如果失败只是“某一步工具调用错了”，先修工具机制。
+如果失败主要是”漏步骤、走偏、无法恢复”，考虑 Planning。
+如果失败只是”某一步工具调用错了”，先修工具机制。
 ```
+
+> **这个故事还没完。** Planning 让 Agent 有了全局任务视图，发布准备不再漏步骤。但新问题来了：Agent 执行到”运行测试”这一步时测试失败了，TypeError 清清楚楚地打在日志里——Agent 看到了，却继续写 changelog，没有停下来分析为什么失败。它缺少”失败→分析→修正→重试”的能力。这就是下一章要讲的 Reflection。
 
 ---
 
