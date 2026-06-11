@@ -8,34 +8,26 @@
 Agent = LLM 决策 + 工具/环境交互 + 状态管理 + 循环控制
 ```
 
-课程四继续深入其中最重要的一条主线：**工具机制**。
+课程四深入其中连接"决策"和"执行"的关键环节：**工具/环境交互**。
 
-很多人第一次做 Agent，会以为“给模型接几个函数”就完成了 Tool Use。实际不是。工具调用不是一次孤立的 API 请求，而是一段完整的运行时机制：
+很多人第一次做 Agent，会以为"给模型接几个函数"就完成了 Tool Use。实际上，只要你在真实任务里跑过几次，就会撞上各种意想不到的问题：
+
+- 模型明明有搜索工具，却在应该查资料的时候直接编了一个答案。
+- 工具执行成功了，但返回了 5000 行日志，下一轮上下文被撑爆，模型"忘"了用户最初的指令。
+- 模型生成了一个看起来合理的文件路径，但那个路径在 workspace 外面——如果 Runtime 不拦截，它就会读到不该读的文件。
+- 用户说"帮我发封邮件"，模型直接调了 `send_email`，没有确认收件人、没有预览内容——用户吓出一身冷汗。
+
+这些问题不是"模型不够强"导致的。它们的根源在于：**工具调用不是一次孤立的 API 请求，而是一段需要被精心设计的运行时机制。** 
+
+本课从课程二提到的 Function Calling 历史出发，把工具调用拆成一条完整的链路：
 
 ```text
-LLM Decision
-    -> Tool Selection
-    -> Parameter Generation
-    -> Permission Check
-    -> Tool Execution
-    -> Observation / Feedback
-    -> State Update
+LLM Decision → Tool Selection → Parameter Generation
+    → Permission Check → Tool Execution
+    → Observation / Feedback → State Update
 ```
 
-这条链路上每一步都可能失败：
-
-- 模型不知道有哪些工具。
-- 模型知道工具，但不知道什么时候该用。
-- 模型选错工具。
-- 模型填错参数。
-- Runtime 执行工具失败。
-- 工具结果太长，污染下一轮上下文。
-- 工具动作有真实世界影响，需要权限控制。
-- 多个工具经常组合完成同类任务，需要沉淀成 Skill。
-- 工具来源越来越多，需要标准化接入，例如 MCP。
-- 高风险动作不能让模型独自决定，需要 Human-in-the-loop。
-
-所以课程四不是“接入更多工具”的课程，而是学习如何把工具调用设计成可选择、可执行、可控、可复用、可审计的系统机制。
+链路中每一步都可能失败，每一步都需要对应的机制来兜底。课程四的目标不是让你"接入更多工具"，而是让你理解如何把工具调用设计成**可选择、可执行、可控、可复用、可审计**的系统机制。
 
 ---
 
@@ -43,22 +35,21 @@ LLM Decision
 
 学完本课，你将能够：
 
-1. **说清 Agent 在运行时如何调用工具** — 理解从模型决策到工具执行再到状态更新的完整链路
-2. **设计清晰的工具定义** — 让模型知道工具能做什么、什么时候该用、什么时候不该用
-3. **分析工具选择失败的原因** — 区分该用不用、不该用乱用、选错工具、参数猜错
-4. **理解工具执行与回填机制** — 掌握参数校验、超时、重试、错误结构化和结果摘要的基本原则
-5. **设计工具权限与安全策略** — 使用风险分级、最小权限、Deny-first、审计和 Human-in-the-loop 控制高风险动作
-6. **区分 Function Calling、MCP、Tool、Skill 的位置** — 明确它们分别解决什么问题
+1. **画出完整工具调用链路** — 理解从模型决策到工具执行再到状态更新的每一步及其风险
+2. **设计清晰的工具定义** — 写出让模型准确理解"何时用、何时不用"的工具描述和参数 Schema
+3. **诊断工具选择失败** — 区分该用不用、不该用乱用、选错工具、参数猜错、重复调用，并找到根因
+4. **实现工具执行与回填** — 掌握参数校验、超时、重试、错误结构化和结果摘要的基本代码模式
+5. **设计工具权限策略** — 使用风险分级、Deny-first、最小权限、审计日志控制高风险动作
+6. **区分 Function Calling、MCP、Tool、Skill 的位置** — 明确它们分别解决工具链路上的哪一段问题
 7. **把重复工具组合沉淀成 Skill** — 理解任务经验、默认流程、失败处理和复用边界
 
-本课围绕以下核心问题展开：
+本课围绕的核心问题：
 
-- Agent 在运行时如何决定是否调用工具？
-- 工具调用为什么经常失败？
-- 如何让模型知道工具能做什么、什么时候该用？
+- Agent 在运行时如何决定是否调用工具、调用哪个工具？
+- 工具调用为什么经常失败？失败的根因怎么定位？
 - 如何让工具执行结果可靠地回到下一轮决策？
-- 如何控制高风险工具调用？
-- 如何把重复任务沉淀成可复用能力？
+- 如何控制高风险工具调用？模型应该有多少自主权？
+- 当工具越来越多，如何标准化接入和复用？
 
 ---
 
@@ -66,50 +57,45 @@ LLM Decision
 
 - [课程导言](#课程导言)
 - [学习目标](#学习目标)
-- [本课在路线图中的位置](#本课在路线图中的位置)
 - [第一章：Agent 如何调用工具](#第一章agent-如何调用工具)
   - [1.1 工具调用不是一次 API 请求](#11-工具调用不是一次-api-请求)
   - [1.2 工具调用链路](#12-工具调用链路)
-  - [1.3 工具调用中的问题与机制](#13-工具调用中的问题与机制)
-- [第二章：工具定义：让模型知道工具是什么](#第二章工具定义让模型知道工具是什么)
-  - [2.1 工具定义解决什么问题](#21-工具定义解决什么问题)
+  - [1.3 从 Function Calling 到工具机制体系](#13-从-function-calling-到工具机制体系)
+- [第二章：工具定义 —— 让模型知道工具是什么](#第二章工具定义--让模型知道工具是什么)
+  - [2.1 工具定义的本质](#21-工具定义的本质)
   - [2.2 工具名、描述和参数 Schema](#22-工具名描述和参数-schema)
   - [2.3 返回值结构和错误结构](#23-返回值结构和错误结构)
-  - [2.4 工具粒度：原子工具 vs 组合工具](#24-工具粒度原子工具-vs-组合工具)
+  - [2.4 工具粒度：原子 vs 组合](#24-工具粒度原子-vs-组合)
   - [2.5 好工具的设计原则](#25-好工具的设计原则)
-- [第三章：工具选择：让模型知道什么时候用哪个工具](#第三章工具选择让模型知道什么时候用哪个工具)
+- [第三章：工具选择 —— 让模型知道什么时候用哪个](#第三章工具选择--让模型知道什么时候用哪个)
   - [3.1 工具选择的三件事](#31-工具选择的三件事)
-  - [3.2 模型自主选择、规则路由和混合路由](#32-模型自主选择规则路由和混合路由)
+  - [3.2 三种路由方式](#32-三种路由方式)
   - [3.3 强制调用、禁止调用和工具候选集](#33-强制调用禁止调用和工具候选集)
-  - [3.4 工具选择失败分类](#34-工具选择失败分类)
-- [第四章：执行与回填：让工具结果进入下一轮决策](#第四章执行与回填让工具结果进入下一轮决策)
-  - [4.1 Runtime 才是真正执行者](#41-runtime-才是真正执行者)
+  - [3.4 工具选择失败分类与调试](#34-工具选择失败分类与调试)
+- [第四章：执行与回填 —— 让工具结果进入下一轮](#第四章执行与回填--让工具结果进入下一轮)
+  - [4.1 Runtime 才是真正的执行者](#41-runtime-才是真正的执行者)
   - [4.2 参数校验、超时、重试和幂等](#42-参数校验超时重试和幂等)
   - [4.3 错误结构化](#43-错误结构化)
-  - [4.4 结果摘要、分页、截断和转资源](#44-结果摘要分页截断和转资源)
-  - [4.5 Observation / Feedback 如何影响下一轮](#45-observation--feedback-如何影响下一轮)
-- [第五章：权限与安全：让工具调用可控](#第五章权限与安全让工具调用可控)
-  - [5.1 为什么工具权限是必要的](#51-为什么工具权限是必要的)
-  - [5.2 工具风险分级](#52-工具风险分级)
+  - [4.4 结果处理：摘要、分页、截断和转资源](#44-结果处理摘要分页截断和转资源)
+  - [4.5 Observation：为下一轮决策提供依据](#45-observation为下一轮决策提供依据)
+- [第五章：权限与安全 —— 让工具调用可控](#第五章权限与安全--让工具调用可控)
+  - [5.1 为什么工具权限不是可选项](#51-为什么工具权限不是可选项)
+  - [5.2 风险分级与默认策略](#52-风险分级与默认策略)
   - [5.3 Deny-first 和最小权限](#53-deny-first-和最小权限)
-  - [5.4 渐进式授权和权限冲突处理](#54-渐进式授权和权限冲突处理)
-  - [5.5 审计日志](#55-审计日志)
-- [第六章：MCP：让工具接入标准化](#第六章mcp让工具接入标准化)
-  - [6.1 MCP 解决什么问题](#61-mcp-解决什么问题)
-  - [6.2 MCP 和 Function Calling 的关系](#62-mcp-和-function-calling-的关系)
+  - [5.4 渐进式授权和审计日志](#54-渐进式授权和审计日志)
+- [第六章：MCP —— 让工具接入标准化](#第六章mcp--让工具接入标准化)
+  - [6.1 当工具越来越多时会发生什么](#61-当工具越来越多时会发生什么)
+  - [6.2 MCP 和 Function Calling 的分工](#62-mcp-和-function-calling-的分工)
   - [6.3 Tools / Resources / Prompts](#63-tools--resources--prompts)
-  - [6.4 什么时候需要 MCP](#64-什么时候需要-mcp)
-- [第七章：Skill：把重复任务沉淀成能力包](#第七章skill把重复任务沉淀成能力包)
-  - [7.1 Tool 和 Skill 的区别](#71-tool-和-skill-的区别)
-  - [7.2 Skill 通常包含什么](#72-skill-通常包含什么)
+  - [6.4 什么时候引入 MCP](#64-什么时候引入-mcp)
+- [第七章：Skill —— 把重复任务沉淀成能力包](#第七章skill--把重复任务沉淀成能力包)
+  - [7.1 从"每次都重新想"到"把经验打包"](#71-从每次都重新想到把经验打包)
+  - [7.2 Skill 的结构](#72-skill-的结构)
   - [7.3 Skill vs Tool vs Workflow](#73-skill-vs-tool-vs-workflow)
-  - [7.4 好 Skill 的标准](#74-好-skill-的标准)
-- [第八章：Human-in-the-loop：让人参与高风险决策](#第八章human-in-the-loop让人参与高风险决策)
-  - [8.1 Human-in-the-loop 在工具机制中的位置](#81-human-in-the-loop-在工具机制中的位置)
-  - [8.2 触发条件](#82-触发条件)
-  - [8.3 介入方式](#83-介入方式)
-  - [8.4 确认界面应该展示什么](#84-确认界面应该展示什么)
-  - [8.5 人类反馈如何回到 Agent 状态](#85-人类反馈如何回到-agent-状态)
+- [第八章：Human-in-the-loop —— 让人参与高风险决策](#第八章human-in-the-loop--让人参与高风险决策)
+  - [8.1 模型不应该独自决定一切](#81-模型不应该独自决定一切)
+  - [8.2 触发条件与介入方式](#82-触发条件与介入方式)
+  - [8.3 确认界面和反馈闭环](#83-确认界面和反馈闭环)
 - [课后练习](#课后练习)
 - [验收标准](#验收标准)
 - [参考资料](#参考资料)
@@ -117,790 +103,1361 @@ LLM Decision
 
 ---
 
-## 本课在路线图中的位置
-
-本课属于“工具机制层”。
-
-| 本课关注 | 本课不关注 |
-|---|---|
-| Agent 如何在运行时调用工具 | 完整 Harness 架构 |
-| 工具定义、工具选择、参数生成 | RAG / Memory / Planning 的场景判断 |
-| 工具执行、结果回填和错误处理 | 产品侧交互设计和指标体系 |
-| 工具权限、安全和审计 | 企业级安全合规体系的完整落地 |
-| MCP、Skill、Human-in-the-loop 在工具机制中的位置 | MCP Server 或 Skill 平台的完整实现 |
-
-课程三说明了最小 Agent 闭环，本课深入闭环中的“工具/环境交互”。课程六会把这些机制纳入 Harness，课程七会从用户信任和产品体验角度继续讨论确认、接管、回滚和审计。
-
----
-
 ## 第一章：Agent 如何调用工具
 
 ### 1.1 工具调用不是一次 API 请求
 
-很多初学者会把工具调用理解成：
+回想课程二讲过的 Toolformer 和 Function Calling。Toolformer 证明了一件事：模型可以学会"什么时候该调用 API"。Function Calling 把这件事标准化成了工程接口：模型不再输出"建议你去查一下数据库"，而是输出一个结构化的 `{"tool": "query_db", "arguments": {...}}`。
 
-```text
-模型输出工具名 -> 程序调用 API -> 返回结果
-```
+但这里有一个容易被忽视的跳跃。在 Function Calling 的设计中，模型只负责**生成调用意图**——真正执行的是 Runtime。这个分工意味着：从模型的"我想调用这个工具"到"工具结果回到下一轮决策"之间，有一整条链路的工程问题需要处理。
 
-这只是最表面的部分。
-
-真正的工具调用需要回答一组问题：
+单纯把工具调用看成"模型输出工具名 → 程序调 API → 返回结果"，会漏掉一堆关键问题：
 
 - 模型怎么知道有哪些工具？
-- 模型怎么知道什么时候该用工具？
+- 模型怎么知道什么时候该用、什么时候不该用？
 - 多个工具都可能有用时，模型怎么选？
-- 模型生成的参数是否可信？
+- 模型生成的参数是否可信？（它编造了一个不存在的文件名怎么办？）
 - 工具执行失败怎么办？
-- 工具结果太长怎么办？
-- 工具动作有风险怎么办？
-- 工具调用记录如何审计？
-- 工具组合如何复用？
+- 工具结果太长，塞进上下文后把关键信息挤掉了怎么办？
+- 工具动作有真实世界影响（发邮件、删文件、下单），谁负责批准？
+- 多个工具经常一起使用来完成任务，怎么沉淀成可复用的模式？
 
-所以工具调用本质上是一段可控流程，而不是一行函数调用。
+这些问题单靠"模型变强"解决不了——它们需要 Runtime 层面的系统性设计。
 
 ### 1.2 工具调用链路
 
-一个典型工具调用链路是：
+把工具调用展开，它是一条七步链路：
 
 ```text
-LLM Decision
-    -> Tool Selection
-    -> Parameter Generation
-    -> Permission Check
-    -> Tool Execution
-    -> Observation / Feedback
-    -> State Update
+LLM Decision        →  模型判断"我需要外部能力"
+Tool Selection      →  从工具列表中选择具体工具
+Parameter Generation →  生成工具参数
+Permission Check    →  Runtime 判断是否允许执行
+Tool Execution      →  Runtime 真正执行工具
+Observation/Feedback →  整理结果，回填给模型
+State Update        →  写入任务状态，供下一轮读取
 ```
 
-每一步都有明确职责。
+每一步都有明确的职责和典型的失败模式：
 
-| 环节 | 作用 | 典型风险 |
+| 环节 | 职责 | 典型失败 |
 |---|---|---|
-| LLM Decision | 判断是否需要外部能力 | 不该用工具时乱用 |
-| Tool Selection | 选择具体工具 | 选错工具或遗漏更合适工具 |
-| Parameter Generation | 生成工具参数 | 参数类型、范围或对象错误 |
-| Permission Check | 检查是否允许执行 | 越权、误操作、真实世界影响 |
-| Tool Execution | Runtime 执行工具 | 超时、异常、外部服务失败 |
-| Observation / Feedback | 整理执行结果 | 结果过长、错误不清晰、信息污染 |
-| State Update | 写回任务状态 | 历史丢失、错误无法追踪 |
+| LLM Decision | 判断是否需要外部能力 | 该用不用（幻觉），不该用乱用（浪费） |
+| Tool Selection | 从可用工具中选最合适的 | 选错工具、遗漏更合适的工具 |
+| Parameter Generation | 填充参数值 | 参数类型错误、编造不存在的对象、遗漏必填项 |
+| Permission Check | 判断操作是否在安全边界内 | 越权、误操作、真实世界影响 |
+| Tool Execution | Runtime 执行工具 | 超时、异常、外部服务不可用 |
+| Observation | 整理执行结果 | 结果过长污染上下文、错误信息不清晰 |
+| State Update | 持久化本轮信息 | 历史丢失、错误无法追溯 |
 
-这条链路可以直接映射回课程三的最小闭环。
+这条链路可以直接映射回课程三的最小闭环——它就是把闭环中"工具/环境交互"这一步展开了。
 
-### 1.3 工具调用中的问题与机制
+### 1.3 从 Function Calling 到工具机制体系
 
-工具机制的设计思路是：先识别问题，再设计机制。
+课程二梳理过工具调用的演进：Toolformer（2023.2）证明了模型可以学会使用工具 → ChatGPT Plugins（2023.3）把"AI 能做事"变成大众体验 → Function Calling（2023.6）标准化了模型生成工具调用的接口 → MCP（2024）试图标准化工具的发现和连接。
 
-| 工具调用中的问题 | 对应机制 | 学什么 |
-|---|---|---|
-| 模型不知道有哪些工具、什么时候该用 | 工具定义 | 名称、描述、参数 Schema、返回值、工具边界 |
-| 模型选错工具或乱填参数 | 工具选择 | 工具路由、参数生成、强制/禁止工具调用、选择失败分类 |
-| 工具执行可能失败或结果太长 | 执行与回填 | 参数校验、超时、重试、错误结构化、结果摘要 |
-| 工具可能造成真实世界影响 | 权限与安全 | 风险分级、最小权限、审批、审计、回滚 |
-| 工具接入方式不统一 | MCP | 工具发现、协议化接入、Client / Server、Tools / Resources / Prompts |
-| 多个工具经常组合完成同类任务 | Skill | 工具组合、步骤经验、默认流程、失败处理、复用边界 |
-| 模型不应独自决定高风险动作 | Human-in-the-loop | 确认、澄清、审批、接管、回滚、审计记录 |
-
-课程四后续章节会沿这张表展开。
+课程四站在这些历史节点之上，聚焦于一个问题：**当你真的要在自己的系统里让模型调用工具时，需要设计哪些机制？** 后续章节会沿这个方向逐一展开。
 
 ---
 
-## 第二章：工具定义：让模型知道工具是什么
+## 第二章：工具定义 —— 让模型知道工具是什么
 
-### 2.1 工具定义解决什么问题
+### 2.1 工具定义的本质
 
-工具定义的目标是让模型知道：
+工具定义是模型理解工具的唯一入口。模型不知道你的函数内部是怎么实现的，不知道你的数据库里有什么，不知道你的 API 有什么限制。它只知道你告诉它的东西。
 
-- 这个工具能做什么。
-- 这个工具不能做什么。
-- 什么时候应该使用它。
-- 使用它需要哪些参数。
-- 它会返回什么结果。
-- 出错时会以什么形式返回错误。
+所以工具定义的质量直接决定了工具调用的上限。描述模糊 → 模型犹豫或误用。参数约束缺失 → 模型自由发挥填错值。错误格式不统一 → 模型拿到一个"failed"不知道下一步该干什么。
 
-工具定义是模型选择工具的主要依据。描述越模糊，模型越容易误用。
+工具定义要回答六个问题：
+- 这个工具能做什么？
+- 这个工具**不能**做什么？
+- 什么时候应该使用它？什么时候不应该？
+- 使用它需要哪些参数？每个参数的含义和约束是什么？
+- 成功时返回什么？什么格式？
+- 失败时返回什么？包含哪些信息帮助下一步决策？
 
 ### 2.2 工具名、描述和参数 Schema
 
-一个工具定义至少包括：
+一个工具定义至少包含名称、描述和参数 Schema。下面是 Python 代码中一个规范的 JSON Schema 工具定义：
 
-```text
-name: read_file
-description: Read a UTF-8 text file from the allowed workspace. Use this only when the user asks to inspect existing file content.
-parameters:
-  path:
-    type: string
-    required: true
-    description: Relative path under the workspace.
+```python
+TOOL_READ_FILE = {
+    "type": "function",
+    "function": {
+        "name": "read_file",
+        "description": (
+            "读取 workspace 下的 UTF-8 文本文件。"
+            "当用户要求查看、阅读、检查某个文件内容时使用此工具。"
+            "注意：只能读取 workspace 目录下的文件，不能读取系统文件或外部路径。"
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "文件相对于 workspace 的路径，例如 'notes.md' 或 'src/main.py'"
+                }
+            },
+            "required": ["path"]
+        }
+    }
+}
 ```
 
 设计要点：
+- **名称要具体**，不要叫 `do_task`、`helper`、`process`。模型通过名称建立第一印象。
+- **描述要说明适用场景和不适用场景**。这比参数说明更重要——模型先判断"该不该用"，再考虑"怎么用"。
+- **参数要有类型、约束和示例**。不要留给模型"猜"的空间。
+- **工具边界要清楚**，避免多个工具能力重叠。如果 `search_web` 和 `search_database` 的描述太像，模型就会随机选。
 
-- 工具名要具体，不要叫 `do_task`、`helper`、`process`。
-- 描述要说明适用场景和不适用场景。
-- 参数要有类型、必填项、枚举、范围和默认值。
-- 参数描述要避免让模型猜。
-- 工具边界要清楚，避免多个工具能力重叠。
+对比两个描述的质量差异：
 
-对比两个描述：
+```python
+# 糟糕的描述 — 太模糊，模型无法判断何时使用
+BAD_TOOL = {
+    "name": "process_data",
+    "description": "处理数据",
+    "parameters": {"properties": {"input": {"type": "string"}}}
+}
 
-| 描述 | 问题 |
-|---|---|
-| `read_file: read something` | 太泛，模型不知道读取什么、从哪里读取、何时读取 |
-| `read_file: Read a text file from the allowed workspace when file content is needed for the current task.` | 明确了对象、范围和使用场景 |
+# 好的描述 — 明确了场景、边界和约束
+GOOD_TOOL = {
+    "name": "summarize_document",
+    "description": (
+        "将文本文件内容总结为指定数量的要点。"
+        "当用户要求'总结'、'概括'、'提炼要点'时使用。"
+        "注意：需要先通过 read_file 获取文件内容，不要在没有内容时调用。"
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "content": {
+                "type": "string",
+                "description": "要总结的文本内容（通常来自 read_file 的返回结果）"
+            },
+            "num_points": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10,
+                "default": 5,
+                "description": "总结的要点数量，1-10，默认 5"
+            }
+        },
+        "required": ["content"]
+    }
+}
+```
 
 ### 2.3 返回值结构和错误结构
 
-工具返回值也要设计。
+工具返回值也需要约定格式。如果成功时返回自然语言、失败时返回异常堆栈，模型和 Runtime 都会很难处理。
 
-不推荐直接返回任意字符串：
+推荐统一的结构化返回格式。在 Python 中实现：
 
-```text
-Error: failed
+```python
+from dataclasses import dataclass
+from typing import Any
+
+@dataclass
+class ToolResult:
+    """统一的工具返回结构"""
+    status: str                          # "success" | "error"
+    summary: str                         # 简短摘要，会被放入上下文
+    data: Any | None = None              # 完整数据，可能较长
+    error: dict[str, str] | None = None  # 错误详情，仅 status="error" 时有值
+
+    @classmethod
+    def success(cls, summary: str, data: Any = None) -> "ToolResult":
+        return cls(status="success", summary=summary, data=data)
+
+    @classmethod
+    def error(cls, code: str, message: str,
+              retryable: bool = False,
+              suggested_action: str = "") -> "ToolResult":
+        return cls(
+            status="error",
+            summary=message,
+            error={
+                "code": code,
+                "message": message,
+                "retryable": str(retryable).lower(),
+                "suggested_action": suggested_action,
+            }
+        )
 ```
 
-推荐返回结构化结果：
+使用示例：
 
-```text
-status: error
-error:
-  code: file_not_found
-  message: "File notes.md was not found under the workspace."
-summary: "The requested file does not exist."
-data: null
+```python
+def read_file(path: str) -> dict:
+    """读取 workspace 下的文件"""
+    full_path = os.path.join(WORKSPACE, path)
+    if not os.path.exists(full_path):
+        return ToolResult.error(
+            code="file_not_found",
+            message=f"文件 '{path}' 不存在于 workspace 中",
+            retryable=False,
+            suggested_action="请确认文件路径是否正确，或使用 list_files 查看可用文件"
+        ).__dict__
+
+    try:
+        with open(full_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        return ToolResult.success(
+            summary=f"成功读取 {path}，共 {len(content)} 字符",
+            data={"content": content, "size": len(content)}
+        ).__dict__
+    except Exception as e:
+        return ToolResult.error(
+            code=type(e).__name__,
+            message=str(e),
+            retryable=True,
+            suggested_action="读取失败，可以重试一次"
+        ).__dict__
 ```
 
-成功时也要结构化：
+结构化返回的核心价值：**模型看到 `error.code == "file_not_found"` 和 `suggested_action`，就能直接给出有针对性的下一步决策**，而不是收到一个模糊的"失败了"然后开始乱猜。
 
-```text
-status: success
-summary: "Read 1280 characters from notes.md."
-data:
-  content: "..."
+### 2.4 工具粒度：原子 vs 组合
+
+工具粒度是最容易被忽视但影响最大的设计决策。
+
+原子工具只做一件事：
+```python
+TOOLS_ATOMIC = [
+    "read_file(path)",        # 读取一个文件
+    "write_file(path, content)", # 写入一个文件
+    "search_text(query)",     # 在文本中搜索
+    "run_tests(command)",     # 运行测试
+]
 ```
 
-结构化返回值的好处：
-
-- 模型更容易理解结果。
-- Runtime 更容易记录和评测。
-- 错误可以被分类。
-- 后续重试和恢复更明确。
-
-### 2.4 工具粒度：原子工具 vs 组合工具
-
-工具粒度是工具设计里最容易出问题的地方。
-
-原子工具示例：
-
-```text
-read_file(path)
-write_file(path, content)
-search_text(query)
-run_tests(command)
+组合工具封装了一个多步流程：
+```python
+TOOLS_COMPOSITE = [
+    "generate_report(folder, output)",      # 读取文件夹 → 分析 → 写入报告
+    "review_code_and_run_tests(diff)",      # 读 diff → 检查 → 跑测试 → 汇总
+]
 ```
 
-组合工具示例：
-
-```text
-generate_report_from_documents(folder_path, output_path)
-review_code_and_run_tests(diff)
-```
-
-两者各有代价。
+两者的取舍：
 
 | 类型 | 优点 | 风险 |
 |---|---|---|
-| 原子工具 | 灵活、可组合、边界清楚 | 步骤多，模型容易选错顺序 |
-| 组合工具 | 效率高，封装经验 | 不透明，灵活性低，失败时难定位 |
+| 原子工具 | 灵活、可任意组合、边界清楚、失败易定位 | 步骤多，模型需要自己编排顺序 |
+| 组合工具 | 效率高，封装了最佳实践和失败处理 | 不透明，内部步骤不可见，失败时难定位根因 |
 
-课程四建议：先用原子工具理解机制，再把高频组合沉淀成 Skill。
+**本课的建议**：先用原子工具理解机制，跑通闭环。当你发现某个工具组合在多个任务中反复出现、步骤已经稳定、失败模式也清楚了，再把它沉淀成 Skill（第七章）。
 
 ### 2.5 好工具的设计原则
 
-好工具通常具备这些特征：
+汇总一下，好工具通常具备这些特征：
 
-- **原子性**：一个工具做好一类清晰动作。
-- **可重试性**：失败后可以安全重试，或明确说明不可重试。
-- **可观测性**：每次调用都能记录参数、结果和错误。
-- **结构化错误**：失败不是一句模糊报错，而是有错误码和原因。
-- **边界清晰**：模型知道什么时候该用，什么时候不该用。
-- **副作用可控**：写入、删除、发送、支付等动作必须有权限控制。
-- **描述即文档**：工具描述就是模型理解工具的主要文档。
-
-工具设计不是给人读的 API 文档，也不是只给程序调用的函数签名。它同时服务模型、Runtime、开发者和审计系统。
+- **原子性**：一个工具做好一类清晰动作。不要一个工具既读文件又发邮件。
+- **描述即文档**：工具描述是模型理解工具的主要甚至唯一文档。
+- **边界清晰**：明确说明什么时候该用、什么时候不该用。后者和前者一样重要。
+- **结构化返回**：成功和失败都有统一的格式，错误包含编码、原因和建议。
+- **可重试性明确**：失败时告诉模型"这个可以重试"还是"这个别再试了"。
+- **副作用可控**：写入、删除、发送、支付等动作必须有权限控制，不能默认自动执行。
+- **可观测**：每次调用的参数、结果、耗时都被记录。
 
 ---
 
-## 第三章：工具选择：让模型知道什么时候用哪个工具
+## 第三章：工具选择 —— 让模型知道什么时候用哪个
 
 ### 3.1 工具选择的三件事
 
-工具选择本质上包含三件事：
+工具选择本质上在一个决策点上回答三个问题：
 
 ```text
-什么时候用工具 -> 用哪个工具 -> 参数怎么填
+什么时候用工具 → 用哪个工具 → 参数怎么填
 ```
 
-错误可能发生在任何一步。
+这三步中任何一步出错，工具调用就会失败。而且错误的根因经常不在"模型不行"，而在工具定义、上下文或路由设计。
 
-例如用户说：
+举个例子，用户说：
 
 ```text
 请总结 notes.md 的内容。
 ```
 
-合理行为是：
+正确的行为和可能的错误：
 
 ```text
-使用 read_file 读取 notes.md -> 根据内容生成总结
+正确：read_file("notes.md") → 获取内容 → 返回总结
+错误1：不读文件，直接编造一份"总结"        ← 该用不用（幻觉）
+错误2：search_web("notes.md")              ← 选错工具（边界混淆）
+错误3：read_file("note.md")               ← 参数填错（少了一个 s）
+错误4：read_file 成功后再次 read_file     ← 重复调用（缺进展判断）
 ```
 
-错误行为可能是：
+### 3.2 三种路由方式
 
-- 不读取文件，直接编造总结。
-- 使用 `search_web` 去搜索 notes.md。
-- 调用 `read_file`，但路径写成 `note.md`。
-- 读取文件成功后又重复读取同一个文件。
+工具选择可以通过三种方式实现，从简单到复杂：
 
-### 3.2 模型自主选择、规则路由和混合路由
+**方式一：模型自主选择**。把工具列表注入上下文，让模型自己判断是否调用、调用哪个。
 
-常见工具选择方式有三类。
-
-| 方式 | 工作方式 | 适用场景 |
-|---|---|---|
-| 模型自主选择 | 把工具列表给模型，由模型决定是否调用 | 开放任务、工具数量少、风险低 |
-| 规则路由 | 根据输入类型或业务规则决定工具 | 流程稳定、风险高、可预测场景 |
-| 混合路由 | 规则先缩小候选集，模型再选择 | 工具较多、需要兼顾灵活和可控 |
-
-实践中，完全让模型在大量工具中自由选择，通常不稳定。更常见的做法是：
-
-```text
-先由系统选择候选工具集 -> 再让模型在候选集中选择
+```python
+def route_by_model(context: dict, tools: list[dict]) -> dict:
+    """将工具列表注入上下文，由模型自主选择"""
+    context["tools"] = tools
+    return llm_call(context)
+# 适用：工具数量少（<10）、任务开放、风险低
 ```
 
-这能减少工具描述上下文，也能降低误选概率。
+**方式二：规则路由**。根据输入特征由代码决定工具。
+
+```python
+def route_by_rule(user_input: str) -> str | None:
+    """根据规则强制路由到特定工具"""
+    if "订单" in user_input and "状态" in user_input:
+        return "query_order"      # 查订单状态，必须调工具
+    if any(kw in user_input for kw in ["文件", "读取", "查看内容"]):
+        return "read_file"        # 涉及文件内容，必须读文件
+    return None                    # 其他情况，让模型自己判断
+# 适用：流程稳定、高风险、可预测的场景
+```
+
+**方式三：混合路由**。规则先缩小候选集，模型在候选集中选择。
+
+```python
+def route_hybrid(context: dict, all_tools: list[dict]) -> dict:
+    """规则过滤候选集 → 模型在候选集中选择"""
+    # 1. 根据上下文缩小候选
+    candidates = filter_tools(all_tools, context)
+    # 例如：当前没有写权限 → 过滤掉所有写入工具
+
+    # 2. 只把候选工具给模型
+    context["tools"] = candidates
+    return llm_call(context)
+# 适用：工具较多、需要兼顾灵活性和可控性
+```
+
+实践中，完全让模型在几十个工具中自由选择通常不稳定。混合路由是最常见的选择：**系统先缩小范围，模型再精准选择。**
 
 ### 3.3 强制调用、禁止调用和工具候选集
 
-有些场景应该强制调用工具。
+有些场景下，是否调用工具不应该由模型决定：
 
-例如：
+**应该强制调用工具的场景**：用户要求查询实时数据、用户要求读取文件、用户要求精确计算。如果不调工具，模型大概率幻觉。
 
-- 用户要求查询订单状态。
-- 用户要求读取某个文件。
-- 用户要求计算精确结果。
-- 用户要求基于最新资料回答。
+**应该禁止调用工具的场景**：用户只是闲聊或概念解释、用户请求越权动作、当前任务已经完成。如果此时调工具，要么浪费资源，要么有安全风险。
 
-如果不调用工具，模型很可能幻觉。
+候选集管理也很关键。工具太多会带来：
+- 上下文膨胀（每个工具的描述都占 Token）。
+- 选择困难（模型在相似工具间犹豫）。
+- 成本上升（更长的上下文 → 更高的推理成本）。
 
-有些场景应该禁止调用工具。
+所以工具系统需要根据**任务阶段、用户权限、风险等级和上下文**动态筛选可用工具，而不是一股脑把所有工具塞进上下文。
 
-例如：
+### 3.4 工具选择失败分类与调试
 
-- 用户只是询问概念解释。
-- 用户请求越权动作。
-- 用户要求读取不在授权范围内的数据。
-- 当前任务已经完成。
+当工具选择出错时，不要只改 Prompt。先按类型定位问题：
 
-工具候选集也很重要。
+| 失败类型 | 表现 | 常见根因 | 调试方向 |
+|---|---|---|---|
+| 该用不用 | 需要查数据却不调工具 | 工具描述太弱，模型不知道它能做这个 | 强化描述中的使用场景 |
+| 不该用乱用 | 闲聊也调搜索 API | 工具描述诱导性太强，或 Prompt 没约束 | 在描述中加"不要使用"的场景 |
+| 选错工具 | 该读文件却搜网页 | 工具边界重叠，描述太相似 | 区分两个工具的使用场景描述 |
+| 参数猜错 | 文件名、ID 编造 | 参数约束不足，或上下文缺信息 | 加强 Schema 约束 + 检查上下文是否包含所需参数 |
+| 重复调用 | 同工具反复调无新结果 | 缺少循环控制和进展判断 | 在 Runtime 层面加重复检测 |
 
-工具太多会带来：
+一个具体的调试案例：
 
-- 上下文变长。
-- 模型选择困难。
-- 工具边界混淆。
-- 成本上升。
+```text
+问题：用户说"帮我看看 notes.md 写了什么"，模型调了 search_web("notes.md")
 
-所以工具系统通常需要根据任务阶段、用户权限、风险等级和上下文动态筛选可用工具。
+根因分析：
+1. 检查上下文 — 模型收到了 tools 列表，其中包括 read_file 和 search_web
+2. 检查工具描述 — read_file 的描述只说"Read a file"，没说它和 search_web 的区别
+3. 检查优先级 — 两个工具的 description 长度差不多，模型随机选了一个
 
-### 3.4 工具选择失败分类
+修复：
+- read_file 描述中加上："当用户指定了具体文件名时使用此工具，例如'读取 notes.md'。"
+- search_web 描述中加上："当用户要求搜索广泛信息、最新资讯时使用。不要用于读取用户指定的本地文件。"
+```
 
-工具选择失败可以分成几类：
-
-| 类型 | 表现 | 可能原因 |
-|---|---|---|
-| 该用不用 | 需要文件内容却不读文件 | 工具描述弱、模型过度自信 |
-| 不该用乱用 | 普通解释问题却调用外部 API | Prompt 没有约束，工具诱导过强 |
-| 选错工具 | 应该读本地文件，却搜索网页 | 工具边界重叠 |
-| 参数猜错 | 文件名、ID、枚举值编造 | 参数约束不足，上下文缺信息 |
-| 重复调用 | 同一工具反复调用无新结果 | 缺少循环控制和进展判断 |
-
-调试工具选择问题时，不要只改 Prompt。你还要检查：
-
-- 工具描述是否清楚。
-- 参数 Schema 是否明确。
-- 工具边界是否重叠。
-- 候选工具是否太多。
-- 是否需要规则路由或强制调用。
+调试工具选择问题的原则：**先排除工具定义的问题，再调整 Prompt，最后才怀疑模型能力。**
 
 ---
 
-## 第四章：执行与回填：让工具结果进入下一轮决策
+## 第四章：执行与回填 —— 让工具结果进入下一轮
 
-### 4.1 Runtime 才是真正执行者
+### 4.1 Runtime 才是真正的执行者
 
-模型生成 tool call，并不代表工具已经执行。
+模型生成了 tool call，不代表工具已经被执行。模型只是说"我想调用 read_file，参数是 notes.md"。真正去读文件、处理错误、格式化结果的是 Runtime。
 
-真正执行的是 Runtime。
+Runtime 在工具执行环节的职责：
 
-Runtime 至少要做：
+```python
+def execute_tool_call(
+    tool_name: str,
+    arguments: dict,
+    tools: dict[str, callable],
+    permissions: "PermissionChecker",
+    logger: "Logger",
+) -> dict:
+    """Runtime 执行工具调用的完整流程"""
+    # 1. 校验工具是否存在
+    if tool_name not in tools:
+        return ToolResult.error(
+            code="tool_not_found",
+            message=f"工具 '{tool_name}' 未注册",
+            suggested_action="检查工具名是否正确，或查看可用工具列表"
+        ).__dict__
 
-- 接收模型 tool call。
-- 校验工具是否存在。
-- 校验参数是否合法。
-- 检查权限。
-- 执行工具。
-- 捕获错误。
-- 格式化结果。
-- 写入状态和日志。
-- 把 Observation 回填给模型。
+    # 2. 校验参数
+    param_error = validate_params(tool_name, arguments, tools)
+    if param_error:
+        return param_error
 
-这就是课程三里“模型负责决策，Runtime 负责执行”的具体体现。
+    # 3. 检查权限
+    if not permissions.check(tool_name, arguments):
+        return ToolResult.error(
+            code="permission_denied",
+            message=f"工具 '{tool_name}' 的执行请求被拒绝",
+            suggested_action="联系用户确认权限或修改操作范围"
+        ).__dict__
+
+    # 4. 记录审计日志
+    logger.info(f"tool_call", tool=tool_name, args=arguments)
+
+    # 5. 执行工具
+    try:
+        result = tools[tool_name](**arguments)
+        return result
+    except Exception as e:
+        return ToolResult.error(
+            code=type(e).__name__,
+            message=str(e),
+            retryable=True,
+        ).__dict__
+```
+
+这就是课程三的核心原则在工具层的具体体现：**模型决策，Runtime 执行。** 模型不应该有机会绕过权限检查，也不应该自己决定"文件读不到就算了"。
 
 ### 4.2 参数校验、超时、重试和幂等
 
-执行工具前，必须校验参数。
+执行前的参数校验是拦截错误的第一道防线：
 
-参数校验包括：
+```python
+def validate_params(tool_name: str, arguments: dict, tools: dict) -> dict | None:
+    """校验工具参数，返回 None 表示通过，返回 dict 表示错误"""
+    schema = tools[tool_name]["function"]["parameters"]
+    required = schema.get("required", [])
+    properties = schema.get("properties", {})
 
-- 类型是否正确。
-- 必填项是否存在。
-- 枚举值是否合法。
-- 路径、ID、URL 是否在允许范围内。
-- 数值是否越界。
-- 对象是否存在。
+    # 检查必填项
+    for field in required:
+        if field not in arguments:
+            return ToolResult.error(
+                code="missing_required",
+                message=f"缺少必填参数 '{field}'",
+                suggested_action=f"请提供 {field} 的值"
+            ).__dict__
 
-工具执行还要考虑：
+    # 检查类型和约束
+    for field, value in arguments.items():
+        if field not in properties:
+            continue
+        prop = properties[field]
+        if prop.get("type") == "integer" and not isinstance(value, int):
+            return ToolResult.error(
+                code="type_error",
+                message=f"参数 '{field}' 应为整数，实际为 {type(value).__name__}"
+            ).__dict__
+        if "enum" in prop and value not in prop["enum"]:
+            return ToolResult.error(
+                code="invalid_enum",
+                message=f"参数 '{field}' 的值 '{value}' 不在允许范围内",
+                suggested_action=f"允许的值：{prop['enum']}"
+            ).__dict__
 
-| 机制 | 作用 |
-|---|---|
-| 超时 | 防止工具卡死 |
-| 重试 | 应对临时网络或服务错误 |
-| 幂等 | 防止重复写入、重复发送、重复扣费 |
-| 取消 | 支持用户中断 |
-| 沙箱 | 限制工具影响范围 |
+    return None
+```
 
-写操作尤其要关注幂等。读取文件失败可以重试，发送邮件失败后重试就可能重复发送。
+工具执行还需要额外的运行时保护：
+
+```python
+import signal
+import functools
+
+def with_timeout(seconds: int):
+    """装饰器：为工具调用添加超时保护"""
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            def handler(signum, frame):
+                raise TimeoutError(f"工具执行超时（>{seconds}s）")
+            old = signal.signal(signal.SIGALRM, handler)
+            signal.alarm(seconds)
+            try:
+                return func(*args, **kwargs)
+            finally:
+                signal.alarm(0)
+                signal.signal(signal.SIGALRM, old)
+        return wrapper
+    return decorator
+
+
+def with_retry(max_retries: int = 2, retryable_errors: tuple = (TimeoutError, ConnectionError)):
+    """装饰器：为工具调用添加重试逻辑。注意：只对幂等操作重试"""
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            last_error = None
+            for attempt in range(max_retries + 1):
+                try:
+                    return func(*args, **kwargs)
+                except retryable_errors as e:
+                    last_error = e
+                    if attempt < max_retries:
+                        time.sleep(2 ** attempt)  # 指数退避
+            raise last_error
+        return wrapper
+    return decorator
+
+
+# 使用示例
+@with_timeout(30)
+@with_retry(max_retries=2)
+def query_database(sql: str) -> dict:
+    """只读查询，幂等，可以安全重试"""
+    return db.execute(sql)
+
+
+@with_timeout(10)
+def send_email(to: str, subject: str, body: str) -> dict:
+    # 注意：没有加 @with_retry，因为发送邮件不是幂等操作
+    # 重试可能导致重复发送
+    return email_service.send(to, subject, body)
+```
+
+重试策略的关键判断：**这个操作重试后结果是否一致？** 读文件 → 可以重试。查数据库（只读）→ 可以重试。发邮件 → 不能随便重试（可能重复发送）。创建订单 → 不能随便重试（可能重复扣费）。
 
 ### 4.3 错误结构化
 
-工具失败不要只返回：
+工具失败时，返回的信息质量决定了模型下一轮决策的质量。
+
+比较两种错误返回：
 
 ```text
-failed
+# 糟糕：模型拿到这个不知道该干什么
+"Error: failed"
+
+# 好的：模型能据此判断下一步
+{
+  "status": "error",
+  "error": {
+    "code": "permission_denied",
+    "message": "文件 '/etc/passwd' 不在允许的 workspace 范围内",
+    "retryable": false,
+    "suggested_action": "请选择 workspace 目录下的文件重试"
+  }
+}
 ```
 
-要返回模型和 Runtime 都能理解的错误结构：
+结构化错误至少包含五个字段：错误码（`code`）、可读信息（`message`）、是否可重试（`retryable`）、建议下一步（`suggested_action`）、是否需要用户介入（`needs_user`）。这五个字段让模型下一轮可以做出有依据的判断，而不是从"failed"这个词上胡乱猜测。
 
-```text
-status: error
-error:
-  type: permission_error
-  message: "The file is outside the allowed workspace."
-  retryable: false
-  suggested_action: "Ask the user to choose a file under the workspace."
+### 4.4 结果处理：摘要、分页、截断和转资源
+
+工具结果经常很长——搜索返回 20 个网页、数据库返回 1000 条记录、文件有 10 万字、测试日志有几千行。全部塞进上下文会撑爆窗口，关键信息被淹没。
+
+四种处理方式的代码模式：
+
+```python
+def process_tool_result(result: ToolResult, max_context_chars: int = 2000) -> dict:
+    """处理工具结果，避免上下文膨胀"""
+    if result.status == "error":
+        # 错误信息通常较短，直接返回
+        return result.__dict__
+
+    raw = result.data or {}
+    content = raw.get("content", "")
+
+    # 策略1：内容短 → 直接返回
+    if len(content) <= max_context_chars:
+        return result.__dict__
+
+    # 策略2：内容长 → 摘要 + 引用
+    return {
+        "status": "success",
+        "summary": result.summary,
+        "content_truncated": True,
+        "preview": content[:500] + f"\n... [省略 {len(content) - 1000} 字符] ...\n" + content[-500:],
+        "full_content_ref": raw.get("path"),  # 如果写入了文件，提供引用路径
+        "total_chars": len(content),
+    }
 ```
-
-错误结构至少包含：
-
-- 错误类型。
-- 错误信息。
-- 是否可重试。
-- 是否需要用户介入。
-- 建议下一步。
-
-这样模型下一轮才知道是重试、换参数、请求用户，还是失败退出。
-
-### 4.4 结果摘要、分页、截断和转资源
-
-工具结果经常很长。
-
-例如：
-
-- 搜索返回 20 个网页。
-- 数据库返回 1000 条记录。
-- 文件有 10 万字。
-- 测试日志有几千行。
-
-如果全部塞进上下文，会带来两个问题：
-
-- 关键信息被淹没。
-- 上下文成本和延迟上升。
-
-常见处理方式：
 
 | 方法 | 适用场景 |
 |---|---|
-| 摘要 | 工具结果长，但下一步只需要关键信息 |
-| 分页 | 结果列表较长，需要逐步查看 |
-| 截断 | 只保留头部、尾部或关键片段 |
-| 转资源 | 原始结果写入文件或存储，模型只拿引用 |
-| 结构化提取 | 从结果中提取字段、错误码、匹配项 |
+| 摘要 | 结果长但只需关键信息（搜索、API 响应） |
+| 分页 | 结果列表长，需要逐步查看（数据库查询） |
+| 截断 | 只留头部和尾部（日志、长文件） |
+| 转资源 | 原始结果写入临时文件，模型拿引用路径 |
+| 结构化提取 | 从结果中只提取字段、错误码、匹配项 |
 
-课程六会把这些内容放入 Context Engineering。本课先理解：工具结果不能无脑回填。
+### 4.5 Observation 如何塑造下一轮决策
 
-### 4.5 Observation / Feedback 如何影响下一轮
+前面四节讲了工具怎么执行、结果怎么处理。但还有一个关键问题没有展开：**工具结果回到模型面前时，模型到底是怎么"用"它的？**
 
-Observation / Feedback 是工具结果进入 Agent 闭环的方式。
+Observation 在工具调用链路中的位置很特殊——它既是上一轮的终点（工具执行完了），也是下一轮的起点（模型要基于它做决策）。这个双重身份决定了 Observation 的设计质量直接影响到整个闭环的运转质量。
 
-例如：
+#### 4.5.1 Observation 的本质：为下一轮决策提供依据
 
+先看一个具体对比。假设模型调了 `read_file("notes.md")`，文件不存在。
+
+**糟糕的 Observation：**
 ```text
-Tool Call:
-  read_file(path="notes.md")
-
-Observation:
-  status: error
-  error_type: file_not_found
-  summary: "notes.md does not exist"
+Error: failed
 ```
 
-下一轮模型应该据此判断：
+模型拿到这个，它不知道是文件不存在、权限不够、磁盘满了还是网络断了。它只能猜。猜错了 → 下一步也错 → 用户看到的是 Agent 在胡言乱语。
 
-```text
-ask_user: "没有找到 notes.md，请确认文件路径。"
+**好的 Observation：**
+```json
+{
+  "status": "error",
+  "error": {
+    "code": "file_not_found",
+    "message": "文件 'notes.md' 在 workspace 中不存在",
+    "retryable": false,
+    "suggested_action": "请确认文件路径是否正确，或使用 list_files 查看 workspace 中的可用文件"
+  }
+}
 ```
 
-如果 Observation 设计得不好，模型会误判。比如只返回“failed”，模型不知道是路径错、权限错、网络错，还是工具本身不可用。
+模型拿到这个，它可以立即做出合理判断：
+```text
+Thought: 文件不存在。我应该列出 workspace 下的文件，让用户看到有哪些可选。
+Action: list_files()
+Observation: ["notes.txt", "readme.md", "src/"]
+Thought: 没有 notes.md，但有一个 notes.txt，可能是用户记错了文件名。
+Action: ask_user("没有找到 notes.md，但发现了 notes.txt。您是指这个文件吗？")
+```
+
+这个对比说明了 Observation 最核心的设计原则：**Observation 不是在汇报"发生了什么"，而是在为下一轮决策提供"依据"。** 它应该让模型不需要猜测就能判断下一步该做什么。
+
+#### 4.5.2 Observation 设计的四个维度
+
+一个好的 Observation 需要从四个维度考量：
+
+**维度一：信息完整性。** 模型需要的所有信息都包含在 Observation 中了吗？对于错误，需要错误码、原因、是否可重试。对于成功，需要结果摘要、关键数据、以及"这个结果意味着什么"的上下文提示。
+
+**维度二：结构一致性。** 无论哪个工具、无论成功还是失败，Observation 的结构应该统一。统一的 `{status, summary, data, error}` 结构让模型不需要每次适应不同的返回格式。
+
+**维度三：上下文感知。** Observation 不应该只是工具原始输出的搬运工。它需要结合当前任务状态，给出上下文提示。例如搜索结果 Observation 可以加上"返回了 20 条结果，其中前 3 条与当前任务直接相关"。
+
+**维度四：模型可操作性。** 模型看到 Observation 后，能直接判断下一步吗？如果不能，说明 Observation 缺少关键信息。一个测试方法是：把 Observation 单独拿给模型看（不给上下文），问它"基于这个结果，下一步应该做什么"——如果模型能给出合理的下一步，Observation 的质量就过关了。
+
+#### 4.5.3 Observation 如何进入下一轮决策的完整链路
+
+一个完整的 Observation → 下一轮决策的链路如下：
+
+```python
+def build_observation(tool_name: str, raw_result: dict, task_state: dict) -> dict:
+    """将工具原始输出转为对模型有用的 Observation"""
+    obs = {
+        "tool": tool_name,
+        "status": raw_result["status"],
+        "summary": raw_result["summary"],
+    }
+
+    if raw_result["status"] == "success":
+        # 成功时：带上数据摘要，省略原始数据避免上下文膨胀
+        obs["data_summary"] = raw_result.get("data", {})
+        obs["context_hint"] = _generate_success_hint(tool_name, raw_result, task_state)
+
+    elif raw_result["status"] == "error":
+        err = raw_result.get("error", {})
+        obs["error"] = {
+            "code": err.get("code", "unknown"),
+            "retryable": err.get("retryable", False),
+            "suggested_action": err.get("suggested_action", ""),
+        }
+        obs["context_hint"] = _generate_error_hint(tool_name, err, task_state)
+
+    return obs
+
+
+def _generate_error_hint(tool_name: str, error: dict, task_state: dict) -> str:
+    """为错误 Observation 生成上下文提示"""
+    code = error.get("code", "")
+
+    if code == "file_not_found":
+        return f"目标文件不存在。可用 list_files 查看当前目录。当前步骤：{task_state['step_count']}/{task_state['max_steps']}"
+    elif code == "permission_denied":
+        return "权限不足。不要重复尝试同一操作，请求用户授权或调整操作范围。"
+    elif code == "timeout":
+        return f"临时超时。可重试 {2 - task_state.get('consecutive_timeouts', 0)} 次。如果连续超时，应停止重试。"
+    else:
+        return f"工具执行失败（{code}）。如果连续失败 {task_state.get('consecutive_errors', 0)} 次，应请求用户介入。"
+
+
+# 完整流程示例
+def agent_loop_step(state, llm, tools):
+    """Agent 循环的一步，展示 Observation 如何进入下一轮"""
+    # 1. 模型决策
+    decision = llm.decide(state.context)
+
+    if decision["type"] != "call_tool":
+        return decision
+
+    # 2. Runtime 执行工具
+    raw_result = execute_tool(decision["tool_name"], decision["arguments"], tools)
+
+    # 3. 构建 Observation（关键：不只是传递原始结果）
+    observation = build_observation(
+        decision["tool_name"],
+        raw_result,
+        {"step_count": state.step_count, "max_steps": state.max_steps,
+         "consecutive_errors": state.consecutive_errors}
+    )
+
+    # 4. Observation 写入状态（成为下一轮上下文的一部分）
+    state.add_observation(observation)
+
+    # 5. 组装下一轮上下文时，Observation 会和用户目标、历史决策一起注入
+    # → 模型看到完整上下文（包括这个 Observation）→ 做出下一轮决策
+    return "continue"
+```
+
+#### 4.5.4 常见 Observation 设计失误
+
+| 失误 | 表现 | 后果 | 修复 |
+|---|---|---|---|
+| **过于简略** | 只返回 `"ok"` 或 `"failed"` | 模型无法判断下一步，开始胡猜 | 返回结构化的状态码、摘要和上下文提示 |
+| **过于冗长** | 把 5000 行日志全塞进 Observation | 上下文被撑爆，模型"忘记"之前的关键信息 | 先用 4.4 的结果处理策略做摘要/截断 |
+| **格式混乱** | 每个工具返回格式不同 | 模型需要不断适应新格式，增加误判概率 | 统一 `{status, summary, data, error}` 结构 |
+| **缺少上下文** | 只报告"搜到 3 条结果"，不说是什么、与任务的关系 | 模型不知道这些结果的意义 | 加上 `context_hint` 字段 |
+| **把空结果当错误** | `search` 没找到匹配 → 返回 error | 模型以为工具坏了，可能换工具或放弃 | 区分"工具执行失败"和"工具执行成功但没有匹配" |
+| **错误码不区分** | 所有错误都返回 `"error"` | 模型不知道是临时故障（可重试）还是永久错误（该换策略） | 用 `retryable` 字段明确标识 |
+
+#### 4.5.5 Observation 与 State Update 的分工
+
+一个容易被混淆的点：Observation 和 State Update 都涉及"工具结果"，它们是什么关系？
+
+**Observation 面向模型**：它回答"模型现在需要知道什么才能做下一步决策"。它经过筛选、摘要、附加上下文提示，被注入下一轮的 Context Assembly。
+
+**State Update 面向 Runtime**：它回答"系统需要记录什么才能追踪、恢复、审计这个任务"。它完整记录原始结果、耗时、错误栈，写入 State / Memory Store，但不一定全部注入上下文。
+
+两者的关系可以理解为：State Update 是完整档案，Observation 是从档案中提取的"决策简报"。模型不需要知道完整档案的每一行，但它需要简报中的关键信息和判断依据。
+
+```python
+# 两者的分工示例
+raw_result = execute_tool("read_file", {"path": "large_report.md"})
+
+# State Update：完整记录（供调试、审计、恢复）
+state.record_tool_call(
+    tool="read_file",
+    args={"path": "large_report.md"},
+    raw_result=raw_result,       # 完整结果，可能很大
+    duration_ms=1234,
+)
+
+# Observation：精简简报（进入下一轮上下文）
+observation = {
+    "status": "success",
+    "summary": "成功读取 large_report.md，共 15000 字符",
+    "preview": raw_result["data"]["content"][:800] + "...",
+    "full_content_ref": "state://tool_results/step_3/raw",  # 如果模型需要完整内容，可以通过引用获取
+    "context_hint": "报告包含 Q1-Q4 四个季度的销售数据和趋势分析。第 3-5 章为关键分析章节。"
+}
+state.add_observation(observation)
+```
+
+把 State Update 和 Observation 分开设计，而不是混在一起，可以让上下文保持精简，同时保证完整信息不丢失。
 
 ---
 
-## 第五章：权限与安全：让工具调用可控
+## 第五章：权限与安全 —— 让工具调用可控
 
-### 5.1 为什么工具权限是必要的
+### 5.1 为什么工具权限不是可选项
 
-工具调用可能产生真实世界影响。
+工具调用一旦能影响外部世界，权限和安全就从"上线前再考虑"变成了"第一天就要设计"。Agent 可能做的危险操作：读取私有文件、写入或删除文件、查询用户数据、发送消息、修改配置、创建订单、触发付款、发布内容。
 
-例如：
+这些操作的问题不在于"模型心怀恶意"，而在于**模型不理解后果**。它看到的不是"这个操作会删掉用户三年的数据"，而是"根据概率分布，下一个 Token 可能是 DELETE"。
 
-- 读取私有文件。
-- 写入或删除文件。
-- 查询用户数据。
-- 发送消息。
-- 修改配置。
-- 创建订单。
-- 触发付款。
-- 发布内容。
+### 5.2 风险分级与默认策略
 
-一旦工具能影响外部世界，权限和安全就不是可选项。
+先对工具做风险分级：
 
-### 5.2 工具风险分级
+```python
+from enum import Enum
 
-可以先用简单风险分级：
+class RiskLevel(Enum):
+    READ_ONLY_LOW = 1    # 读取公开资料、搜索网页
+    READ_ONLY_MED = 2    # 读取用户文件、查询数据库
+    WRITE_LOW = 3        # 写入草稿、生成本地临时文件
+    WRITE_HIGH = 4       # 修改用户文件、更新数据库记录
+    DANGEROUS = 5        # 删除、支付、发布、线上配置变更
 
-| 风险等级 | 示例 | 默认策略 |
-|---|---|---|
-| 只读低风险 | 读取允许目录下的文件、搜索公开资料 | 可自动执行 |
-| 低风险写入 | 写入草稿、生成本地临时文件 | 可自动执行或轻确认 |
-| 高风险写入 | 修改用户文件、发送消息、更新数据库 | 执行前确认 |
-| 危险操作 | 删除、支付、发布、线上配置变更 | 默认禁止或严格审批 |
+# 默认策略映射
+DEFAULT_POLICY = {
+    RiskLevel.READ_ONLY_LOW: "auto",        # 自动执行
+    RiskLevel.READ_ONLY_MED: "auto",        # 自动执行
+    RiskLevel.WRITE_LOW: "confirm",         # 执行前确认
+    RiskLevel.WRITE_HIGH: "confirm",        # 执行前确认
+    RiskLevel.DANGEROUS: "deny",            # 默认禁止，需明确授权
+}
+```
 
-风险分级不是一劳永逸。它还要结合用户授权、作用域、对象和上下文。
+风险分级不是一劳永逸。它还要结合操作对象（删除临时文件 vs 删除生产数据）、操作范围（修改一个字段 vs 修改整张表）、用户授权级别来判断。
 
 ### 5.3 Deny-first 和最小权限
 
-工具权限建议采用 Deny-first：
+权限设计的核心原则只有两条：
 
 ```text
-默认拒绝，明确允许。
+Deny-first：默认拒绝，明确允许。
+最小权限：只给 Agent 当前任务所需的最小工具、最小数据、最小作用域。
 ```
 
-这意味着：
+代码实现：
 
-- 没有注册的工具不能调用。
-- 没有授权的资源不能访问。
-- 不在允许范围内的路径不能读取或写入。
-- 高风险动作不能自动执行。
-- 宽泛的 deny 规则应该覆盖狭窄的 allow 规则。
+```python
+class PermissionChecker:
+    """Deny-first 权限检查器"""
 
-最小权限原则是：
+    def __init__(self):
+        # allow 和 deny 规则列表，deny 优先级高于 allow
+        self.rules: list[dict] = []
 
-```text
-只给 Agent 当前任务所需的最小工具、最小数据、最小作用域。
+    def allow(self, tool: str, scope: str = "*", condition: callable = None):
+        self.rules.append({"type": "allow", "tool": tool, "scope": scope, "condition": condition})
+
+    def deny(self, tool: str, scope: str = "*"):
+        self.rules.append({"type": "deny", "tool": tool, "scope": scope})
+
+    def check(self, tool_name: str, arguments: dict) -> bool:
+        """检查工具调用是否被允许。deny 规则优先级高于 allow"""
+        # 先检查 deny 规则
+        for rule in self.rules:
+            if rule["type"] == "deny":
+                if self._match(rule, tool_name, arguments):
+                    return False  # ← 命中 deny，直接拒绝
+
+        # 再检查 allow 规则
+        for rule in self.rules:
+            if rule["type"] == "allow":
+                if self._match(rule, tool_name, arguments):
+                    return True   # ← 命中 allow，允许执行
+
+        # 既没命中 deny 也没命中 allow → 默认拒绝
+        return False
+
+    def _match(self, rule: dict, tool_name: str, arguments: dict) -> bool:
+        if rule["tool"] != "*" and rule["tool"] != tool_name:
+            return False
+        if rule.get("condition") and not rule["condition"](arguments):
+            return False
+        return True
+
+
+# 配置示例
+checker = PermissionChecker()
+checker.allow("read_file", condition=lambda a: a["path"].startswith("workspace/"))
+checker.deny("read_file", condition=lambda a: "secrets" in a["path"])
+checker.allow("write_file", condition=lambda a: a["path"].startswith("workspace/output/"))
+checker.deny("delete_file")   # 全面禁止删除
+checker.deny("send_email")    # 全面禁止发邮件
+# 未列出的工具 → 默认拒绝
 ```
 
-例如，用户让 Agent 总结一个文件，不应该顺便给它整个磁盘的读写权限。
+这个设计的要点是：**deny 优先于 allow，没列出的工具默认拒绝。** 这让权限策略的安全边界清晰可控——你不需要担心"有没有漏掉一个危险工具"，因为没列出的自动就是不能用的。
 
-### 5.4 渐进式授权和权限冲突处理
+### 5.4 渐进式授权和审计日志
 
-Agent 产品不应该一开始就要求用户配置大量永久权限。
-
-更合理的是渐进式授权：
-
+Agent 产品不应该一开始就要求用户配置大量永久权限。渐进式授权更合理：
 - 低风险只读动作可以自动执行。
-- 中风险写入动作请求确认。
-- 高风险动作需要明确审批。
-- 用户可以逐步信任某些工具或目录。
-- 新会话或新任务中，高风险权限需要重新确认。
+- 中风险写入动作初次执行时请求确认，用户可选择"本次会话记住"。
+- 高风险动作每次都需要确认，不允许记住。
+- 用户可以随时撤销已授权的权限。
 
-权限冲突时，应该优先采用更严格策略。
+审计日志是工具调用安全的基础——没有日志，出问题时你无从排查：
 
-例如：
-
-```text
-allow: read workspace/**
-deny: read workspace/secrets/**
+```python
+@dataclass
+class AuditEntry:
+    timestamp: str
+    user_id: str
+    task_id: str
+    tool_name: str
+    arguments: dict
+    permission_result: str       # "allowed" | "denied" | "confirmed_by_user"
+    confirmed_by: str | None     # 如果是用户确认的，记录用户 ID
+    execution_result: str        # "success" | "error" | "timeout"
+    error_detail: str | None
+    duration_ms: int
 ```
 
-当模型请求读取 `workspace/secrets/api_key.txt` 时，应该拒绝。
-
-### 5.5 审计日志
-
-工具调用需要审计。
-
-至少记录：
-
-- 谁发起任务。
-- 模型为什么调用工具。
-- 调用了哪个工具。
-- 参数是什么。
-- 权限检查结果。
-- 谁确认了高风险动作。
-- 工具执行结果。
-- 是否失败和失败原因。
-
-审计不是只为合规服务，也为调试、复盘和用户信任服务。
+审计日志每条记录回答：谁、什么时候、在哪个任务里、想调什么工具、参数是什么、权限检查结果、谁确认的、执行结果。这不仅是合规需要，更是调试和用户信任的基础。
 
 ---
 
-## 第六章：MCP：让工具接入标准化
+## 第六章：MCP —— 让工具接入标准化
 
-### 6.1 MCP 解决什么问题
+### 6.1 当工具越来越多时会发生什么
 
-当工具越来越多时，工具接入会变得混乱：
+前面四章假设工具是你在代码里手动定义和注册的。这在工具数量少（3-10 个）的时候没问题。但当工具数量增长、来源多样化时，新的问题出现了：
+- 每个工具的接入方式不同（REST API、gRPC、数据库连接、本地函数）。
+- 工具描述格式不统一（有些用 OpenAPI、有些用自定义 JSON、有些没文档）。
+- 工具需要动态发现（今天有这个工具，明天可能下线了）。
+- 不同 Agent 或应用需要复用同一组工具，但每个都要写一套集成代码。
 
-- 每个工具都有不同描述方式。
-- 每个服务都有不同调用方式。
-- 工具发现困难。
-- 工具复用困难。
-- 不同 Agent Runtime 难以共享工具能力。
+这就像每买一个电器就需要重新装修一次插座——不可持续。
 
-MCP 解决的是工具和上下文能力如何被标准化暴露、发现和调用。
+### 6.2 MCP 和 Function Calling 的分工
 
-它不是 Agent 架构本身，而是工具接入协议。
+MCP（Model Context Protocol，2024 年由 Anthropic 发布）解决的就是"工具接入标准化"的问题。要理解它的定位，关键是把 MCP 和 Function Calling 分开：
 
-### 6.2 MCP 和 Function Calling 的关系
+| 概念 | 解决的问题 | 所在层 |
+|---|---|---|
+| Function Calling | 模型如何表达"我要调用哪个函数、参数是什么" | 模型接口层 |
+| MCP | 工具服务如何被发现、描述、调用和复用 | 工具接入层 |
 
-可以这样理解：
-
-| 概念 | 解决的问题 |
-|---|---|
-| Function Calling | 模型如何表达“我要调用哪个函数、参数是什么” |
-| MCP | 工具服务如何被发现、描述、调用和复用 |
-
-Function Calling 更接近模型接口层。
-
-MCP 更接近工具接入和生态层。
-
-两者可以配合：MCP Server 暴露工具，Agent Runtime 把这些工具描述给模型，模型通过 function/tool call 形式选择工具。
+它们不是竞争关系，而是配合关系：MCP Server 暴露工具，Agent Runtime 通过这些标准接口发现和调用工具，然后把工具描述转成模型能理解的 Function Calling 格式，模型决策后 Runtime 通过 MCP 协议真正执行。
 
 ### 6.3 Tools / Resources / Prompts
 
-MCP 中常见对象包括：
+MCP 定义了三种核心对象。下面通过一个完整的 MCP Server 定义示例来理解它们各自是什么：
 
-- **Tools**：可执行动作，例如查询数据库、读文件、调用 API。
-- **Resources**：可读取资源，例如文档、文件、数据库记录。
-- **Prompts**：可复用提示模板或任务模板。
+```python
+# mcp_server.py — 一个"文件管理" MCP Server 的定义示例
 
-对 Agent 来说，MCP 的价值是让工具接入更统一：
+from mcp import Server, Tool, Resource, Prompt
 
-```text
-不同服务 -> 统一协议暴露能力 -> Agent Runtime 发现并调用
+server = Server("file_manager", description="文件管理服务：提供文件的读取、搜索和摘要能力")
+
+
+# ── Tools：可执行动作 ──────────────────────────
+
+@server.tool()
+def read_file(path: str) -> str:
+    """读取 workspace 下的文本文件内容。
+    当用户要求查看、阅读、检查某个文件时使用。
+    注意：只能读取 /workspace 目录下的文件。
+    """
+    full_path = f"/workspace/{path}"
+    with open(full_path) as f:
+        return f.read()
+
+
+@server.tool()
+def search_files(query: str, path: str = "/workspace") -> list[dict]:
+    """在指定目录下搜索文件名或文件内容匹配 query 的文件。
+    返回匹配文件列表，每项包含文件路径、匹配摘要和匹配行数。
+    当用户要求'找一下'、'搜索'、'有没有关于X的文件'时使用。
+    """
+    import subprocess
+    result = subprocess.run(
+        ["grep", "-rn", query, path],
+        capture_output=True, text=True, timeout=10
+    )
+    matches = []
+    for line in result.stdout.strip().split("\n"):
+        if line:
+            file_path, line_no, content = line.split(":", 2)
+            matches.append({"file": file_path, "line": int(line_no), "content": content.strip()})
+    return matches[:20]  # 最多返回 20 条
+
+
+@server.tool()
+def summarize_file(path: str, max_points: int = 5) -> dict:
+    """对文件内容进行要点总结。
+    需要先通过 read_file 获取文件内容。
+    参数 max_points 控制总结要点数量，默认 5，范围 1-10。
+    """
+    full_path = f"/workspace/{path}"
+    with open(full_path) as f:
+        content = f.read()
+    # 实际实现会调用 LLM 进行总结，此处简化
+    return {"path": path, "size": len(content), "summary": f"文件包含 {len(content)} 字符"}
+
+
+# ── Resources：可读取的数据资源 ──────────────────
+
+@server.resource("docs://{name}")
+def get_document(name: str) -> str:
+    """读取 docs 目录下的文档。用作 Agent 的知识来源。
+    支持 Markdown 和纯文本格式。
+    """
+    with open(f"/workspace/docs/{name}") as f:
+        return f.read()
+
+
+@server.resource("config://app")
+def get_app_config() -> dict:
+    """读取应用配置。只读，Agent 不能修改。"""
+    return {"version": "2.1.0", "workspace": "/workspace", "max_file_size": 10 * 1024 * 1024}
+
+
+# ── Prompts：可复用的提示模板 ────────────────────
+
+@server.prompt()
+def code_review_template(diff: str) -> str:
+    """代码审查的 Prompt 模板。Agent 在审查代码时可以载入此模板。"""
+    return f"""你是一个代码审查专家。请审查以下 git diff，按严重程度组织输出。
+
+审查维度：
+1. 潜在 bug（逻辑错误、空指针、边界条件）
+2. 安全问题（注入、越权、敏感信息泄露）
+3. 测试覆盖（是否有对应的测试用例）
+4. 代码质量（可读性、命名、重复代码）
+
+输出格式：
+- Critical: 必须修复的问题
+- Major: 应该修复的问题
+- Minor: 建议改进
+- Suggestion: 可选优化
+
+以下是待审查的 diff：
+{diff}
+"""
+
+
+@server.prompt()
+def weekly_report_template(data: str) -> str:
+    """周报生成的 Prompt 模板。"""
+    return f"""基于以下数据生成本周工作总结，包含：完成事项、进行中事项、遇到的问题、下周计划。
+
+数据：
+{data}
+"""
+
+
+# ── 启动 Server：两种传输方式 ────────────────────
+
+if __name__ == "__main__":
+    # 方式一：stdio — 本地进程通信（适合单机、开发调试）
+    # server.run(transport="stdio")
+
+    # 方式二：HTTP/SSE — 远程 API 通信（适合微服务、多 Agent 共享）
+    server.run(transport="http", host="0.0.0.0", port=8090)
+    # 启动后，Client 可以通过 http://localhost:8090/sse 连接
 ```
 
-### 6.4 什么时候需要 MCP
+这个示例展示了 MCP Server 的全貌。注意两种传输方式的选择：
+
+- **stdio**：Server 作为子进程启动，通过标准输入输出与 Client 通信。适合单机开发——简单、不需要网络配置，但 Server 生命周期绑定 Client 进程。
+- **HTTP/SSE**：Server 作为独立 HTTP 服务运行，Client 通过 HTTP + Server-Sent Events 远程连接。适合生产环境——Server 可以独立部署、水平扩展、被多个 Agent 共享。
+
+- **Tools**（`read_file`、`search_files`、`summarize_file`）：Agent 可以调用的可执行动作。每个 Tool 有名称、描述和参数 Schema（通过类型注解自动生成）。对应本课前面讨论的工具定义——MCP 把定义和执行放在了同一个 Server 里。
+
+- **Resources**（`docs://{name}`、`config://app`）：Agent 可以读取的数据资源。Tool 执行动作，Resource 暴露数据。Resource 是只读的——Agent 可以通过 `docs://readme` 这样的 URI 读取文档，但不能修改它。
+
+- **Prompts**（`code_review_template`、`weekly_report_template`）：可复用的提示模板。与 System Prompt 的区别在于：Prompt 是**任务级**的——Agent 在处理特定任务时按需载入，而不是始终存在于上下文中。
+
+对 Agent 开发者来说，MCP 的价值是把"接入一个新工具"从"写一套集成代码"变成了"连接一个 MCP Server"。这个 Server 可以独立部署、独立更新、被多个 Agent 共享——就像编辑器通过 LSP 连接任意语言的语法服务一样。
+
+#### 6.3.1 MCP Client：Agent 侧如何连接和调用
+
+Server 定义了工具，Client 负责发现、连接和调用。下面是一个 MCP Client 在 Agent Runtime 中的使用示例：
+
+```python
+# agent_mcp_client.py — Agent Runtime 侧连接 MCP Server
+
+import asyncio
+import json
+from mcp import Client
+
+
+class MCPToolProvider:
+    """通过 MCP 协议连接工具 Server，将远程工具转为 Agent 可调用的本地接口"""
+
+    def __init__(self):
+        self.clients: dict[str, Client] = {}   # server_name → MCP Client
+        self.tools: dict[str, dict] = {}       # tool_name → {server, schema, callable}
+
+    # ── 两种连接方式 ──────────────────────────────
+
+    async def connect_stdio(self, name: str, command: str, args: list[str]):
+        """方式一：stdio — 作为子进程启动本地 Server。
+        例如：connect_stdio("file_manager", "python", ["mcp_server.py"])
+        """
+        client = Client(name)
+        await client.connect(command=command, args=args)  # 通过 stdio 通信
+        self.clients[name] = client
+        await self._discover_and_register(name, client)
+
+    async def connect_http(self, name: str, url: str):
+        """方式二：HTTP/SSE — 连接远程 HTTP Server。
+        例如：connect_http("file_manager", "http://tools.internal:8090/sse")
+        适用于：Server 独立部署、跨机器访问、多 Agent 共享同一 Server。
+        """
+        client = Client(name)
+        await client.connect(url=url, transport="http")   # 通过 HTTP + SSE 通信
+        self.clients[name] = client
+        await self._discover_and_register(name, client)
+
+    # ── 两种注册方式 ──────────────────────────────
+
+    async def _discover_and_register(self, server_name: str, client: Client):
+        """方式A：动态发现 — 连接后通过 list_tools() 自动发现 Server 暴露了哪些工具。
+        优点：Server 更新工具后 Client 无需修改代码。
+        缺点：需要先启动 Server 才能知道有哪些工具，启动顺序有依赖。
+        """
+        server_tools = await client.list_tools()
+        for tool_def in server_tools:
+            self._register_tool(server_name, tool_def)
+
+    def register_static(self, server_name: str, server_url: str,
+                         tool_defs: list[dict]):
+        """方式B：静态声明 — 注册时直接声明该 Server 提供哪些工具，无需先连接。
+        优点：启动时就能知道全部工具列表，不依赖 Server 是否在线。
+        缺点：工具定义需要手动维护，Server 更新后需要同步更新声明。
+
+        例如：注册一个远程天气服务的 MCP Server，提前知道它会暴露 get_weather 工具。
+        """
+        # 注意：这里只注册了工具 Schema（模型可以立即看到），
+        # 实际的 MCP 连接在首次调用时才建立（lazy connect）
+        self.tools[f"{server_name}.get_weather"] = {
+            "server": server_name,
+            "url": server_url,
+            "connected": False,
+            "schema": {
+                "type": "function",
+                "function": {
+                    "name": f"{server_name}.get_weather",
+                    "description": "查询指定城市的实时天气。数据来自 WeatherAPI。",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "city": {"type": "string", "description": "城市名称"},
+                            "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]}
+                        },
+                        "required": ["city"]
+                    }
+                }
+            },
+            "callable": lambda args, s=server_name, t="get_weather": self._call_tool(s, t, args),
+        }
+
+    # ── 内部方法 ──────────────────────────────────
+
+    def _register_tool(self, server_name: str, tool_def):
+        """内部统一的工具注册逻辑"""
+        full_name = f"{server_name}.{tool_def.name}"  # 如 "file_manager.read_file"
+        self.tools[full_name] = {
+            "server": server_name,
+            "schema": self._to_function_calling_schema(tool_def),
+            "callable": lambda args, s=server_name, t=tool_def.name: self._call_tool(s, t, args),
+        }
+
+    async def _call_tool(self, server: str, tool: str, args: dict) -> dict:
+        """通过 MCP 协议调用远程工具"""
+        client = self.clients.get(server)
+        if not client:
+            return {"status": "error", "error": {"code": "server_not_connected",
+                    "message": f"Server '{server}' 未连接"}}
+        try:
+            result = await client.call_tool(tool, args)
+            return {"status": "success", "data": result}
+        except Exception as e:
+            return {"status": "error", "error": {"code": type(e).__name__, "message": str(e)}}
+
+    def _to_function_calling_schema(self, tool_def) -> dict:
+        return {
+            "type": "function",
+            "function": {
+                "name": tool_def.name,
+                "description": tool_def.description,
+                "parameters": tool_def.input_schema,
+            }
+        }
+
+    async def list_prompts(self, server: str) -> list[dict]:
+        return await self.clients[server].list_prompts()
+
+    async def get_prompt(self, server: str, prompt_name: str, arguments: dict) -> str:
+        prompt = await self.clients[server].get_prompt(prompt_name, arguments)
+        return prompt.rendered
+
+    async def read_resource(self, server: str, uri: str) -> str:
+        resource = await self.clients[server].read_resource(uri)
+        return resource.content
+
+
+# ── 在 Agent 循环中使用 MCP 工具 ──────────────────
+
+async def main():
+    provider = MCPToolProvider()
+
+    # 1. 连接 MCP Server — 两种传输方式
+    # stdio：本地进程
+    await provider.connect_stdio("file_manager", "python", ["mcp_server.py"])
+    # HTTP：远程服务（Server 独立部署在 tools.internal:8090）
+    await provider.connect_http("weather", "http://tools.internal:8090/sse")
+
+    # 2. 静态声明 — 不需要先连接，提前声明 Server 提供什么工具
+    provider.register_static("crm", "http://crm.internal:8090/sse", [
+        {"name": "query_customer", "description": "查询客户信息", "input_schema": {...}},
+        {"name": "create_order",   "description": "创建订单",     "input_schema": {...}},
+    ])
+    # 模型立即可以看到 crm.query_customer 和 crm.create_order，
+    # 实际的 MCP 连接在首次调用时才建立
+
+    # 3. 将所有工具合并为统一的 Function Calling Schema
+    all_tools = {}
+    all_tools.update(provider.tools)      # MCP 工具（动态发现 + 静态声明）
+    all_tools.update(local_tools)          # 本地函数
+
+    tool_schemas = [t["schema"] for t in all_tools.values()]
+    # → 模型看到的是统一的列表，不区分 stdio/HTTP/本地
+
+    # 4. Runtime 根据工具名路由调用
+    decision = {"type": "call_tool", "tool_name": "file_manager.search_files",
+                "arguments": {"query": "deadline"}}
+    result = await all_tools[decision["tool_name"]]["callable"](decision["arguments"])
+```
+
+这个 Client 示例展示了 MCP 在 Agent 中的完整运作方式：
+
+**两种传输方式：**
+- `connect_stdio`：启动本地子进程，通过标准输入输出通信。适合开发调试——零网络配置。
+- `connect_http`：连接远程 HTTP Server（通过 `/sse` 端点建立 Server-Sent Events 通道）。适合生产环境——Server 可以独立部署、被多个 Agent 共享、独立扩缩容。
+
+**两种注册方式：**
+- **动态发现**（`_discover_and_register`）：连接 Server 后调用 `list_tools()` 自动获取工具列表。Server 新增工具后 Client 无需改代码。缺点是必须先连上 Server 才知道有什么工具。
+- **静态声明**（`register_static`）：注册时就清楚声明"这个 Server 提供哪些工具"，模型立即能看到 Schema，实际的 MCP 连接延迟到首次调用时建立。适合工具列表稳定、或 Server 可能暂时不可用的场景——Agent 启动时不需要等所有 Server 就绪。
+
+**共同的底层原则：** 无论哪种传输方式、哪种注册方式，模型看到的永远是统一的 Function Calling 格式。MCP 的职责是标准化"接入"，而不是改变模型和工具的交互模型。
+
+### 6.4 什么时候引入 MCP
 
 适合引入 MCP 的场景：
-
-- 工具来自多个外部服务。
+- 工具来自多个外部服务，每个都有不同的接入方式。
 - 多个 Agent 或应用需要复用同一组工具。
-- 工具需要动态发现。
-- 工具接入希望标准化。
+- 工具需要动态发现和热更新。
 - 团队希望把工具服务独立部署和维护。
 
-不一定需要 MCP 的场景：
+**不需要** MCP 的场景：
+- 只有 2-3 个本地函数。（你在课程三和本课的练习中就是这个阶段）
+- 工具边界还没稳定，还在频繁调整定义。
+- 你还在学习最小闭环，不应该引入协议层复杂度。
 
-- 只有 2-3 个本地函数。
-- 工具只服务当前 demo。
-- 工具边界还没稳定。
-- 你还在学习最小闭环。
-
-课程四学习 MCP 的目标不是马上实现复杂 MCP 系统，而是理解它在工具机制中的位置。
+本课引入 MCP 的目标不是让你立刻搭一套 MCP 体系，而是让你知道它在哪里、解决什么问题——当你的工具数量某天从 5 个变成 50 个时，你知道该往哪个方向走。
 
 ---
 
-## 第七章：Skill：把重复任务沉淀成能力包
+## 第七章：Skill —— 把重复任务沉淀成能力包
 
-### 7.1 Tool 和 Skill 的区别
+### 7.1 从"每次都重新想"到"把经验打包"
 
-Tool 是原子动作。
-
-Skill 是可复用能力包。
-
-例如：
-
-| Tool | Skill |
-|---|---|
-| `read_file` | 文档总结 Skill |
-| `run_tests` | 代码审查 Skill |
-| `query_database` | 数据分析 Skill |
-| `search_web` | 竞品调研 Skill |
-
-Tool 解决“能做什么动作”。
-
-Skill 解决“如何完成一类任务”。
-
-### 7.2 Skill 通常包含什么
-
-一个 Skill 通常包含：
-
-- 适用场景。
-- 输入要求。
-- 输出要求。
-- 工具组合。
-- 推荐步骤。
-- 常见失败模式。
-- 重试策略。
-- 示例任务。
-- 禁用边界。
-
-例如代码审查 Skill 可能包含：
+假设你发现 Agent 在执行"代码审查"任务时，总是按这个模式走：
 
 ```text
-适用场景：审查当前 Git diff
-步骤：
-  1. 读取 diff
-  2. 判断改动类型
-  3. 检查潜在 bug
-  4. 检查测试覆盖
-  5. 必要时运行测试
-  6. 按严重程度输出 review
-失败处理：
-  - 测试命令不存在时请求用户确认
-  - diff 过大时先摘要再分段审查
+1. 读 git diff
+2. 判断改动类型（新增/修改/删除）
+3. 逐文件检查潜在 bug
+4. 检查测试覆盖是否足够
+5. 如果改动涉及关键路径，运行相关测试
+6. 按严重程度组织 review 输出
 ```
+
+每次任务模型都要把这几步重新"想"一遍，浪费 Token，而且偶尔会漏步骤。这就是 Skill 要解决的问题：**把稳定的工具组合和步骤经验打包成可复用的能力单元。**
+
+Tool 解决"能做什么动作"（读文件、跑测试）。Skill 解决"如何完成一类任务"（代码审查、文档总结、数据分析）。两者的关系就像"螺丝刀"和"家具组装说明书"——前者是工具，后者告诉你用什么工具、什么顺序、遇到问题怎么处理。
+
+### 7.2 Skill 的结构
+
+一个 Skill 通常包含以下部分：
+
+```python
+CODE_REVIEW_SKILL = {
+    "name": "code_review",
+    "description": "审查当前 git diff，检查潜在 bug、安全问题、测试覆盖和代码质量",
+    "when_to_use": "用户要求 review、审查代码、检查 PR、评估改动质量时",
+    "when_not_to_use": "用户只是询问代码含义、要求写新代码而非审查已有改动",
+    "tools_needed": ["read_file", "run_shell", "search_text"],
+    "recommended_steps": [
+        {"step": 1, "action": "获取 diff", "tool": "run_shell", "args": {"command": "git diff"}},
+        {"step": 2, "action": "判断改动类型和范围", "note": "新增/修改/删除，涉及哪些模块"},
+        {"step": 3, "action": "逐文件检查", "tool": "read_file", "note": "重点检查逻辑变更和边界条件"},
+        {"step": 4, "action": "检查测试覆盖", "tool": "search_text", "note": "查找相关测试文件"},
+        {"step": 5, "action": "运行关键测试", "tool": "run_shell", "condition": "仅当改动涉及关键路径"},
+        {"step": 6, "action": "按严重程度组织输出", "note": "Critical > Major > Minor > Suggestion"},
+    ],
+    "failure_handling": {
+        "git_diff_empty": "告知用户没有检测到改动，确认分支是否正确",
+        "test_not_found": "标记为'缺少测试覆盖'，不阻塞 review 流程",
+        "diff_too_large": "先摘要再分段审查，建议用户缩小 review 范围",
+    },
+    "disabled_scenarios": [
+        "不要在没有 git 仓库的目录中使用",
+        "不要用于审查二进制文件",
+    ],
+}
+```
+
+Skill 不是固定流程——模型可以根据实际情况决定是否完全遵循推荐步骤，还是根据上下文调整。这和 Workflow 的关键区别在于：Workflow 是"你必须按这个顺序走"，Skill 是"按经验你应该这样走，但你可以判断是否需要调整"。
 
 ### 7.3 Skill vs Tool vs Workflow
 
-三者容易混淆。
+三者容易混淆，放在一起对比：
 
-| 概念 | 关键特征 | 例子 |
-|---|---|---|
-| Tool | 原子动作，由 Runtime 执行 | 读取文件、运行测试 |
-| Skill | 可复用任务能力，可由 Agent 灵活调用 | 代码审查、数据分析 |
-| Workflow | 固定流程，步骤通常预设 | 提交表单后固定审批 |
+| 概念 | 本质 | 由谁决定执行 | 例子 |
+|---|---|---|---|
+| Tool | 原子动作 | Runtime 执行，模型选择 | `read_file`、`run_tests` |
+| Skill | 可复用任务能力包 | 模型决定是否使用、如何调整 | 代码审查、文档总结 |
+| Workflow | 固定执行流程 | 系统预设，不能跳过 | 提交 → 审批 → 发布 |
 
-Skill 和 Workflow 的区别在于：Skill 不是固定流程本身，而是给 Agent 的任务经验包。Agent 可以根据上下文决定是否使用、如何调整。
-
-### 7.4 好 Skill 的标准
-
-好 Skill 应该：
-
-- 边界清晰。
-- 输入输出明确。
-- 工具组合合理。
-- 步骤不过度固定。
-- 有失败处理。
-- 可回退。
-- 可被审计。
-- 不把高风险动作隐藏在内部。
-
-Skill 的风险是过度封装。如果 Skill 里面做了太多不可见动作，用户和开发者会失去控制。
+Skill 的边界：它应该让 Agent 更高效，但不能让用户和开发者失去控制。如果 Skill 内部隐藏了大量不可见的操作（比如悄悄修改了文件、静默发了通知），它就变成了一个黑箱陷阱。
 
 ---
 
-## 第八章：Human-in-the-loop：让人参与高风险决策
+## 第八章：Human-in-the-loop —— 让人参与高风险决策
 
-### 8.1 Human-in-the-loop 在工具机制中的位置
+### 8.1 模型不应该独自决定一切
 
-Human-in-the-loop 不是单独的 Agent 能力，而是工具机制中的控制点。
+工具机制走到这里，还有最后一个控制点没有覆盖：**什么样的动作模型可以自己做决定，什么样的动作必须经过人类确认？**
 
-它通常发生在：
+答案是：当动作的后果不可逆、影响真实用户、或者模型自身的置信度不够高时，应该把人类拉入循环。
 
-```text
-模型提出动作 -> Runtime 识别风险 -> 请求用户确认 -> 根据用户反馈继续或停止
-```
+Human-in-the-loop 不是"Agent 能力不够时的临时补丁"，而是**工具机制中的结构性控制点**。它承认一个基本事实：模型不理解后果，最终的责任在人。
 
-它解决的是：模型不应该独自决定所有动作。
+### 8.2 触发条件与介入方式
 
-### 8.2 触发条件
-
-常见触发条件包括：
-
-- 高风险动作。
-- 低置信度决策。
-- 权限不足。
-- 连续失败。
-- 影响真实用户或业务数据。
+常见触发条件：
+- 高风险动作（删除、支付、发布、发送消息）。
+- 模型自己表示不确定（低置信度决策）。
+- 权限不足但用户可能授权。
 - 动作不可撤销。
-- 参数不确定。
+- 参数存在歧义，模型在"猜"。
 
-例如：
+用户介入不只是"同意/拒绝"二选一。完整的介入方式包括：确认执行、驳回动作、修改参数、编辑计划、要求解释、接管执行、回滚结果、补充信息。
 
-```text
-Agent 想发送一封邮件给客户。
+### 8.3 确认界面和反馈闭环
+
+高风险动作确认时，展示信息至少要包含：动作是什么、作用对象、影响范围、参数、是否可撤销、失败后怎么处理、为什么 Agent 建议执行。用户需要足够上下文才能判断，不能只给一个"是否允许？"的按钮。
+
+用户反馈必须回到 Agent 状态：
+
+```python
+def handle_user_feedback(state: AgentState, feedback: dict) -> AgentState:
+    """将用户反馈写入 Agent 状态，影响下一轮决策"""
+    state.user_feedback = feedback
+    state.history.append({
+        "step": state.step_count,
+        "type": "user_feedback",
+        "feedback": feedback,
+    })
+
+    if feedback["type"] == "rejected":
+        # 用户给了拒绝理由，模型下一轮应该据此调整
+        state.context_hint = f"上一轮操作被用户拒绝，原因：{feedback.get('reason', '未说明')}"
+    elif feedback["type"] == "modified":
+        # 用户修改了参数，用修改后的参数重新执行
+        state.pending_action = {
+            "tool": feedback["tool"],
+            "arguments": feedback["modified_arguments"],
+        }
+
+    return state
 ```
 
-这通常需要确认，因为它会影响真实用户。
-
-### 8.3 介入方式
-
-Human-in-the-loop 不只是“同意 / 拒绝”。
-
-常见介入方式：
-
-- 确认执行。
-- 驳回动作。
-- 修改参数。
-- 编辑计划。
-- 要求解释。
-- 接管执行。
-- 回滚结果。
-- 补充信息。
-
-用户介入后，反馈也要写回 Agent 状态。
-
-### 8.4 确认界面应该展示什么
-
-高风险动作确认时，至少展示：
-
-- 动作是什么。
-- 作用对象是什么。
-- 影响范围是什么。
-- 参数是什么。
-- 是否可撤销。
-- 失败后怎么处理。
-- 为什么 Agent 建议执行。
-
-不要只展示：
-
-```text
-是否允许执行？
-```
-
-用户需要足够上下文才能做判断。
-
-### 8.5 人类反馈如何回到 Agent 状态
-
-用户反馈不是一个 UI 事件，它应该进入 Agent 状态。
-
-例如：
-
-```text
-user_feedback:
-  type: rejected
-  reason: "不要覆盖原文件，另存为新文件"
-```
-
-下一轮模型应该根据这个反馈调整行为：
-
-```text
-call_tool: write_file
-arguments:
-  path: "summary-new.md"
-```
-
-如果人类反馈不进入状态，Agent 会重复犯同样错误。
+如果用户反馈不进入状态，Agent 下一轮会基于旧上下文做出同样的决策，再次触发同一个确认——用户会觉得自己在和一个没有记忆的系统反复拉扯。
 
 ---
 
@@ -908,150 +1465,55 @@ arguments:
 
 ### 练习一：设计 5 个工具定义
 
-为课程三的最小 Agent 扩展 5 个工具。
-
-每个工具写清楚：
-
-- 工具名。
-- description。
-- 参数 Schema。
-- 返回值结构。
-- 错误结构。
-- 风险等级。
-- 什么时候不该用。
+为课程三的最小 Agent 扩展 5 个工具。每个工具写出：工具名、description（含适用和不适用场景）、参数 Schema（类型、约束、默认值）、返回值结构（成功和失败）、风险等级。
 
 ### 练习二：分析工具选择失败
 
-设计 5 个用户任务，并判断模型可能出现什么工具选择失败。
+设计 5 个用户任务，判断模型可能出现什么工具选择失败，并写出调试方向。至少覆盖：该用不用、不该用乱用、选错工具、参数猜错、重复调用。
 
-至少覆盖：
+### 练习三：实现带权限检查的工具执行器
 
-- 该用不用。
-- 不该用乱用。
-- 选错工具。
-- 参数猜错。
-- 重复调用。
-
-### 练习三：设计权限策略
-
-为以下工具设计权限策略：
-
-- `read_file`
-- `write_file`
-- `delete_file`
-- `send_email`
-- `query_database`
-- `run_shell_command`
-
-要求：
-
-- 标注风险等级。
-- 说明默认自动执行、确认后执行，还是禁止执行。
-- 写出至少 3 条 Deny-first 规则。
+参考 4.1 和 5.3 的代码，实现一个带参数校验、权限检查、超时和错误结构化的 `execute_tool_call` 函数。为至少 4 个工具配置 Deny-first 权限策略。
 
 ### 练习四：设计一个 Skill
 
-选择一个任务，例如：
-
-- 代码审查。
-- 文档总结。
-- 数据分析。
-- 竞品调研。
-
-设计一个 Skill，包含：
-
-- 适用场景。
-- 输入输出。
-- 工具组合。
-- 推荐步骤。
-- 失败处理。
-- 禁用边界。
+选择一个常见任务（代码审查、文档总结、数据分析、竞品调研），设计一个完整的 Skill 定义。包含推荐步骤、失败处理、禁用边界。
 
 ### 练习五：设计 Human-in-the-loop 节点
 
-选择一个高风险任务，例如：
-
-```text
-Agent 根据用户输入生成并发送客户邮件。
-```
-
-设计确认节点：
-
-- 何时触发确认？
-- 确认界面展示什么？
-- 用户可以如何修改？
-- 用户拒绝后 Agent 如何继续？
-- 确认记录如何审计？
+为"Agent 根据用户输入生成并发送客户邮件"这个场景，设计确认节点：何时触发、展示什么信息、用户可以如何修改、拒绝后 Agent 怎么继续。
 
 ### 交付物
 
-完成本课后，建议沉淀以下材料：
-
-1. 5 个工具定义。
-2. 一份工具选择失败分析。
-3. 一份工具权限策略表。
-4. 一个 Skill 设计。
-5. 一个 Human-in-the-loop 节点设计。
-6. 一份工具调用日志字段设计。
+1. 5 个完整的工具定义（含 Schema）
+2. 一份工具选择失败分析（5 个案例）
+3. 一个带权限检查的工具执行器实现
+4. 一个完整的 Skill 定义
+5. 一个 Human-in-the-loop 确认节点设计
 
 ---
 
 ## 验收标准
 
-完成本课后，请用以下标准自检：
-
-- [ ] 我能画出工具调用链路：LLM Decision -> Tool Selection -> Parameter Generation -> Permission Check -> Tool Execution -> Observation / Feedback -> State Update。
-- [ ] 我能写出清晰的工具 description 和参数 Schema。
-- [ ] 我能解释工具粒度为什么会影响 Agent 行为。
-- [ ] 我能区分工具选择错误、参数错误和执行错误。
-- [ ] 我能设计结构化错误返回。
-- [ ] 我能说明为什么工具结果需要摘要、分页、截断或转资源。
-- [ ] 我能为不同工具设计风险分级和权限策略。
-- [ ] 我能解释 MCP 解决什么问题，以及它和 Function Calling 的关系。
+- [ ] 我能画出工具调用链路，并说出每一步的典型失败模式。
+- [ ] 我能写出清晰的工具 description（含适用和不适用场景）和参数 Schema。
+- [ ] 我能诊断工具选择失败的根因，不只是"模型选错了"，还能指出是定义问题、边界问题还是路由问题。
+- [ ] 我能实现带参数校验、权限检查、超时和错误结构化的工具执行器。
+- [ ] 我能说明为什么工具结果需要摘要、分页、截断或转资源，以及什么时候用哪种。
+- [ ] 我能设计 Deny-first 的权限策略，让未列出的工具默认拒绝。
+- [ ] 我能解释 MCP 解决什么问题，以及它和 Function Calling 的分工关系。
 - [ ] 我能区分 Tool、Skill 和 Workflow。
-- [ ] 我能设计一个高风险动作的 Human-in-the-loop 确认节点。
+- [ ] 我能设计一个高风险动作的 Human-in-the-loop 确认节点，包括触发条件、展示信息和反馈回写。
 
 ---
 
 ## 参考资料
 
-### 推荐阅读
-
-- OpenAI Function Calling  
+- OpenAI Function Calling
   <https://platform.openai.com/docs/guides/function-calling>
-- Anthropic Tool Use  
+- Anthropic Tool Use
   <https://docs.anthropic.com/en/docs/agents-and-tools/tool-use>
-- Model Context Protocol  
+- Model Context Protocol
   <https://modelcontextprotocol.io/>
-- Anthropic Building Effective Agents  
+- Anthropic Building Effective Agents
   <https://www.anthropic.com/engineering/building-effective-agents>
-- LangChain Tools  
-  <https://docs.langchain.com/>
-
-### 术语速查
-
-| 术语 | 简要解释 | 本课定位 |
-|---|---|---|
-| Tool | Agent 可调用的原子外部能力 | 工具机制基础 |
-| Function Calling | 模型生成结构化工具调用参数 | 模型接口层 |
-| Tool Selection | 判断用哪个工具 | 工具机制核心问题 |
-| Parameter Generation | 生成工具参数 | 需要 Schema 和校验 |
-| Permission Check | 工具执行前的权限判断 | 安全边界 |
-| Observation | 工具执行结果回填 | 下一轮决策输入 |
-| MCP | 工具接入标准化协议 | 工具生态层 |
-| Skill | 可复用任务能力包 | 工具组合和任务经验 |
-| Human-in-the-loop | 人类参与确认、修改、接管 | 高风险控制点 |
-
----
-
-## 下一课衔接
-
-课程四让你理解了 Agent 如何把工具调用变成系统机制。
-
-下一课会进入“场景增强能力”：
-
-```text
-RAG / 外部知识接入、Memory、Planning / Workflow Patterns、Reflection、Multi-Agent
-```
-
-这些能力不是所有 Agent 都必须具备的核心模块。课程五会回答：什么时候需要它们，什么时候不需要，引入它们会增加什么复杂度。
