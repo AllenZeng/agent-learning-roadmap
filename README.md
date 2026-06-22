@@ -7,6 +7,8 @@
 [![Status](https://img.shields.io/badge/status-active-success.svg)](https://github.com/AllenZeng/agent-learning-roadmap)
 ![Language](https://img.shields.io/badge/language-中文-red.svg)
 
+> 当前状态：v0.1 WIP。课程主体初稿已完成，代码示例和部分章节 Review 正在补充中。
+
 ---
 
 ## 这是什么？
@@ -16,10 +18,10 @@
 核心观点：
 
 ```
-Agent = LLM 驱动的目标导向运行时 + 可调用工具 + 可管理上下文 + 可验证执行过程
+Agent = Prompt（行为定义） + LLM 决策 + 工具/环境交互 + State（状态管理） + 循环控制
 ```
 
-RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，但它们不是同一层级的东西，也不是所有 Agent 应用的必选项。它们应该围绕**最小 Agent 闭环**展开。
+RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，但不是所有 Agent 应用的必选项。它们应该围绕**最小 Agent 闭环**展开。
 
 ## 为什么做这个项目？
 
@@ -56,10 +58,8 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 ## 学习路线
 
 ```text
-建立直觉 → 理解范式演进 → 掌握最小 Agent 闭环
-    → 深入工具机制 → 学习场景增强能力
-    → 设计 Harness 运行时 → 完成产品化实践
-    → 项目实战与生态跟进
+建立直觉 → 理解范式演进 → 掌握最小 Agent 闭环 → 深入工具机制 → 学习场景增强能力
+    → 设计 Harness 运行时 → 完成产品化实践 → 项目实战与生态跟进
 ```
 
 | 课程 | 建议时间 | 学习重点 |
