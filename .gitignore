@@ -21,3 +21,9 @@ node_modules/
 # Env
 .env
 .env.local
+
+# Claude Code (local settings)
+.claude/
+
+# Superpowers specs
+docs/superpowers/specs/
