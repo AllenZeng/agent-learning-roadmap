@@ -36,6 +36,7 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 因此，本项目不只关注「如何写一个 Agent Demo」，更关注：
 
 - Agent 和 Chatbot / Workflow 的边界；
+- 最小 Agent 闭环如何构成与运转；
 - Tool Use、RAG、Memory、Planning、Reflection、Multi-Agent 的引入时机；
 - Agent Runtime / Harness 如何支撑状态、工具、上下文、评估和恢复；
 - 如何把 Agent 能力落到真实产品中。
