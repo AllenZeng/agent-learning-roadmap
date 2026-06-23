@@ -7,23 +7,42 @@ Runtime 可解析的一条 JSON 决策。
 
 import json
 import os
+import random
+import time
 import urllib.error
 import urllib.request
-from typing import Any, Dict, Iterable, List
+from typing import Any, Callable, Dict, Iterable, List, Optional
 
 
 class ScriptedLLM:
     """用于测试和离线演示的确定性 LLM 替身。"""
 
-    def __init__(self, decisions: Iterable[Dict[str, Any]]):
+    def __init__(
+        self,
+        decisions: Iterable[Dict[str, Any]],
+        delay_seconds: Optional[Callable[[], float]] = None,
+        sleep_fn: Callable[[float], None] = time.sleep,
+    ):
         self._decisions: List[Dict[str, Any]] = list(decisions)
         self.calls: List[Dict[str, Any]] = []
+        self._delay_seconds = delay_seconds
+        self._sleep_fn = sleep_fn
 
     def __call__(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        self.calls.append(context)
+        call_context = dict(context)
+        if self._delay_seconds is not None:
+            latency = self._delay_seconds()
+            call_context["simulated_latency_seconds"] = latency
+            self._sleep_fn(latency)
+        self.calls.append(call_context)
         if not self._decisions:
             return {"type": "fail", "thought": "No scripted decision remains.", "reason": "script_exhausted"}
         return self._decisions.pop(0)
+
+
+def random_demo_latency_seconds() -> float:
+    """模拟真实 LLM 调用的 1-3 秒响应耗时。"""
+    return random.uniform(1, 3)
 
 
 def openai_responses_llm(context: Dict[str, Any]) -> Dict[str, Any]:

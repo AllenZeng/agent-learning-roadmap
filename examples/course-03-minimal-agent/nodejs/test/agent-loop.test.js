@@ -4,7 +4,7 @@ const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
 
-const { AgentState, runAgent } = require("../src/agent");
+const { AgentState, SessionState, runAgent, runTurn } = require("../src/agent");
 const { ScriptedLLM } = require("../src/llm");
 const { buildTools } = require("../src/tools");
 
@@ -50,6 +50,10 @@ test("runs a multi-step loop and writes the final file", async () => {
   assert.equal(result.state.stopReason, "completed");
   assert.equal(result.state.stepCount, 2);
   assert.equal(result.trace.length, 3);
+  assert.equal(result.trace[0].stateSnapshot.stepCount, 1);
+  assert.equal(result.trace[0].stateSnapshot.history.length, 1);
+  assert.equal(result.trace[1].stateSnapshot.toolResults[1].tool, "write_file");
+  assert.equal(result.trace[2].stateSnapshot.stopReason, "completed");
   assert.match(fs.readFileSync(path.join(workspace, "summary.md"), "utf8"), /Prompt、LLM 决策/);
 });
 
@@ -108,4 +112,95 @@ test("state recentHistory returns the tail", () => {
   state.history = Array.from({ length: 8 }, (_, step) => ({ step }));
 
   assert.deepEqual(state.recentHistory(3), [{ step: 5 }, { step: 6 }, { step: 7 }]);
+});
+
+test("session keeps multi-turn conversation history", async () => {
+  const session = new SessionState();
+  const llm = new ScriptedLLM([
+    {
+      type: "final_answer",
+      thought: "Answer the first turn.",
+      answer: "第一轮回答。",
+    },
+    {
+      type: "final_answer",
+      thought: "Answer with the previous turn in context.",
+      answer: "第二轮回答，已看到上一轮。",
+    },
+  ]);
+
+  const first = await runTurn({
+    session,
+    userMessage: "第一轮：介绍最小 Agent。",
+    tools: buildTools(process.cwd()),
+    llmCall: llm.call.bind(llm),
+  });
+  const second = await runTurn({
+    session,
+    userMessage: "第二轮：基于上一轮再补充 State。",
+    tools: buildTools(process.cwd()),
+    llmCall: llm.call.bind(llm),
+  });
+
+  assert.equal(first.status, "success");
+  assert.equal(second.status, "success");
+  assert.equal(session.messages.length, 4);
+  assert.equal(session.messages[0].role, "user");
+  assert.equal(session.messages[1].role, "assistant");
+  assert.equal(session.messages[2].content, "第二轮：基于上一轮再补充 State。");
+  assert.equal(session.turns[1].answer, "第二轮回答，已看到上一轮。");
+  assert.equal(llm.calls[1].conversation.at(-3).content, "第一轮：介绍最小 Agent。");
+  assert.equal(llm.calls[1].conversation.at(-2).content, "第一轮回答。");
+});
+
+test("scripted LLM can simulate response latency", async () => {
+  const delays = [];
+  const llm = new ScriptedLLM([{ type: "final_answer", thought: "done", answer: "ok" }], {
+    delayMs: () => 1500,
+    sleep: async (ms) => delays.push(ms),
+  });
+
+  const decision = await llm.call({ goal: "demo" });
+
+  assert.equal(decision.answer, "ok");
+  assert.deepEqual(delays, [1500]);
+  assert.equal(llm.calls[0].simulatedLatencyMs, 1500);
+});
+
+test("runtime emits execution logs", async () => {
+  const events = [];
+  const llm = new ScriptedLLM([
+    {
+      type: "call_tool",
+      thought: "Search once.",
+      tool_name: "search_text",
+      arguments: { query: "Agent", text: "Agent loop" },
+    },
+    { type: "final_answer", thought: "Done.", answer: "ok" },
+  ]);
+
+  const result = await runAgent({
+    userGoal: "搜索 Agent",
+    tools: buildTools(process.cwd()),
+    llmCall: llm.call.bind(llm),
+    logger: (event) => events.push(event),
+  });
+
+  assert.equal(result.status, "success");
+  assert.deepEqual(
+    events.map((event) => event.event),
+    [
+      "llm_decision",
+      "tool_call",
+      "tool_result",
+      "state_update",
+      "stop_check",
+      "llm_decision",
+      "state_update",
+      "stop_check",
+    ],
+  );
+  assert.equal(events[1].toolName, "search_text");
+  assert.equal(events[2].observation.status, "success");
+  assert.equal(events.at(-1).reason, "completed");
 });

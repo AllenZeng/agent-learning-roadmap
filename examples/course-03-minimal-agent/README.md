@@ -11,6 +11,7 @@
 - LLM 决策调用边界，默认提供可复现的 `ScriptedLLM`。
 - 本地工具 `read_file`、`write_file`、`search_text`。
 - Runtime 主循环、Context Assembly、Observation、State Update、停止条件和 Trace。
+- SessionState 会话层，用于跨多轮用户输入保留对话历史。
 - 可选真实 OpenAI Responses API 调用。
 
 ## Python
@@ -18,6 +19,7 @@
 ```bash
 cd examples/course-03-minimal-agent/python
 python3 main.py
+python3 main.py --chat
 python3 -m unittest discover -s tests
 ```
 
@@ -26,7 +28,8 @@ python3 -m unittest discover -s tests
 ```bash
 cd examples/course-03-minimal-agent/nodejs
 npm start
+node main.js --chat
 npm test
 ```
 
-默认运行都使用离线 `ScriptedLLM`，不需要网络和 API Key。真实 LLM 模式请分别参考子目录 README。
+默认运行都使用离线 `ScriptedLLM`，不需要网络和 API Key。`main.py` / `npm start` 演示单轮任务循环，`--chat` 演示多轮会话层：每轮用户输入都会触发一次 Agent loop，并把用户/助手消息写入 SessionState。真实 LLM 模式请分别参考子目录 README。

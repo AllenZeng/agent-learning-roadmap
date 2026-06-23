@@ -6,13 +6,21 @@
  * Runtime 可解析的一条 JSON 决策。
  */
 class ScriptedLLM {
-  constructor(decisions) {
+  constructor(decisions, options = {}) {
     this.decisions = [...decisions];
     this.calls = [];
+    this.delayMs = options.delayMs;
+    this.sleep = options.sleep || sleep;
   }
 
   async call(context) {
-    this.calls.push(context);
+    const callContext = { ...context };
+    if (this.delayMs) {
+      const latencyMs = this.delayMs();
+      callContext.simulatedLatencyMs = latencyMs;
+      await this.sleep(latencyMs);
+    }
+    this.calls.push(callContext);
     if (this.decisions.length === 0) {
       return {
         type: "fail",
@@ -22,6 +30,14 @@ class ScriptedLLM {
     }
     return this.decisions.shift();
   }
+}
+
+function randomDemoLatencyMs() {
+  return 1000 + Math.floor(Math.random() * 2001);
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function openAIResponsesLLM(context) {
@@ -69,4 +85,4 @@ function extractOutputText(data) {
     .trim();
 }
 
-module.exports = { ScriptedLLM, openAIResponsesLLM };
+module.exports = { ScriptedLLM, openAIResponsesLLM, randomDemoLatencyMs };

@@ -23,15 +23,60 @@ class AgentState {
   }
 }
 
-async function runAgent({ userGoal, tools, llmCall, systemPrompt = SYSTEM_PROMPT, maxSteps = 8 }) {
+class SessionState {
+  constructor() {
+    this.messages = [];
+    this.turns = [];
+  }
+
+  recentMessages(n = 6) {
+    return this.messages.slice(-n);
+  }
+}
+
+async function runTurn({ session, userMessage, tools, llmCall, systemPrompt = SYSTEM_PROMPT, maxSteps = 8, logger = null }) {
+  session.messages.push({ role: "user", content: userMessage });
+  const result = await runAgent({
+    userGoal: userMessage,
+    tools,
+    llmCall,
+    systemPrompt,
+    maxSteps,
+    conversation: session.recentMessages(6),
+    logger,
+  });
+
+  const assistantContent = result.answer || result.question || result.reason || result.status;
+  session.messages.push({ role: "assistant", content: assistantContent });
+  session.turns.push({
+    userMessage,
+    status: result.status,
+    answer: result.answer,
+    question: result.question,
+    reason: result.reason,
+    trace: result.trace,
+  });
+  return result;
+}
+
+async function runAgent({
+  userGoal,
+  tools,
+  llmCall,
+  systemPrompt = SYSTEM_PROMPT,
+  maxSteps = 8,
+  conversation = [],
+  logger = null,
+}) {
   // State 和 Trace 独立于 LLM 保存，这样循环行为可以被回放和审计。
   const state = new AgentState({ userGoal, maxSteps });
   const trace = [];
 
   while (!state.stopReason) {
     // Context Assembly：只把本轮决策需要的状态切片交给 LLM。
-    const context = assembleContext({ systemPrompt, tools, state });
+    const context = assembleContext({ systemPrompt, tools, state, conversation });
     const decision = normalizeDecision(await llmCall(context));
+    logEvent(logger, { event: "llm_decision", step: state.stepCount, decision });
     const traceEntry = {
       step: state.stepCount,
       contextSummary: contextSummary(context),
@@ -42,7 +87,10 @@ async function runAgent({ userGoal, tools, llmCall, systemPrompt = SYSTEM_PROMPT
       state.stopReason = "completed";
       state.finalAnswer = decision.answer || "";
       traceEntry.stateUpdate = stateSummary(state);
+      traceEntry.stateSnapshot = stateSnapshot(state);
       traceEntry.stopCheck = { continue: false, reason: state.stopReason };
+      logEvent(logger, { event: "state_update", step: state.stepCount, state: traceEntry.stateSnapshot });
+      logEvent(logger, { event: "stop_check", step: state.stepCount, continue: false, reason: state.stopReason });
       trace.push(traceEntry);
       return { status: "success", answer: state.finalAnswer, state, trace };
     }
@@ -50,7 +98,10 @@ async function runAgent({ userGoal, tools, llmCall, systemPrompt = SYSTEM_PROMPT
     if (decision.type === "ask_user") {
       state.stopReason = "need_user_input";
       traceEntry.stateUpdate = stateSummary(state);
+      traceEntry.stateSnapshot = stateSnapshot(state);
       traceEntry.stopCheck = { continue: false, reason: state.stopReason };
+      logEvent(logger, { event: "state_update", step: state.stepCount, state: traceEntry.stateSnapshot });
+      logEvent(logger, { event: "stop_check", step: state.stepCount, continue: false, reason: state.stopReason });
       trace.push(traceEntry);
       return { status: "paused", question: decision.question || "", state, trace };
     }
@@ -58,13 +109,23 @@ async function runAgent({ userGoal, tools, llmCall, systemPrompt = SYSTEM_PROMPT
     if (decision.type === "fail") {
       state.stopReason = "failed";
       traceEntry.stateUpdate = stateSummary(state);
+      traceEntry.stateSnapshot = stateSnapshot(state);
       traceEntry.stopCheck = { continue: false, reason: state.stopReason };
+      logEvent(logger, { event: "state_update", step: state.stepCount, state: traceEntry.stateSnapshot });
+      logEvent(logger, { event: "stop_check", step: state.stepCount, continue: false, reason: state.stopReason });
       trace.push(traceEntry);
       return { status: "failed", reason: decision.reason || "", state, trace };
     }
 
     // Interaction / Observation：Runtime 执行工具，并把结果统一成 Observation。
+    logEvent(logger, {
+      event: "tool_call",
+      step: state.stepCount,
+      toolName: decision.tool_name,
+      arguments: decision.arguments || {},
+    });
     const observation = await executeTool({ decision, tools });
+    logEvent(logger, { event: "tool_result", step: state.stepCount, observation });
     updateStateFromToolCall({ state, decision, observation });
     traceEntry.observation = observation;
 
@@ -76,18 +137,27 @@ async function runAgent({ userGoal, tools, llmCall, systemPrompt = SYSTEM_PROMPT
     }
 
     traceEntry.stateUpdate = stateSummary(state);
+    traceEntry.stateSnapshot = stateSnapshot(state);
     traceEntry.stopCheck = { continue: !state.stopReason, reason: state.stopReason };
+    logEvent(logger, { event: "state_update", step: state.stepCount, state: traceEntry.stateSnapshot });
+    logEvent(logger, {
+      event: "stop_check",
+      step: state.stepCount,
+      continue: !state.stopReason,
+      reason: state.stopReason,
+    });
     trace.push(traceEntry);
   }
 
   return { status: "stopped", reason: state.stopReason, state, trace };
 }
 
-function assembleContext({ systemPrompt, tools, state }) {
+function assembleContext({ systemPrompt, tools, state, conversation = [] }) {
   // 选择哪些状态切片应该进入下一次 LLM 调用。
   return {
     system: systemPrompt,
     goal: state.userGoal,
+    conversation,
     history: state.recentHistory(5),
     tools: Object.entries(tools).map(([name, fn]) => ({ name, description: fn.description || "" })),
     step: state.stepCount,
@@ -204,6 +274,7 @@ function sortObject(value) {
 function contextSummary(context) {
   return {
     goal: context.goal,
+    conversationCount: context.conversation.length,
     step: context.step,
     historyCount: context.history.length,
     errorCount: context.errors.length,
@@ -220,8 +291,30 @@ function stateSummary(state) {
   };
 }
 
+function stateSnapshot(state) {
+  // 生成当前步骤执行后的完整 State 快照，便于示例逐步打印。
+  return {
+    userGoal: state.userGoal,
+    maxSteps: state.maxSteps,
+    stepCount: state.stepCount,
+    history: structuredClone(state.history),
+    toolResults: structuredClone(state.toolResults),
+    errors: structuredClone(state.errors),
+    stopReason: state.stopReason,
+    finalAnswer: state.finalAnswer,
+  };
+}
+
+function logEvent(logger, event) {
+  if (logger) {
+    logger(event);
+  }
+}
+
 module.exports = {
   AgentState,
+  SessionState,
   runAgent,
+  runTurn,
   assembleContext,
 };
