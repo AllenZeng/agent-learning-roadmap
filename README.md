@@ -119,7 +119,7 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 
 代码示例正在整理中，计划包括：
 
-- `examples/01-minimal-agent`：最小 Agent 闭环；
+- `examples/course-03-minimal-agent`：课程三最小 Agent 闭环；
 - `examples/02-tool-calling-agent`：工具调用机制；
 - `examples/03-rag-agent`：带检索增强的 Agent；
 - `examples/04-langgraph-runtime`：基于 LangGraph 的运行时示例；

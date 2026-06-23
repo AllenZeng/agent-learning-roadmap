@@ -1,0 +1,86 @@
+/**
+ * Node.js 版最小 Agent 闭环的命令行入口。
+ *
+ * 这个文件把课程三的几个构件串起来：Prompt 位于 src/prompt.js，决策来自脚本化
+ * 或真实 LLM 适配器，工具是本地函数，runAgent 负责状态和循环控制。
+ */
+const path = require("node:path");
+
+const { runAgent } = require("./src/agent");
+const { ScriptedLLM, openAIResponsesLLM } = require("./src/llm");
+const { buildTools } = require("./src/tools");
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  const root = __dirname;
+  const scriptedLLM = demoLLM();
+  const llmCall = args.realLlm ? openAIResponsesLLM : scriptedLLM.call.bind(scriptedLLM);
+
+  const result = await runAgent({
+    userGoal: args.goal || "读取 data/notes.md，总结课程三最小 Agent 闭环，并写入 output/summary.md",
+    tools: buildTools(root),
+    llmCall,
+    maxSteps: Number(args.maxSteps || 6),
+  });
+
+  console.log("STATUS:", result.status);
+  if (result.answer) {
+    console.log("ANSWER:", result.answer);
+  }
+  if (result.reason) {
+    console.log("REASON:", result.reason);
+  }
+  console.log("\nTRACE:");
+  console.log(JSON.stringify(result.trace, null, 2));
+}
+
+function demoLLM() {
+  // 固定决策序列，便于离线学习和测试。
+  return new ScriptedLLM([
+    {
+      type: "call_tool",
+      thought: "先读取课程三示例资料。",
+      tool_name: "read_file",
+      arguments: { path: "data/notes.md" },
+    },
+    {
+      type: "call_tool",
+      thought: "将摘要写入交付文件。",
+      tool_name: "write_file",
+      arguments: {
+        path: "output/summary.md",
+        content:
+          "最小 Agent 闭环包含 Prompt、LLM 决策、工具交互、State 状态管理和循环控制。Runtime 负责组装上下文、执行工具、记录 Observation、更新 State，并判断是否继续。",
+      },
+    },
+    {
+      type: "final_answer",
+      thought: "摘要文件已经写入。",
+      answer: "已生成 output/summary.md。",
+    },
+  ]);
+}
+
+function parseArgs(argv) {
+  const parsed = {};
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--real-llm") {
+      parsed.realLlm = true;
+    } else if (arg === "--goal") {
+      parsed.goal = argv[index + 1];
+      index += 1;
+    } else if (arg === "--max-steps") {
+      parsed.maxSteps = argv[index + 1];
+      index += 1;
+    }
+  }
+  return parsed;
+}
+
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(err);
+    process.exitCode = 1;
+  });
+}
