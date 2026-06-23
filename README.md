@@ -109,7 +109,7 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 
 ### 从这里开始
 
-1. 阅读 [课程总纲](roadmap.md) 了解完整知识体系
+1. 阅读 [课程总纲](syllabus.md) 了解完整知识体系
 2. 从 [课程一](docs/course-01-first-encounter.md) 开始，建立 Agent 的感性认知
 3. 按顺序推进，每课包含核心概念和实践练习；代码示例正在逐步补充。
 
@@ -117,7 +117,7 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 
 ```
 .
-├── roadmap.md                          # 课程总纲
+├── syllabus.md                         # 课程总纲
 ├── docs/
 │   ├── course-01-first-encounter.md    # 初识 Agent
 │   ├── course-02-evolution.md          # Agent 范式演进
