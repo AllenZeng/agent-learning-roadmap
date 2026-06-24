@@ -31,59 +31,6 @@ class AgentState {
   }
 }
 
-class SessionState {
-  /**
-   * 跨多轮用户输入保存的会话状态。
-   *
-   * ``userGoal`` 在首轮设定后保持不变，后续轮次的 ``userMessage``
-   * 是对目标的补充或追问，不作为新 goal。
-   */
-  constructor() {
-    this.userGoal = null;
-    this.messages = [];
-    this.turns = [];
-  }
-
-  recentMessages(n = 6) {
-    return this.messages.slice(-n);
-  }
-}
-
-async function runTurn({ session, userMessage, tools, llmCall, systemPrompt = SYSTEM_PROMPT, maxSteps = 8, logger = null }) {
-  /**
-   * 在同一个会话中处理一轮用户输入，并把本轮结果写回 SessionState。
-   *
-   * 首轮调用时 ``userMessage`` 将被记录为 session 的 ``userGoal``；
-   * 后续轮次的 ``userMessage`` 作为对目标的补充或追问追加到对话中。
-   */
-  session.messages.push({ role: "user", content: userMessage });
-  if (session.userGoal === null) {
-    session.userGoal = userMessage;
-  }
-
-  const result = await runAgent({
-    userGoal: session.userGoal,
-    tools,
-    llmCall,
-    systemPrompt,
-    maxSteps,
-    conversation: session.recentMessages(6),
-    logger,
-  });
-
-  const assistantContent = result.answer || result.question || result.reason || result.status;
-  session.messages.push({ role: "assistant", content: assistantContent });
-  session.turns.push({
-    userMessage,
-    status: result.status,
-    answer: result.answer,
-    question: result.question,
-    reason: result.reason,
-    trace: result.trace,
-  });
-  return result;
-}
-
 async function runAgent({
   userGoal,
   tools,
@@ -97,9 +44,12 @@ async function runAgent({
   const state = new AgentState({ userGoal, maxSteps });
   const trace = [];
 
+  // 0. 启动循环
   while (!state.stopReason) {
-    // Context Assembly：只把本轮决策需要的状态切片交给 LLM。
+    // 1. Context Assembly：只把本轮决策需要的状态切片交给 LLM。
     const context = assembleContext({ systemPrompt, tools, state, conversation });
+
+    // 2. 调用 llm 进行决策，并对结果进行标准化处理
     const decision = normalizeDecision(await llmCall(context));
     logEvent(logger, { event: "llm_decision", step: state.stepCount, decision });
     const traceEntry = {
@@ -108,6 +58,7 @@ async function runAgent({
       decision,
     };
 
+    // 3. 对结果进行判断
     if (decision.type === "final_answer") {
       state.stopReason = "completed";
       state.finalAnswer = decision.answer || "";
@@ -131,13 +82,17 @@ async function runAgent({
       toolName: decision.tool_name,
       arguments: decision.arguments || {},
     });
+
+    // 4. 决策结果是要调用工具，执行工具
     const observation = await executeTool({ decision, tools });
     logEvent(logger, { event: "tool_result", step: state.stepCount, observation });
+
+    // 5. 标准化处理工具执行结果并写入 state
     updateStateFromToolCall({ state, decision, observation });
     traceEntry.observation = observation;
 
     state.stepCount += 1;
-    // Continue or Stop：停止条件由 Runtime 判断，不依赖模型自觉。
+    // 6. Continue or Stop：停止条件由 Runtime 判断，不依赖模型自觉。
     const stopReason = checkStop(state);
     if (stopReason) {
       state.stopReason = stopReason;
@@ -154,6 +109,7 @@ async function runAgent({
       reason: state.stopReason,
     });
     trace.push(traceEntry);
+    // 7. 进行下一次循环
   }
 
   return { status: "stopped", reason: state.stopReason, state, trace };
@@ -331,8 +287,6 @@ function logEvent(logger, event) {
 
 module.exports = {
   AgentState,
-  SessionState,
   runAgent,
-  runTurn,
   assembleContext,
 };

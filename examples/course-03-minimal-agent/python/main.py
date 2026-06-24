@@ -9,47 +9,23 @@ import argparse
 import json
 from pathlib import Path
 
-from minimal_agent.agent import SessionState, run_agent, run_turn
-from minimal_agent.llm import ScriptedLLM, openai_responses_llm, random_demo_latency_seconds
+from minimal_agent.agent import run_agent
+from minimal_agent.llm import ScriptedLLM, deepseek_chat_llm, random_demo_latency_seconds
 from minimal_agent.tools import build_tools
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the course 03 minimal agent loop example.")
     parser.add_argument("--goal", default="读取 data/notes.md，总结课程三最小 Agent 闭环，并写入 output/summary.md")
-    parser.add_argument("--chat", action="store_true", help="Run an interactive multi-turn session.")
-    parser.add_argument("--real-llm", action="store_true", help="Use OpenAI Responses API instead of the scripted demo LLM.")
+    parser.add_argument("--real-llm", action="store_true", help="Use DeepSeek Chat Completions API instead of the scripted demo LLM.")
     parser.add_argument("--max-steps", type=int, default=6)
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parent
-    llm_call = openai_responses_llm if args.real_llm else _demo_llm()
-    if args.chat:
-        _run_chat(root=root, llm_call=llm_call, max_steps=args.max_steps, logger=_print_event_log)
-        return
+    llm_call = deepseek_chat_llm if args.real_llm else _demo_llm()
 
     result = run_agent(args.goal, tools=build_tools(root), llm_call=llm_call, max_steps=args.max_steps, logger=_print_event_log)
     _print_result(result)
-
-
-def _run_chat(root: Path, llm_call, max_steps: int, logger) -> None:
-    """运行多轮对话会话；每轮用户输入都会触发一次 Agent loop。"""
-    session = SessionState()
-    tools = build_tools(root)
-    print("进入多轮对话模式。输入 exit 或 quit 结束。")
-    while True:
-        try:
-            user_message = input("User> ").strip()
-        except EOFError:
-            break
-        if not user_message:
-            continue
-        if user_message.lower() in ("exit", "quit"):
-            break
-        result = run_turn(session, user_message, tools=tools, llm_call=llm_call, max_steps=max_steps, logger=logger)
-        print("Assistant>", result.get("answer") or result.get("question") or result.get("reason") or result["status"])
-        _print_trace_steps(result["trace"])
-        print("SESSION_MESSAGES:", len(session.messages), "TURNS:", len(session.turns))
 
 
 def _print_result(result: dict) -> None:
@@ -125,8 +101,6 @@ def _demo_llm() -> ScriptedLLM:
                 },
             },
             {"type": "final_answer", "thought": "摘要文件已经写入。", "answer": "已生成 output/summary.md。"},
-            {"type": "final_answer", "thought": "基于会话历史回答。", "answer": "这是第二轮回答，SessionState 已保留前面的对话。"},
-            {"type": "final_answer", "thought": "继续基于会话历史回答。", "answer": "这是第三轮回答，可以继续查看 session.messages。"},
         ],
         delay_seconds=random_demo_latency_seconds,
     )

@@ -40,65 +40,6 @@ class AgentState:
         return self.history[-n:]
 
 
-@dataclass
-class SessionState:
-    """跨多轮用户输入保存的会话状态。
-
-    ``user_goal`` 在首轮设定后保持不变，后续轮次的 ``user_message``
-    是对目标的补充或追问，不作为新 goal。
-    """
-
-    user_goal: Optional[str] = None
-    messages: List[Dict[str, str]] = field(default_factory=list)
-    turns: List[Dict[str, Any]] = field(default_factory=list)
-
-    def recent_messages(self, n: int = 6) -> List[Dict[str, str]]:
-        return self.messages[-n:]
-
-
-def run_turn(
-    session: SessionState,
-    user_message: str,
-    tools: Dict[str, Callable[..., Observation]],
-    llm_call: LLMCall,
-    system_prompt: str = SYSTEM_PROMPT,
-    max_steps: int = 8,
-    logger: Optional[Logger] = None,
-) -> Dict[str, Any]:
-    """在同一个会话中处理一轮用户输入，并把本轮结果写回 SessionState。
-
-    首轮调用时 ``user_message`` 将被记录为 session 的 ``user_goal``；
-    后续轮次的 ``user_message`` 作为对目标的补充或追问追加到对话中。
-    """
-    session.messages.append({"role": "user", "content": user_message})
-    if session.user_goal is None:
-        session.user_goal = user_message
-
-    result = run_agent(
-        user_goal=session.user_goal,
-        tools=tools,
-        llm_call=llm_call,
-        system_prompt=system_prompt,
-        max_steps=max_steps,
-        conversation=session.recent_messages(n=6),
-        logger=logger,
-    )
-
-    assistant_content = result.get("answer") or result.get("question") or result.get("reason") or result.get("status", "")
-    session.messages.append({"role": "assistant", "content": assistant_content})
-    session.turns.append(
-        {
-            "user_message": user_message,
-            "status": result["status"],
-            "answer": result.get("answer"),
-            "question": result.get("question"),
-            "reason": result.get("reason"),
-            "trace": result["trace"],
-        }
-    )
-    return result
-
-
 def run_agent(
     user_goal: str,
     tools: Dict[str, Callable[..., Observation]],
@@ -112,13 +53,16 @@ def run_agent(
     state = AgentState(user_goal=user_goal, max_steps=max_steps)
     trace: List[Dict[str, Any]] = []
 
+    # 0. 启动循环
     while not state.stop_reason:
-        # Context Assembly：只把本轮决策需要的状态切片交给 LLM。
+        # 1. Context Assembly：只把本轮决策需要的状态切片交给 LLM。
         context = assemble_context(system_prompt, tools, state, conversation=conversation or [])
+        # 2. 调用 llm 进行决策，并对输出结果进行标准化处理
         decision = _normalize_decision(llm_call(context))
         _log(logger, {"event": "llm_decision", "step": state.step_count, "decision": decision})
         trace_entry = {"step": state.step_count, "context_summary": _context_summary(context), "decision": decision}
 
+        # 3. 对于决策结果进行判断，是否终止循环
         decision_type = decision["type"]
         if decision_type == "final_answer":
             state.stop_reason = "completed"
@@ -133,6 +77,7 @@ def run_agent(
             state.stop_reason = "failed"
             return _finalize(state, trace_entry, trace, logger, "failed", reason=decision.get("reason", ""))
 
+        # 4. 决策需要进行工具调用，则执行工具调用
         # Interaction / Observation：Runtime 执行工具，并把结果统一成 Observation。
         _log(
             logger,
@@ -145,9 +90,12 @@ def run_agent(
         )
         observation = _execute_tool(decision, tools)
         _log(logger, {"event": "tool_result", "step": state.step_count, "observation": observation})
+
+        # 5. 统一工具调用结果，并写入到 state
         _update_state_from_tool_call(state, decision, observation)
         trace_entry["observation"] = observation
 
+        # 6. 更新状态，并进行状态判断，是否进入下一次循环
         state.step_count += 1
         # Continue or Stop：停止条件由 Runtime 判断，不依赖模型自觉。
         stop_reason = _check_stop(state)
@@ -168,6 +116,7 @@ def run_agent(
             },
         )
         trace.append(trace_entry)
+        # 7. 进行下一次循环
 
     return {"status": "stopped", "reason": state.stop_reason, "state": state, "trace": trace}
 

@@ -1,7 +1,7 @@
 """最小 Agent 示例的 LLM 适配层。
 
 ``ScriptedLLM`` 让离线演示和测试具备确定性。
-``openai_responses_llm`` 展示真实模型调用边界：输入是组装后的上下文，输出必须是
+``deepseek_chat_llm`` 展示真实模型调用边界：输入是组装后的上下文，输出必须是
 Runtime 可解析的一条 JSON 决策。
 """
 
@@ -45,22 +45,26 @@ def random_demo_latency_seconds() -> float:
     return random.uniform(1, 3)
 
 
-def openai_responses_llm(context: Dict[str, Any]) -> Dict[str, Any]:
-    """调用 OpenAI Responses API，并解析模型返回的 JSON 决策。
+DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions"
+DEFAULT_DEEPSEEK_MODEL = "deepseek-v4"
+
+
+def deepseek_chat_llm(context: Dict[str, Any]) -> Dict[str, Any]:
+    """调用 DeepSeek Chat Completions API，并解析模型返回的 JSON 决策。
 
     教学简化：这里直接把整个 context 序列化为 JSON 放进 user message，
     让学习者一眼看清传给 LLM 的完整上下文结构。生产环境中应该将 context
-    的各个字段分别映射到 system prompt、user message、tool definitions 的
-    对应位置，避免重复传递 tools 定义和完整 history 造成 token 浪费。
+    的各个字段分别映射到 system prompt、user message 和 tool definitions
+    的对应位置，避免重复传递 tools 定义和完整 history 造成 token 浪费。
     """
-    api_key = os.environ.get("OPENAI_API_KEY")
+    api_key = os.environ.get("DEEPSEEK_API_KEY")
     if not api_key:
-        raise RuntimeError("OPENAI_API_KEY is required for real LLM mode")
+        raise RuntimeError("DEEPSEEK_API_KEY is required for real LLM mode")
 
-    model = os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
+    model = os.environ.get("DEEPSEEK_MODEL", DEFAULT_DEEPSEEK_MODEL)
     payload = {
         "model": model,
-        "input": [
+        "messages": [
             {"role": "system", "content": context["system"]},
             {
                 "role": "user",
@@ -72,7 +76,7 @@ def openai_responses_llm(context: Dict[str, Any]) -> Dict[str, Any]:
         ],
     }
     request = urllib.request.Request(
-        "https://api.openai.com/v1/responses",
+        DEEPSEEK_API_URL,
         data=json.dumps(payload).encode("utf-8"),
         headers={"Authorization": "Bearer %s" % api_key, "Content-Type": "application/json"},
         method="POST",
@@ -82,20 +86,22 @@ def openai_responses_llm(context: Dict[str, Any]) -> Dict[str, Any]:
             data = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
-        raise RuntimeError("OpenAI API request failed: %s %s" % (exc.code, body))
+        raise RuntimeError("DeepSeek API request failed: %s %s" % (exc.code, body))
 
-    text = data.get("output_text")
+    text = _extract_chat_message_text(data)
     if not text:
-        text = _extract_output_text(data)
-    if not text:
-        raise ValueError("OpenAI response did not contain output_text")
+        raise ValueError("DeepSeek response did not contain choices[0].message.content")
     return json.loads(text)
 
 
-def _extract_output_text(data: Dict[str, Any]) -> str:
-    parts: List[str] = []
-    for item in data.get("output", []):
-        for content in item.get("content", []):
-            if content.get("type") in ("output_text", "text"):
-                parts.append(content.get("text", ""))
-    return "".join(parts).strip()
+def _extract_chat_message_text(data: Dict[str, Any]) -> str:
+    choices = data.get("choices", [])
+    if not choices:
+        return ""
+    message = choices[0].get("message", {})
+    content = message.get("content", "")
+    return content.strip() if isinstance(content, str) else ""
+
+
+# Backward-compatible alias for older README snippets and imports.
+openai_responses_llm = deepseek_chat_llm

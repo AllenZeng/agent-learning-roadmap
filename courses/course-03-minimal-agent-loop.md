@@ -1153,6 +1153,16 @@ Prompt → User Goal → Context Assembly → LLM Decision → Interaction → O
 
 ---
 
+## 可运行示例
+
+完成本课练习后，可以对照运行课程三的最小 Agent 示例：
+
+- [课程三最小 Agent 闭环示例](../examples/course-03-minimal-agent/README.md)
+
+该示例包含 Python 和 Node.js 两个版本，展示 Prompt、LLM 决策边界、本地工具、Runtime 主循环、State、Trace 和停止条件如何组成一个可运行的最小闭环。
+
+---
+
 ## 验收标准
 
 完成本课后，请用以下标准自检：

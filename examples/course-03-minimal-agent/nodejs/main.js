@@ -5,21 +5,16 @@
  * 或真实 LLM 适配器，工具是本地函数，runAgent 负责状态和循环控制。
  */
 const path = require("node:path");
-const readline = require("node:readline/promises");
 
-const { runAgent, runTurn, SessionState } = require("./src/agent");
-const { ScriptedLLM, openAIResponsesLLM, randomDemoLatencyMs } = require("./src/llm");
+const { runAgent } = require("./src/agent");
+const { ScriptedLLM, deepSeekChatLLM, randomDemoLatencyMs } = require("./src/llm");
 const { buildTools } = require("./src/tools");
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const root = __dirname;
   const scriptedLLM = demoLLM();
-  const llmCall = args.realLlm ? openAIResponsesLLM : scriptedLLM.call.bind(scriptedLLM);
-  if (args.chat) {
-    await runChat({ root, llmCall, maxSteps: Number(args.maxSteps || 6), logger: printEventLog });
-    return;
-  }
+  const llmCall = args.realLlm ? deepSeekChatLLM : scriptedLLM.call.bind(scriptedLLM);
 
   const result = await runAgent({
     userGoal: args.goal || "读取 data/notes.md，总结课程三最小 Agent 闭环，并写入 output/summary.md",
@@ -29,30 +24,6 @@ async function main() {
     logger: printEventLog,
   });
   printResult(result);
-}
-
-async function runChat({ root, llmCall, maxSteps, logger }) {
-  const session = new SessionState();
-  const tools = buildTools(root);
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  console.log("进入多轮对话模式。输入 exit 或 quit 结束。");
-  try {
-    while (true) {
-      const userMessage = (await rl.question("User> ")).trim();
-      if (!userMessage) {
-        continue;
-      }
-      if (userMessage.toLowerCase() === "exit" || userMessage.toLowerCase() === "quit") {
-        break;
-      }
-      const result = await runTurn({ session, userMessage, tools, llmCall, maxSteps, logger });
-      console.log("Assistant>", result.answer || result.question || result.reason || result.status);
-      printTraceSteps(result.trace);
-      console.log("SESSION_MESSAGES:", session.messages.length, "TURNS:", session.turns.length);
-    }
-  } finally {
-    rl.close();
-  }
 }
 
 function printResult(result) {
@@ -126,16 +97,6 @@ function demoLLM() {
         thought: "摘要文件已经写入。",
         answer: "已生成 output/summary.md。",
       },
-      {
-        type: "final_answer",
-        thought: "基于会话历史回答。",
-        answer: "这是第二轮回答，SessionState 已保留前面的对话。",
-      },
-      {
-        type: "final_answer",
-        thought: "继续基于会话历史回答。",
-        answer: "这是第三轮回答，可以继续查看 session.messages。",
-      },
     ],
     { delayMs: randomDemoLatencyMs },
   );
@@ -147,8 +108,6 @@ function parseArgs(argv) {
     const arg = argv[index];
     if (arg === "--real-llm") {
       parsed.realLlm = true;
-    } else if (arg === "--chat") {
-      parsed.chat = true;
     } else if (arg === "--goal") {
       parsed.goal = argv[index + 1];
       index += 1;

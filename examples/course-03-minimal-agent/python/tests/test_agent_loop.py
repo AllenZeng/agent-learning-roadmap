@@ -1,17 +1,65 @@
+import json
+import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from minimal_agent.agent import AgentState, SessionState, run_agent, run_turn
-from minimal_agent.llm import ScriptedLLM
+import minimal_agent.agent as agent_module
+from minimal_agent.agent import AgentState, run_agent
+from minimal_agent.llm import ScriptedLLM, deepseek_chat_llm
 from minimal_agent.tools import build_tools
 
 
 class MinimalAgentLoopTests(unittest.TestCase):
+    def test_real_llm_uses_deepseek_chat_completions(self):
+        captured = {}
+
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, traceback):
+                return False
+
+            def read(self):
+                return json.dumps(
+                    {
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": json.dumps(
+                                        {"type": "final_answer", "thought": "done", "answer": "ok"}
+                                    )
+                                }
+                            }
+                        ]
+                    }
+                ).encode("utf-8")
+
+        def fake_urlopen(request, timeout):
+            captured["url"] = request.full_url
+            captured["headers"] = dict(request.header_items())
+            captured["payload"] = json.loads(request.data.decode("utf-8"))
+            captured["timeout"] = timeout
+            return FakeResponse()
+
+        context = {"system": "Return JSON only.", "goal": "demo"}
+        env = {"DEEPSEEK_API_KEY": "test-key"}
+        with patch.dict(os.environ, env, clear=True), patch("urllib.request.urlopen", fake_urlopen):
+            decision = deepseek_chat_llm(context)
+
+        self.assertEqual(decision["answer"], "ok")
+        self.assertEqual(captured["url"], "https://api.deepseek.com/chat/completions")
+        self.assertEqual(captured["headers"]["Authorization"], "Bearer test-key")
+        self.assertEqual(captured["payload"]["model"], "deepseek-v4")
+        self.assertEqual(captured["payload"]["messages"][0], {"role": "system", "content": "Return JSON only."})
+        self.assertEqual(captured["timeout"], 60)
+
     def test_runs_multi_step_loop_and_writes_final_file(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             workspace = Path(tmpdir)
@@ -135,45 +183,11 @@ class MinimalAgentLoopTests(unittest.TestCase):
 
         self.assertEqual(state.recent_history(3), [{"step": 5}, {"step": 6}, {"step": 7}])
 
-    def test_session_keeps_multi_turn_conversation_history(self):
-        session = SessionState()
-        llm = ScriptedLLM(
-            [
-                {
-                    "type": "final_answer",
-                    "thought": "Answer the first turn.",
-                    "answer": "第一轮回答。",
-                },
-                {
-                    "type": "final_answer",
-                    "thought": "Answer with the previous turn in context.",
-                    "answer": "第二轮回答，已看到上一轮。",
-                },
-            ]
-        )
-
-        first = run_turn(
-            session=session,
-            user_message="第一轮：介绍最小 Agent。",
-            tools=build_tools(ROOT),
-            llm_call=llm,
-        )
-        second = run_turn(
-            session=session,
-            user_message="第二轮：基于上一轮再补充 State。",
-            tools=build_tools(ROOT),
-            llm_call=llm,
-        )
-
-        self.assertEqual(first["status"], "success")
-        self.assertEqual(second["status"], "success")
-        self.assertEqual(len(session.messages), 4)
-        self.assertEqual(session.messages[0]["role"], "user")
-        self.assertEqual(session.messages[1]["role"], "assistant")
-        self.assertEqual(session.messages[2]["content"], "第二轮：基于上一轮再补充 State。")
-        self.assertEqual(session.turns[1]["answer"], "第二轮回答，已看到上一轮。")
-        self.assertEqual(llm.calls[1]["conversation"][-3]["content"], "第一轮：介绍最小 Agent。")
-        self.assertEqual(llm.calls[1]["conversation"][-2]["content"], "第一轮回答。")
+    def test_agent_module_exports_single_task_loop_api(self):
+        public_api = {name for name in dir(agent_module) if not name.startswith("_")}
+        self.assertIn("run_agent", public_api)
+        self.assertIn("assemble_context", public_api)
+        self.assertIn("AgentState", public_api)
 
     def test_scripted_llm_can_simulate_response_latency(self):
         delays = []

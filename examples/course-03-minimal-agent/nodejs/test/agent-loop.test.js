@@ -4,9 +4,50 @@ const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
 
-const { AgentState, SessionState, runAgent, runTurn } = require("../src/agent");
-const { ScriptedLLM } = require("../src/llm");
+const agentModule = require("../src/agent");
+const { AgentState, runAgent } = agentModule;
+const { ScriptedLLM, deepSeekChatLLM } = require("../src/llm");
 const { buildTools } = require("../src/tools");
+
+test("real LLM uses DeepSeek chat completions", async () => {
+  const originalEnv = { ...process.env };
+  const originalFetch = global.fetch;
+  const captured = {};
+
+  process.env = { DEEPSEEK_API_KEY: "test-key" };
+  global.fetch = async (url, options) => {
+    captured.url = url;
+    captured.options = options;
+    return {
+      ok: true,
+      async json() {
+        return {
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({ type: "final_answer", thought: "done", answer: "ok" }),
+              },
+            },
+          ],
+        };
+      },
+    };
+  };
+
+  try {
+    const decision = await deepSeekChatLLM({ system: "Return JSON only.", goal: "demo" });
+    const payload = JSON.parse(captured.options.body);
+
+    assert.equal(decision.answer, "ok");
+    assert.equal(captured.url, "https://api.deepseek.com/chat/completions");
+    assert.equal(captured.options.headers.Authorization, "Bearer test-key");
+    assert.equal(payload.model, "deepseek-v4");
+    assert.deepEqual(payload.messages[0], { role: "system", content: "Return JSON only." });
+  } finally {
+    process.env = originalEnv;
+    global.fetch = originalFetch;
+  }
+});
 
 test("runs a multi-step loop and writes the final file", async () => {
   const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "minimal-agent-node-"));
@@ -114,43 +155,8 @@ test("state recentHistory returns the tail", () => {
   assert.deepEqual(state.recentHistory(3), [{ step: 5 }, { step: 6 }, { step: 7 }]);
 });
 
-test("session keeps multi-turn conversation history", async () => {
-  const session = new SessionState();
-  const llm = new ScriptedLLM([
-    {
-      type: "final_answer",
-      thought: "Answer the first turn.",
-      answer: "第一轮回答。",
-    },
-    {
-      type: "final_answer",
-      thought: "Answer with the previous turn in context.",
-      answer: "第二轮回答，已看到上一轮。",
-    },
-  ]);
-
-  const first = await runTurn({
-    session,
-    userMessage: "第一轮：介绍最小 Agent。",
-    tools: buildTools(process.cwd()),
-    llmCall: llm.call.bind(llm),
-  });
-  const second = await runTurn({
-    session,
-    userMessage: "第二轮：基于上一轮再补充 State。",
-    tools: buildTools(process.cwd()),
-    llmCall: llm.call.bind(llm),
-  });
-
-  assert.equal(first.status, "success");
-  assert.equal(second.status, "success");
-  assert.equal(session.messages.length, 4);
-  assert.equal(session.messages[0].role, "user");
-  assert.equal(session.messages[1].role, "assistant");
-  assert.equal(session.messages[2].content, "第二轮：基于上一轮再补充 State。");
-  assert.equal(session.turns[1].answer, "第二轮回答，已看到上一轮。");
-  assert.equal(llm.calls[1].conversation.at(-3).content, "第一轮：介绍最小 Agent。");
-  assert.equal(llm.calls[1].conversation.at(-2).content, "第一轮回答。");
+test("agent module exports the single-task loop API", () => {
+  assert.deepEqual(Object.keys(agentModule).sort(), ["AgentState", "assembleContext", "runAgent"]);
 });
 
 test("scripted LLM can simulate response latency", async () => {
