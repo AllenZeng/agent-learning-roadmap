@@ -1,0 +1,1 @@
+工具机制把工具调用拆成 Schema 暴露、参数校验、权限检查、执行、Observation 处理、审计日志和 State Update。
