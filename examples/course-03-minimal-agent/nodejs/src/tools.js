@@ -58,6 +58,13 @@ function buildTools(workspace) {
   }
   writeFile.description = "Write UTF-8 text into a workspace file. Args: path, content.";
 
+  /**
+   * Search query in text and return matching lines.
+   *
+   * 教学简化：text 由调用方传入（通常来自 readFile 的结果），
+   * 让学习者看到"先读文件，再对内容搜索"的完整决策链。生产环境中
+   * 可改为 searchFile(query, path) 让工具内部处理文件读取。
+   */
   function searchText({ query, text }) {
     const matches = [];
     text.split(/\r?\n/).forEach((line, index) => {
@@ -67,7 +74,7 @@ function buildTools(workspace) {
     });
     return success(`找到 ${matches.length} 条匹配`, matches);
   }
-  searchText.description = "Search query in text and return matching lines. Args: query, text.";
+  searchText.description = "Search query in text and return matching lines. Args: query, text. 教学简化：text 由调用方传入，让学习者看到完整决策链。";
 
   return {
     read_file: readFile,

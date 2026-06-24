@@ -7,9 +7,17 @@
 const { SYSTEM_PROMPT } = require("./prompt");
 
 class AgentState {
-  constructor({ userGoal, maxSteps = 8 }) {
+  /**
+   * Runtime 持有的单次任务状态。
+   *
+   * ``stepCount`` 只在工具调用步骤递增；final_answer / ask_user /
+   * fail 等终止决策不计入步骤数，因此 trace 长度可能比 stepCount
+   * 多 1（多出一条终止决策记录）。
+   */
+  constructor({ userGoal, maxSteps = 8, maxToolErrors = 5 }) {
     this.userGoal = userGoal;
     this.maxSteps = maxSteps;
+    this.maxToolErrors = maxToolErrors;
     this.stepCount = 0;
     this.history = [];
     this.toolResults = [];
@@ -24,7 +32,14 @@ class AgentState {
 }
 
 class SessionState {
+  /**
+   * 跨多轮用户输入保存的会话状态。
+   *
+   * ``userGoal`` 在首轮设定后保持不变，后续轮次的 ``userMessage``
+   * 是对目标的补充或追问，不作为新 goal。
+   */
   constructor() {
+    this.userGoal = null;
     this.messages = [];
     this.turns = [];
   }
@@ -35,9 +50,19 @@ class SessionState {
 }
 
 async function runTurn({ session, userMessage, tools, llmCall, systemPrompt = SYSTEM_PROMPT, maxSteps = 8, logger = null }) {
+  /**
+   * 在同一个会话中处理一轮用户输入，并把本轮结果写回 SessionState。
+   *
+   * 首轮调用时 ``userMessage`` 将被记录为 session 的 ``userGoal``；
+   * 后续轮次的 ``userMessage`` 作为对目标的补充或追问追加到对话中。
+   */
   session.messages.push({ role: "user", content: userMessage });
+  if (session.userGoal === null) {
+    session.userGoal = userMessage;
+  }
+
   const result = await runAgent({
-    userGoal: userMessage,
+    userGoal: session.userGoal,
     tools,
     llmCall,
     systemPrompt,
@@ -86,35 +111,17 @@ async function runAgent({
     if (decision.type === "final_answer") {
       state.stopReason = "completed";
       state.finalAnswer = decision.answer || "";
-      traceEntry.stateUpdate = stateSummary(state);
-      traceEntry.stateSnapshot = stateSnapshot(state);
-      traceEntry.stopCheck = { continue: false, reason: state.stopReason };
-      logEvent(logger, { event: "state_update", step: state.stepCount, state: traceEntry.stateSnapshot });
-      logEvent(logger, { event: "stop_check", step: state.stepCount, continue: false, reason: state.stopReason });
-      trace.push(traceEntry);
-      return { status: "success", answer: state.finalAnswer, state, trace };
+      return finalize({ state, traceEntry, trace, logger, status: "success", fields: { answer: state.finalAnswer } });
     }
 
     if (decision.type === "ask_user") {
       state.stopReason = "need_user_input";
-      traceEntry.stateUpdate = stateSummary(state);
-      traceEntry.stateSnapshot = stateSnapshot(state);
-      traceEntry.stopCheck = { continue: false, reason: state.stopReason };
-      logEvent(logger, { event: "state_update", step: state.stepCount, state: traceEntry.stateSnapshot });
-      logEvent(logger, { event: "stop_check", step: state.stepCount, continue: false, reason: state.stopReason });
-      trace.push(traceEntry);
-      return { status: "paused", question: decision.question || "", state, trace };
+      return finalize({ state, traceEntry, trace, logger, status: "paused", fields: { question: decision.question || "" } });
     }
 
     if (decision.type === "fail") {
       state.stopReason = "failed";
-      traceEntry.stateUpdate = stateSummary(state);
-      traceEntry.stateSnapshot = stateSnapshot(state);
-      traceEntry.stopCheck = { continue: false, reason: state.stopReason };
-      logEvent(logger, { event: "state_update", step: state.stepCount, state: traceEntry.stateSnapshot });
-      logEvent(logger, { event: "stop_check", step: state.stepCount, continue: false, reason: state.stopReason });
-      trace.push(traceEntry);
-      return { status: "failed", reason: decision.reason || "", state, trace };
+      return finalize({ state, traceEntry, trace, logger, status: "failed", fields: { reason: decision.reason || "" } });
     }
 
     // Interaction / Observation：Runtime 执行工具，并把结果统一成 Observation。
@@ -150,6 +157,17 @@ async function runAgent({
   }
 
   return { status: "stopped", reason: state.stopReason, state, trace };
+}
+
+function finalize({ state, traceEntry, trace, logger, status, fields = {} }) {
+  /** 记录最终状态快照和停止检查，返回统一的结果结构。 */
+  traceEntry.stateUpdate = stateSummary(state);
+  traceEntry.stateSnapshot = stateSnapshot(state);
+  traceEntry.stopCheck = { continue: false, reason: state.stopReason };
+  logEvent(logger, { event: "state_update", step: state.stepCount, state: traceEntry.stateSnapshot });
+  logEvent(logger, { event: "stop_check", step: state.stepCount, continue: false, reason: state.stopReason });
+  trace.push(traceEntry);
+  return { status, state, trace, ...fields };
 }
 
 function assembleContext({ systemPrompt, tools, state, conversation = [] }) {
@@ -232,7 +250,7 @@ function checkStop(state) {
   if (state.stepCount >= state.maxSteps) {
     return "max_steps_exceeded";
   }
-  if (state.errors.length >= 3) {
+  if (state.errors.length >= state.maxToolErrors) {
     return "tool_error_limit";
   }
   if (repeatedAction(state, 3)) {

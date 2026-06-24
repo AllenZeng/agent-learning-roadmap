@@ -1,0 +1,1 @@
+最小 Agent 闭环包含 Prompt、LLM 决策、工具交互、State 状态管理和循环控制。Runtime 负责组装上下文、执行工具、记录 Observation、更新 State，并判断是否继续。
