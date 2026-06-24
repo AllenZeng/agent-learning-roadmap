@@ -27,3 +27,7 @@ node_modules/
 
 # Superpowers specs
 docs/superpowers/specs/
+
+# Examples — generated output
+examples/*/python/output/
+examples/*/nodejs/output/

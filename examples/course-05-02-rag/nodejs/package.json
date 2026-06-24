@@ -1,0 +1,15 @@
+{
+  "name": "course-05-02-rag-node",
+  "version": "1.0.0",
+  "description": "Course 05-02 RAG Example — Node.js implementation",
+  "type": "module",
+  "scripts": {
+    "offline": "node offline_pipeline.mjs",
+    "online": "node online_pipeline.mjs",
+    "query": "node online_pipeline.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.0.0",
+    "onnxruntime-web": "^1.20.0"
+  }
+}
