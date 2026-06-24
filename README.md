@@ -65,14 +65,14 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 
 | 课程 | 建议时间 | 学习重点 |
 |---|---|---|
-| [课程一：初识 Agent](docs/course-01-first-encounter.md) | 0.5-1 天 | 建立产品直觉和观察框架 |
-| [课程二：Agent 范式演进](docs/course-02-evolution.md) | 1-2 天 | 理解 Agent 范式为什么出现 |
-| [课程三：最小 Agent 闭环](docs/course-03-minimal-agent-loop.md) | 2-4 天 | 做出最小可运行 Agent |
-| [课程四：工具机制](docs/course-04-tool-mechanism.md) | 2-4 天 | 把工具调用做成可控机制 |
-| [课程五：场景增强能力](docs/course-05-01-scenario-enhancement.md) | 2-5 天 | 学会判断哪些增强能力值得引入 |
-| [课程六：Harness 运行时架构](docs/course-06-runtime-architecture.md) | 4-7 天 | 将最小闭环工程化为 Harness |
-| [课程七：Agent 产品化实践](docs/course-07-productization.md) | 2-4 天 | 做产品化、指标、安全和成本设计 |
-| [课程八：项目实战与生态跟进](docs/course-08-project-practice.md) | 5-10 天 | 完成一个综合项目 |
+| [课程一：初识 Agent](courses/course-01-first-encounter.md) | 0.5-1 天 | 建立产品直觉和观察框架 |
+| [课程二：Agent 范式演进](courses/course-02-evolution.md) | 1-2 天 | 理解 Agent 范式为什么出现 |
+| [课程三：最小 Agent 闭环](courses/course-03-minimal-agent-loop.md) | 2-4 天 | 做出最小可运行 Agent |
+| [课程四：工具机制](courses/course-04-tool-mechanism.md) | 2-4 天 | 把工具调用做成可控机制 |
+| [课程五：场景增强能力](courses/course-05-01-scenario-enhancement.md) | 2-5 天 | 学会判断哪些增强能力值得引入 |
+| [课程六：Harness 运行时架构](courses/course-06-runtime-architecture.md) | 4-7 天 | 将最小闭环工程化为 Harness |
+| [课程七：Agent 产品化实践](courses/course-07-productization.md) | 2-4 天 | 做产品化、指标、安全和成本设计 |
+| [课程八：项目实战与生态跟进](courses/course-08-project-practice.md) | 5-10 天 | 完成一个综合项目 |
 
 **完整学习通常需要 3-6 周。** 时间差异主要来自实践深度：只读路线图会很快，真正做出可运行项目会显著增加投入。
 
@@ -90,7 +90,7 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 ### 从这里开始
 
 1. 阅读 [课程总纲](syllabus.md) 了解完整知识体系
-2. 从 [课程一](docs/course-01-first-encounter.md) 开始，建立 Agent 的感性认知
+2. 从 [课程一](courses/course-01-first-encounter.md) 开始，建立 Agent 的感性认知
 3. 按顺序推进，每课包含核心概念和实践练习；代码示例正在逐步补充。
 
 ## 课程结构
@@ -98,7 +98,7 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 ```
 .
 ├── syllabus.md                         # 课程总纲
-├── docs/
+├── courses/
 │   ├── course-01-first-encounter.md    # 初识 Agent
 │   ├── course-02-evolution.md          # Agent 范式演进
 │   ├── course-03-minimal-agent-loop.md # 最小 Agent 闭环

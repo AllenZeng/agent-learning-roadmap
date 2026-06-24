@@ -58,7 +58,12 @@ def build_tools(workspace: Path) -> Dict[str, Tool]:
         return success("已写入 %d 个字符: %s" % (len(content), path), {"path": path})
 
     def search_text(query: str, text: str) -> Dict[str, Any]:
-        """Search query in text and return matching lines. Args: query, text."""
+        """Search query in text and return matching lines. Args: query, text.
+
+        教学简化：text 由调用方传入（通常来自 read_file 的结果），
+        让学习者看到"先读文件，再对内容搜索"的完整决策链。生产环境中
+        可改为 search_file(query, path) 让工具内部处理文件读取。
+        """
         matches: List[Dict[str, Any]] = []
         for line_number, line in enumerate(text.splitlines(), start=1):
             if query.lower() in line.lower():

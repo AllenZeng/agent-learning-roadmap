@@ -19,7 +19,12 @@ Logger = Callable[[Dict[str, Any]], None]
 
 @dataclass
 class AgentState:
-    """Runtime 持有的单次任务状态。"""
+    """Runtime 持有的单次任务状态。
+
+    ``step_count`` 只在工具调用步骤递增；final_answer / ask_user /
+    fail 等终止决策不计入步骤数，因此 trace 长度可能比 step_count
+    多 1（多出一条终止决策记录）。
+    """
 
     user_goal: str
     max_steps: int = 8
@@ -29,6 +34,7 @@ class AgentState:
     errors: List[Observation] = field(default_factory=list)
     stop_reason: Optional[str] = None
     final_answer: Optional[str] = None
+    max_tool_errors: int = 5
 
     def recent_history(self, n: int = 5) -> List[Dict[str, Any]]:
         return self.history[-n:]
@@ -36,8 +42,13 @@ class AgentState:
 
 @dataclass
 class SessionState:
-    """跨多轮用户输入保存的会话状态。"""
+    """跨多轮用户输入保存的会话状态。
 
+    ``user_goal`` 在首轮设定后保持不变，后续轮次的 ``user_message``
+    是对目标的补充或追问，不作为新 goal。
+    """
+
+    user_goal: Optional[str] = None
     messages: List[Dict[str, str]] = field(default_factory=list)
     turns: List[Dict[str, Any]] = field(default_factory=list)
 
@@ -54,10 +65,17 @@ def run_turn(
     max_steps: int = 8,
     logger: Optional[Logger] = None,
 ) -> Dict[str, Any]:
-    """在同一个会话中处理一轮用户输入，并把本轮结果写回 SessionState。"""
+    """在同一个会话中处理一轮用户输入，并把本轮结果写回 SessionState。
+
+    首轮调用时 ``user_message`` 将被记录为 session 的 ``user_goal``；
+    后续轮次的 ``user_message`` 作为对目标的补充或追问追加到对话中。
+    """
     session.messages.append({"role": "user", "content": user_message})
+    if session.user_goal is None:
+        session.user_goal = user_message
+
     result = run_agent(
-        user_goal=user_message,
+        user_goal=session.user_goal,
         tools=tools,
         llm_call=llm_call,
         system_prompt=system_prompt,
@@ -105,33 +123,15 @@ def run_agent(
         if decision_type == "final_answer":
             state.stop_reason = "completed"
             state.final_answer = decision.get("answer", "")
-            trace_entry["state_update"] = _state_summary(state)
-            trace_entry["state_snapshot"] = _state_snapshot(state)
-            trace_entry["stop_check"] = {"continue": False, "reason": state.stop_reason}
-            _log(logger, {"event": "state_update", "step": state.step_count, "state": trace_entry["state_snapshot"]})
-            _log(logger, {"event": "stop_check", "step": state.step_count, "continue": False, "reason": state.stop_reason})
-            trace.append(trace_entry)
-            return {"status": "success", "answer": state.final_answer, "state": state, "trace": trace}
+            return _finalize(state, trace_entry, trace, logger, "success", answer=state.final_answer)
 
         if decision_type == "ask_user":
             state.stop_reason = "need_user_input"
-            trace_entry["state_update"] = _state_summary(state)
-            trace_entry["state_snapshot"] = _state_snapshot(state)
-            trace_entry["stop_check"] = {"continue": False, "reason": state.stop_reason}
-            _log(logger, {"event": "state_update", "step": state.step_count, "state": trace_entry["state_snapshot"]})
-            _log(logger, {"event": "stop_check", "step": state.step_count, "continue": False, "reason": state.stop_reason})
-            trace.append(trace_entry)
-            return {"status": "paused", "question": decision.get("question", ""), "state": state, "trace": trace}
+            return _finalize(state, trace_entry, trace, logger, "paused", question=decision.get("question", ""))
 
         if decision_type == "fail":
             state.stop_reason = "failed"
-            trace_entry["state_update"] = _state_summary(state)
-            trace_entry["state_snapshot"] = _state_snapshot(state)
-            trace_entry["stop_check"] = {"continue": False, "reason": state.stop_reason}
-            _log(logger, {"event": "state_update", "step": state.step_count, "state": trace_entry["state_snapshot"]})
-            _log(logger, {"event": "stop_check", "step": state.step_count, "continue": False, "reason": state.stop_reason})
-            trace.append(trace_entry)
-            return {"status": "failed", "reason": decision.get("reason", ""), "state": state, "trace": trace}
+            return _finalize(state, trace_entry, trace, logger, "failed", reason=decision.get("reason", ""))
 
         # Interaction / Observation：Runtime 执行工具，并把结果统一成 Observation。
         _log(
@@ -250,11 +250,29 @@ def _update_state_from_tool_call(state: AgentState, decision: Decision, observat
         state.errors.append(observation)
 
 
+def _finalize(
+    state: AgentState,
+    trace_entry: Dict[str, Any],
+    trace: List[Dict[str, Any]],
+    logger: Optional[Logger],
+    status: str,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """记录最终状态快照和停止检查，返回统一的结果结构。"""
+    trace_entry["state_update"] = _state_summary(state)
+    trace_entry["state_snapshot"] = _state_snapshot(state)
+    trace_entry["stop_check"] = {"continue": False, "reason": state.stop_reason}
+    _log(logger, {"event": "state_update", "step": state.step_count, "state": trace_entry["state_snapshot"]})
+    _log(logger, {"event": "stop_check", "step": state.step_count, "continue": False, "reason": state.stop_reason})
+    trace.append(trace_entry)
+    return {"status": status, "state": state, "trace": trace, **kwargs}
+
+
 def _check_stop(state: AgentState) -> Optional[str]:
     """检查最大步数、错误次数和重复动作等硬停止条件。"""
     if state.step_count >= state.max_steps:
         return "max_steps_exceeded"
-    if len(state.errors) >= 3:
+    if len(state.errors) >= state.max_tool_errors:
         return "tool_error_limit"
     if _repeated_action(state, threshold=3):
         return "repeated_action"

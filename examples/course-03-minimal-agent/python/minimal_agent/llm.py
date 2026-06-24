@@ -46,7 +46,13 @@ def random_demo_latency_seconds() -> float:
 
 
 def openai_responses_llm(context: Dict[str, Any]) -> Dict[str, Any]:
-    """调用 OpenAI Responses API，并解析模型返回的 JSON 决策。"""
+    """调用 OpenAI Responses API，并解析模型返回的 JSON 决策。
+
+    教学简化：这里直接把整个 context 序列化为 JSON 放进 user message，
+    让学习者一眼看清传给 LLM 的完整上下文结构。生产环境中应该将 context
+    的各个字段分别映射到 system prompt、user message、tool definitions 的
+    对应位置，避免重复传递 tools 定义和完整 history 造成 token 浪费。
+    """
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is required for real LLM mode")
