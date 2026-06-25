@@ -1,4 +1,4 @@
-·# 第三章：Memory：状态延续能力
+# 第三章：Memory：状态延续能力
 
 [返回课程五主文档](./course-05-00-scenario-enhancement.md) | [上一章](./course-05-02-rag.md) | [下一章](./course-05-04-planning.md)
 
@@ -393,6 +393,8 @@ def should_remember(candidate: dict, context: dict) -> tuple[bool, str]:
 
 **一个常被忽略的细节**：写入决策不仅要看"这条该不该写"，还要看"是否与已有记忆重复或矛盾"。如果用户上次说"示例代码用 TypeScript"，这次说"改用 Python 写示例"——新的写入应该**替换**旧记忆，而不是新增一条。两条矛盾的偏好并存会导致召回时模型收到冲突信号，表现比没有 Memory 更差。
 
+**冲突检测的 category 粒度陷阱**：如果 category 太粗（比如只用 `writing_style`），会导致"写文章先大纲"和"不要营销化"这两个互补偏好被判定为冲突——它们 category 相同、内容不同，冲突检测会把其中一个标记为 superseded。正确的做法是使用更细粒度的 category（如 `writing_workflow` vs `writing_tone`），让冲突检测只在真正互斥的维度上生效。**经验法则：如果两条记忆可以在同一任务中同时生效，它们就不应该共享同一个 category。**
+
 #### 3.4.3 存储结构
 
 Memory 不一定都放向量库。选择存储方式时看两个问题：
@@ -409,440 +411,84 @@ Memory 不一定都放向量库。选择存储方式时看两个问题：
 当前状态 "正在整理文档目录，完成 23/50" → 精确 key-value，任务结束后清理
 ```
 
-下面是一个完整的 Memory 实现——**这不是骨架，是带具体存储后端和完整日志的可运行代码**：
+下面用一个精简的伪代码骨架来串联这些设计决策。**完整的可运行代码见本章末尾的示例项目**（`examples/course-05-03-memory/`）——课程正文聚焦于理解设计思路，不必陷在几百行实现细节里。
 
 ```python
-import json
-import os
-import hashlib
-from datetime import datetime, timedelta
-from typing import Optional
-from collections import OrderedDict
-
-# ============================================================
-# Memory 核心实现 —— 知识助手场景
-# ============================================================
+# ═══════════════════════════════════════════════
+# Memory 核心接口（伪代码）
+# ═══════════════════════════════════════════════
 
 class AgentMemory:
     """
-    Memory 的核心不是存储，是写入决策和召回过滤。
-
-    存储分层：
-    - preferences:  JSON 文件，精确 key-value，用户可编辑
-    - facts:        JSON 文件，长期事实，语义召回
-    - task_history: JSON 文件，任务经验，语义召回
-    - session:      内存 dict，会话状态，会话结束后清理
-    - audit_log:    JSONL 文件，所有写入/读取/删除操作的审计记录
+    分层存储：
+    - preferences:   JSON 文件，精确 key-value
+    - facts:         JSON 文件，语义召回
+    - task_history:  JSON 文件，任务经验（保留最近 500 条）
+    - session_state: 内存 dict，会话结束后清理
+    - audit_log:     JSONL 文件，所有操作的审计记录
     """
 
-    def __init__(self, storage_dir: str = "./memory_store"):
-        self.storage_dir = storage_dir
-        os.makedirs(storage_dir, exist_ok=True)
-
-        # 分层存储路径
-        self.preferences_path = os.path.join(storage_dir, "preferences.json")
-        self.facts_path = os.path.join(storage_dir, "facts.json")
-        self.task_history_path = os.path.join(storage_dir, "task_history.json")
-        self.audit_log_path = os.path.join(storage_dir, "audit.jsonl")
-
-        # 加载持久化存储
-        self.preferences = self._load_json(self.preferences_path, {})
-        self.facts = self._load_json(self.facts_path, [])
-        self.task_history = self._load_json(self.task_history_path, [])
-
-        # 会话状态（不持久化）
-        self.session_state = {}
-
-        # 候选记忆（待用户确认）
-        self.pending_candidates = []
-
-        # 内存索引（用于语义召回时加速）
-        self._fact_vectors = None
-
-    # ── 持久化辅助 ──
-    def _load_json(self, path: str, default):
-        if os.path.exists(path):
-            with open(path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        return default
-
-    def _save_json(self, path: str, data):
-        with open(path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-
-    def _audit(self, action: str, detail: dict):
-        """审计日志：记录所有 Memory 操作"""
-        entry = {
-            "timestamp": datetime.now().isoformat(),
-            "action": action,
-            **detail
-        }
-        with open(self.audit_log_path, 'a', encoding='utf-8') as f:
-            f.write(json.dumps(entry, ensure_ascii=False) + '\n')
-
-    # ── 写入前的决策守卫 ──
-    def should_remember(self, candidate: dict) -> tuple[bool, str]:
-        """写入决策：不是所有信息都值得写入长期记忆"""
+    # ── 写入守卫（整个系统可靠性的基石）──
+    def should_remember(candidate) -> (bool, reason):
         # 硬守卫：绝对不写入
-        if candidate.get("sensitive"):
-            return False, "sensitive: 敏感信息不自动写入"
-        if candidate.get("expires_at") and self._is_expired(candidate):
-            return False, "expired: 已过期"
-        if candidate.get("type") == "temporary":
-            return False, "temporary: 临时约束不进长期记忆"
-
+        if candidate.sensitive:    return False, "敏感信息"
+        if candidate.is_expired:   return False, "已过期"
+        if candidate.type == "temporary": return False, "临时约束"
         # 软守卫：置信度门槛
-        confidence = candidate.get("confidence", 0)
-        if candidate.get("source") == "inferred" and confidence < 0.7:
-            return False, f"low_confidence: 推断置信度不足 ({confidence:.2f})"
-        if confidence < 0.5:
-            return False, f"low_confidence: 置信度过低 ({confidence:.2f})"
-
+        if candidate.source == "inferred" and confidence < 0.7:
+            return False, "推断置信度不足"
         # 冲突检测
-        conflict = self._detect_conflict(candidate)
-        if conflict:
-            return True, f"conflict_replacing: 与已有记忆冲突，将替换 (旧: '{conflict['content'][:50]}...')"
-
+        if existing := find_contradiction(candidate):
+            return True, f"与已有记忆冲突，将替换旧记忆"
         return True, "ok"
 
-    def _detect_conflict(self, candidate: dict) -> Optional[dict]:
-        """检测是否与已有记忆矛盾"""
-        if candidate["type"] != "preference":
-            return None
-        for key, existing in self.preferences.items():
-            if existing.get("category") == candidate.get("category"):
-                if candidate.get("content") != existing.get("content"):
-                    return existing
-        return None
-
-    def _is_expired(self, candidate: dict) -> bool:
-        expires = candidate.get("expires_at")
-        if expires:
-            return datetime.fromisoformat(expires) < datetime.now()
-        return False
-
     # ── 写入（分类存储）──
-    def write(self, entry: dict) -> dict:
-        """
-        写入一条记忆。返回写入结果（含 memory_id）。
-        写入前必须通过 should_remember 守卫。
-        """
-        ok, reason = self.should_remember(entry)
-        if not ok:
-            self._audit("write_rejected", {"reason": reason, "content": entry.get("content", "")[:80]})
-            return {"status": "rejected", "reason": reason}
+    def write(entry):
+        ok, reason = should_remember(entry)
+        if not ok: audit("write_rejected", reason); return
+        # 按类型分存
+        match entry.type:
+            case "preference" -> preferences[key] = entry
+            case "fact"       -> facts.append(entry)
+            case "task_result" -> task_history.append(entry)
+        audit("write_accepted", entry)
 
-        memory_id = self._generate_id(entry)
-        timestamp = datetime.now().isoformat()
-
-        record = {
-            "id": memory_id,
-            **entry,
-            "created_at": timestamp,
-            "updated_at": timestamp,
-            "access_count": 0,
-            "last_accessed_at": None,
-        }
-
-        if entry["type"] == "preference":
-            # 偏好用 key-value 存储，key 从 content 派生
-            key = self._preference_key(entry)
-            # 如果旧值存在且不同，记录替换
-            old = self.preferences.get(key)
-            if old and old.get("content") != entry.get("content"):
-                record["supersedes"] = old["id"]
-                record["version"] = old.get("version", 1) + 1
-            self.preferences[key] = record
-            self._save_json(self.preferences_path, self.preferences)
-
-        elif entry["type"] == "fact":
-            self.facts.append(record)
-            self._save_json(self.facts_path, self.facts)
-            self._fact_vectors = None  # 使向量缓存失效
-
-        elif entry["type"] == "task_result":
-            self.task_history.append(record)
-            # 只保留最近 500 条
-            if len(self.task_history) > 500:
-                self.task_history = self.task_history[-500:]
-            self._save_json(self.task_history_path, self.task_history)
-
-        self._audit("write_accepted", {
-            "memory_id": memory_id,
-            "type": entry["type"],
-            "reason": reason,
-            "content": entry.get("content", "")[:80]
-        })
-        return {"status": "written", "id": memory_id}
-
-    def _preference_key(self, entry: dict) -> str:
-        """从偏好内容生成稳定的 key"""
-        content = entry.get("content", "")
-        # 用内容哈希 + 类别生成 key，保证幂等
-        hash_suffix = hashlib.md5(content.encode()).hexdigest()[:8]
-        category = entry.get("category", "general")
-        return f"{category}_{hash_suffix}"
-
-    def _generate_id(self, entry: dict) -> str:
-        raw = f"{entry.get('type')}_{entry.get('content','')}_{datetime.now().timestamp()}"
-        return "mem_" + hashlib.md5(raw.encode()).hexdigest()[:12]
-
-    # ── 召回：相关性过滤，不全量注入 ──
-    def recall(
-        self,
-        current_task: str,
-        limit: int = 5,
-        types: list[str] = None
-    ) -> list[dict]:
-        """
-        只召回与当前任务相关的记忆。
-        不把全量记忆塞进上下文——那会让模型注意力被无关历史淹没。
-        """
+    # ── 召回（相关性过滤，不全量注入）──
+    def recall(current_task, limit=5):
         relevant = []
+        # 关键词匹配：偏好用精确匹配
+        for pref in preferences:
+            if keyword_overlap(current_task, pref.content) >= 2:
+                relevant.append(pref, score=1.0)
+        # 语义召回：事实和任务历史用向量相似度
+        task_vec = embed(current_task)
+        for fact in facts:
+            score = cosine_sim(task_vec, embed(fact.content))
+            if score > 0.6: relevant.append(fact, score=score)
+        # 排序：相似度 × 时间衰减 + 访问频率加成
+        sort_by_final_score(relevant)
+        return deduplicate(relevant)[:limit]
 
-        # 1. 精确匹配：用户偏好中与当前任务关键词相关的
-        for key, pref in self.preferences.items():
-            content = pref.get("content", "")
-            if self._keyword_match(current_task, content):
-                relevant.append({**pref, "score": 1.0, "match_type": "keyword"})
+    # ── 更新与遗忘 ──
+    def update(memory_id, updates):
+        # 找到对应记忆，更新字段，记录 audit
 
-        # 2. 语义召回：长期事实和任务历史
-        if types is None or "fact" in types:
-            task_vec = self._embed(current_task)
-            for fact in self.facts:
-                fact_vec = self._embed(fact.get("content", ""))
-                score = self._cosine_sim(task_vec, fact_vec)
-                if score > 0.6:
-                    relevant.append({**fact, "score": round(score, 2), "match_type": "semantic"})
-
-        if types is None or "task_result" in types:
-            task_vec = self._embed(current_task)
-            for task in self.task_history[-200:]:  # 只搜最近 200 条
-                task_vec_cached = self._embed(task.get("content", ""))
-                score = self._cosine_sim(task_vec, task_vec_cached)
-                if score > 0.5:  # 任务历史阈值稍低
-                    relevant.append({**task, "score": round(score, 2), "match_type": "semantic"})
-
-        # 3. 排序：综合分数 + 时间衰减 + 访问频率
-        for mem in relevant:
-            base_score = mem.get("score", 0.5)
-            # 时间衰减：越久远权重越低
-            days_ago = self._days_since(mem.get("updated_at", mem.get("created_at")))
-            time_factor = max(0.5, 1.0 - days_ago / 180)  # 半年线性衰减到 0.5
-            # 访问频率加成
-            access_bonus = min(0.2, mem.get("access_count", 0) * 0.02)
-            mem["final_score"] = round(base_score * time_factor + access_bonus, 3)
-
-        relevant.sort(key=lambda x: x["final_score"], reverse=True)
-        result = self._deduplicate_memories(relevant)[:limit]
-
-        # 更新访问计数
-        for mem in result:
-            mem["access_count"] = mem.get("access_count", 0) + 1
-            mem["last_accessed_at"] = datetime.now().isoformat()
-
-        return result
-
-    def _keyword_match(self, task: str, memory_content: str) -> bool:
-        """简单的关键词重叠检测"""
-        task_words = set(task.lower().split())
-        mem_words = set(memory_content.lower().split())
-        overlap = task_words & mem_words
-        return len(overlap) >= 2  # 至少 2 个词重叠
-
-    def _embed(self, text: str) -> list[float]:
-        """
-        文本转向量。生产环境用 Embedding 模型；演示场景用简化的
-        bag-of-words + 关键词哈希映射到 128 维。
-        """
-        # 简化实现：基于字符 n-gram 哈希的稀疏向量
-        text = text.lower()
-        vec = [0.0] * 128
-        for i in range(len(text) - 2):
-            trigram = text[i:i+3]
-            idx = hash(trigram) % 128
-            vec[idx] += 1.0
-        # 归一化
-        norm = sum(v * v for v in vec) ** 0.5
-        if norm > 0:
-            vec = [v / norm for v in vec]
-        return vec
-
-    def _cosine_sim(self, a: list[float], b: list[float]) -> float:
-        dot = sum(x * y for x, y in zip(a, b))
-        return max(0.0, dot)  # 截断负值
-
-    def _days_since(self, iso_timestamp: str) -> float:
-        if not iso_timestamp:
-            return 999
-        dt = datetime.fromisoformat(iso_timestamp)
-        return (datetime.now() - dt).total_seconds() / 86400
-
-    def _deduplicate_memories(self, memories: list[dict]) -> list[dict]:
-        """基于内容相似度去重，保留分数更高的"""
-        seen_hashes = set()
-        result = []
-        for mem in memories:
-            content_hash = hashlib.md5(
-                mem.get("content", "")[:100].encode()
-            ).hexdigest()
-            if content_hash not in seen_hashes:
-                seen_hashes.add(content_hash)
-                result.append(mem)
-        return result
-
-    # ── 更新 ──
-    def update(self, memory_id: str, updates: dict) -> dict:
-        """更新一条记忆"""
-        # 在所有存储中查找
-        for store, save_path in [
-            (self.preferences, self.preferences_path),
-            (self.facts, self.facts_path),
-            (self.task_history, self.task_history_path),
-        ]:
-            if isinstance(store, dict):
-                for key, mem in store.items():
-                    if mem.get("id") == memory_id:
-                        mem.update(updates)
-                        mem["updated_at"] = datetime.now().isoformat()
-                        self._save_json(save_path, store)
-                        self._audit("update", {"memory_id": memory_id, "updates": updates})
-                        return {"status": "updated", "id": memory_id}
-            elif isinstance(store, list):
-                for mem in store:
-                    if mem.get("id") == memory_id:
-                        mem.update(updates)
-                        mem["updated_at"] = datetime.now().isoformat()
-                        self._save_json(save_path, store)
-                        self._audit("update", {"memory_id": memory_id, "updates": updates})
-                        return {"status": "updated", "id": memory_id}
-
-        return {"status": "not_found", "id": memory_id}
-
-    # ── 删除 ──
-    def delete(self, memory_id: str) -> dict:
-        """删除一条记忆"""
-        for store, save_path in [
-            (self.preferences, self.preferences_path),
-            (self.facts, self.facts_path),
-            (self.task_history, self.task_history_path),
-        ]:
-            if isinstance(store, dict):
-                keys_to_delete = [
-                    k for k, v in store.items() if v.get("id") == memory_id
-                ]
-                for k in keys_to_delete:
-                    del store[k]
-                    self._save_json(save_path, store)
-                    self._audit("delete", {"memory_id": memory_id})
-                    return {"status": "deleted", "id": memory_id}
-            elif isinstance(store, list):
-                before = len(store)
-                store[:] = [m for m in store if m.get("id") != memory_id]
-                if len(store) < before:
-                    self._save_json(save_path, store)
-                    self._audit("delete", {"memory_id": memory_id})
-                    return {"status": "deleted", "id": memory_id}
-
-        return {"status": "not_found", "id": memory_id}
-
-    # ── 过期清理 ──
-    def decay(self) -> dict:
-        """
-        定期清理：删除过期记忆，降权久未访问的记忆。
-        建议每次会话开始时调用。
-        """
-        cutoff = datetime.now()
-        stats = {"expired_deleted": 0, "stale_flagged": 0}
-
-        # 清理过期事实
-        before = len(self.facts)
-        self.facts = [
-            f for f in self.facts
-            if not f.get("expires_at")
-            or datetime.fromisoformat(f["expires_at"]) > cutoff
-        ]
-        stats["expired_deleted"] = before - len(self.facts)
-
-        # 标记 90 天未访问的偏好为 stale
-        for key, pref in self.preferences.items():
-            if pref.get("last_accessed_at"):
-                last = datetime.fromisoformat(pref["last_accessed_at"])
-                if (cutoff - last).days > 90:
-                    pref["status"] = "stale"
-                    stats["stale_flagged"] += 1
-
-        self._save_json(self.facts_path, self.facts)
-        self._save_json(self.preferences_path, self.preferences)
-        self._audit("decay", stats)
-        return stats
-
-    # ── 用户管理接口 ──
-    def list_all(self, type_filter: str = None) -> list[dict]:
-        """列出所有记忆（供用户查看/管理）"""
-        all_memories = []
-        for mem in self.preferences.values():
-            if type_filter is None or mem.get("type") == type_filter:
-                all_memories.append(mem)
-        for mem in self.facts:
-            if type_filter is None or mem.get("type") == type_filter:
-                all_memories.append(mem)
-        for mem in self.task_history:
-            if type_filter is None or mem.get("type") == type_filter:
-                all_memories.append(mem)
-        all_memories.sort(
-            key=lambda x: x.get("updated_at", x.get("created_at", "")),
-            reverse=True
-        )
-        return all_memories
-
-    def get_pending_candidates(self) -> list[dict]:
-        """获取待用户确认的候选记忆"""
-        return self.pending_candidates
-
-    def confirm_candidate(self, candidate_id: str) -> dict:
-        """用户确认一条候选记忆"""
-        for c in self.pending_candidates:
-            if c.get("id") == candidate_id:
-                c["source"] = "user_confirmed"
-                c["confidence"] = 1.0
-                self.pending_candidates.remove(c)
-                return self.write(c)
-        return {"status": "not_found"}
-
-    # ── 会话管理 ──
-    def start_session(self, user_id: str):
-        """新会话开始时调用：加载记忆 + 执行衰减"""
-        self.session_state = {
-            "user_id": user_id,
-            "started_at": datetime.now().isoformat(),
-            "turn_count": 0,
-            "memories_recalled_this_session": [],
-        }
-        self.decay()  # 每次会话开始时清理过期记忆
-        self._audit("session_start", {"user_id": user_id})
-
-    def end_session(self):
-        """会话结束时调用：保存需要持久化的会话状态"""
-        self._audit("session_end", {
-            "turn_count": self.session_state.get("turn_count", 0),
-            "memories_used": len(self.session_state.get("memories_recalled_this_session", []))
-        })
-        # 会话状态不持久化，只保留审计日志
-        self.session_state = {}
+    def decay():
+        # 删除过期记忆；标记 90 天未访问的记忆为 stale
+        # 每次会话开始时调用
 ```
 
-> **设计要点**：`should_remember` 的保守策略是整个 Memory 系统可靠性的基石。宁可漏记一些无害信息，不可写入一条有害信息。召回时的相关性过滤避免把所有记忆全量塞进上下文——那会让模型注意力被无关历史淹没。审计日志 (`audit.jsonl`) 记录了所有 Memory 操作，这是用户信任和问题排查的基础。
-
-**你不需要从零实现上面的全部代码。** 关键理解五个设计决策：
+**核心设计决策速查：**
 
 | 决策 | 选择 | 原因 |
 |---|---|---|
-| 偏好用精确 key-value 存储 | ✅ 适合"写文章先大纲"这类确定性偏好 | 语义召回对精确偏好反而不准 |
+| 偏好用精确 key-value 存储 | ✅ "写文章先大纲"这类确定偏好 | 语义召回对精确偏好反而不准 |
 | 事实和经验用语义召回 | ✅ 用户不会精确记得"上次说的是哪句话" | 向量相似度能找回相关内容 |
-| 写入前必须过守卫 | ✅ 敏感信息/临时约束/低置信推断不写入 | 一旦写入错误记忆，污染是长期的 |
-| 审计日志记录所有操作 | ✅ 用户想知道"系统记住了我什么" | 没有审计日志，Memory 就是不透明的 |
+| 写入前必须过守卫 | ✅ 敏感/临时/低置信推断不写入 | 一旦写入错误记忆，污染是长期的 |
+| 审计日志记录所有操作 | ✅ 用户想知道"系统记住了我什么" | 无审计 = 不透明 = 用户不信任 |
 | 会话结束清理状态 | ✅ 会话状态不跨会话保留 | 任务完成后状态数据就是死数据 |
+
+> **设计要点**：`should_remember` 的保守策略是整个 Memory 系统可靠性的基石——宁可漏记无害信息，不可写入一条有害信息。五个设计决策对应五类问题，抓住它们就抓住了 Memory 设计的骨架。具体实现细节（文件读写、向量计算、冲突合并等）在示例项目中有完整演示。
 
 #### 3.4.4 召回
 
