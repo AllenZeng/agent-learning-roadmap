@@ -1,0 +1,14 @@
+{
+  "name": "course-05-03-memory-node",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Course 05-03 Memory lifecycle example in Node.js.",
+  "type": "module",
+  "scripts": {
+    "start": "node memory_demo.mjs",
+    "auto": "node memory_demo.mjs --auto"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
