@@ -1,0 +1,10 @@
+{
+  "name": "course-05-04-planning",
+  "version": "1.0.0",
+  "description": "课程五 05-04 Planning / Workflow Patterns 示例 (Node.js)",
+  "type": "module",
+  "scripts": {
+    "start": "node planning_demo.mjs"
+  },
+  "license": "MIT"
+}
