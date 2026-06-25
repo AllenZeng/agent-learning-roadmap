@@ -6,7 +6,7 @@
 
 但一旦把它放到真实场景里用上几周，你就会撞上五类依次暴露的问题：知识不在模型里、关了会话就失忆、长任务开始漂移、看到错误却不修正、自己审自己说没问题。
 
-这五类问题分别对应五类增强能力：RAG（外部知识接入）、Memory（状态延续）、Planning（任务组织）、Reflection（失败修正）、Multi-Agent（角色分工）。它们不是 Agent 的"必选核心模块"——一个最小闭环不需要它们也能跑。它们是**按场景问题选择性引入的增强能力**。
+这五类问题分别对应五类增强能力：RAG（外部知识接入）、Memory（状态延续）、Planning（任务组织）、Reflection（失败修正）、Multi-Agent（角色分工与协作）。它们不是 Agent 的"必选核心模块"——一个最小闭环不需要它们也能跑。它们是**按场景问题选择性引入的增强能力**。
 
 本课不从概念名词开始，而从五个真实的问题案例出发。每一章都沿着同一条路径展开：
 
@@ -49,7 +49,7 @@
   - [第三章：Memory：状态延续能力](./course-05-03-memory.md)
   - [第四章：Planning / Workflow Patterns](./course-05-04-planning.md)
   - [第五章：Reflection：失败修正能力](./course-05-05-reflection.md)
-  - [第六章：Multi-Agent：角色分工能力](./course-05-06-multi-agent.md)
+  - [第六章：Multi-Agent —— 从"一个人干活"到"一支团队协作"](./course-05-06-multi-agent.md)
   - [第七章：能力组合与引入顺序](./course-05-07-composition.md)
 - [课后练习](#课后练习)
 - [验收标准](#验收标准)
@@ -127,7 +127,7 @@ Agent 看到了这个输出，然后说：
 
 你作为人类看了一眼，立刻发现了三个安全隐患。Agent 不是不聪明——它只是在"写方案"和"审方案"时用了同一个视角、同一个上下文。自己审自己，就像让学生给自己的试卷打分。
 
-这个问题的本质是：**单一 Agent 的角色开始过载，不同视角需要不同的上下文和判断标准。** 这引出了第六章要讲的 Multi-Agent。
+这个问题的本质是：**单一 Agent 的角色开始过载，不同视角需要不同的上下文和判断标准。创作者和审查者的目标天然矛盾，共享同一个上下文意味着互相妥协。** 这引出了第六章要讲的 Multi-Agent。
 
 ---
 
@@ -145,7 +145,7 @@ Agent 看到了这个输出，然后说：
 | 关了会话就失忆，偏好反复说 | 状态随会话蒸发，无法跨轮延续 | Memory | 写入策略、隐私、遗忘机制、记忆污染 | 短期/长期记忆、用户偏好、记忆更新 |
 | 多步骤任务偏离目标，漏步骤 | 裸 ReAct 没有全局任务结构 | Planning / Workflow Patterns | 计划可执行性、重规划、调试成本 | Chain、Router、ReAct Loop、Plan-Execute、Graph |
 | 看到错误却不修正，继续往下走 | 缺少”失败→分析→修正→重试”闭环 | Reflection | 成本增加、延迟上升、错误反思、需停止条件 | 外部验证信号、触发条件、停止策略 |
-| 自己审自己说”没问题” | 单 Agent 角色过载，多视角混在同一上下文 | Multi-Agent | 通信成本、协调复杂度、错误放大、难调试 | Reviewer、Supervisor、Debate、Graph 协作 |
+| 自己审自己说”没问题” | 单 Agent 角色过载，创作者和审查者共享上下文导致互相妥协 | Multi-Agent | 通信成本、协调复杂度、错误放大、难调试、token 消耗 2-5 倍 | 独立上下文、结构化通信、裁决机制、成本边界 |
 
 这张表是你在后续章节中的定位坐标——不需要全部学完再动手，遇到哪个问题就翻到对应章节。增强能力的引入顺序，应该由**当前项目实际遇到的问题**驱动，而不是由技术热度驱动。
 
@@ -238,7 +238,7 @@ Agent 看到了这个输出，然后说：
 | 第三章：Memory：状态延续能力 | [course-05-03-memory.md](./course-05-03-memory.md) | 会话状态、长期记忆、写入与召回策略 |
 | 第四章：Planning / Workflow Patterns | [course-05-04-planning.md](./course-05-04-planning.md) | Chain、Router、ReAct、Plan-Execute、Graph |
 | 第五章：Reflection：失败修正能力 | [course-05-05-reflection.md](./course-05-05-reflection.md) | 反馈信号、修正闭环、停止条件 |
-| 第六章：Multi-Agent：角色分工能力 | [course-05-06-multi-agent.md](./course-05-06-multi-agent.md) | 分工、并行、互审、协调 |
+| 第六章：Multi-Agent —— 从"一个人干活"到"一支团队协作" | [course-05-06-multi-agent.md](./course-05-06-multi-agent.md) | 独立上下文、结构化通信、分工裁决、成本边界 |
 | 第七章：能力组合与引入顺序 | [course-05-07-composition.md](./course-05-07-composition.md) | 能力组合案例、引入决策表、能力说明模板 |
 
 ---
