@@ -1,7 +1,5 @@
 # 课程六：Harness 运行时架构深入
 
-[返回课程五主文档](./course-05-01-scenario-enhancement.md) | [下一部分：课后练习](#课后练习)
-
 ## 课程导言
 
 课程三让你理解最小 Agent 闭环，课程四让你理解工具机制，课程五让你知道什么时候引入 RAG / 外部知识接入、Memory、Planning / Workflow Patterns、Reflection、Multi-Agent。
