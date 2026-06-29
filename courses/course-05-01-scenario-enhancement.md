@@ -179,7 +179,7 @@
 |---|---|---|
 | 第五章：Planning / Workflow Patterns | [course-05-05-planning.md](./course-05-05-planning.md) | Chain、Router、ReAct、Plan-Execute、Graph |
 | 第六章：Reflection：失败修正能力 | [course-05-06-reflection.md](./course-05-06-reflection.md) | 反馈信号、修正闭环、停止条件 |
-| 第七章：Human-in-the-loop / 人机协同 | [course-05-07-human-in-the-loop.md](./course-05-07-human-in-the-loop.md) | 确认/澄清/接管模式、频率控制、反馈学习 |
+| 第七章：Human-in-the-loop —— 当 Agent 不该自己决定时 | [course-05-07-human-in-the-loop.md](./course-05-07-human-in-the-loop.md) | 确认/澄清/接管模式、频率控制、反馈学习 |
 | 第八章：Multi-Agent / 多智能体协作 | [course-05-08-multi-agent.md](./course-05-08-multi-agent.md) | 独立上下文、结构化通信、分工裁决、成本边界 |
 
 ### 终章：能力组合与引入顺序
