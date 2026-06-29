@@ -1,0 +1,127 @@
+<svg width="1800" height="980" viewBox="0 0 1800 980" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Agent Learning Roadmap 课程内容总览</title>
+  <desc id="desc">以最小核心公式为中心的 Agent 课程路线图，八门课程从产品直觉、范式理解、工具机制、场景增强、运行时、产品化和项目实战等方向指向核心公式。</desc>
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1800" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.52" stop-color="#F0F7F5"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <linearGradient id="hero" x1="90" y1="70" x2="1710" y2="250" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#102A43"/>
+      <stop offset="0.55" stop-color="#0F766E"/>
+      <stop offset="1" stop-color="#B45309"/>
+    </linearGradient>
+    <linearGradient id="core" x1="510" y1="415" x2="1290" y2="635" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#07111F"/>
+      <stop offset="0.55" stop-color="#123B4A"/>
+      <stop offset="1" stop-color="#0F766E"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-8%" y="-12%" width="116%" height="136%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#0F172A" flood-opacity="0.11"/>
+    </filter>
+    <style>
+      .h1 { font: 850 66px/1.15 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: url(#hero); letter-spacing: 0; }
+      .heroText { font: 430 25px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #52616F; letter-spacing: 0; }
+      .coreLabel { font: 700 23px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #BFEFF0; letter-spacing: 0; }
+      .formula { font: 850 42px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #E8FDFF; letter-spacing: 0; }
+      .cardNo { font: 800 17px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #FFFFFF; letter-spacing: 0; }
+      .cardTitle { font: 850 28px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #14213D; letter-spacing: 0; }
+      .cardFocus { font: 760 17px/1.25 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F766E; letter-spacing: 0; }
+    </style>
+  </defs>
+
+  <rect width="1800" height="980" fill="url(#page)"/>
+  <circle cx="206" cy="838" r="118" fill="#FED7AA" opacity="0.34"/>
+  <circle cx="1536" cy="814" r="146" fill="#BFDBFE" opacity="0.34"/>
+  <circle cx="1486" cy="96" r="116" fill="#CCFBF1" opacity="0.38"/>
+
+  <g>
+    <text x="900" y="136" text-anchor="middle" class="h1">Agent Learning Roadmap</text>
+    <text x="900" y="194" text-anchor="middle" class="heroText">所有章节都围绕一个最小 Agent 闭环展开：先理解核心，再按场景补充能力，最后工程化和产品化。</text>
+    <path d="M488 232H1312" stroke="url(#hero)" stroke-width="5" stroke-linecap="round" opacity="0.72"/>
+  </g>
+
+  <g transform="translate(110 306)">
+    <rect x="0" y="0" width="372" height="156" rx="24" fill="#FFFFFF" stroke="#DBEAFE" stroke-width="2" filter="url(#cardShadow)"/>
+    <rect x="24" y="22" width="78" height="30" rx="15" fill="#2563EB"/>
+    <text x="63" y="43" text-anchor="middle" class="cardNo">课程 01</text>
+    <text x="24" y="86" class="cardTitle">初识 Agent</text>
+    <text x="24" y="116" class="cardFocus">
+      <tspan x="24" dy="0">建立 Agent 产品观察框架，区分 Chatbot、</tspan>
+      <tspan x="24" dy="24">Workflow 与 Agent</tspan>
+    </text>
+  </g>
+
+  <g transform="translate(530 286)">
+    <rect x="0" y="0" width="340" height="136" rx="24" fill="#FFFFFF" stroke="#DBEAFE" stroke-width="2" filter="url(#cardShadow)"/>
+    <rect x="24" y="22" width="78" height="30" rx="15" fill="#2563EB"/>
+    <text x="63" y="43" text-anchor="middle" class="cardNo">课程 02</text>
+    <text x="24" y="86" class="cardTitle">Agent 范式演进</text>
+    <text x="24" y="116" class="cardFocus">理解 Agent 范式如何演进</text>
+  </g>
+
+  <g transform="translate(930 286)">
+    <rect x="0" y="0" width="340" height="136" rx="24" fill="#FFFFFF" stroke="#CCFBF1" stroke-width="2" filter="url(#cardShadow)"/>
+    <rect x="24" y="22" width="78" height="30" rx="15" fill="#0F766E"/>
+    <text x="63" y="43" text-anchor="middle" class="cardNo">课程 03</text>
+    <text x="24" y="86" class="cardTitle">最小 Agent 闭环</text>
+    <text x="24" y="116" class="cardFocus">拆解最小闭环的组成</text>
+  </g>
+
+  <g transform="translate(1318 306)">
+    <rect x="0" y="0" width="372" height="156" rx="24" fill="#FFFFFF" stroke="#CCFBF1" stroke-width="2" filter="url(#cardShadow)"/>
+    <rect x="24" y="22" width="78" height="30" rx="15" fill="#0F766E"/>
+    <text x="63" y="43" text-anchor="middle" class="cardNo">课程 04</text>
+    <text x="24" y="86" class="cardTitle">工具机制</text>
+    <text x="24" y="116" class="cardFocus">
+      <tspan x="24" dy="0">设计可控的工具调用机制，覆盖工具定义、</tspan>
+      <tspan x="24" dy="24">执行、权限与审计</tspan>
+    </text>
+  </g>
+
+  <g transform="translate(1318 662)">
+    <rect x="0" y="0" width="372" height="166" rx="24" fill="#FFFFFF" stroke="#FED7AA" stroke-width="2" filter="url(#cardShadow)"/>
+    <rect x="24" y="22" width="78" height="30" rx="15" fill="#EA580C"/>
+    <text x="63" y="43" text-anchor="middle" class="cardNo">课程 05</text>
+    <text x="24" y="86" class="cardTitle">场景增强能力</text>
+    <text x="24" y="116" class="cardFocus">
+      <tspan x="24" dy="0">按场景选择 RAG、Memory、Planning</tspan>
+      <tspan x="24" dy="24">Reflection 等增强能力</tspan>
+    </text>
+  </g>
+
+  <g transform="translate(930 744)">
+    <rect x="0" y="0" width="340" height="136" rx="24" fill="#FFFFFF" stroke="#FED7AA" stroke-width="2" filter="url(#cardShadow)"/>
+    <rect x="24" y="22" width="78" height="30" rx="15" fill="#EA580C"/>
+    <text x="63" y="43" text-anchor="middle" class="cardNo">课程 06</text>
+    <text x="24" y="86" class="cardTitle">Harness 运行时</text>
+    <text x="24" y="116" class="cardFocus">把闭环变成稳定运行时</text>
+  </g>
+
+  <g transform="translate(530 744)">
+    <rect x="0" y="0" width="340" height="136" rx="24" fill="#FFFFFF" stroke="#E9D5FF" stroke-width="2" filter="url(#cardShadow)"/>
+    <rect x="24" y="22" width="78" height="30" rx="15" fill="#7C3AED"/>
+    <text x="63" y="43" text-anchor="middle" class="cardNo">课程 07</text>
+    <text x="24" y="86" class="cardTitle">Agent 产品化实践</text>
+    <text x="24" y="116" class="cardFocus">处理上线前的产品问题</text>
+  </g>
+
+  <g transform="translate(110 662)">
+    <rect x="0" y="0" width="372" height="166" rx="24" fill="#FFFFFF" stroke="#E9D5FF" stroke-width="2" filter="url(#cardShadow)"/>
+    <rect x="24" y="22" width="78" height="30" rx="15" fill="#7C3AED"/>
+    <text x="63" y="43" text-anchor="middle" class="cardNo">课程 08</text>
+    <text x="24" y="86" class="cardTitle">项目实战</text>
+    <text x="24" y="116" class="cardFocus">
+      <tspan x="24" dy="0">完成知识型、工具型、任务执行型 Agent</tspan>
+      <tspan x="24" dy="24">综合实践</tspan>
+    </text>
+  </g>
+
+  <g>
+    <rect x="260" y="472" width="1280" height="146" rx="38" fill="url(#core)"/>
+    <text x="900" y="544" text-anchor="middle" class="formula">Agent = Prompt + LLM 决策 + 工具/环境交互 + State + 循环控制</text>
+    <text x="900" y="588" text-anchor="middle" class="coreLabel">最小核心公式</text>
+  </g>
+
+</svg>

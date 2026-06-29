@@ -11,6 +11,10 @@
 
 ---
 
+![Agent Learning Roadmap 课程内容总览](assets/course-roadmap.svg)
+
+---
+
 ## 这是什么？
 
 这是一份面向希望**系统学习 Agent 产品开发**的路线图，目标是从"第一次接触 Agent"逐步走到"能够设计、实现、评估并上线 Agent 产品"。
