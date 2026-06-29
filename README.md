@@ -7,7 +7,7 @@
 [![Status](https://img.shields.io/badge/status-active-success.svg)](https://github.com/AllenZeng/agent-learning-roadmap)
 ![Language](https://img.shields.io/badge/language-中文-red.svg)
 
-> 当前状态：v0.1 WIP。课程主体初稿已完成，代码示例和部分章节 Review 正在补充中。
+> 当前状态：v0.2 WIP。课程主体初稿已完成，课程 05-07 之前的章节 Review 已推进，代码示例已覆盖最小 Agent、工具机制、RAG、Memory 与 Planning。
 
 ---
 
@@ -91,7 +91,7 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 
 1. 阅读 [课程总纲](syllabus.md) 了解完整知识体系
 2. 从 [课程一](courses/course-01-first-encounter.md) 开始，建立 Agent 的感性认知
-3. 按顺序推进，每课包含核心概念和实践练习；代码示例正在逐步补充。
+3. 按顺序推进，每课包含核心概念和实践练习；重点章节已配套代码示例。
 
 ## 课程结构
 
@@ -124,29 +124,33 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 - `examples/course-03-minimal-agent`：课程三最小 Agent 闭环；
 - `examples/course-04-tool-mechanism`：课程四工具机制；
 - `examples/course-05-02-rag`：课程五 05-02 RAG / 外部知识接入；
+- `examples/course-05-03-memory`：课程五 05-03 Memory / 长期记忆机制；
+- `examples/course-05-05-planning`：课程五 05-05 Planning / 任务规划模式；
 
 ## 当前状态
 
-当前项目处于 v0.1 WIP 阶段。
+当前项目处于 v0.2 WIP 阶段。
 
 已完成：
 
 - 课程主线设计；
 - 课程一至课程八的主体框架与初稿；
 - Tool Use、RAG、Memory、Planning、Reflection、Multi-Agent、Harness、产品化等核心章节初稿。
+- 课程三、课程四、课程 05-02、课程 05-03、课程 05-05 的配套示例目录；
+- 课程内容 Review 已推进至课程 05-07。
 
 进行中：
 
-- 部分课程内容 review；
-- 代码示例补充；
+- 课程 05-08 及后续章节 Review；
+- 剩余重点章节代码示例补充；
 - Mermaid 架构图补充；
 - Agent 实战项目整理。
 
 后续计划：
 
-- v0.2：补齐所有课程 Review；
-- v0.3：补充 Minimal Agent / RAG Agent / LangGraph Agent 示例；
-- v0.4：增加评估、观测、成本控制案例；
+- v0.3：补齐所有课程 Review；
+- v0.4：补充 Context Engineering / Reflection / Human-in-the-loop / Multi-Agent 示例；
+- v0.5：增加评估、观测、成本控制案例；
 - v1.0：形成完整课程版本。
 
 ## 贡献
