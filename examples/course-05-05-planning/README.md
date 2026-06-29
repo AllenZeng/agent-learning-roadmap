@@ -1,6 +1,6 @@
-# Course 05-04 Planning / Workflow Patterns 示例
+# Course 05-05 Planning / Workflow Patterns 示例
 
-本目录包含课程五第四章「Planning / Workflow Patterns」的可运行示例代码。
+本目录包含课程五第五章「Planning / Workflow Patterns」的可运行示例代码。
 
 ## 场景：发布助手
 
@@ -29,7 +29,7 @@
 ### Python
 
 ```bash
-cd examples/course-05-04-planning/python
+cd examples/course-05-05-planning/python
 python3 planning_demo.py
 ```
 
@@ -48,7 +48,7 @@ REPL 提供这些演示选项：
 ### Node.js
 
 ```bash
-cd examples/course-05-04-planning/nodejs
+cd examples/course-05-05-planning/nodejs
 npm start
 ```
 

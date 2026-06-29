@@ -1,5 +1,5 @@
 /**
- * 课程五 05-04 Planning / Workflow Patterns 示例 (Node.js)
+ * 课程五 05-05 Planning / Workflow Patterns 示例 (Node.js)
  *
  * 演示四种 Planning 模式处理"发布准备"任务：
  *   - Chain：固定顺序执行

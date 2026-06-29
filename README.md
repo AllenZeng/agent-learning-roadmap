@@ -106,10 +106,12 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 │   ├── course-05-01-scenario-enhancement.md  # 场景增强：总览
 │   ├── course-05-02-rag.md             # 场景增强：RAG
 │   ├── course-05-03-memory.md          # 场景增强：Memory
-│   ├── course-05-04-planning.md        # 场景增强：Planning
-│   ├── course-05-05-reflection.md      # 场景增强：Reflection
-│   ├── course-05-06-multi-agent.md     # 场景增强：Multi-Agent
-│   ├── course-05-07-composition.md     # 场景增强：组合案例
+│   ├── course-05-04-context-engineering.md  # 场景增强：Context Engineering
+│   ├── course-05-05-planning.md        # 场景增强：Planning
+│   ├── course-05-06-reflection.md      # 场景增强：Reflection
+│   ├── course-05-07-human-in-the-loop.md  # 场景增强：Human-in-the-loop
+│   ├── course-05-08-multi-agent.md     # 场景增强：Multi-Agent
+│   ├── course-05-09-composition.md     # 场景增强：组合案例
 │   ├── course-06-runtime-architecture.md  # Harness 运行时架构
 │   ├── course-07-productization.md     # Agent 产品化实践
 │   └── course-08-project-practice.md   # 项目实战与生态跟进

@@ -1,4 +1,4 @@
-# Course 05-04 Planning 示例 (Node.js)
+# Course 05-05 Planning 示例 (Node.js)
 
 ## 运行
 

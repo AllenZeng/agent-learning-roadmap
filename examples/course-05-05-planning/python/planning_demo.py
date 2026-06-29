@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-课程五 05-04 Planning / Workflow Patterns 示例
+课程五 05-05 Planning / Workflow Patterns 示例
 
 一个交互式 REPL，演示四种 Planning 模式处理"发布准备"任务：
   - Chain：固定顺序执行
@@ -399,7 +399,7 @@ def demo_compare():
     print("     需全局规划   → Plan-Execute")
     print("     复杂状态机   → Graph")
     print()
-    print("  ⚠️  不要把简单任务硬塞进 Graph——那就像用 Kubernetes 部署一个静态网页。")
+    print("  ⚠️  不要把简单任务硬塞进 Graph——节点、边、状态和错误分支都需要维护成本。")
 
 
 # ═══════════════════════════════════════════════════════════════════════════

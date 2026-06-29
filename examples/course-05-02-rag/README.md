@@ -22,6 +22,8 @@ nodejs/
 
 ## 快速开始
 
+> 首次运行会从 Hugging Face 下载 Embedding 模型。没有网络或缓存不可用时，离线建库和在线查询会在加载模型阶段失败。
+
 ### Python
 
 ```bash
@@ -54,7 +56,7 @@ node online_pipeline.mjs --interactive
   → 元数据标注（source、section_path、tags、status、时间）
   → 过滤草稿
   → Embedding（all-MiniLM-L6-v2）+ BM25 索引（§2.4.4）
-  → 保存到 index/
+  → Python 保存到 output/，Node.js 保存到 index/
 ```
 
 ### 在线阶段
@@ -77,6 +79,13 @@ node online_pipeline.mjs --interactive
 - **分数断崖**：rerank 后相邻 chunk 分数差 > 30% 时自动截断，避免噪声进入上下文
 - **来源追溯**：每个 chunk 标注文件名、小节路径、更新时间，生成回答时可引用
 - **本地存储**：向量存为 `.npy` 文件，无需外部向量数据库，适合学习和演示
+
+## 教学简化说明
+
+- 示例重点是让你看清 RAG 的离线建库和在线查询链路，不是生产级检索系统。
+- 代码使用简单正则分词实现 BM25，对中文不会做专业分词；真实中文知识库应接入中文分词、字符 n-gram、学习型 sparse retrieval，或直接使用支持中文的检索服务。
+- 默认 Embedding 模型 `all-MiniLM-L6-v2` 更适合英文教学演示；中文或中英混合语料建议替换为 BGE-M3、multilingual-e5 等多语言检索模型，并重新构建索引和评测集。
+- `generate_answer()` / `generateAnswer()` 只输出最终 Prompt，没有调用真实 LLM；接入模型 API 后还需要做引用校验、低置信度拒答和 prompt injection 防护。
 
 ## 笔记内容
 

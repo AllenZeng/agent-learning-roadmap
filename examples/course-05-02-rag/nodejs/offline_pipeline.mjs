@@ -141,7 +141,8 @@ function chunkByHeadings(text, headings) {
   const effective = headings.filter((h) => h.level >= 2);
 
   for (let i = 0; i < effective.length; i++) {
-    const start = effective[i].position;
+    const heading = effective[i];
+    const start = heading.position;
     const end =
       i + 1 < effective.length ? effective[i + 1].position : text.length;
     let content = text.slice(start, end).trim();
@@ -152,12 +153,13 @@ function chunkByHeadings(text, headings) {
     }
 
     if (content.length >= MIN_CHUNK_CHARS) {
+      const headingIndex = headings.indexOf(heading);
       chunks.push({
         content,
         charCount: content.length,
-        sectionPath: buildSectionPath(headings, i),
-        headingLevel: effective[i].level,
-        headingTitle: effective[i].title,
+        sectionPath: buildSectionPath(headings, headingIndex),
+        headingLevel: heading.level,
+        headingTitle: heading.title,
       });
     }
   }
