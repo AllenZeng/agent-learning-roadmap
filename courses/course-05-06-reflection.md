@@ -1,6 +1,6 @@
-# 第五章：Reflection：失败修正能力
+# 第六章：Reflection：失败修正能力
 
-[返回课程五主文档](./course-05-00-scenario-enhancement.md) | [上一章](./course-05-04-planning.md) | [下一章：Multi-Agent —— 从"一个人干活"到"一支团队协作"](./course-05-06-multi-agent.md)
+[返回课程五主文档](./course-05-01-scenario-enhancement.md) | [上一章](./course-05-05-planning.md) | [下一章：Human-in-the-loop / 人机协同](./course-05-07-human-in-the-loop.md)
 
 ## 本章目录
 

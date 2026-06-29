@@ -175,19 +175,30 @@ User Goal -> Context Assembly -> LLM Decision -> Interaction -> Execution
 
 ## 课程五：场景增强能力
 
-介绍 RAG / 外部知识接入、Memory、Planning / Workflow Patterns、Reflection、Multi-Agent，但明确它们不是所有 Agent 都必须具备的"核心模块"，而是按场景选择的增强能力。
+课程五将增强能力分为两组：上下文增强（决策依赖的信息从哪来、怎么管）和行为模式增强（复杂任务的执行如何组织、协作、恢复）。
+
+介绍 RAG / 外部知识接入、Memory、Context Engineering、Planning / Workflow Patterns、Reflection、Human-in-the-loop、Multi-Agent，但明确它们不是所有 Agent 都必须具备的"核心模块"，而是按场景选择的增强能力。
 
 本课是场景判断层，不要求把每个能力都学到工程实现深水区。重点是判断什么时候该引入、什么时候不该引入、引入后增加什么复杂度。
 
 ### 核心内容
 
+**第一段：上下文增强**——获取外部数据、延续历史状态、组织多源信息
+
 | 能力 | 什么时候需要 | 学什么 |
 |---|---|---|
 | RAG / 外部知识接入 | 依赖私有文档、需要引用来源、知识变化快 | Embedding、Chunking、Hybrid Search、Rerank、引用与事实性 |
 | Memory | 需要跨轮、跨会话状态延续 | 短期/长期记忆、用户偏好、记忆更新与遗忘策略 |
+| Context Engineering | 多信息源导致上下文混乱、关键约束被淹没 | 上下文分层、Token 预算、优先级、压缩与结构化 |
+
+**第二段：行为模式增强**——任务分解与编排、失败检测与恢复、决策权限边界、多角色分工协作
+
+| 能力 | 什么时候需要 | 学什么 |
+|---|---|---|
 | Planning / Workflow | 任务复杂、步骤多、依赖强 | Chain、Router、ReAct Loop、Plan-Execute、Graph |
 | Reflection | 容易失败、需要自检和重试 | 外部信号触发、重试上限、错误分类 |
-| Multi-Agent | 需要角色分工、并行、互审 | Supervisor、Debate、Group Chat、Graph 协作 |
+| Human-in-the-loop | 高风险操作不应自动执行、需要人类判断 | 确认/澄清/接管/审核模式、频率控制、反馈学习 |
+| Multi-Agent | 需要角色分工、并行、互审 | 独立上下文、结构化通信、裁决机制、成本边界 |
 
 ---
 

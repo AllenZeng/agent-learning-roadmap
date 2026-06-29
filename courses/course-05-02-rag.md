@@ -1,6 +1,6 @@
 # 第二章：RAG / 外部知识接入
 
-[返回课程五主文档](./course-05-00-scenario-enhancement.md) | [上一部分：课程五主文档](./course-05-00-scenario-enhancement.md) | [下一章](./course-05-03-memory.md)
+[返回课程五主文档](./course-05-01-scenario-enhancement.md) | [上一部分：课程五主文档](./course-05-01-scenario-enhancement.md) | [下一章](./course-05-03-memory.md)
 
 ## 本章目录
 

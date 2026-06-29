@@ -1,6 +1,6 @@
 # 第三章：Memory：状态延续能力
 
-[返回课程五主文档](./course-05-00-scenario-enhancement.md) | [上一章](./course-05-02-rag.md) | [下一章](./course-05-04-planning.md)
+[返回课程五主文档](./course-05-01-scenario-enhancement.md) | [上一章](./course-05-02-rag.md) | [下一章](./course-05-04-context-engineering.md)
 
 ## 本章目录
 
