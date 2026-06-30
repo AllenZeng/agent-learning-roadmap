@@ -7,7 +7,7 @@
 [![Status](https://img.shields.io/badge/status-active-success.svg)](https://github.com/AllenZeng/agent-learning-roadmap)
 ![Language](https://img.shields.io/badge/language-中文-red.svg)
 
-> 当前状态：v0.3。课程主体初稿已完成，课程 05-07 之前的章节 Review 已推进，代码示例覆盖最小 Agent、工具机制、RAG、Memory 与 Planning。
+> 当前状态：v0.4。课程主体初稿已完成，课程 05-07 之前的章节 Review 已推进，代码示例覆盖最小 Agent、工具机制、RAG、Memory 与 Planning。
 
 ---
 
