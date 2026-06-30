@@ -1,0 +1,140 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">课程三：最小 Agent 运行链路</title>
+  <desc id="desc">图中展示最小 Agent 在 Runtime 中的运行闭环：用户目标进入上下文组装，由模型决策，经交互和执行产生观察，再写回状态并判断继续或停止。</desc>
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.5" stop-color="#F0Fdfa"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <linearGradient id="runtime" x1="120" y1="120" x2="1480" y2="790" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F8FAFC"/>
+    </linearGradient>
+    <linearGradient id="mainStep" x1="250" y1="330" x2="1350" y2="330" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F766E"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+    <filter id="softShadow" x="-8%" y="-16%" width="116%" height="140%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#0F172A" flood-opacity="0.10"/>
+    </filter>
+    <marker id="arrowTeal" markerWidth="14" markerHeight="14" refX="10" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2L10 7L2 12" stroke="#0F766E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="14" markerHeight="14" refX="10" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2L10 7L2 12" stroke="#2563EB" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowAmber" markerWidth="14" markerHeight="14" refX="10" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2L10 7L2 12" stroke="#B45309" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      .title { font: 850 42px/1.15 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #102A43; letter-spacing: 0; }
+      .subtitle { font: 430 20px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #52616F; letter-spacing: 0; }
+      .runtimeTitle { font: 780 25px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .runtimeNote { font: 430 18px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748B; letter-spacing: 0; }
+      .stepNo { font: 800 15px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #FFFFFF; letter-spacing: 0; }
+      .stepTitle { font: 800 23px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #102A43; letter-spacing: 0; }
+      .stepNote { font: 430 16px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #52616F; letter-spacing: 0; }
+      .promptNote { font: 430 18px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #CBD5E1; letter-spacing: 0; }
+      .sideTitle { font: 800 24px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #7C2D12; letter-spacing: 0; }
+      .sideNote { font: 430 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #7C2D12; letter-spacing: 0; }
+      .smallLabel { font: 700 15px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F766E; letter-spacing: 0; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#page)"/>
+  <text x="800" y="78" text-anchor="middle" class="title">最小 Agent 运行链路</text>
+  <text x="800" y="118" text-anchor="middle" class="subtitle">Prompt 定义行为，Runtime 承载执行，State 让结果进入下一轮决策。</text>
+
+  <rect x="118" y="160" width="1364" height="650" rx="12" fill="url(#runtime)" stroke="#CBD5E1" stroke-width="2"/>
+  <g transform="translate(154 190)">
+    <text x="0" y="0" class="runtimeTitle">Runtime（确定性基础设施）</text>
+    <text x="0" y="32" class="runtimeNote">执行工具、校验权限、管理 State、控制循环、记录 Trace</text>
+  </g>
+
+  <g transform="translate(170 248)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="640" height="76" rx="10" fill="#102A43"/>
+    <text x="34" y="35" class="stepNo">定义层</text>
+    <text x="34" y="63" class="promptNote">Prompt（行为定义：角色、规则、工具列表、输出格式）</text>
+    <path d="M85 76V118" stroke="#0F766E" stroke-width="3" marker-end="url(#arrowTeal)"/>
+  </g>
+
+  <g>
+    <path d="M255 429H1250" stroke="url(#mainStep)" stroke-width="5" stroke-linecap="round" opacity="0.82"/>
+
+    <g transform="translate(170 376)">
+      <rect x="0" y="0" width="170" height="106" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="2" filter="url(#softShadow)"/>
+      <rect x="22" y="20" width="48" height="24" rx="12" fill="#0F766E"/>
+      <text x="46" y="37" text-anchor="middle" class="stepNo">01</text>
+      <text x="22" y="72" class="stepTitle">User Goal</text>
+      <text x="22" y="96" class="stepNote">用户输入锚点</text>
+    </g>
+
+    <g transform="translate(392 376)">
+      <rect x="0" y="0" width="240" height="106" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="2" filter="url(#softShadow)"/>
+      <rect x="22" y="20" width="48" height="24" rx="12" fill="#0F766E"/>
+      <text x="46" y="37" text-anchor="middle" class="stepNo">02</text>
+      <text x="22" y="72" class="stepTitle">Context Assembly</text>
+      <text x="22" y="96" class="stepNote">Prompt + State</text>
+    </g>
+
+    <g transform="translate(662 376)">
+      <rect x="0" y="0" width="190" height="106" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2" filter="url(#softShadow)"/>
+      <rect x="22" y="20" width="48" height="24" rx="12" fill="#2563EB"/>
+      <text x="46" y="37" text-anchor="middle" class="stepNo">03</text>
+      <text x="22" y="72" class="stepTitle">LLM Decision</text>
+      <text x="22" y="96" class="stepNote">模型判断下一步</text>
+    </g>
+
+    <g transform="translate(908 376)">
+      <rect x="0" y="0" width="190" height="106" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2" filter="url(#softShadow)"/>
+      <rect x="22" y="20" width="48" height="24" rx="12" fill="#2563EB"/>
+      <text x="46" y="37" text-anchor="middle" class="stepNo">04</text>
+      <text x="22" y="72" class="stepTitle">Interaction</text>
+      <text x="22" y="96" class="stepNote">选择工具或环境</text>
+    </g>
+
+    <g transform="translate(1154 376)">
+      <rect x="0" y="0" width="190" height="106" rx="10" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2" filter="url(#softShadow)"/>
+      <rect x="22" y="20" width="48" height="24" rx="12" fill="#EA580C"/>
+      <text x="46" y="37" text-anchor="middle" class="stepNo">05</text>
+      <text x="22" y="72" class="stepTitle">Execution</text>
+      <text x="22" y="96" class="stepNote">Runtime 执行</text>
+    </g>
+  </g>
+
+  <g>
+    <path d="M1248 482V535" stroke="#B45309" stroke-width="3" marker-end="url(#arrowAmber)"/>
+    <g transform="translate(1068 552)">
+      <rect x="0" y="0" width="350" height="104" rx="10" fill="#FFF7ED" stroke="#FDBA74" stroke-width="2" filter="url(#softShadow)"/>
+      <rect x="24" y="16" width="48" height="24" rx="12" fill="#EA580C"/>
+      <text x="48" y="33" text-anchor="middle" class="stepNo">06</text>
+      <text x="24" y="58" class="sideTitle">Observation / Feedback</text>
+      <text x="24" y="86" class="sideNote">外部结果回到系统视野</text>
+    </g>
+
+    <path d="M1248 656V676" stroke="#B45309" stroke-width="3" marker-end="url(#arrowAmber)"/>
+    <g transform="translate(1098 694)">
+      <rect x="0" y="0" width="300" height="74" rx="10" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2"/>
+      <rect x="24" y="14" width="48" height="24" rx="12" fill="#EA580C"/>
+      <text x="48" y="31" text-anchor="middle" class="stepNo">07</text>
+      <text x="86" y="32" class="sideTitle">Continue or Stop</text>
+      <text x="24" y="58" class="sideNote">继续下一轮，或结束任务</text>
+    </g>
+  </g>
+
+  <g transform="translate(266 558)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="318" height="116" rx="10" fill="#FEFCE8" stroke="#FACC15" stroke-width="2"/>
+    <text x="24" y="38" class="sideTitle" fill="#713F12">State / Memory Store</text>
+    <text x="24" y="70" class="sideNote" fill="#713F12">任务状态、历史、工具结果、错误</text>
+    <text x="24" y="94" class="sideNote" fill="#713F12">信息和可选持久化数据</text>
+  </g>
+
+  <path d="M505 558V493" stroke="#0F766E" stroke-width="3" marker-end="url(#arrowTeal)"/>
+  <text x="526" y="526" class="smallLabel">read</text>
+  <path d="M1068 604H842C790 604 748 618 710 636C666 657 630 666 584 666" stroke="#B45309" stroke-width="3" fill="none" marker-end="url(#arrowAmber)"/>
+  <text x="824" y="578" class="smallLabel" fill="#B45309">State Update / write</text>
+
+  <path d="M1098 731C900 720 560 720 236 720C214 720 206 702 206 680V548C206 510 246 492 392 482" stroke="#2563EB" stroke-width="3" fill="none" stroke-dasharray="9 9" marker-end="url(#arrowBlue)"/>
+  <text x="704" y="716" class="smallLabel" fill="#2563EB">继续时回到 Context Assembly</text>
+</svg>
