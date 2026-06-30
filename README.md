@@ -7,7 +7,7 @@
 [![Status](https://img.shields.io/badge/status-active-success.svg)](https://github.com/AllenZeng/agent-learning-roadmap)
 ![Language](https://img.shields.io/badge/language-中文-red.svg)
 
-> 当前状态：v0.2 WIP。课程主体初稿已完成，课程 05-07 之前的章节 Review 已推进，代码示例已覆盖最小 Agent、工具机制、RAG、Memory 与 Planning。
+> 当前状态：v0.3。课程主体初稿已完成，课程 05-07 之前的章节 Review 已推进，代码示例覆盖最小 Agent、工具机制、RAG、Memory 与 Planning。
 
 ---
 
@@ -50,7 +50,7 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 本项目适合：
 
 - 想系统学习 AI Agent 应用开发的开发者；
-- 已经了解 LLM API，但不知道如何继续深入 Tool Use、RAG、Memory、LangGraph 的学习者；
+- 已经了解 LLM API，但不知道如何继续深入 Tool Use、RAG、Memory等的学习者；
 - 想从 Demo 走向真实 Agent 产品设计的工程师；
 - 希望理解 Agent 产品化、评估、安全、成本和运行时架构的产品/技术负责人。
 
@@ -60,12 +60,18 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 - 只关注模型训练、微调、底层算法的人；
 - 暂时不打算做工程实践、只希望泛泛了解概念的读者。
 
-## 学习路线
 
-```text
-建立直觉 → 理解范式演进 → 掌握最小 Agent 闭环 → 深入工具机制 → 学习场景增强能力
-    → 设计 Harness 运行时 → 完成产品化实践 → 项目实战与生态跟进
-```
+## 快速开始
+
+### 从这里开始
+
+建议先阅读 [课程总纲](syllabus.md)，用 10-15 分钟建立对整套课程的全局认识：它会先说明 Agent 学习的知识体系如何分层，以及每门课程分别解决什么问题。读完总纲后，你可以根据自己的基础和目标，沿着推荐路线选择最需要补齐的部分。
+
+如果你希望系统学习，可以从 [课程一](courses/course-01-first-encounter.md) 开始，按照课程顺序逐步推进：先建立产品直觉，再理解范式演进，最后进入最小闭环、工具机制、场景增强、运行时架构和产品化实践。
+
+如果你已经有明确问题，也可以直接参考下方课程结构，有针对性地选择感兴趣的章节阅读。例如：想先动手做 Agent，可以从课程三开始；想补工具调用，可以看课程四；想理解 RAG、Memory、Planning 等能力的引入时机，可以从课程五开始。
+
+## 课程结构
 
 | 课程 | 建议时间 | 学习重点 |
 |---|---|---|
@@ -80,47 +86,6 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 
 **完整学习通常需要 3-6 周。** 时间差异主要来自实践深度：只读路线图会很快，真正做出可运行项目会显著增加投入。
 
-## 设计原则
-
-- **先感性，再结构化** — 先体验真实产品，再建立抽象概念
-- **先最小闭环，再扩展能力** — 先实现多步决策的 Agent，再引入增强能力
-- **Tool Use 作为独立主线** — 完整讲清工具定义、选择、执行、权限、MCP、Skill
-- **RAG/Memory 放回场景中** — 它们不是必选项，而是按需选择的能力
-- **从运行时理解架构** — Harness、Context Engineering、Evaluation 围绕 Agent 运行时展开
-- **最终回到产品** — 目标是理解如何让 Agent 可靠、可控、低成本、安全
-
-## 快速开始
-
-### 从这里开始
-
-1. 阅读 [课程总纲](syllabus.md) 了解完整知识体系
-2. 从 [课程一](courses/course-01-first-encounter.md) 开始，建立 Agent 的感性认知
-3. 按顺序推进，每课包含核心概念和实践练习；重点章节已配套代码示例。
-
-## 课程结构
-
-```
-.
-├── syllabus.md                         # 课程总纲
-├── courses/
-│   ├── course-01-first-encounter.md    # 初识 Agent
-│   ├── course-02-evolution.md          # Agent 范式演进
-│   ├── course-03-minimal-agent-loop.md # 最小 Agent 闭环
-│   ├── course-04-tool-mechanism.md     # 工具机制
-│   ├── course-05-01-scenario-enhancement.md  # 场景增强：总览
-│   ├── course-05-02-rag.md             # 场景增强：RAG
-│   ├── course-05-03-memory.md          # 场景增强：Memory
-│   ├── course-05-04-context-engineering.md  # 场景增强：Context Engineering
-│   ├── course-05-05-planning.md        # 场景增强：Planning
-│   ├── course-05-06-reflection.md      # 场景增强：Reflection
-│   ├── course-05-07-human-in-the-loop.md  # 场景增强：Human-in-the-loop
-│   ├── course-05-08-multi-agent.md     # 场景增强：Multi-Agent
-│   ├── course-05-09-composition.md     # 场景增强：组合案例
-│   ├── course-06-runtime-architecture.md  # Harness 运行时架构
-│   ├── course-07-productization.md     # Agent 产品化实践
-│   └── course-08-project-practice.md   # 项目实战与生态跟进
-```
-
 ## Examples
 
 代码示例包括：
@@ -130,32 +95,6 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 - `examples/course-05-02-rag`：课程五 05-02 RAG / 外部知识接入；
 - `examples/course-05-03-memory`：课程五 05-03 Memory / 长期记忆机制；
 - `examples/course-05-05-planning`：课程五 05-05 Planning / 任务规划模式；
-
-## 当前状态
-
-当前项目处于 v0.2 WIP 阶段。
-
-已完成：
-
-- 课程主线设计；
-- 课程一至课程八的主体框架与初稿；
-- Tool Use、RAG、Memory、Planning、Reflection、Multi-Agent、Harness、产品化等核心章节初稿。
-- 课程三、课程四、课程 05-02、课程 05-03、课程 05-05 的配套示例目录；
-- 课程内容 Review 已推进至课程 05-07。
-
-进行中：
-
-- 课程 05-08 及后续章节 Review；
-- 剩余重点章节代码示例补充；
-- Mermaid 架构图补充；
-- Agent 实战项目整理。
-
-后续计划：
-
-- v0.3：补齐所有课程 Review；
-- v0.4：补充 Context Engineering / Reflection / Human-in-the-loop / Multi-Agent 示例；
-- v0.5：增加评估、观测、成本控制案例；
-- v1.0：形成完整课程版本。
 
 ## 贡献
 
