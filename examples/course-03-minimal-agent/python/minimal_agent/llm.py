@@ -46,7 +46,7 @@ def random_demo_latency_seconds() -> float:
 
 
 DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions"
-DEFAULT_DEEPSEEK_MODEL = "deepseek-v4"
+DEFAULT_DEEPSEEK_MODEL = "deepseek-v4-flash"
 
 
 def deepseek_chat_llm(context: Dict[str, Any]) -> Dict[str, Any]:

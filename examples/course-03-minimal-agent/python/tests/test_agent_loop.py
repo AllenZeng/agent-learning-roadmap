@@ -56,7 +56,7 @@ class MinimalAgentLoopTests(unittest.TestCase):
         self.assertEqual(decision["answer"], "ok")
         self.assertEqual(captured["url"], "https://api.deepseek.com/chat/completions")
         self.assertEqual(captured["headers"]["Authorization"], "Bearer test-key")
-        self.assertEqual(captured["payload"]["model"], "deepseek-v4")
+        self.assertEqual(captured["payload"]["model"], "deepseek-v4-flash")
         self.assertEqual(captured["payload"]["messages"][0], {"role": "system", "content": "Return JSON only."})
         self.assertEqual(captured["timeout"], 60)
 

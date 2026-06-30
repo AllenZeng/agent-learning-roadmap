@@ -29,11 +29,11 @@ examples/course-03-minimal-agent/nodejs/output/summary.md
 ```bash
 cd examples/course-03-minimal-agent/nodejs
 export DEEPSEEK_API_KEY="..."
-export DEEPSEEK_MODEL="deepseek-v4"
+export DEEPSEEK_MODEL="deepseek-v4-flash"
 node main.js --real-llm --goal "读取 data/notes.md，总结后写入 output/summary.md"
 ```
 
-真实 LLM 模式会调用 DeepSeek Chat Completions API。模型必须按 `src/prompt.js` 要求返回 JSON 决策。
+真实 LLM 模式会调用 DeepSeek Chat Completions API。模型必须按 `src/prompt.js` 要求返回 JSON 决策。可用模型名请以 DeepSeek 官方模型列表为准；示例默认使用 `deepseek-v4-flash`。
 
 ## 运行测试
 

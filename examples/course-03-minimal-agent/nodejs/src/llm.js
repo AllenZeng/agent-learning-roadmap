@@ -6,7 +6,7 @@
  * Runtime 可解析的一条 JSON 决策。
  */
 const DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
-const DEFAULT_DEEPSEEK_MODEL = "deepseek-v4";
+const DEFAULT_DEEPSEEK_MODEL = "deepseek-v4-flash";
 
 class ScriptedLLM {
   constructor(decisions, options = {}) {

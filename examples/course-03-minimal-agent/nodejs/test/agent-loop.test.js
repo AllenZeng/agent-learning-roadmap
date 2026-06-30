@@ -41,7 +41,7 @@ test("real LLM uses DeepSeek chat completions", async () => {
     assert.equal(decision.answer, "ok");
     assert.equal(captured.url, "https://api.deepseek.com/chat/completions");
     assert.equal(captured.options.headers.Authorization, "Bearer test-key");
-    assert.equal(payload.model, "deepseek-v4");
+    assert.equal(payload.model, "deepseek-v4-flash");
     assert.deepEqual(payload.messages[0], { role: "system", content: "Return JSON only." });
   } finally {
     process.env = originalEnv;

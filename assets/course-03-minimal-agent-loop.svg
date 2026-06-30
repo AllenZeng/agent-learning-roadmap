@@ -27,6 +27,15 @@
     <marker id="arrowAmber" markerWidth="14" markerHeight="14" refX="10" refY="7" orient="auto" markerUnits="strokeWidth">
       <path d="M2 2L10 7L2 12" stroke="#B45309" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
+    <marker id="arrowTealSmall" markerWidth="18" markerHeight="18" refX="15" refY="9" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M4 4L15 9L4 14" stroke="#0F766E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowBlueSmall" markerWidth="18" markerHeight="18" refX="15" refY="9" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M4 4L15 9L4 14" stroke="#2563EB" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowAmberSmall" markerWidth="18" markerHeight="18" refX="15" refY="9" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M4 4L15 9L4 14" stroke="#B45309" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
     <style>
       .title { font: 850 42px/1.15 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #102A43; letter-spacing: 0; }
       .subtitle { font: 430 20px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #52616F; letter-spacing: 0; }
@@ -38,6 +47,8 @@
       .promptNote { font: 430 18px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #CBD5E1; letter-spacing: 0; }
       .sideTitle { font: 800 24px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #7C2D12; letter-spacing: 0; }
       .sideNote { font: 430 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #7C2D12; letter-spacing: 0; }
+      .sideStepTitle { font: 800 22px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #7C2D12; letter-spacing: 0; }
+      .sideStepNote { font: 430 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #7C2D12; letter-spacing: 0; }
       .smallLabel { font: 700 15px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F766E; letter-spacing: 0; }
     </style>
   </defs>
@@ -54,9 +65,8 @@
 
   <g transform="translate(170 248)" filter="url(#softShadow)">
     <rect x="0" y="0" width="640" height="76" rx="10" fill="#102A43"/>
-    <text x="34" y="35" class="stepNo">定义层</text>
-    <text x="34" y="63" class="promptNote">Prompt（行为定义：角色、规则、工具列表、输出格式）</text>
-    <path d="M85 76V118" stroke="#0F766E" stroke-width="3" marker-end="url(#arrowTeal)"/>
+    <text x="34" y="46" class="promptNote">Prompt（行为定义：角色、规则、工具列表、输出格式）</text>
+    <path d="M85 76V118" stroke="#0F766E" stroke-width="3" marker-end="url(#arrowTealSmall)"/>
   </g>
 
   <g>
@@ -67,7 +77,7 @@
       <rect x="22" y="20" width="48" height="24" rx="12" fill="#0F766E"/>
       <text x="46" y="37" text-anchor="middle" class="stepNo">01</text>
       <text x="22" y="72" class="stepTitle">User Goal</text>
-      <text x="22" y="96" class="stepNote">用户输入锚点</text>
+      <text x="22" y="96" class="stepNote">用户输入</text>
     </g>
 
     <g transform="translate(392 376)">
@@ -104,37 +114,37 @@
   </g>
 
   <g>
-    <path d="M1248 482V535" stroke="#B45309" stroke-width="3" marker-end="url(#arrowAmber)"/>
+    <path d="M1248 482V552" stroke="#B45309" stroke-width="5" stroke-linecap="round" opacity="0.82"/>
     <g transform="translate(1068 552)">
-      <rect x="0" y="0" width="350" height="104" rx="10" fill="#FFF7ED" stroke="#FDBA74" stroke-width="2" filter="url(#softShadow)"/>
-      <rect x="24" y="16" width="48" height="24" rx="12" fill="#EA580C"/>
-      <text x="48" y="33" text-anchor="middle" class="stepNo">06</text>
-      <text x="24" y="58" class="sideTitle">Observation / Feedback</text>
-      <text x="24" y="86" class="sideNote">外部结果回到系统视野</text>
+      <rect x="0" y="0" width="350" height="106" rx="10" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2" filter="url(#softShadow)"/>
+      <rect x="22" y="20" width="48" height="24" rx="12" fill="#EA580C"/>
+      <text x="46" y="37" text-anchor="middle" class="stepNo">06</text>
+      <text x="22" y="72" class="stepTitle">Observation / Feedback</text>
+      <text x="22" y="96" class="stepNote">外部结果回到系统视野</text>
     </g>
 
-    <path d="M1248 656V676" stroke="#B45309" stroke-width="3" marker-end="url(#arrowAmber)"/>
+    <path d="M1248 658V694" stroke="#B45309" stroke-width="5" stroke-linecap="round" opacity="0.82"/>
     <g transform="translate(1098 694)">
-      <rect x="0" y="0" width="300" height="74" rx="10" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2"/>
-      <rect x="24" y="14" width="48" height="24" rx="12" fill="#EA580C"/>
-      <text x="48" y="31" text-anchor="middle" class="stepNo">07</text>
-      <text x="86" y="32" class="sideTitle">Continue or Stop</text>
-      <text x="24" y="58" class="sideNote">继续下一轮，或结束任务</text>
+      <rect x="0" y="0" width="300" height="106" rx="10" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2"/>
+      <rect x="22" y="20" width="48" height="24" rx="12" fill="#EA580C"/>
+      <text x="46" y="37" text-anchor="middle" class="stepNo">07</text>
+      <text x="22" y="72" class="stepTitle">Continue or Stop</text>
+      <text x="22" y="96" class="stepNote">继续下一轮，或结束任务</text>
     </g>
   </g>
 
-  <g transform="translate(266 558)" filter="url(#softShadow)">
+  <g transform="translate(430 558)" filter="url(#softShadow)">
     <rect x="0" y="0" width="318" height="116" rx="10" fill="#FEFCE8" stroke="#FACC15" stroke-width="2"/>
     <text x="24" y="38" class="sideTitle" fill="#713F12">State / Memory Store</text>
     <text x="24" y="70" class="sideNote" fill="#713F12">任务状态、历史、工具结果、错误</text>
     <text x="24" y="94" class="sideNote" fill="#713F12">信息和可选持久化数据</text>
   </g>
 
-  <path d="M505 558V493" stroke="#0F766E" stroke-width="3" marker-end="url(#arrowTeal)"/>
-  <text x="526" y="526" class="smallLabel">read</text>
-  <path d="M1068 604H842C790 604 748 618 710 636C666 657 630 666 584 666" stroke="#B45309" stroke-width="3" fill="none" marker-end="url(#arrowAmber)"/>
+  <path d="M555 558V493" stroke="#0F766E" stroke-width="3" marker-end="url(#arrowTealSmall)"/>
+  <text x="576" y="526" class="smallLabel">read</text>
+  <path d="M1068 616H748" stroke="#B45309" stroke-width="3" fill="none" stroke-linecap="round" marker-end="url(#arrowAmberSmall)"/>
   <text x="824" y="578" class="smallLabel" fill="#B45309">State Update / write</text>
 
-  <path d="M1098 731C900 720 560 720 236 720C214 720 206 702 206 680V548C206 510 246 492 392 482" stroke="#2563EB" stroke-width="3" fill="none" stroke-dasharray="9 9" marker-end="url(#arrowBlue)"/>
-  <text x="704" y="716" class="smallLabel" fill="#2563EB">继续时回到 Context Assembly</text>
+  <path d="M1098 731H420C394 731 374 711 374 685V520H512V493" stroke="#2563EB" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="9 9" marker-end="url(#arrowBlueSmall)"/>
+  <text x="734" y="704" class="smallLabel" fill="#2563EB">继续时回到 Context Assembly</text>
 </svg>
