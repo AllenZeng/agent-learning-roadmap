@@ -1,0 +1,152 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Agent 范式主干演进线</title>
+  <desc id="desc">图中用时间线展示 Agent 范式从传统 Agent、LLM 决策核心、工具调用、ReAct、纠错与反思、Planning 到 Multi-Agent 的主干演进，每一阶段都在解决上一阶段暴露的问题，同时产生新的工程挑战。</desc>
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.55" stop-color="#ECFEFF"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <linearGradient id="spine" x1="128" y1="460" x2="1472" y2="460" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F766E"/>
+      <stop offset="0.5" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#EA580C"/>
+    </linearGradient>
+    <filter id="softShadow" x="-6%" y="-10%" width="112%" height="130%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#0F172A" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .title { font: 850 44px/1.15 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #102A43; letter-spacing: 0; }
+      .subtitle { font: 430 21px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #52616F; letter-spacing: 0; }
+      .stageNo { font: 850 17px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #FFFFFF; letter-spacing: 0; }
+      .stageTitle { font: 820 24px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .stageMeta { font: 520 15px/1.25 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748B; letter-spacing: 0; }
+      .note { font: 430 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748B; letter-spacing: 0; }
+      .label { font: 760 14px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F766E; letter-spacing: 0; }
+      .labelOrange { font: 760 14px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #C2410C; letter-spacing: 0; }
+      .body { font: 430 17px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #334155; letter-spacing: 0; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#page)"/>
+  <text x="800" y="78" text-anchor="middle" class="title">Agent 范式主干演进线</text>
+  <text x="800" y="120" text-anchor="middle" class="subtitle">每一代范式都在解决上一代的卡点，同时把复杂度推向下一层。</text>
+
+  <path d="M150 492H1450" stroke="url(#spine)" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="1476" cy="492" r="5" fill="#EA580C"/>
+  <circle cx="1496" cy="492" r="5" fill="#EA580C"/>
+  <circle cx="1516" cy="492" r="5" fill="#EA580C"/>
+
+  <g transform="translate(82 180)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="306" height="250" rx="12" fill="#FFFFFF" stroke="#99F6E4" stroke-width="2"/>
+    <circle cx="48" cy="44" r="24" fill="#0F766E"/>
+    <text x="48" y="50" text-anchor="middle" class="stageNo">01</text>
+    <text x="84" y="39" class="stageTitle">传统 Agent</text>
+    <text x="84" y="63" class="stageMeta">Bellman / Q-learning / BDI</text>
+    <foreignObject x="28" y="96" width="250" height="142">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:0;">
+        <div style="font-size:14px; line-height:1.2; font-weight:760; color:#0F766E; margin-bottom:10px;">解决：</div>
+        <div style="font-size:17px; line-height:1.42; font-weight:430; color:#334155; margin-bottom:12px;">把感知、决策和行动变成可建模的问题框架</div>
+        <div style="font-size:14px; line-height:1.55; font-weight:760; color:#C2410C;">新卡点：开放语言目标难以低成本建模</div>
+      </div>
+    </foreignObject>
+  </g>
+  <path d="M235 430V492" stroke="#0F766E" stroke-width="4"/>
+
+  <g transform="translate(260 590)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="322" height="238" rx="12" fill="#FFFFFF" stroke="#BAE6FD" stroke-width="2"/>
+    <circle cx="48" cy="44" r="24" fill="#0284C7"/>
+    <text x="48" y="50" text-anchor="middle" class="stageNo">02</text>
+    <text x="84" y="39" class="stageTitle">LLM 决策核心</text>
+    <text x="84" y="63" class="stageMeta">GPT-3 / CoT</text>
+    <foreignObject x="28" y="96" width="266" height="132">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:0;">
+        <div style="font-size:14px; line-height:1.2; font-weight:760; color:#0F766E; margin-bottom:10px;">解决：</div>
+        <div style="font-size:17px; line-height:1.42; font-weight:430; color:#334155; margin-bottom:12px;">让自然语言目标进入系统，从规则驱动转向目标驱动</div>
+        <div style="font-size:14px; line-height:1.55; font-weight:760; color:#C2410C;">新卡点：判断能力不等于可靠执行</div>
+      </div>
+    </foreignObject>
+  </g>
+  <path d="M421 590V492" stroke="#0284C7" stroke-width="4"/>
+
+  <g transform="translate(460 180)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="322" height="250" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2"/>
+    <circle cx="48" cy="44" r="24" fill="#2563EB"/>
+    <text x="48" y="50" text-anchor="middle" class="stageNo">03</text>
+    <text x="84" y="39" class="stageTitle">工具调用</text>
+    <text x="84" y="63" class="stageMeta">Toolformer / Plugins / MCP</text>
+    <foreignObject x="28" y="96" width="266" height="142">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:0;">
+        <div style="font-size:14px; line-height:1.2; font-weight:760; color:#0F766E; margin-bottom:10px;">解决：</div>
+        <div style="font-size:17px; line-height:1.42; font-weight:430; color:#334155; margin-bottom:12px;">把模型连接到外部信息、文件、API 和真实动作</div>
+        <div style="font-size:14px; line-height:1.55; font-weight:760; color:#C2410C;">新卡点：工具选择、权限、Trace 和治理都变复杂</div>
+      </div>
+    </foreignObject>
+  </g>
+  <path d="M621 430V492" stroke="#2563EB" stroke-width="4"/>
+
+  <g transform="translate(666 590)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="304" height="238" rx="12" fill="#FFFFFF" stroke="#C4B5FD" stroke-width="2"/>
+    <circle cx="48" cy="44" r="24" fill="#7C3AED"/>
+    <text x="48" y="50" text-anchor="middle" class="stageNo">04</text>
+    <text x="84" y="39" class="stageTitle">ReAct</text>
+    <text x="84" y="63" class="stageMeta">Reasoning + Acting loop</text>
+    <foreignObject x="28" y="96" width="248" height="132">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:0;">
+        <div style="font-size:14px; line-height:1.2; font-weight:760; color:#0F766E; margin-bottom:10px;">解决：</div>
+        <div style="font-size:17px; line-height:1.42; font-weight:430; color:#334155; margin-bottom:12px;">让推理和行动形成闭环，Agent 获得最小运行模式</div>
+        <div style="font-size:14px; line-height:1.55; font-weight:760; color:#C2410C;">新卡点：循环控制和上下文管理</div>
+      </div>
+    </foreignObject>
+  </g>
+  <path d="M818 590V492" stroke="#7C3AED" stroke-width="4"/>
+
+  <g transform="translate(842 180)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="334" height="250" rx="12" fill="#FFFFFF" stroke="#FDE68A" stroke-width="2"/>
+    <circle cx="48" cy="44" r="24" fill="#CA8A04"/>
+    <text x="48" y="50" text-anchor="middle" class="stageNo">05</text>
+    <text x="84" y="39" class="stageTitle">纠错与反思</text>
+    <text x="84" y="63" class="stageMeta">Self-Refine / Reflexion</text>
+    <foreignObject x="28" y="96" width="278" height="142">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:0;">
+        <div style="font-size:14px; line-height:1.2; font-weight:760; color:#0F766E; margin-bottom:10px;">解决：</div>
+        <div style="font-size:17px; line-height:1.42; font-weight:430; color:#334155; margin-bottom:12px;">从一次生成走向可验证、可迭代的系统改进</div>
+        <div style="font-size:14px; line-height:1.55; font-weight:760; color:#C2410C;">新卡点：模型自评不可靠，过度反思会拖慢系统</div>
+      </div>
+    </foreignObject>
+  </g>
+  <path d="M1009 430V492" stroke="#CA8A04" stroke-width="4"/>
+
+  <g transform="translate(1044 590)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="314" height="238" rx="12" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2"/>
+    <circle cx="48" cy="44" r="24" fill="#EA580C"/>
+    <text x="48" y="50" text-anchor="middle" class="stageNo">06</text>
+    <text x="84" y="39" class="stageTitle">Planning</text>
+    <text x="84" y="63" class="stageMeta">ToT / Plan-and-Execute</text>
+    <foreignObject x="28" y="96" width="258" height="132">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:0;">
+        <div style="font-size:14px; line-height:1.2; font-weight:760; color:#0F766E; margin-bottom:10px;">解决：</div>
+        <div style="font-size:17px; line-height:1.42; font-weight:430; color:#334155; margin-bottom:12px;">把长任务拆成结构化步骤，让中间产物可检查</div>
+        <div style="font-size:14px; line-height:1.55; font-weight:760; color:#C2410C;">新卡点：计划会错，执行也可能脱节</div>
+      </div>
+    </foreignObject>
+  </g>
+  <path d="M1201 590V492" stroke="#EA580C" stroke-width="4"/>
+
+  <g transform="translate(1232 180)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="308" height="250" rx="12" fill="#FFFFFF" stroke="#FDA4AF" stroke-width="2"/>
+    <circle cx="48" cy="44" r="24" fill="#E11D48"/>
+    <text x="48" y="50" text-anchor="middle" class="stageNo">07</text>
+    <text x="84" y="39" class="stageTitle">Multi-Agent</text>
+    <text x="84" y="63" class="stageMeta">Gen Agents / AutoGen</text>
+    <foreignObject x="28" y="96" width="252" height="142">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:0;">
+        <div style="font-size:14px; line-height:1.2; font-weight:760; color:#0F766E; margin-bottom:10px;">解决：</div>
+        <div style="font-size:17px; line-height:1.42; font-weight:430; color:#334155; margin-bottom:12px;">用角色分工降低单 Agent 上下文过载与职责冲突</div>
+        <div style="font-size:14px; line-height:1.55; font-weight:760; color:#C2410C;">新卡点：协调成本、责任边界、信息压缩和共识达成</div>
+      </div>
+    </foreignObject>
+  </g>
+  <path d="M1386 430V492" stroke="#E11D48" stroke-width="4"/>
+  <text x="800" y="872" text-anchor="middle" class="note">注：这不是严格的论文年表或完整发展时间轴，而是帮助理解 Agent 范式主干演进方向的一条概览线。</text>
+</svg>
