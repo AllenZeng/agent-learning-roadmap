@@ -1,0 +1,10 @@
+{
+  "name": "course-05-06-reflection",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node reflection_demo.mjs",
+    "auto": "node reflection_demo.mjs --auto"
+  }
+}

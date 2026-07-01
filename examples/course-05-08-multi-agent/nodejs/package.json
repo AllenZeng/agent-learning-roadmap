@@ -1,0 +1,11 @@
+{
+  "name": "course-05-08-multi-agent",
+  "version": "1.0.0",
+  "description": "课程五 05-08 Multi-Agent 示例 (Node.js)",
+  "type": "module",
+  "scripts": {
+    "start": "node multi_agent_demo.mjs",
+    "test": "node --test test/multi-agent.test.mjs"
+  },
+  "license": "MIT"
+}

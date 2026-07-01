@@ -94,7 +94,11 @@ RAG、Memory、Planning、Reflection、Multi-Agent、MCP、Skill 都很重要，
 - `examples/course-04-tool-mechanism`：课程四工具机制；
 - `examples/course-05-02-rag`：课程五 05-02 RAG / 外部知识接入；
 - `examples/course-05-03-memory`：课程五 05-03 Memory / 长期记忆机制；
+- `examples/course-05-04-context-engineering`：课程五 05-04 Context Engineering / 上下文工程；
 - `examples/course-05-05-planning`：课程五 05-05 Planning / 任务规划模式；
+- `examples/course-05-06-reflection`：课程五 05-06 Reflection / 失败修正能力；
+- `examples/course-05-07-human-in-the-loop`：课程五 05-07 Human-in-the-loop / 人类介入机制；
+- `examples/course-05-08-multi-agent`：课程五 05-08 Multi-Agent / 多智能体协作；
 
 ## 贡献
 

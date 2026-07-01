@@ -1,0 +1,13 @@
+{
+  "name": "course-05-04-context-engineering-node",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Course 05-04 Context Engineering example in Node.js.",
+  "type": "module",
+  "scripts": {
+    "start": "node context_engineering_demo.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

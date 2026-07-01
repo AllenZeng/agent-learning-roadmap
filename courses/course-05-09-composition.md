@@ -821,22 +821,6 @@ Memory 存储结构（写作场景）：
 
 ---
 
-#### 跨案例对比总览
-
-| 维度 | 知识助手 | 代码审查 | 任务执行 | 智能客服 | 数据分析 | 写作协作 |
-|------|---------|---------|---------|---------|---------|---------|
-| **首发能力** | RAG | Tool Use | Planning + HITL | RAG + Tool Use + HITL | Tool Use + Reflection | RAG + Memory |
-| **首发理由** | 核心需求是要查资料 | 核心需求是深入分析 | 核心需求是多步骤+安全 | 场景硬需求多 | 核心需求是翻译+修正 | 核心需求是内容+风格 |
-| **第二阶段** | Memory | Reflection | Checkpoint | Memory | Planning | Reflection |
-| **第二阶段理由** | 跨会话延续 | 验证后修正 | 中断恢复 | 减少重复说明 | 多步骤分析 | 基于证据做质量检查 |
-| **暂不引入** | Multi-Agent, Reflection, Planning | Memory, Planning | Memory, RAG, Multi-Agent | Planning, Reflection, Multi-Agent | RAG, Multi-Agent | Multi-Agent |
-| **暂不引入理由** | 无角色冲突/无明确问题信号 | 项目规范已在代码中 | 任务独立是特性 | 线性流程/角色无冲突 | 单人场景/无角色冲突 | 创造性工作/风格统一优先 |
-| **稳定能力组合** | RAG + 轻量 Memory | Tool Use + Reflection + Reviewer | Planning + HITL + Checkpoint | RAG + Tool Use + HITL + 会话 Memory | Tool Use + Reflection + 按需 Planning | RAG + Memory + 证据驱动 Reflection |
-
-**核心观察：** 没有一个案例是"一次性引入全部能力的"。每个案例都根据具体的问题模式，选择了不同的引入路径，并停在不同的能力组合上。组合是否"高级"不重要，是否刚好解决当前问题才重要。
-
----
-
 ## 9.3 能力引入决策表
 
 ### 9.3.1 扩展决策表
