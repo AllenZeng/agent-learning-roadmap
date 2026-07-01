@@ -1,0 +1,108 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ram-title ram-desc">
+  <title id="ram-title">推理线与行动线的合流</title>
+  <desc id="ram-desc">推理线（直接问答→CoT）和行动线（工具调用→Plugins→Function Calling）各自演进，在ReAct处交汇。推理线困在文本内部缺乏验证，行动线只会执行不会判断，ReAct让两者互相喂给对方。</desc>
+  <defs>
+    <linearGradient id="ram-bg" x1="0" y1="0" x2="1200" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.5" stop-color="#F5F3FF"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <filter id="ram-shadow" x="-6%" y="-8%" width="112%" height="125%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+    <marker id="ram-arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0L8 3L0 6Z" fill="#94A3B8"/></marker>
+    <style>
+      .ram-title { font: 850 34px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #102A43; }
+      .ram-sub { font: 430 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748B; }
+      .ram-track-label { font: 820 16px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #7C3AED; }
+      .ram-card-title { font: 820 18px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F172A; }
+      .ram-card-desc { font: 430 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748B; }
+      .ram-limit { font: 760 12px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #C2410C; }
+      .ram-merge-title { font: 850 20px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #6D28D9; }
+      .ram-merge-desc { font: 430 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #5B21B6; }
+      .ram-note { font: 430 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #94A3B8; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="720" fill="url(#ram-bg)"/>
+  <text x="600" y="52" text-anchor="middle" class="ram-title">两条线索，一个交汇点：推理 × 行动</text>
+  <text x="600" y="80" text-anchor="middle" class="ram-sub">推理线困在文本里缺乏验证，行动线只会做事不会判断——ReAct 把两者放进同一个循环</text>
+
+  <!-- ===== LEFT TRACK: 推理线 ===== -->
+  <g transform="translate(60 120)">
+    <rect x="0" y="0" width="340" height="56" rx="28" fill="#7C3AED" fill-opacity="0.08"/>
+    <text x="170" y="34" text-anchor="middle" class="ram-track-label">推理线：从直接回答到写出中间步骤</text>
+  </g>
+
+  <!-- Card 1: 直接问答 -->
+  <g transform="translate(60 196)" filter="url(#ram-shadow)">
+    <rect x="0" y="0" width="310" height="72" rx="10" fill="#FFFFFF" stroke="#C4B5FD" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="72" rx="3" fill="#7C3AED"/>
+    <text x="26" y="26" class="ram-card-title">直接问答</text>
+    <text x="26" y="50" class="ram-card-desc">问题 → 答案。简单任务够用，但多步判断容易跳步</text>
+  </g>
+  <path d="M215 268L215 288" stroke="#7C3AED" stroke-width="2" marker-end="url(#ram-arrow)"/>
+
+  <!-- Card 2: CoT -->
+  <g transform="translate(60 294)" filter="url(#ram-shadow)">
+    <rect x="0" y="0" width="310" height="72" rx="10" fill="#FFFFFF" stroke="#C4B5FD" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="72" rx="3" fill="#7C3AED"/>
+    <text x="26" y="26" class="ram-card-title">Chain-of-Thought</text>
+    <text x="26" y="50" class="ram-card-desc">问题 → 中间步骤 → 答案。让模型写出推理过程</text>
+  </g>
+  <path d="M215 366L215 386" stroke="#7C3AED" stroke-width="2" marker-end="url(#ram-arrow)"/>
+
+  <!-- Limit card: 推理线局限 -->
+  <g transform="translate(60 392)">
+    <rect x="0" y="0" width="310" height="60" rx="10" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1" stroke-dasharray="4,2"/>
+    <text x="155" y="24" text-anchor="middle" class="ram-limit">⚠ 局限：推理仍在文本内部</text>
+    <text x="155" y="44" text-anchor="middle" class="ram-limit">模型不知道外部真实状态，困在自己的参数里</text>
+  </g>
+
+  <!-- ===== RIGHT TRACK: 行动线 ===== -->
+  <g transform="translate(800 120)">
+    <rect x="0" y="0" width="340" height="56" rx="28" fill="#2563EB" fill-opacity="0.08"/>
+    <text x="170" y="34" text-anchor="middle" class="ram-track-label" fill="#2563EB">行动线：从只会说到能够做事</text>
+  </g>
+
+  <g transform="translate(830 196)" filter="url(#ram-shadow)">
+    <rect x="0" y="0" width="310" height="72" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="72" rx="3" fill="#2563EB"/>
+    <text x="26" y="26" class="ram-card-title">工具调用 / Plugins</text>
+    <text x="26" y="50" class="ram-card-desc">模型不再只说"应该怎么做"，而是能发起真实动作</text>
+  </g>
+  <path d="M985 268L985 288" stroke="#2563EB" stroke-width="2" marker-end="url(#ram-arrow)"/>
+
+  <g transform="translate(830 294)" filter="url(#ram-shadow)">
+    <rect x="0" y="0" width="310" height="72" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="72" rx="3" fill="#2563EB"/>
+    <text x="26" y="26" class="ram-card-title">Function Calling</text>
+    <text x="26" y="50" class="ram-card-desc">模型生成结构化调用，Runtime 执行并返回结果</text>
+  </g>
+  <path d="M985 366L985 386" stroke="#2563EB" stroke-width="2" marker-end="url(#ram-arrow)"/>
+
+  <g transform="translate(830 392)">
+    <rect x="0" y="0" width="310" height="60" rx="10" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1" stroke-dasharray="4,2"/>
+    <text x="155" y="24" text-anchor="middle" class="ram-limit">⚠ 局限：只会执行不会判断</text>
+    <text x="155" y="44" text-anchor="middle" class="ram-limit">工具把信息拿回来，但不知道结果说明了什么</text>
+  </g>
+
+  <!-- ===== MERGE CENTER: ReAct ===== -->
+  <!-- Left merge arrow -->
+  <path d="M370 480C370 500, 400 510, 480 510" stroke="#7C3AED" stroke-width="2.5" marker-end="url(#ram-arrow)"/>
+  <!-- Right merge arrow -->
+  <path d="M830 480C830 500, 800 510, 720 510" stroke="#2563EB" stroke-width="2.5" marker-end="url(#ram-arrow)"/>
+
+  <g transform="translate(460 490)" filter="url(#ram-shadow)">
+    <rect x="0" y="0" width="280" height="100" rx="14" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2.5"/>
+    <rect x="0" y="0" width="280" height="100" rx="14" fill="url(#ram-bg)" fill-opacity="0.3"/>
+    <text x="140" y="30" text-anchor="middle" class="ram-merge-title">ReAct</text>
+    <text x="140" y="50" text-anchor="middle" class="ram-card-desc">Reasoning + Acting</text>
+    <text x="140" y="72" text-anchor="middle" class="ram-merge-desc">推理决定行动 → 行动结果回来修正推理</text>
+  </g>
+
+  <!-- Bottom insight -->
+  <g transform="translate(180 620)">
+    <text x="420" y="0" text-anchor="middle" class="ram-note">真正的 Agent 任务既不是纯推理也不是纯行动——而是两者的交织。人类解决问题从来如此：先想、再查、看到新信息后改变想法、再走下一步。</text>
+  </g>
+</svg>

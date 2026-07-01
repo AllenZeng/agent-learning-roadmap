@@ -1,0 +1,122 @@
+<svg width="1200" height="610" viewBox="0 0 1200 610" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="al-title al-desc">
+  <title id="al-title">Agent 基本循环</title>
+  <desc id="al-desc">Agent 的六个核心步骤形成持续循环：感知环境、判断状态、选择行动、执行动作、接收反馈、调整下一步。外圈用出差助理场景标注每一步的具体含义。</desc>
+  <defs>
+    <linearGradient id="al-bg" x1="0" y1="0" x2="1200" y2="610" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#F0FDF4"/>
+    </linearGradient>
+    <filter id="al-shadow" x="-8%" y="-10%" width="116%" height="130%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrow-teal" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0 0L8 3L0 6Z" fill="#0F766E"/>
+    </marker>
+    <style>
+      .al-title { font: 700 34px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #102A43; }
+      .al-sub { font: 400 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748B; }
+      .al-step-no { font: 700 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #FFFFFF; }
+      .al-step-title { font: 600 17px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F172A; }
+      .al-step-desc { font: 400 12px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748B; }
+      .al-example { font: 400 11px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F766E; }
+      .al-note { font: 400 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #94A3B8; }
+      .al-loop-label { font: 600 15px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F766E; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="610" fill="url(#al-bg)"/>
+
+  <!-- Title -->
+  <text x="600" y="54" text-anchor="middle" class="al-title">Agent 的基本循环：感知、判断、行动、反馈</text>
+  <text x="600" y="82" text-anchor="middle" class="al-sub">这个循环从传统 Agent 到 LLM Agent 始终未变，变化的是每一步"由谁来做"</text>
+
+  <!-- ===== Top Row: Steps 1 → 2 → 3 ===== -->
+  <!-- Card: 240×108, circle r=16 at (24,32), text starts x=48, lines at y=30/50/70 -->
+
+  <!-- Step 1: 感知环境 -->
+  <g transform="translate(144 115)" filter="url(#al-shadow)">
+    <rect x="0" y="0" width="240" height="108" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="1.5"/>
+    <circle cx="24" cy="32" r="16" fill="#0F766E"/>
+    <text x="24" y="36" text-anchor="middle" class="al-step-no">1</text>
+    <text x="48" y="30" class="al-step-title">感知环境</text>
+    <text x="48" y="50" class="al-step-desc">读取当前状态和信息</text>
+    <text x="48" y="70" class="al-example">例：读取日程、航班、预算</text>
+  </g>
+
+  <!-- Arrow 1→2 -->
+  <path d="M384 169C404 169, 460 169, 480 169" stroke="#0F766E" stroke-width="1.8" marker-end="url(#arrow-teal)"/>
+
+  <!-- Step 2: 判断状态 -->
+  <g transform="translate(480 115)" filter="url(#al-shadow)">
+    <rect x="0" y="0" width="240" height="108" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="1.5"/>
+    <circle cx="24" cy="32" r="16" fill="#0F766E"/>
+    <text x="24" y="36" text-anchor="middle" class="al-step-no">2</text>
+    <text x="48" y="30" class="al-step-title">判断状态</text>
+    <text x="48" y="50" class="al-step-desc">理解当前处于什么阶段</text>
+    <text x="48" y="70" class="al-example">例：会议时间固定，预算有限</text>
+  </g>
+
+  <!-- Arrow 2→3 -->
+  <path d="M720 169C740 169, 796 169, 816 169" stroke="#0F766E" stroke-width="1.8" marker-end="url(#arrow-teal)"/>
+
+  <!-- Step 3: 选择行动 -->
+  <g transform="translate(816 115)" filter="url(#al-shadow)">
+    <rect x="0" y="0" width="240" height="108" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="1.5"/>
+    <circle cx="24" cy="32" r="16" fill="#0F766E"/>
+    <text x="24" y="36" text-anchor="middle" class="al-step-no">3</text>
+    <text x="48" y="30" class="al-step-title">选择行动</text>
+    <text x="48" y="50" class="al-step-desc">决定下一步做什么</text>
+    <text x="48" y="70" class="al-example">例：先查航班还是先查酒店？</text>
+  </g>
+
+  <!-- ===== Right side: Arrow 3→4 (curves outward, solid) ===== -->
+  <path d="M1056 169C1116 169, 1116 360, 1056 387" stroke="#0F766E" stroke-width="1.8" marker-end="url(#arrow-teal)"/>
+
+  <!-- Step 4: 执行动作 -->
+  <g transform="translate(816 330)" filter="url(#al-shadow)">
+    <rect x="0" y="0" width="240" height="108" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="1.5"/>
+    <circle cx="24" cy="32" r="16" fill="#0F766E"/>
+    <text x="24" y="36" text-anchor="middle" class="al-step-no">4</text>
+    <text x="48" y="30" class="al-step-title">执行动作</text>
+    <text x="48" y="50" class="al-step-desc">真正调用工具或 API</text>
+    <text x="48" y="70" class="al-example">例：调用航班搜索 API</text>
+  </g>
+
+  <!-- Arrow 4→5 -->
+  <path d="M816 384C796 384, 740 384, 720 384" stroke="#0F766E" stroke-width="1.8" marker-end="url(#arrow-teal)"/>
+
+  <!-- Step 5: 接收反馈 -->
+  <g transform="translate(480 330)" filter="url(#al-shadow)">
+    <rect x="0" y="0" width="240" height="108" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="1.5"/>
+    <circle cx="24" cy="32" r="16" fill="#0F766E"/>
+    <text x="24" y="36" text-anchor="middle" class="al-step-no">5</text>
+    <text x="48" y="30" class="al-step-title">接收反馈</text>
+    <text x="48" y="50" class="al-step-desc">获取行动的真实结果</text>
+    <text x="48" y="70" class="al-example">例：下午航班便宜但到达太晚</text>
+  </g>
+
+  <!-- Arrow 5→6 -->
+  <path d="M480 384C460 384, 404 384, 384 384" stroke="#0F766E" stroke-width="1.8" marker-end="url(#arrow-teal)"/>
+
+  <!-- Step 6: 调整下一步 -->
+  <g transform="translate(144 330)" filter="url(#al-shadow)">
+    <rect x="0" y="0" width="240" height="108" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="1.5"/>
+    <circle cx="24" cy="32" r="16" fill="#0F766E"/>
+    <text x="24" y="36" text-anchor="middle" class="al-step-no">6</text>
+    <text x="48" y="30" class="al-step-title">调整下一步</text>
+    <text x="48" y="50" class="al-step-desc">根据反馈修正策略</text>
+    <text x="48" y="70" class="al-example">例：改查前一天晚上的航班</text>
+  </g>
+
+  <!-- ===== Left side: Return arrow 6→1 (curves outward, dashed) ===== -->
+  <path d="M144 384C84 384, 84 196, 144 169" stroke="#0F766E" stroke-width="1.8" stroke-dasharray="6,3" marker-end="url(#arrow-teal)"/>
+
+  <!-- Center label -->
+  <g transform="translate(480 468)">
+    <rect x="0" y="0" width="240" height="44" rx="22" fill="#0F766E" fill-opacity="0.08"/>
+    <text x="120" y="27" text-anchor="middle" class="al-loop-label">持续循环，直到任务完成</text>
+  </g>
+
+  <!-- Footer note -->
+  <text x="600" y="568" text-anchor="middle" class="al-note">这个循环在开放现实世界中每一步都会面临挑战：环境太复杂、目标太模糊、行动太多、反馈信号不清晰</text>
+</svg>

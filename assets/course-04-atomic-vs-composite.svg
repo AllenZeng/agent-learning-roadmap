@@ -1,0 +1,176 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">课程四：工具粒度选择 — 原子工具 vs 组合工具</title>
+  <desc id="desc">原子工具和组合工具的对比：原子工具像乐高积木，灵活可任意组合但步骤多；组合工具封装了多步流程，效率高但内部不透明。建议先用原子工具跑通，稳定后沉淀为 Skill。</desc>
+
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1200" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.55" stop-color="#ECFEFF"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <filter id="colShadow" x="-3%" y="-6%" width="106%" height="118%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#0F172A" flood-opacity="0.06"/>
+    </filter>
+    <filter id="softShadow" x="-3%" y="-8%" width="106%" height="124%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F172A" flood-opacity="0.04"/>
+    </filter>
+    <marker id="arrowRight" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8" fill="#7C3AED"/>
+    </marker>
+
+    <style>
+      .title { font: 850 36px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .subtitle { font: 430 18px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #52616F; letter-spacing: 0; }
+      .colTitle { font: 820 24px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F172A; letter-spacing: 0; text-anchor: middle; }
+      .colSub { font: 430 15px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #64748B; letter-spacing: 0; text-anchor: middle; }
+      .proConTitle { font: 700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
+      .proConText { font: 430 15.5px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
+      .toolBlock { font: 600 14px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #FFFFFF; letter-spacing: 0; text-anchor: middle; }
+      .toolBlockSmall { font: 550 12.5px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #FFFFFF; letter-spacing: 0; text-anchor: middle; }
+      .bridgeLabel { font: 750 16px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #6D28D9; letter-spacing: 0; text-anchor: middle; }
+      .bridgeDesc { font: 430 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #7C3AED; letter-spacing: 0; text-anchor: middle; }
+      .footerText { font: 430 14.5px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; letter-spacing: 0; text-anchor: middle; }
+      .footerBold { font: 650 15px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F172A; letter-spacing: 0; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="720" fill="url(#page)"/>
+
+  <!-- Title -->
+  <text x="600" y="46" text-anchor="middle" class="title">工具粒度选择：原子 vs 组合</text>
+  <text x="600" y="80" text-anchor="middle" class="subtitle">工具粒度是最容易被忽视但影响最大的设计决策 — 先原子跑通，稳定后沉淀为 Skill</text>
+
+  <!-- ============================================================ -->
+  <!-- LEFT COLUMN: 原子工具 -->
+  <!-- ============================================================ -->
+  <g transform="translate(40, 108)" filter="url(#colShadow)">
+    <rect x="0" y="0" width="470" height="470" rx="14" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2"/>
+    <!-- header -->
+    <rect x="0" y="0" width="470" height="66" rx="14" fill="#EFF6FF"/>
+    <rect x="0" y="33" width="470" height="33" fill="#EFF6FF"/>
+    <text x="235" y="34" class="colTitle">🧩 原子工具</text>
+    <text x="235" y="54" class="colSub">一个工具只做一件事</text>
+
+    <!-- Visual: individual blocks arranged flexibly -->
+    <!-- 4 colored blocks showing they can be arranged -->
+    <g transform="translate(40, 90)">
+      <!-- Block 1 -->
+      <rect x="0" y="0" width="90" height="42" rx="8" fill="#2563EB"/>
+      <text x="45" y="26" class="toolBlock">read_file</text>
+      <!-- Block 2 -->
+      <rect x="100" y="0" width="90" height="42" rx="8" fill="#0F766E"/>
+      <text x="145" y="26" class="toolBlock">write_file</text>
+      <!-- Block 3 -->
+      <rect x="200" y="0" width="100" height="42" rx="8" fill="#7C3AED"/>
+      <text x="250" y="26" class="toolBlock">search_text</text>
+      <!-- Block 4 -->
+      <rect x="310" y="0" width="100" height="42" rx="8" fill="#EA580C"/>
+      <text x="360" y="26" class="toolBlock">run_tests</text>
+
+      <!-- Dashed arrows showing flexibility -->
+      <text x="190" y="72" text-anchor="middle" class="proConText" fill="#64748B">↔ 可任意组合、灵活编排</text>
+    </g>
+
+    <!-- Pros -->
+    <g transform="translate(30, 180)">
+      <text x="0" y="16" class="proConTitle" fill="#16A34A">✓ 优势</text>
+      <circle cx="10" cy="40" r="3.5" fill="#16A34A"/>
+      <text x="22" y="45" class="proConText" fill="#334155">灵活 — 模型可根据任务自由组合，适应任何场景</text>
+      <circle cx="10" cy="66" r="3.5" fill="#16A34A"/>
+      <text x="22" y="71" class="proConText" fill="#334155">边界清楚 — 每个工具职责单一，行为可预测</text>
+      <circle cx="10" cy="92" r="3.5" fill="#16A34A"/>
+      <text x="22" y="97" class="proConText" fill="#334155">失败易定位 — 工具独立，问题容易被隔离到具体工具</text>
+    </g>
+
+    <!-- Cons -->
+    <g transform="translate(30, 318)">
+      <text x="0" y="16" class="proConTitle" fill="#DC2626">✗ 代价</text>
+      <circle cx="10" cy="40" r="3.5" fill="#DC2626"/>
+      <text x="22" y="45" class="proConText" fill="#334155">步骤多 — 模型需要自己编排工具的执行顺序</text>
+      <circle cx="10" cy="66" r="3.5" fill="#DC2626"/>
+      <text x="22" y="71" class="proConText" fill="#334155">Token 消耗高 — 每次任务都需要重新规划步骤</text>
+    </g>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- CENTER BRIDGE: 沉淀路径 -->
+  <!-- ============================================================ -->
+  <g transform="translate(518, 240)">
+    <!-- Arrow -->
+    <line x1="0" y1="0" x2="154" y2="0" stroke="#7C3AED" stroke-width="2.5" marker-end="url(#arrowRight)"/>
+    <!-- Labels -->
+    <text x="77" y="-16" class="bridgeLabel">稳定后沉淀</text>
+
+
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- RIGHT COLUMN: 组合工具 -->
+  <!-- ============================================================ -->
+  <g transform="translate(690, 108)" filter="url(#colShadow)">
+    <rect x="0" y="0" width="470" height="470" rx="14" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="2"/>
+    <!-- header -->
+    <rect x="0" y="0" width="470" height="66" rx="14" fill="#F5F3FF"/>
+    <rect x="0" y="33" width="470" height="33" fill="#F5F3FF"/>
+    <text x="235" y="34" class="colTitle">📦 组合工具</text>
+    <text x="235" y="54" class="colSub">封装了一个多步流程</text>
+
+    <!-- Visual: assembled block -->
+    <g transform="translate(40, 90)">
+      <!-- One large block containing smaller ones glued together -->
+      <rect x="0" y="0" width="370" height="68" rx="10" fill="#F5F3FF" stroke="#A78BFA" stroke-width="2.5"/>
+      <!-- internal blocks glued -->
+      <rect x="12" y="14" width="80" height="40" rx="4" fill="#7C3AED" opacity="0.7"/>
+      <text x="52" y="38" class="toolBlockSmall">读取</text>
+      <text x="102" y="30" class="proConText" fill="#7C3AED">→</text>
+      <rect x="118" y="14" width="80" height="40" rx="4" fill="#7C3AED" opacity="0.8"/>
+      <text x="158" y="38" class="toolBlockSmall">分析</text>
+      <text x="208" y="30" class="proConText" fill="#7C3AED">→</text>
+      <rect x="224" y="14" width="80" height="40" rx="4" fill="#7C3AED" opacity="0.9"/>
+      <text x="264" y="38" class="toolBlockSmall">写入报告</text>
+      <!-- label outside -->
+      <text x="185" y="98" text-anchor="middle" class="proConText" fill="#7C3AED">▲ 内部步骤不可见 ▲</text>
+    </g>
+
+    <!-- Pros -->
+    <g transform="translate(30, 218)">
+      <text x="0" y="16" class="proConTitle" fill="#16A34A">✓ 优势</text>
+      <circle cx="10" cy="40" r="3.5" fill="#16A34A"/>
+      <text x="22" y="45" class="proConText" fill="#334155">效率高 — 一步完成多步流程，减少交互轮次</text>
+      <circle cx="10" cy="66" r="3.5" fill="#16A34A"/>
+      <text x="22" y="71" class="proConText" fill="#334155">封装实践 — 内置了最佳实践和失败处理逻辑</text>
+    </g>
+
+    <!-- Cons -->
+    <g transform="translate(30, 312)">
+      <text x="0" y="16" class="proConTitle" fill="#DC2626">✗ 代价</text>
+      <circle cx="10" cy="40" r="3.5" fill="#DC2626"/>
+      <text x="22" y="45" class="proConText" fill="#334155">不透明 — 内部步骤对模型和调试者都不可见</text>
+      <circle cx="10" cy="66" r="3.5" fill="#DC2626"/>
+      <text x="22" y="71" class="proConText" fill="#334155">失败难定位 — 不知道是内部哪一步出了问题</text>
+      <circle cx="10" cy="92" r="3.5" fill="#DC2626"/>
+      <text x="22" y="97" class="proConText" fill="#334155">灵活性差 — 当任务稍有变化，组合工具就不再适用</text>
+    </g>
+  </g>
+
+  <!-- Example labels below columns -->
+  <g transform="translate(40, 596)">
+    <rect x="0" y="0" width="470" height="36" rx="8" fill="#F1F5F9"/>
+    <text x="235" y="23" text-anchor="middle" class="proConTitle" fill="#475569">示例：read_file · write_file · search_text · run_tests</text>
+  </g>
+  <g transform="translate(690, 596)">
+    <rect x="0" y="0" width="470" height="36" rx="8" fill="#F1F5F9"/>
+    <text x="235" y="23" text-anchor="middle" class="proConTitle" fill="#475569">示例：generate_report(repo) · review_code_and_test(diff)</text>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- Bottom takeaway -->
+  <!-- ============================================================ -->
+  <g transform="translate(80, 652)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="1040" height="52" rx="12" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+    <text x="520" y="22" class="footerBold">先用原子工具理解机制、跑通闭环 → 发现稳定组合后 → 沉淀为 Skill（不是 Workflow，模型仍可灵活调整）</text>
+    <text x="520" y="42" class="footerText">Skill ≠ 固定流程：Skill 是"按经验你应该这样走，但你可以判断是否需要调整"，Workflow 是"你必须按这个顺序走"</text>
+  </g>
+
+</svg>

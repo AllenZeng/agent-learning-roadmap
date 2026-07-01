@@ -2,51 +2,6 @@
 
 [返回课程五主文档](./course-05-01-scenario-enhancement.md) | [上一章](./course-05-07-human-in-the-loop.md) | [下一章](./course-05-09-composition.md)
 
-## 课程导言
-
-第六章讲的是 Reflection —— Agent 看到测试失败后停下来修正。第七章讲的是 Human-in-the-loop —— 当 Agent 不该自己决定时引入人类判断。这两者都是单个 Agent 在自己的执行循环中加入的机制：检测、修正、重试，或者在关键节点等待人类确认。
-
-但有一类问题 Reflection 和 HITL 都解决不了：**同一个大脑无法公正地审视自己的作品。**
-
-回到知识助手。你让它写一份 API 模块技术方案，然后从安全角度审查。它写完后，你说："现在从安全角度审查这个方案。"它回答：
-
-```text
-经过审查，该方案在安全方面没有明显问题。建议按计划实施。
-```
-
-你扫了一眼，立刻发现三个问题：输入没有长度校验、API 密钥明文写在配置文件里、权限模型缺少最小权限原则。Agent 不是不聪明——而是刚刚作为"作者"写完了方案，现在要让同一个大脑作为"审查者"审视自己的作品。同一个上下文、同一段推理痕迹、同一个目标函数——它怎么可能发现自己的盲区？
-
-这就引入了 Agent 开发的最后一类增强能力：**Multi-Agent（角色分工与协作）**。
-
-但 Multi-Agent 也是七类增强能力中最容易被误用、最容易被过度工程化的一项。2023 年底 AutoGen、CrewAI 等框架相继出现，"多智能体协作"成了热词。很多团队一上来就定义四五个 Agent 角色——研究员、工程师、审查员、协调员——然后发现系统不仅没有变好，反而更慢、更贵、更难调试。
-
-本课不会教你"如何用某个框架搭建 Multi-Agent 系统"。框架会过时，API 会变化。本课要讲的是更底层的东西：**Multi-Agent 的本质是什么、什么时候真的需要它、如何用最少的 Agent 解决真实问题、以及它的隐藏代价是什么。**
-
-> **生态时间戳（2026-06）**：本章对 Multi-Agent 的判断基于 2026 年 6 月前后的主流工程实践。Anthropic 在 *Building effective agents* 中强调"先用简单、可组合的模式，只在收益明确时增加复杂度"；OpenAI Agents SDK 将多 Agent 编排区分为 manager 调用 specialist、handoff 路由和代码层编排；LangGraph 则把复杂协作落到 graph、state、edge、recursion limit、checkpoint 等运行时机制上。它们共同指向同一个结论：生产系统里最可靠的 Multi-Agent 不是无约束群聊，而是**明确状态、明确路由、明确工具权限、明确停止条件**的协作流程。
->
-> 参考来源：[Anthropic: Building effective agents](https://www.anthropic.com/engineering/building-effective-agents)、[OpenAI Agents SDK: Agent orchestration](https://openai.github.io/openai-agents-python/multi_agent/)、[LangGraph: Graph API](https://docs.langchain.com/oss/python/langgraph/graph-api)。
-
-整章围绕一条核心叙事展开：设计 Multi-Agent 系统本质上是在做"团队管理"——拆解工作、分配上下文、设计通信协议、设定裁决机制。不是在写 Prompt。
-
-学完本课，你不会成为某个 Multi-Agent 框架的专家。但你应该能够独立判断：我这个场景要不要引入 Multi-Agent？从哪个模式开始？如何避免最常见的五个坑？
-
----
-
-## 学习目标
-
-学完本章，你将能够：
-
-1. **诊断单 Agent 的三类硬天花板**：角色冲突、上下文挤压、串行瓶颈——以及为什么"换更强的模型"解决不了这些结构性缺陷
-2. **判断 Multi-Agent 的真实必要性**：用"四个不同"标准（输入、工具、目标、验收标准）检验你的场景是否真的需要多 Agent
-3. **独立实现三种核心协作模式**：Reviewer（执行+审查）、Supervisor（拆解+派发+汇总）、Parallel Specialists（同任务多维度分析）
-4. **配置真正的 Multi-Agent**：为每个 Agent 设计 System Prompt（五要素结构）、分配工具（白名单制）、选择模型和调优参数——让"四个不同"在工程上落地
-5. **设计 Agent 间的结构化通信协议**：知道为什么自由对话是最昂贵的协作模式，以及如何用结构化格式替代它
-6. **建立裁决、停止和兜底机制**：确保 Multi-Agent 系统是一个"决策系统"而非"讨论组"
-7. **核算 Multi-Agent 的真实成本**：不止 token 账单，还有延迟放大、trace 复杂度和长期维护成本
-8. **写出 Multi-Agent 引入或不引入的技术判断**：用决策流程和自查清单做出理性选择
-
----
-
 ## 本章目录
 
 - [8.1 单 Agent 的三类硬天花板](#81-单-agent-的三类硬天花板)
