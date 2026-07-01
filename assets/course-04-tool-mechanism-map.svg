@@ -1,0 +1,95 @@
+<svg width="1400" height="980" viewBox="0 0 1400 980" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">课程四：工具机制</title>
+  <desc id="desc">图中中心是 Agent 工具系统机制核心圆形区域，五个功能点围绕中心按顺时针编号发散：工具定义、工具选择、执行与回填、权限与安全、Human in the loop。</desc>
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1400" y2="980" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.55" stop-color="#ECFEFF"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <linearGradient id="core" x1="560" y1="350" x2="840" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F766E"/>
+      <stop offset="0.58" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#EA580C"/>
+    </linearGradient>
+    <linearGradient id="line" x1="300" y1="160" x2="1100" y2="820" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#94A3B8"/>
+    </linearGradient>
+    <filter id="shadow" x="-8%" y="-14%" width="116%" height="134%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#0F172A" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .coreTitle { font: 850 42px/1.18 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #FFFFFF; letter-spacing: 0; }
+      .chapter { font: 850 17px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #FFFFFF; letter-spacing: 0; }
+      .cardTitle { font: 820 27px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .tag { font: 760 15px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F766E; letter-spacing: 0; }
+      .cardText { font: 430 18px/1.42 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #334155; letter-spacing: 0; }
+    </style>
+  </defs>
+
+  <rect width="1400" height="980" fill="url(#page)"/>
+
+  <path d="M700 490C700 370 700 302 700 238" stroke="url(#line)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M700 490C585 415 475 350 335 315" stroke="url(#line)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M700 490C815 415 925 350 1065 315" stroke="url(#line)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M700 490C585 565 475 630 335 665" stroke="url(#line)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M700 490C815 565 925 630 1065 665" stroke="url(#line)" stroke-width="4" stroke-linecap="round"/>
+
+  <g transform="translate(500 90)" filter="url(#shadow)">
+    <rect width="400" height="166" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="2"/>
+    <rect x="28" y="26" width="58" height="34" rx="17" fill="#0F766E"/>
+    <text x="57" y="49" text-anchor="middle" class="chapter">01</text>
+    <text x="106" y="51" class="cardTitle">工具定义</text>
+    <text x="30" y="90" class="tag">让模型知道工具是什么</text>
+    <text x="30" y="118" class="cardText">名称、描述、参数 Schema、返回值和边界，</text>
+    <text x="30" y="144" class="cardText">决定模型能否正确理解并使用工具。</text>
+  </g>
+
+  <g transform="translate(80 300)" filter="url(#shadow)">
+    <rect width="410" height="166" rx="10" fill="#FFFFFF" stroke="#FDA4AF" stroke-width="2"/>
+    <rect x="28" y="26" width="58" height="34" rx="17" fill="#E11D48"/>
+    <text x="57" y="49" text-anchor="middle" class="chapter">05</text>
+    <text x="106" y="51" class="cardTitle">Human in the loop</text>
+    <text x="30" y="90" class="tag">让人参与高风险决策</text>
+    <text x="30" y="118" class="cardText">在授权、确认、纠错和反馈闭环中，</text>
+    <text x="30" y="144" class="cardText">把人纳入工具机制的运行时控制面。</text>
+  </g>
+
+  <g transform="translate(910 300)" filter="url(#shadow)">
+    <rect width="410" height="166" rx="10" fill="#FFFFFF" stroke="#BAE6FD" stroke-width="2"/>
+    <rect x="28" y="26" width="58" height="34" rx="17" fill="#2563EB"/>
+    <text x="57" y="49" text-anchor="middle" class="chapter">02</text>
+    <text x="106" y="51" class="cardTitle">工具选择</text>
+    <text x="30" y="90" class="tag">让模型知道什么时候用哪个</text>
+    <text x="30" y="118" class="cardText">候选集、路由策略和失败诊断，</text>
+    <text x="30" y="144" class="cardText">避免该用不用、不该用乱用或选错工具。</text>
+  </g>
+
+  <g transform="translate(80 665)" filter="url(#shadow)">
+    <rect width="410" height="166" rx="10" fill="#FFFFFF" stroke="#FDE68A" stroke-width="2"/>
+    <rect x="28" y="26" width="58" height="34" rx="17" fill="#CA8A04"/>
+    <text x="57" y="49" text-anchor="middle" class="chapter">04</text>
+    <text x="106" y="51" class="cardTitle">权限与安全</text>
+    <text x="30" y="90" class="tag">让工具调用可控</text>
+    <text x="30" y="118" class="cardText">风险分级、Deny-first、最小权限和审计日志，</text>
+    <text x="30" y="144" class="cardText">把越权和高风险动作挡在 Runtime 外。</text>
+  </g>
+
+  <g transform="translate(910 665)" filter="url(#shadow)">
+    <rect width="410" height="166" rx="10" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2"/>
+    <rect x="28" y="26" width="58" height="34" rx="17" fill="#EA580C"/>
+    <text x="57" y="49" text-anchor="middle" class="chapter">03</text>
+    <text x="106" y="51" class="cardTitle">执行与回填</text>
+    <text x="30" y="90" class="tag">让工具结果进入下一轮</text>
+    <text x="30" y="118" class="cardText">Runtime 做校验、超时、重试和错误结构化，</text>
+    <text x="30" y="144" class="cardText">再整理成可决策的 Observation。</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <circle cx="700" cy="490" r="138" fill="url(#core)"/>
+    <circle cx="700" cy="490" r="114" fill="none" stroke="#FFFFFF" stroke-opacity="0.38" stroke-width="2"/>
+    <text x="700" y="482" text-anchor="middle" class="coreTitle">Agent工具</text>
+    <text x="700" y="530" text-anchor="middle" class="coreTitle">系统机制</text>
+  </g>
+</svg>
