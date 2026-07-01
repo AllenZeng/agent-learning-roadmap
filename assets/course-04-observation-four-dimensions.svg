@@ -1,0 +1,171 @@
+<svg width="1400" height="888" viewBox="0 0 1400 888" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">课程四：Observation 设计的四个维度</title>
+  <desc id="desc">从信息完整性、结构一致性、上下文感知、模型可操作性四个维度展开，每个维度包含核心问题、设计要点和具体示例。底部总结四个维度的层级递进关系。</desc>
+
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1400" y2="888" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.55" stop-color="#ECFEFF"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-4%" y="-4%" width="108%" height="112%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0F172A" flood-opacity="0.07"/>
+    </filter>
+    <filter id="barShadow" x="-2%" y="-8%" width="104%" height="128%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F172A" flood-opacity="0.05"/>
+    </filter>
+
+    <style>
+      .title { font: 850 36px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .subtitle { font: 430 18px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #52616F; letter-spacing: 0; }
+      .dimNo { font: 850 15px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #FFFFFF; letter-spacing: 0; text-anchor: middle; }
+      .dimTitle { font: 820 23px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .coreQuestion { font: 650 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #1E293B; letter-spacing: 0; }
+      .sectionTag { font: 760 13px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
+      .bodyText { font: 430 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; letter-spacing: 0; }
+      .exampleLabel { font: 700 13px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
+      .exampleBody { font: 430 13.5px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; color: #475569; letter-spacing: 0; margin: 0; overflow-wrap: break-word; }
+      .footerText { font: 430 14.5px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #475569; letter-spacing: 0; text-anchor: middle; }
+      .footerBold { font: 650 15px -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif; fill: #0F172A; letter-spacing: 0; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1400" height="888" fill="url(#page)"/>
+
+  <!-- Title area -->
+  <text x="700" y="52" text-anchor="middle" class="title">Observation 设计的四个维度</text>
+  <text x="700" y="86" text-anchor="middle" class="subtitle">好的 Observation 不是汇报"发生了什么"，而是为下一轮决策提供"依据"</text>
+
+  <!-- ============================================================ -->
+  <!-- DIMENSION 1: 信息完整性 -->
+  <!-- ============================================================ -->
+  <g transform="translate(60, 118)" filter="url(#cardShadow)">
+    <rect x="0" y="0" width="600" height="310" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2"/>
+
+    <rect x="0" y="0" width="600" height="4" rx="2" fill="#2563EB"/>
+    <rect x="0" y="0" width="600" height="54" rx="12" fill="#EFF6FF"/>
+    <rect x="0" y="27" width="600" height="27" fill="#EFF6FF"/>
+    <circle cx="36" cy="27" r="17" fill="#2563EB"/>
+    <text x="36" y="33" class="dimNo">一</text>
+    <text x="64" y="33" class="dimTitle">信息完整性</text>
+
+    <text x="28" y="82" class="coreQuestion">模型做下一轮决策需要的所有信息，Observation 都包含了吗？</text>
+
+    <text x="28" y="114" class="sectionTag" fill="#2563EB">设计要点</text>
+    <circle cx="34" cy="134" r="3.5" fill="#2563EB" opacity="0.55"/>
+    <text x="46" y="139" class="bodyText">成功时：结果摘要 + 关键数据 + "这个结果意味着什么"</text>
+    <circle cx="34" cy="158" r="3.5" fill="#2563EB" opacity="0.55"/>
+    <text x="46" y="163" class="bodyText">失败时：错误码 + 原因 + 是否可重试 + 建议下一步</text>
+
+    <rect x="22" y="184" width="556" height="114" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+    <rect x="22" y="184" width="4" height="114" rx="2" fill="#2563EB" opacity="0.5"/>
+    <text x="42" y="208" class="exampleLabel" fill="#2563EB">示例</text>
+    <foreignObject x="42" y="224" width="518" height="72">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="exampleBody">错误返回不能只是 "failed"。需要携带 error.code、retryable、suggested_action 等字段，让模型无需猜测就能判断：这是临时故障（重试）还是永久错误（换策略）。</div>
+    </foreignObject>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- DIMENSION 2: 结构一致性 -->
+  <!-- ============================================================ -->
+  <g transform="translate(740, 118)" filter="url(#cardShadow)">
+    <rect x="0" y="0" width="600" height="310" rx="12" fill="#FFFFFF" stroke="#99F6E4" stroke-width="2"/>
+
+    <rect x="0" y="0" width="600" height="4" rx="2" fill="#0F766E"/>
+    <rect x="0" y="0" width="600" height="54" rx="12" fill="#F0FDFA"/>
+    <rect x="0" y="27" width="600" height="27" fill="#F0FDFA"/>
+    <circle cx="36" cy="27" r="17" fill="#0F766E"/>
+    <text x="36" y="33" class="dimNo">二</text>
+    <text x="64" y="33" class="dimTitle">结构一致性</text>
+
+    <text x="28" y="82" class="coreQuestion">无论哪个工具、无论成功还是失败，模型看到的结构是否统一？</text>
+
+    <text x="28" y="114" class="sectionTag" fill="#0F766E">设计要点</text>
+    <circle cx="34" cy="134" r="3.5" fill="#0F766E" opacity="0.55"/>
+    <text x="46" y="139" class="bodyText">统一外层结构：所有工具返回都遵循 {status, summary, data, error}</text>
+    <circle cx="34" cy="158" r="3.5" fill="#0F766E" opacity="0.55"/>
+    <text x="46" y="163" class="bodyText">模型不需要每次适应不同的返回格式，降低误判概率</text>
+
+    <rect x="22" y="184" width="556" height="114" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+    <rect x="22" y="184" width="4" height="114" rx="2" fill="#0F766E" opacity="0.5"/>
+    <text x="42" y="208" class="exampleLabel" fill="#0F766E">示例</text>
+    <foreignObject x="42" y="224" width="518" height="72">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="exampleBody">read_file、search_web、run_shell 三种完全不同的工具，返回格式都统一为 ToolResult(status, summary, data, error)。模型面对任何工具都能用同一套逻辑解析结果。</div>
+    </foreignObject>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- DIMENSION 3: 上下文感知 -->
+  <!-- ============================================================ -->
+  <g transform="translate(60, 468)" filter="url(#cardShadow)">
+    <rect x="0" y="0" width="600" height="310" rx="12" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="2"/>
+
+    <rect x="0" y="0" width="600" height="4" rx="2" fill="#7C3AED"/>
+    <rect x="0" y="0" width="600" height="54" rx="12" fill="#F5F3FF"/>
+    <rect x="0" y="27" width="600" height="27" fill="#F5F3FF"/>
+    <circle cx="36" cy="27" r="17" fill="#7C3AED"/>
+    <text x="36" y="33" class="dimNo">三</text>
+    <text x="64" y="33" class="dimTitle">上下文感知</text>
+
+    <text x="28" y="82" class="coreQuestion">Observation 是否结合了当前任务状态，而不只是工具原始输出的搬运工？</text>
+
+    <text x="28" y="114" class="sectionTag" fill="#7C3AED">设计要点</text>
+    <circle cx="34" cy="134" r="3.5" fill="#7C3AED" opacity="0.55"/>
+    <text x="46" y="139" class="bodyText">在原始结果基础上，注入任务相关的上下文提示</text>
+    <circle cx="34" cy="158" r="3.5" fill="#7C3AED" opacity="0.55"/>
+    <text x="46" y="163" class="bodyText">区分"工具执行失败"和"执行成功但没有匹配"，避免误导模型</text>
+
+    <rect x="22" y="184" width="556" height="114" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+    <rect x="22" y="184" width="4" height="114" rx="2" fill="#7C3AED" opacity="0.5"/>
+    <text x="42" y="208" class="exampleLabel" fill="#7C3AED">示例</text>
+    <foreignObject x="42" y="224" width="518" height="72">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="exampleBody">搜索返回 20 条结果时，不只是列出内容，还要带上 context_hint："前 3 条与当前任务直接相关，建议优先查看"。搜索无结果时应返回 success 而非 error，防止模型误以为工具损坏而切换策略。</div>
+    </foreignObject>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- DIMENSION 4: 模型可操作性 -->
+  <!-- ============================================================ -->
+  <g transform="translate(740, 468)" filter="url(#cardShadow)">
+    <rect x="0" y="0" width="600" height="310" rx="12" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2"/>
+
+    <rect x="0" y="0" width="600" height="4" rx="2" fill="#EA580C"/>
+    <rect x="0" y="0" width="600" height="54" rx="12" fill="#FFF7ED"/>
+    <rect x="0" y="27" width="600" height="27" fill="#FFF7ED"/>
+    <circle cx="36" cy="27" r="17" fill="#EA580C"/>
+    <text x="36" y="33" class="dimNo">四</text>
+    <text x="64" y="33" class="dimTitle">模型可操作性</text>
+
+    <text x="28" y="82" class="coreQuestion">模型看到 Observation 后，能直接判断下一步做什么吗？</text>
+
+    <text x="28" y="114" class="sectionTag" fill="#EA580C">设计要点</text>
+    <circle cx="34" cy="134" r="3.5" fill="#EA580C" opacity="0.55"/>
+    <text x="46" y="139" class="bodyText">Observation 应包含足够信息让模型无需猜测即可决策</text>
+    <circle cx="34" cy="158" r="3.5" fill="#EA580C" opacity="0.55"/>
+    <text x="46" y="163" class="bodyText">提供 suggested_action、retryable 等可操作字段</text>
+
+    <rect x="22" y="184" width="556" height="114" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+    <rect x="22" y="184" width="4" height="114" rx="2" fill="#EA580C" opacity="0.5"/>
+    <text x="42" y="208" class="exampleLabel" fill="#EA580C">测试方法</text>
+    <foreignObject x="42" y="224" width="518" height="72">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="exampleBody">把 Observation 单独拿给模型看（不给上下文），问它："基于这个结果，下一步应该做什么？" 如果模型能给出合理的下一步判断，Observation 质量就过关了。</div>
+    </foreignObject>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- Bottom takeaway -->
+  <!-- ============================================================ -->
+  <g transform="translate(90, 806)" filter="url(#barShadow)">
+    <rect x="0" y="0" width="1220" height="68" rx="12" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+
+    <circle cx="50" cy="34" r="5.5" fill="#2563EB"/>
+    <circle cx="82" cy="34" r="5.5" fill="#0F766E"/>
+    <circle cx="114" cy="34" r="5.5" fill="#7C3AED"/>
+    <circle cx="146" cy="34" r="5.5" fill="#EA580C"/>
+
+    <text x="610" y="26" class="footerBold">四个维度的关系：层级递进，缺一不可</text>
+    <text x="610" y="48" class="footerText">信息完整是基础 → 结构一致降低认知负担 → 上下文感知提升决策质量 → 模型可操作是最终检验标准</text>
+  </g>
+
+</svg>
