@@ -22,10 +22,9 @@ Node.js：
 ```bash
 cd examples/course-05-06-reflection/nodejs
 npm start
-npm run auto
 ```
 
-`npm start` 进入交互模式；`npm run auto` 会自动跑完所有演示，适合快速查看效果。
+`npm start` 进入交互模式。
 
 ## 你会看到什么
 

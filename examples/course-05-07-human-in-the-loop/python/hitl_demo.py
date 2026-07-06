@@ -5,19 +5,16 @@
 演示 Agent 在不同风险等级下如何选择确认、澄清、接管、审核和教学反馈。
 
 用法：
-  python3 hitl_demo.py           # 交互模式
-  python3 hitl_demo.py --auto    # 自动模式
+  python3 hitl_demo.py
 """
 
 from __future__ import annotations
 
-import argparse
 import json
 import os
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from enum import Enum
-from typing import Callable, Iterable
 
 
 class Risk(str, Enum):
@@ -145,18 +142,11 @@ class TeachingMemory:
 
 
 class HumanSimulator:
-    def __init__(self, auto: bool):
-        self.auto = auto
-
     def choose(self, prompt: str, options: dict[str, str], default: str) -> str:
         print(prompt)
         for key, label in options.items():
             marker = " (默认)" if key == default else ""
             print(f"  {key}. {label}{marker}")
-
-        if self.auto:
-            print(f"  自动选择: {default}\n")
-            return default
 
         choice = input("  请选择: ").strip() or default
         print()
@@ -164,11 +154,11 @@ class HumanSimulator:
 
 
 class HitlAgent:
-    def __init__(self, auto: bool = False):
+    def __init__(self):
         self.policy = HitlPolicy()
         self.audit = AuditLog()
         self.memory = TeachingMemory()
-        self.human = HumanSimulator(auto)
+        self.human = HumanSimulator()
 
     def reset(self) -> None:
         self.audit.reset()
@@ -177,7 +167,7 @@ class HitlAgent:
     def propose(self, action: ProposedAction) -> HitlDecision:
         risk, mode = self.policy.assess(action)
         if mode == HitlMode.NONE:
-            decision = HitlDecision(mode, risk, "auto_execute", "只读或低风险操作，无需介入")
+            decision = HitlDecision(mode, risk, "direct_execute", "只读或低风险操作，无需介入")
         elif mode == HitlMode.TAKEOVER:
             decision = self._takeover(action, risk)
         else:
@@ -296,7 +286,7 @@ class HitlAgent:
             decision = entry["hitl"]["decision"]
             stats.setdefault(tool, {"total": 0, "approved": 0, "manual": 0, "rejected": 0})
             stats[tool]["total"] += 1
-            if decision in {"approved", "safe_subset", "auto_execute"}:
+            if decision in {"approved", "safe_subset", "direct_execute"}:
                 stats[tool]["approved"] += 1
             if decision in {"manual", "manual_required"}:
                 stats[tool]["manual"] += 1
@@ -312,7 +302,7 @@ class HitlAgent:
                 advice = "保持或提高介入强度"
             else:
                 advice = "保持当前策略"
-            print(f"  - {tool}: {data['total']} 次，自动/通过率 {rate:.0%} -> {advice}")
+            print(f"  - {tool}: {data['total']} 次，直接执行/通过率 {rate:.0%} -> {advice}")
 
         if self.memory.items:
             print("\n[Memory] 从教学反馈沉淀的偏好：")
@@ -389,8 +379,8 @@ def run_takeover_demo(agent: HitlAgent) -> None:
     agent.propose(action)
 
 
-def run_demo(auto: bool) -> None:
-    agent = HitlAgent(auto=auto)
+def run_demo() -> None:
+    agent = HitlAgent()
     agent.reset()
 
     print("=" * 68)
@@ -410,10 +400,7 @@ def run_demo(auto: bool) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--auto", action="store_true", help="自动选择默认决策，方便完整演示")
-    args = parser.parse_args()
-    run_demo(auto=args.auto)
+    run_demo()
 
 
 if __name__ == "__main__":

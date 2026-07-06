@@ -171,22 +171,22 @@ function printResult(result) {
   console.log(`  => ${result.status}${result.reason ? ` (${result.reason})` : ''}, attempts=${result.attempts}, cost=$${result.cost.toFixed(2)}`);
 }
 
-async function wait(rl, auto) {
-  if (!auto) await rl.question('\n  按 Enter 继续...');
+async function wait(rl) {
+  await rl.question('\n  按 Enter 继续...');
 }
 
-async function demoV0(rl, auto) {
+async function demoV0(rl) {
   console.log('\n--- V0 无反思：看到 TypeError 但继续执行 ---');
-  await wait(rl, auto);
+  await wait(rl);
   console.log(`  npm test
   TypeError: Cannot read properties of undefined (reading 'files')
   Agent 把它记录成“测试完成（有警告）”，然后继续写 changelog。
   问题：反馈信号没有触发停止、分类、决策和处理。`);
 }
 
-async function demoV1(rl, auto) {
+async function demoV1(rl) {
   console.log('\n--- V1 格式修复：Schema 校验失败 -> 重生成 ---');
-  await wait(rl, auto);
+  await wait(rl);
   const result = reflectionLoop(
     (previousError, attempt) => attempt === 0
       ? new ActionResult('{"tool": "search_notes", "query": "memory cleanup"}', 0.01)
@@ -196,9 +196,9 @@ async function demoV1(rl, auto) {
   printResult(result);
 }
 
-async function demoV2(rl, auto) {
+async function demoV2(rl) {
   console.log('\n--- V2 工具错误处理：参数错误 -> 分类 -> 决策 ---');
-  await wait(rl, auto);
+  await wait(rl);
   const result = reflectionLoop(
     (previousError, attempt) => attempt === 0
       ? new ActionResult('search_notes(query="", limit=500)', 0.02)
@@ -208,9 +208,9 @@ async function demoV2(rl, auto) {
   printResult(result);
 }
 
-async function demoV3(rl, auto) {
+async function demoV3(rl) {
   console.log('\n--- V3 测试驱动处理：测试失败 -> 修正代码或停止 ---');
-  await wait(rl, auto);
+  await wait(rl);
   const result = reflectionLoop(
     (previousError, attempt) => new ActionResult(attempt === 0 ? buggyCleanupCode : correctCleanupCode, 0.03),
     validateTests,
@@ -219,9 +219,9 @@ async function demoV3(rl, auto) {
   console.log(result.output.trim().split('\n').map(line => `  ${line}`).join('\n'));
 }
 
-async function demoV4(rl, auto) {
+async function demoV4(rl) {
   console.log('\n--- V4 引用校验：幻觉 API -> 补充检索 -> 可追溯引用 ---');
-  await wait(rl, auto);
+  await wait(rl);
   const result = reflectionLoop(
     (previousError, attempt) => attempt === 0
       ? new ActionResult('问题来自 `memory.clear_expired()`，应该改成 `memory.remove_expired_sessions()`。', 0.02)
@@ -231,9 +231,9 @@ async function demoV4(rl, auto) {
   printResult(result);
 }
 
-async function demoStop(rl, auto) {
+async function demoStop(rl) {
   console.log('\n--- 停止条件：相同反馈重复出现 -> 硬停止 ---');
-  await wait(rl, auto);
+  await wait(rl);
   const result = reflectionLoop(
     () => new ActionResult('{"tool": "search_notes"}', 0.01),
     validateJsonSchema,
@@ -250,31 +250,21 @@ Reflection 示例
   3 - V3 测试驱动处理
   4 - V4 引用校验
   5 - 停止条件
-  6 - 全部演示
   q - 退出`);
 }
 
 async function main() {
-  const auto = process.argv.includes('--auto');
   const rl = readline.createInterface({ input, output });
   const demos = [demoV0, demoV1, demoV2, demoV3, demoV4, demoStop];
-
-  if (auto) {
-    for (const demo of demos) await demo(rl, true);
-    rl.close();
-    return;
-  }
 
   printMenu();
   while (true) {
     const choice = (await rl.question('\n请选择演示：')).trim().toLowerCase();
     if (choice === 'q') break;
-    if (choice === '6') {
-      for (const demo of demos) await demo(rl, false);
-    } else if (/^[0-5]$/.test(choice)) {
-      await demos[Number(choice)](rl, false);
+    if (/^[0-5]$/.test(choice)) {
+      await demos[Number(choice)](rl);
     } else {
-      console.log('无效选项，请输入 0-6 或 q。');
+      console.log('无效选项，请输入 0-5 或 q。');
     }
   }
   rl.close();

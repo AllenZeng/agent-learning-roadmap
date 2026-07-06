@@ -4,7 +4,6 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "node reflection_demo.mjs",
-    "auto": "node reflection_demo.mjs --auto"
+    "start": "node reflection_demo.mjs"
   }
 }

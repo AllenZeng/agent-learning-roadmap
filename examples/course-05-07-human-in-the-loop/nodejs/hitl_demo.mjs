@@ -3,12 +3,11 @@
  * 课程五 05-07 Human-in-the-loop 示例
  *
  * 用法：
- *   node hitl_demo.mjs --auto
  *   node hitl_demo.mjs
  */
 
 import { appendFile, readFile, rm, writeFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 
@@ -117,13 +116,14 @@ class TeachingMemory {
 }
 
 class HumanSimulator {
-  constructor(auto) {
-    this.auto = auto;
-    this.rl = createInterface({ input, output });
+  constructor() {
+    this.rl = input.isTTY ? createInterface({ input, output }) : null;
+    this.pipedAnswers = input.isTTY ? [] : readFileSync(0, "utf8").split(/\r?\n/);
+    this.answerIndex = 0;
   }
 
   async close() {
-    this.rl.close();
+    if (this.rl) this.rl.close();
   }
 
   async choose(prompt, options, defaultKey) {
@@ -133,23 +133,25 @@ class HumanSimulator {
       console.log(`  ${key}. ${label}${marker}`);
     }
 
-    if (this.auto) {
-      console.log(`  自动选择: ${defaultKey}\n`);
-      return defaultKey;
+    let answer;
+    if (this.rl) {
+      answer = (await this.rl.question("  请选择: ")).trim() || defaultKey;
+    } else {
+      const raw = this.pipedAnswers[this.answerIndex++] ?? "";
+      answer = raw.trim() || defaultKey;
+      console.log(`  请选择: ${raw.trim()}`);
     }
-
-    const answer = (await this.rl.question("  请选择: ")).trim() || defaultKey;
     console.log();
     return options[answer] ? answer : defaultKey;
   }
 }
 
 class HitlAgent {
-  constructor(auto) {
+  constructor() {
     this.policy = new HitlPolicy();
     this.audit = new AuditLog();
     this.memory = new TeachingMemory();
-    this.human = new HumanSimulator(auto);
+    this.human = new HumanSimulator();
   }
 
   async reset() {
@@ -165,7 +167,7 @@ class HitlAgent {
     const [risk, mode] = this.policy.assess(action);
     let decision;
     if (mode === HitlMode.NONE) {
-      decision = { mode, risk, decision: "auto_execute", reason: "只读或低风险操作，无需介入" };
+      decision = { mode, risk, decision: "direct_execute", reason: "只读或低风险操作，无需介入" };
     } else if (mode === HitlMode.TAKEOVER) {
       decision = await this.takeover(action, risk);
     } else {
@@ -302,7 +304,7 @@ class HitlAgent {
       if (!stats.has(tool)) stats.set(tool, { total: 0, approved: 0, manual: 0, rejected: 0 });
       const data = stats.get(tool);
       data.total += 1;
-      if (["approved", "safe_subset", "auto_execute"].includes(decision)) data.approved += 1;
+      if (["approved", "safe_subset", "direct_execute"].includes(decision)) data.approved += 1;
       if (["manual", "manual_required"].includes(decision)) data.manual += 1;
       if (decision === "rejected") data.rejected += 1;
     }
@@ -313,7 +315,7 @@ class HitlAgent {
       let advice = "保持当前策略";
       if (rate >= 0.95 && data.manual === 0) advice = "可考虑降低确认频率";
       if (data.manual > 0 || rate < 0.7) advice = "保持或提高介入强度";
-      console.log(`  - ${tool}: ${data.total} 次，自动/通过率 ${(rate * 100).toFixed(0)}% -> ${advice}`);
+      console.log(`  - ${tool}: ${data.total} 次，直接执行/通过率 ${(rate * 100).toFixed(0)}% -> ${advice}`);
     }
 
     if (this.memory.items.length > 0) {
@@ -386,8 +388,7 @@ async function runTakeoverDemo(agent) {
 }
 
 async function runDemo() {
-  const auto = process.argv.includes("--auto");
-  const agent = new HitlAgent(auto);
+  const agent = new HitlAgent();
   await agent.reset();
 
   console.log("=".repeat(68));

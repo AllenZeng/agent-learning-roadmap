@@ -13,7 +13,7 @@ Python：
 
 ```bash
 cd examples/course-05-07-human-in-the-loop/python
-python3 hitl_demo.py --auto
+python3 hitl_demo.py
 python3 -m unittest test_hitl_demo.py
 ```
 
@@ -24,7 +24,7 @@ cd examples/course-05-07-human-in-the-loop/nodejs
 npm start
 ```
 
-去掉 `--auto` 或使用 `npm run interactive` 可以进入交互模式，手动批准、拒绝或转交操作。
+运行时按提示手动批准、拒绝或转交操作。直接按 Enter 会选择提示中的默认选项。
 
 ## 你会看到什么
 
@@ -62,5 +62,5 @@ hitl_memory.json
 ## 教学简化说明
 
 - 风险评估使用规则实现，目的是展示判断位置和数据流，不是生产级安全策略。
-- 自动模式会预设人类决策，方便完整观察流程；交互模式更接近真实产品体验。
+- 示例需要手动选择 HITL 决策；直接按 Enter 会采用默认选项，方便连续观察完整流程。
 - 示例中的“退款”和“数据库迁移”不会调用外部系统，只打印决策上下文和审计记录。
