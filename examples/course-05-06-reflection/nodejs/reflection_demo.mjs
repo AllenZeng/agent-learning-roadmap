@@ -2,8 +2,8 @@
 /**
  * 课程五 05-06 Reflection 示例 (Node.js)
  *
- * 演示由外部失败信号触发的修正闭环：
- * 触发 -> 分类 -> 修正 -> 重新验证 -> 成功或停止。
+ * 演示由外部反馈信号触发的决策闭环：
+ * 触发 -> 分类 -> 决策 -> 处理 -> 验证或停止。
  */
 
 import readline from 'node:readline/promises';
@@ -150,14 +150,14 @@ function reflectionLoop(action, validate, options = {}) {
       message: validation.message,
       evidence: validation.evidence,
     };
-    trace.push(`[尝试 ${attempt + 1}] 错误分类：${errorType}`);
+    trace.push(`[尝试 ${attempt + 1}] 反馈分类：${errorType}`);
 
     if (cost > costBudget) {
       trace.push(`[停止] 成本超限：$${cost.toFixed(2)} > $${costBudget.toFixed(2)}`);
       return { status: 'stopped', reason: 'cost_limit', output: result.output, attempts: attempt + 1, cost, trace };
     }
     if (previousSignature === signature) {
-      trace.push('[停止] 相同错误重复出现，修正没有改变失败结果');
+      trace.push('[停止] 相同反馈重复出现，处理没有改变失败结果');
       return { status: 'stopped', reason: 'repeated_failure', output: result.output, attempts: attempt + 1, cost, trace };
     }
     previousSignature = signature;
@@ -181,7 +181,7 @@ async function demoV0(rl, auto) {
   console.log(`  npm test
   TypeError: Cannot read properties of undefined (reading 'files')
   Agent 把它记录成“测试完成（有警告）”，然后继续写 changelog。
-  问题：失败信号没有触发停止、分类、修正和重试。`);
+  问题：反馈信号没有触发停止、分类、决策和处理。`);
 }
 
 async function demoV1(rl, auto) {
@@ -197,7 +197,7 @@ async function demoV1(rl, auto) {
 }
 
 async function demoV2(rl, auto) {
-  console.log('\n--- V2 工具错误修正：参数错误 -> 分类 -> 修正参数 ---');
+  console.log('\n--- V2 工具错误处理：参数错误 -> 分类 -> 决策 ---');
   await wait(rl, auto);
   const result = reflectionLoop(
     (previousError, attempt) => attempt === 0
@@ -209,7 +209,7 @@ async function demoV2(rl, auto) {
 }
 
 async function demoV3(rl, auto) {
-  console.log('\n--- V3 测试驱动修正：测试失败 -> 修正代码 -> 重跑测试 ---');
+  console.log('\n--- V3 测试驱动处理：测试失败 -> 修正代码或停止 ---');
   await wait(rl, auto);
   const result = reflectionLoop(
     (previousError, attempt) => new ActionResult(attempt === 0 ? buggyCleanupCode : correctCleanupCode, 0.03),
@@ -232,7 +232,7 @@ async function demoV4(rl, auto) {
 }
 
 async function demoStop(rl, auto) {
-  console.log('\n--- 停止条件：相同错误重复出现 -> 硬停止 ---');
+  console.log('\n--- 停止条件：相同反馈重复出现 -> 硬停止 ---');
   await wait(rl, auto);
   const result = reflectionLoop(
     () => new ActionResult('{"tool": "search_notes"}', 0.01),
@@ -246,8 +246,8 @@ function printMenu() {
 Reflection 示例
   0 - V0 无反思
   1 - V1 格式修复
-  2 - V2 工具错误修正
-  3 - V3 测试驱动修正
+  2 - V2 工具错误处理
+  3 - V3 测试驱动处理
   4 - V4 引用校验
   5 - 停止条件
   6 - 全部演示

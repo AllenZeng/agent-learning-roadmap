@@ -2,18 +2,18 @@
 """
 课程五 05-06 Reflection 示例
 
-一个交互式 REPL，演示 Reflection 的四个迭代阶段：
+一个交互式 REPL，演示 Reflection 的反馈决策闭环：
   - V0：无反思 — Agent 看到 TypeError 却继续执行
   - V1：格式修复 — Schema 校验失败触发重生成
-  - V2：工具错误修正 — 参数错误触发分类修正
-  - V3：测试驱动修正 — 外部测试框架驱动代码修正
+  - V2：工具错误处理 — 参数错误触发分类与处理决策
+  - V3：测试驱动处理 — 外部测试框架驱动下一步决策
 
 用法:
     python reflection_demo.py
 
 在 REPL 中你可以:
   - 观察 V0 中 Agent 忽略错误的完整过程
-  - 对比 V1-V3 每阶段新增的修正能力
+  - 对比 V1-V3 每阶段新增的反馈处理能力
   - 触发停止条件，观察 Reflection 循环如何终止
 """
 
@@ -245,11 +245,11 @@ def validate_env_check(action_name: str) -> ValidationResult:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 错误分类器
+# 反馈分类器
 # ═══════════════════════════════════════════════════════════════════════════
 
-def classify_error(validation: ValidationResult) -> str:
-    """根据验证结果分类错误类型"""
+def classify_feedback(validation: ValidationResult) -> str:
+    """根据验证结果分类反馈类型"""
     return validation.error_type
 
 
@@ -269,7 +269,7 @@ def reflection_loop(
 
     关键设计：
     - validate 必须是外部验证器（测试、schema、引用对比），不能是模型自评
-    - 修正方案必须改变输入（prompt/参数/上下文），不是简单重跑
+    - 如果选择自动修正，必须改变输入（prompt/参数/上下文），不是简单重跑
     - 停止条件硬编码，不由模型决定
     """
     cost_spent = 0.0
@@ -298,14 +298,14 @@ def reflection_loop(
                 trace=trace
             )
 
-        # 3. 分类失败，准备修正上下文
-        error_type = classify_error(validation)
+        # 3. 分类失败，准备下一轮处理上下文
+        error_type = classify_feedback(validation)
         last_error = {
             "type": error_type,
             "message": validation.message,
             "evidence": validation.evidence,
         }
-        trace.append(f"[尝试 {attempt + 1}] 错误分类: {error_type}")
+        trace.append(f"[尝试 {attempt + 1}] 反馈分类: {error_type}")
 
         # 4. 停止条件检查
         # 4a. 成本上限
@@ -319,13 +319,13 @@ def reflection_loop(
                 output=result.output, trace=trace
             )
 
-        # 4b. 相同错误重复出现（修正后错误类型和 evidence 完全一致）
+        # 4b. 相同反馈重复出现（处理后反馈类型和 evidence 完全一致）
         if attempt >= 1:
-            # 简化检测：如果连续两次错误类型相同，判定为相同错误
-            trace.append(f"[停止] 相同错误重复出现 ({error_type})，已尝试 {attempt + 1} 次")
+            # 简化检测：如果连续两次反馈类型相同，判定为相同反馈
+            trace.append(f"[停止] 相同反馈重复出现 ({error_type})，已尝试 {attempt + 1} 次")
             if verbose:
-                print(f"\n  🛑 相同错误重复停止: {error_type} 已连续出现 {attempt + 1} 次")
-                print("     修正未改变失败结果，可能根因分类错误")
+                print(f"\n  🛑 相同反馈重复停止: {error_type} 已连续出现 {attempt + 1} 次")
+                print("     处理未改变失败结果，可能根因分类错误")
             return ReflectionResult(
                 status="stopped", reason="repeated_failure",
                 attempts=attempt + 1, cost=cost_spent,
@@ -333,7 +333,7 @@ def reflection_loop(
             )
 
         if verbose:
-            print(f"  🔄 第 {attempt + 1} 次失败 ({error_type})，修正后重试...")
+            print(f"  🔄 第 {attempt + 1} 次失败 ({error_type})，处理后重试...")
             print(f"     证据: {validation.evidence[:100]}...")
 
     # 超过最大重试次数
@@ -361,7 +361,7 @@ LOOP = "🔄"
 
 def print_header():
     print("\n" + "=" * 64)
-    print("  Reflection — 失败修正能力示例")
+    print("  Reflection — 基于反馈的决策闭环示例")
     print("=" * 64)
     print()
     print("  场景：知识助手 Agent 在三种任务中的 Reflection 表现")
@@ -369,10 +369,10 @@ def print_header():
     print("  演示选项:")
     print("    0 — V0 无反思：Agent 看到 TypeError，继续写 changelog")
     print("    1 — V1 格式修复：Schema 校验失败 → 重生成")
-    print("    2 — V2 工具错误修正：参数错误 → 分类 → 修正参数 → 重试")
-    print("    3 — V3 测试驱动修正：测试失败 → 定位断言 → 修正代码 → 重跑测试")
-    print("    4 — 完整 Reflection 循环：触发→分类→修正→验证→停止")
-    print("    5 — 停止条件触发：相同错误重复出现 → 硬停止")
+    print("    2 — V2 工具错误处理：参数错误 → 分类 → 决策 → 重试或停止")
+    print("    3 — V3 测试驱动处理：测试失败 → 定位断言 → 修正代码或停止")
+    print("    4 — 完整 Reflection 循环：触发→分类→决策→处理→验证或停止")
+    print("    5 — 停止条件触发：相同反馈重复出现 → 硬停止")
     print("    6 — 对比总结")
     print("    q — 退出")
     print()
@@ -421,7 +421,7 @@ def demo_v0_no_reflection():
     3. 最终汇报: "✅ 发布准备已完成"
 
   ┌─────────────────────────────────────────────────────────────┐
-  │ 问题：Agent 缺少"看到失败信号→停止→分析→修正→重试"的闭环  │
+  │ 问题：Agent 缺少"看到反馈信号→分类→决策→处理或停止"的闭环  │
   │                                                             │
   │ 这不是工具问题，不是 Planning 问题，不是 Memory 问题。      │
   │ 这是 Reflection 的缺失。                                     │
@@ -436,7 +436,7 @@ def demo_v1_format_fix():
     """
     V1：格式修复 — Schema 校验失败触发重生成。
 
-    对应课程 6.5 V1：JSON / schema 不合法时重校验并重生成。
+    对应课程 6.4.2-6.4.4：Schema 校验失败 → 反馈分类 → 重生成。
     """
     section("V1：格式修复 — Schema 校验失败 → 重生成")
 
@@ -488,11 +488,11 @@ def demo_v1_format_fix():
 
 def demo_v2_tool_error_fix():
     """
-    V2：工具错误修正 — 参数错误触发分类修正。
+    V2：工具错误处理 — 参数错误触发分类与处理决策。
 
-    对应课程 6.4.2-6.4.4：工具返回参数错误 → 分类 → 修正参数 → 重试。
+    对应课程 6.4.2-6.4.4：工具返回参数错误 → 分类 → 决定修正参数并重试。
     """
-    section("V2：工具错误修正 — 参数错误 → 分类 → 修正")
+    section("V2：工具错误处理 — 参数错误 → 分类 → 决策")
 
     print("""
   场景：Agent 调用 search_notes 搜索笔记，但参数不合法。
@@ -547,19 +547,19 @@ def demo_v2_tool_error_fix():
 
     print("""
   💡 关键点:
-     - 错误分类决定修正方向：参数错误→改参数，不要连工具一起换
-     - 修正必须改变输入：limit=500→20, query=""→"memory cleanup decay"
+     - 反馈分类决定处理方向：参数错误→改参数，不要连工具一起换
+     - 自动修正必须改变输入：limit=500→20, query=""→"memory cleanup decay"
      - 区分可重试（网络超时）、可修正（参数错误）、不可恢复（权限不足）
 """)
 
 
 def demo_v3_test_driven_fix():
     """
-    V3：测试驱动修正 — 外部测试框架驱动代码修正。
+    V3：测试驱动处理 — 外部测试框架驱动下一步决策。
 
-    对应课程 6.5 V3 和 6.4.6 实战回放。
+    对应课程 6.4.2-6.4.5：测试失败 → 反馈分类 → 处理策略 → 重新验证或停止。
     """
-    section("V3：测试驱动修正 — 测试失败 → 定位 → 修正代码 → 重跑")
+    section("V3：测试驱动处理 — 测试失败 → 定位 → 修正代码或停止")
 
     print("""
   场景：Agent 修复了 session_manager.py 的 cleanup 方法，但代码有 bug。
@@ -604,7 +604,7 @@ def demo_full_reflection_loop():
 
     对应课程 6.4.6 实战回放。
     """
-    section("完整 Reflection 循环：触发→分类→修正→验证→停止")
+    section("完整 Reflection 循环：触发→分类→决策→处理→验证或停止")
 
     print("""
   场景：用户让 Agent 分析代码中的 bug。Agent 引用了不存在的 API。
@@ -657,32 +657,32 @@ def demo_full_reflection_loop():
     print("""
   💡 关键点:
      - 触发是被动的：validate() 返回 passed=false 才触发
-     - 分类决定修正方向：幻觉→上下文缺失→补充检索
-     - 修正改变输入：第 2 次 prompt 中多了检索到的原文
-     - 验证在修正后重新执行：不是"改了就算好了"
+     - 分类决定处理方向：幻觉→上下文缺失→补充检索
+     - 自动修正改变输入：第 2 次 prompt 中多了检索到的原文
+     - 处理后重新验证：不是"改了就算好了"
 """)
 
 
 def demo_stop_conditions():
     """
-    停止条件触发演示：相同错误重复出现 → 硬停止。
+    停止条件触发演示：相同反馈重复出现 → 硬停止。
 
-    对应课程 6.4.5 和 6.6.2 调试故事三。
+    对应课程 6.4.5：停止条件。
     """
-    section("停止条件触发：相同错误重复出现 → 硬停止")
+    section("停止条件触发：相同反馈重复出现 → 硬停止")
 
     print("""
   场景：Agent 的 JSON 输出持续缺少 tool_name 字段。
 
   第 1 次：缺 tool_name
-  第 2 次：缺 tool_name（修正没改变输入，只是重跑了相同 prompt）
-  → 停止条件触发：相同错误重复出现
+  第 2 次：缺 tool_name（处理没改变输入，只是重跑了相同 prompt）
+  → 停止条件触发：相同反馈重复出现
 
-  对应课程 6.6.2 调试故事三：如果停止条件被绕过，Agent 会修正 7 次。""")
+  如果停止条件被绕过，Agent 可能会围绕同一个反馈反复处理。""")
 
     input("\n  [按 Enter 执行...]")
 
-    # 永远返回缺 tool_name 的输出（模拟修正无效的情况）
+    # 永远返回缺 tool_name 的输出（模拟处理无效的情况）
     def action_stuck(prev_error, attempt):
         output = '{"tool": "search_notes", "args": {"query": "test"}}'
         return ActionResult(output=output, cost=0.01)
@@ -701,10 +701,10 @@ def demo_stop_conditions():
 
     print("""
   💡 关键点:
-     - 停止条件必须硬编码——模型在第 5 次修正时仍会说"这次应该对了"
+     - 停止条件必须硬编码——模型在第 5 次处理时仍会说"这次应该对了"
      - 停止条件之间是 OR 关系：任意一个满足就停止
-     - 相同错误检测对比的是错误类型（schema_error），不是完整错误字符串
-     - 如果修正方案没有改变输入，第二次就是浪费——应该停止
+     - 相同反馈检测对比的是反馈类型（schema_error），不是完整错误字符串
+     - 如果处理策略没有改变输入，第二次就是浪费——应该停止
 """)
 
 
@@ -716,10 +716,10 @@ def demo_summary():
   ┌──────────┬──────────────────────┬──────────────────────────────┐
   │ 阶段     │ 做什么               │ 解决什么问题                  │
   ├──────────┼──────────────────────┼──────────────────────────────┤
-  │ V0 无反思│ 失败直接返回          │ 验证任务是否真的需要修正闭环  │
+  │ V0 无反思│ 失败直接返回          │ 验证任务是否真的需要决策闭环  │
   │ V1 格式  │ Schema 重校验+重生成  │ 结构化输出稳定性              │
   │ V2 工具  │ 参数/超时/权限分类处理│ 工具调用稳定性                │
-  │ V3 测试  │ 测试失败→定位→修正代码│ 代码类任务质量                │
+  │ V3 测试  │ 测试失败→定位→处理决策│ 代码类任务质量                │
   │ V4 引用  │ 知识库原文反向验证     │ 知识问答可信度                │
   └──────────┴──────────────────────┴──────────────────────────────┘
 
@@ -730,14 +730,14 @@ def demo_summary():
      → 测试框架、Schema 校验、引用原文对比、用户驳回
      → 不是"让 LLM 自己检查"
 
-  2. 分类先于修正，根因先于症状
+  2. 分类先于处理，根因先于症状
      看到"测试失败"就重跑——这不是 Reflection，这是祈祷。
      → 先问"为什么失败"：代码逻辑错？测试环境坏？幻觉？
-     → 修正方案必须改变输入，不能只是重跑相同 prompt
+     → 自动修正必须改变输入，不能只是重跑相同 prompt
 
   3. 停止条件是安全阀，不能交给模型决定
      模型没有"该停了"的直觉。
-     → 最大重试 3 次、相同错误 2 次即停、成本上限 $1
+     → 最大重试 3 次、相同反馈 2 次即停、成本上限 $1
      → 必须硬编码，必须在运行时强制执行
 
   ───────────────────────────────────────────────────────────────
@@ -749,7 +749,7 @@ def demo_summary():
      - 任务对延迟非常敏感
 
   实用判断：
-    "如果有明确反馈信号，并且修正成本低于失败成本，Reflection 值得引入。
+    "如果有明确反馈信号，并且自动处理成本低于失败成本，Reflection 值得引入。
      如果只是让模型'再想想'，通常不值得。"
 """)
 
@@ -761,8 +761,8 @@ def demo_summary():
 DEMOS = {
     "0": ("V0 无反思", demo_v0_no_reflection),
     "1": ("V1 格式修复", demo_v1_format_fix),
-    "2": ("V2 工具错误修正", demo_v2_tool_error_fix),
-    "3": ("V3 测试驱动修正", demo_v3_test_driven_fix),
+    "2": ("V2 工具错误处理", demo_v2_tool_error_fix),
+    "3": ("V3 测试驱动处理", demo_v3_test_driven_fix),
     "4": ("完整 Reflection 循环", demo_full_reflection_loop),
     "5": ("停止条件触发", demo_stop_conditions),
     "6": ("对比总结", demo_summary),
