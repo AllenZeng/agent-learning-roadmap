@@ -1,15 +1,15 @@
 """
-在线查询 Pipeline：用户问题 → 基于笔记的回答
+Online query pipeline: user question -> note-based answer
 
-对应 course-05-02 §2.4.5–2.4.7 的内容：
-  2.4.5 查询理解与改写   — 指代消解、意图补全
-  2.4.6 召回与重排序     — 多路召回 + RRF 融合 + rerank + 截断
-  2.4.7 上下文组装与生成 — chunk 编排、来源标注、引用对齐
+Corresponds to course-05-02 sections 2.4.5-2.4.7:
+  2.4.5 Query understanding and rewriting   - reference resolution and intent completion
+  2.4.6 Retrieval and reranking     - multi-route retrieval + RRF fusion + rerank + truncation
+  2.4.7 Context assembly and generation - chunk ordering, source labels, and citation alignment
 
-用法：
-    python online_pipeline.py "Tool Use 和 Memory 的区别"
-    python online_pipeline.py --interactive            # 交互模式
-    python online_pipeline.py --top-k 5 "什么是 Chunking"
+Usage:
+    python online_pipeline.py "the difference between Tool Use and Memory"
+    python online_pipeline.py --interactive            # Interactive mode
+    python online_pipeline.py --top-k 5 "what Chunking is"
 """
 
 import argparse
@@ -34,28 +34,28 @@ MAX_CONTEXT_CHARS = 3000
 # ================================================================
 
 def load_index(index_dir: str) -> tuple[list[dict], list[list[float]], SimpleBM25, dict]:
-    """加载所有索引文件"""
+    """Load all index files"""
     base = Path(index_dir)
 
     # Chunks metadata + content
     with open(base / "chunks.json", encoding="utf-8") as f:
         chunks = json.load(f)
-    print(f"[加载] chunks.json — {len(chunks)} 个 chunk")
+    print(f"[load] chunks.json — {len(chunks)} chunks")
 
     # Vector embeddings
     with open(base / "embeddings.json", encoding="utf-8") as f:
         embeddings = json.load(f)
     embedding_dim = len(embeddings[0]) if embeddings else 0
-    print(f"[加载] embeddings.json — {len(embeddings)} × {embedding_dim}")
+    print(f"[load] embeddings.json — {len(embeddings)} × {embedding_dim}")
 
     # BM25 index
     with open(base / "bm25_index.json", encoding="utf-8") as f:
         bm25_index = SimpleBM25.from_dict(json.load(f))
-    print(f"[加载] bm25_index.json — {len(bm25_index.idf)} 个词条")
+    print(f"[load] bm25_index.json — {len(bm25_index.idf)} terms")
 
     with open(base / "index_meta.json") as f:
         meta = json.load(f)
-    print(f"[加载] 伪 embedding: hashing TF-IDF ({meta.get('pseudo_embedding_dim', embedding_dim)} 维)")
+    print(f"[load] pseudo embedding: hashing TF-IDF ({meta.get('pseudo_embedding_dim', embedding_dim)} dimensions)")
 
     return chunks, embeddings, bm25_index, meta
 
@@ -66,19 +66,19 @@ def load_index(index_dir: str) -> tuple[list[dict], list[list[float]], SimpleBM2
 
 def understand_query(query: str) -> dict:
     """
-    对查询做简单理解和扩展。
-    完整实现会包括：指代消解、同义词扩展、意图分类。
-    此处展示核心思路。
+    Perform simple query understanding and expansion.
+    A full implementation would include reference resolution, synonym expansion, and intent classification.
+    This shows the core idea.
     """
     # Detect whether this is a follow-up question with references
-    has_pronoun = any(w in query for w in ["它", "他", "她", "这个", "那个", "这些", "那些"])
+    has_pronoun = any(w in query for w in ["it", "he", "she", "this", "that", "these", "those"])
 
     # Simple synonym expansion
     expansions = {
-        "tool use": ["工具调用", "工具使用", "function calling"],
-        "memory": ["记忆", "状态管理", "上下文"],
-        "rag": ["检索增强生成", "外部知识", "知识库"],
-        "chunking": ["分块", "切分", "文档分割"],
+        "tool use": ["tool calling", "tool use", "function calling"],
+        "memory": ["memory", "state management", "context"],
+        "rag": ["retrieval-augmented generation", "external knowledge", "knowledge base"],
+        "chunking": ["chunking", "splitting", "document splitting"],
     }
 
     expanded_terms = []
@@ -106,8 +106,8 @@ def dense_retrieve(
     top_k: int = 20,
 ) -> list[dict]:
     """
-    伪向量召回：hashing TF-IDF embed query → cosine similarity → top-k。
-    它保留 dense retrieval 的教学结构，但不依赖外部模型。
+    Pseudo vector retrieval: hashing TF-IDF embeds the query -> cosine similarity -> top-k.
+    It keeps the teaching structure of dense retrieval without depending on external models.
     """
     query_vec = pseudo_embed(query, meta.get("pseudo_embedding_idf", {}))
     scores = [dot_product(emb, query_vec) for emb in embeddings]
@@ -128,8 +128,8 @@ def dense_retrieve(
 
 def sparse_retrieve(query: str, bm25_index: SimpleBM25, chunks: list[dict], top_k: int = 20) -> list[dict]:
     """
-    BM25 关键词召回：精确匹配专有名词和术语。
-    擅长精确匹配，但不懂语义变体（'Tool Use' vs '工具调用'）。
+    BM25 keyword recall: exact matching for proper nouns and terminology.
+    Good at exact matching, but it does not understand semantic variants such as 'Tool Use' vs 'tool calling'.
     """
     tokenized = tokenize(query)
     scores = bm25_index.get_scores(tokenized)
@@ -154,7 +154,7 @@ def sparse_retrieve(query: str, bm25_index: SimpleBM25, chunks: list[dict], top_
 
 
 def metadata_filter(results: list[dict]) -> list[dict]:
-    """过滤：排除草稿、过旧内容"""
+    """Filter: exclude drafts and stale content"""
     filtered = []
     for r in results:
         c = r["chunk"]
@@ -167,8 +167,8 @@ def metadata_filter(results: list[dict]) -> list[dict]:
 
 def rrf_fusion(dense_results: list[dict], sparse_results: list[dict], k: int = 60) -> list[dict]:
     """
-    Reciprocal Rank Fusion：合并两路召回并去重。
-    来自不同路的同一 chunk 会获得更高排名（两路都认可）。
+    Reciprocal Rank Fusion: merge two recall paths and deduplicate.
+    The same chunk from different paths receives a higher rank because both paths agree.
     """
     scores = {}  # chunk_idx → fused_score
 
@@ -205,12 +205,12 @@ def rerank(
     query: str, candidates: list[dict], meta: dict, top_k: int = DEFAULT_TOP_K
 ) -> list[dict]:
     """
-    重排序：对候选 chunk 做精细排序。
+    Reranking: finely sort candidate chunks.
 
-    此处使用 score-based 方法（余弦相似度 + 融合分数加权）。
-    生产环境中建议用 cross-encoder 逐对评分，精度更高但计算成本大。
+    This uses a score-based method: cosine similarity plus weighted fused score.
+    In production, a cross-encoder is recommended for pairwise scoring; it is more accurate but more expensive.
 
-    关键信号：分数断崖。当 #N 到 #N+1 的分数骤降时，截断在 N。
+    Key signal: score cliff. When the score drops sharply from #N to #N+1, truncate at N.
     """
     if len(candidates) <= top_k:
         return candidates
@@ -242,8 +242,8 @@ def rerank(
 
 def assemble_context(query: str, ranked_chunks: list[dict], max_chars: int = MAX_CONTEXT_CHARS) -> str:
     """
-    将检索结果编排为 LLM 可用的上下文。
-    每个 chunk 标注来源编号、文件名、小节路径、更新时间。
+    Arrange retrieval results into context usable by the LLM.
+    Each chunk is labeled with source number, file name, section path, and updated time.
     """
     parts = []
     total_chars = 0
@@ -251,17 +251,17 @@ def assemble_context(query: str, ranked_chunks: list[dict], max_chars: int = MAX
     for i, r in enumerate(ranked_chunks):
         c = r["chunk"]
         header = (
-            f"[来源 {i + 1}] {c['source']} — {c['section_path']}\n"
-            f"更新于 {c.get('updated_at', '?')}  |  "
-            f"标签: {', '.join(c.get('tags', []))}  |  "
-            f"分数: {r.get('rerank_score', r['fused_score']):.3f}"
+            f"[source {i + 1}] {c['source']} — {c['section_path']}\n"
+            f"Updated at {c.get('updated_at', '?')}  |  "
+            f"tags: {', '.join(c.get('tags', []))}  |  "
+            f"score: {r.get('rerank_score', r['fused_score']):.3f}"
         )
 
         content = c["content"]
         total_chars += len(header) + len(content) + 4
 
         if total_chars > max_chars and i > 0:
-            print(f"  [截断] 达到 token 预算上限，取了 {i} / {len(ranked_chunks)} 个 chunk")
+            print(f"  [truncate] reached token budget limit, used {i} / {len(ranked_chunks)} chunks")
             break
 
         parts.append(f"{header}\n\n{content}")
@@ -275,37 +275,37 @@ def assemble_context(query: str, ranked_chunks: list[dict], max_chars: int = MAX
 
 def generate_answer(query: str, context: str, ranked_chunks: list[dict]) -> str:
     """
-    生成最终回答。
+    Generate the final answer.
 
-    此处为模拟——展示会进入 LLM 上下文的完整 prompt 结构。
-    实际使用时可替换为 LLM API 调用。
+    This is a simulation showing the full prompt structure that would enter LLM context.
+    In real use, replace this with an LLM API call.
     """
     sources_summary = "\n".join(
         f"  [{i + 1}] {r['chunk']['source']} → {r['chunk']['section_path']} "
-        f"(分数: {r.get('rerank_score', r['fused_score']):.3f})"
+        f"(score: {r.get('rerank_score', r['fused_score']):.3f})"
         for i, r in enumerate(ranked_chunks)
     )
 
-    prompt = f"""你是一个个人知识助手。请基于以下笔记内容回答用户问题。
+    prompt = f"""You are a personal knowledge assistant. Answer the user's question based on the notes below.
 
-## 用户问题
+## User Question
 {query}
 
-## 相关笔记
+## Relevant Notes
 {context}
 
-## 回答要求
-- 基于上述笔记内容回答，不要编造
-- 引用具体来源（如 [来源 1]）
-- 如果笔记中没有直接答案，明确说明
-- 如果笔记内容存在矛盾，指出并说明
+## Answer Requirements
+- Answer based on the notes above; do not fabricate
+- Cite specific sources, such as [Source 1]
+- If the notes do not contain a direct answer, say so clearly
+- If the notes conflict, point that out and explain
 """
     print("\n" + "=" * 60)
-    print("  📤 最终 Prompt（将发送给 LLM）")
+    print("  📤 Final Prompt (to be sent to the LLM)")
     print("=" * 60)
     print(f"\n{prompt}\n")
-    print(f"[提示] 以上 Prompt 共约 {len(prompt)} 字符")
-    print(f"[提示] 替换 generate_answer() 中的逻辑接入 LLM API 即可获得最终回答\n")
+    print(f"[tip] the prompt above is about {len(prompt)} characters")
+    print(f"[tip] replace generate_answer() with an LLM API call to get the final answer\n")
 
     return prompt
 
@@ -320,10 +320,10 @@ def run_online_pipeline(
     top_k: int = DEFAULT_TOP_K,
     debug: bool = False,
 ):
-    """执行完整的在线查询流程"""
+    """Run the full online query flow"""
     print("=" * 60)
-    print(f"  在线查询 Pipeline")
-    print(f"  查询: \"{query}\"")
+    print(f"  Online Query Pipeline")
+    print(f"  Query: \"{query}\"")
     print("=" * 60)
 
     # ── Step 1: Load index ──
@@ -331,25 +331,25 @@ def run_online_pipeline(
     chunks, embeddings, bm25_index, meta = load_index(index_dir)
 
     # ── Step 2: Query understanding ──
-    print(f"\n── 查询理解 (§2.4.5) ──")
+    print(f"\n── Query understanding (§2.4.5) ──")
     query_info = understand_query(query)
-    print(f"  原始查询: {query_info['original']}")
+    print(f"  Original query: {query_info['original']}")
     if query_info["has_pronoun"]:
-        print(f"  ⚠️ 检测到指代词，可能需要上下文补全")
+        print(f"  ⚠️ Detected references; context completion may be needed")
     if query_info["expanded_terms"]:
-        print(f"  扩展词: {query_info['expanded_terms']}")
+        print(f"  Expanded terms: {query_info['expanded_terms']}")
 
     search_query = query_info["expanded_query"]
 
     # ── Step 3: Multi-route retrieval ──
-    print(f"\n── 多路召回 (§2.4.6) ──")
-    print(f"  向量召回 top-20 ...", end=" ")
+    print(f"\n── Multi-route retrieval (§2.4.6) ──")
+    print(f"  Vector retrieval top-20 ...", end=" ")
     dense_results = dense_retrieve(search_query, meta, embeddings, chunks, top_k=20)
-    print(f"命中 {len(dense_results)}")
+    print(f"hits {len(dense_results)}")
 
-    print(f"  BM25 召回 top-20 ...", end=" ")
+    print(f"  BM25 Recall top-20 ...", end=" ")
     sparse_results = sparse_retrieve(search_query, bm25_index, chunks, top_k=20)
-    print(f"命中 {len(sparse_results)}")
+    print(f"hits {len(sparse_results)}")
 
     # Metadata filtering
     dense_results = metadata_filter(dense_results)
@@ -357,37 +357,37 @@ def run_online_pipeline(
 
     # RRF fusion
     fused = rrf_fusion(dense_results, sparse_results)
-    print(f"  RRF 融合 → {len(fused)} 个候选（去重后）")
+    print(f"  RRF fusion → {len(fused)} candidates after deduplication")
 
     if debug:
-        print(f"\n  候选集详情:")
+        print(f"\n  Candidate details:")
         for i, r in enumerate(fused[:15]):
             c = r["chunk"]
             print(f"    #{i + 1} [{r['source']}] {c['section_path'][:50]} — "
-                  f"融合分: {r['fused_score']:.4f}")
+                  f"fused score: {r['fused_score']:.4f}")
 
     # ── Step 4: Reranking ──
-    print(f"\n── 重排序 (§2.4.6) ──")
+    print(f"\n── Reranking (§2.4.6) ──")
     ranked = rerank(search_query, fused, meta, top_k=top_k)
     print(f"  Rerank → top-{len(ranked)}")
 
-    print(f"\n  最终选中的 chunk:")
+    print(f"\n  Final selected chunks:")
     for i, r in enumerate(ranked):
         c = r["chunk"]
         print(f"    #{i + 1} [{c['source']}] {c['section_path']}")
-        print(f"        分数: {r['rerank_score']:.3f}  |  "
-              f"{c['char_count']} 字符  |  标签: {c.get('tags', [])}")
+        print(f"        score: {r['rerank_score']:.3f}  |  "
+              f"{c['char_count']} characters  |  tags: {c.get('tags', [])}")
 
     # Score-cliff detection
     if len(ranked) >= 2:
         last = ranked[-1]["rerank_score"]
         if len(fused) > len(ranked):
-            print(f"    🔻 分数断崖：第 {len(ranked)} 名之后的内容对回答帮助显著下降")
+            print(f"    🔻 Score cliff: after rank  {len(ranked)}  the remaining content contributes much less to the answer")
 
     # ── Step 5: Context assembly ──
-    print(f"\n── 上下文组装 (§2.4.7) ──")
+    print(f"\n── Context assembly (§2.4.7) ──")
     context = assemble_context(query, ranked)
-    print(f"  组装完成，共 {len(context)} 字符")
+    print(f"  Assembly complete, total {len(context)} characters")
 
     # ── Step 6: Generate answer ──
     generate_answer(query, context, ranked)
@@ -400,10 +400,10 @@ def run_online_pipeline(
 # ================================================================
 
 def interactive_mode(index_dir: str, top_k: int, debug: bool):
-    """交互式查询模式"""
+    """Interactive query mode"""
     print("=" * 60)
-    print("  个人知识助手 — 交互查询")
-    print("  输入问题进行检索，输入 /quit 退出，/debug 切换详情")
+    print("  Personal Knowledge Assistant - Interactive Query")
+    print("  Enter a question to search; enter /quit to exit and /debug to toggle details")
     print("=" * 60)
 
     # Preload the index
@@ -411,9 +411,9 @@ def interactive_mode(index_dir: str, top_k: int, debug: bool):
 
     while True:
         try:
-            query = input("\n🔍 你的问题: ").strip()
+            query = input("\n🔍 Your question: ").strip()
         except (EOFError, KeyboardInterrupt):
-            print("\n再见！")
+            print("\nGoodbye!")
             break
 
         if not query:
@@ -429,12 +429,12 @@ def interactive_mode(index_dir: str, top_k: int, debug: bool):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="在线查询 Pipeline")
-    parser.add_argument("query", nargs="?", help="查询文本")
-    parser.add_argument("--index-dir", default="output", help="索引目录 (默认: output/)")
-    parser.add_argument("--top-k", type=int, default=DEFAULT_TOP_K, help=f"返回数量 (默认: {DEFAULT_TOP_K})")
-    parser.add_argument("--interactive", "-i", action="store_true", help="交互模式")
-    parser.add_argument("--debug", action="store_true", help="显示详细候选集")
+    parser = argparse.ArgumentParser(description="Online Query Pipeline")
+    parser.add_argument("query", nargs="?", help="Query text")
+    parser.add_argument("--index-dir", default="output", help="Index directory (default: output/)")
+    parser.add_argument("--top-k", type=int, default=DEFAULT_TOP_K, help=f"Number to return (default: {DEFAULT_TOP_K})")
+    parser.add_argument("--interactive", "-i", action="store_true", help="Interactive mode")
+    parser.add_argument("--debug", action="store_true", help="Show detailed candidate set")
     args = parser.parse_args()
 
     if args.interactive or not args.query:

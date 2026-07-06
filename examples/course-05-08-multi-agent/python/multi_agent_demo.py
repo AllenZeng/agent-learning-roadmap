@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-课程五 05-08 Multi-Agent 示例
+Course 05-08 Multi-Agent example
 
-同一个离线示例项目演示课程正文里的三种协作模式：
-  1. Reviewer：一个 Agent 写方案，另一个 Agent 独立审查
-  2. Supervisor：一个 Supervisor 拆解任务，多个 Worker 并行产出结构化结果
-  3. Parallel Specialists：多个专家看同一个输入，从不同维度并行分析
+The same offline example project demonstrates three collaboration patterns from the course:
+  1. Reviewer: one Agent writes a proposal while another independently reviews it
+  2. Supervisor: one Supervisor decomposes the task while multiple Workers produce structured results in parallel
+  3. Parallel Specialists: multiple specialists inspect the same input and analyze it in parallel from different dimensions
 
-示例不调用真实 LLM，使用确定性函数模拟 Agent 行为，便于观察数据边界、
-通信协议、停止条件和合并规则。
+The example does not call a real LLM; deterministic functions simulate Agent behavior so data boundaries,
+communication protocols, stopping conditions, and merge rules are easy to observe.
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ class AgentConfig:
 
 @dataclass(frozen=True)
 class AgentPrompt:
-    """真实系统中会作为 system prompt 传给模型的角色设定。"""
+    """In a real system, this role definition would be passed to the model as the system prompt."""
 
     name: str
     role: str
@@ -92,7 +92,7 @@ class Draft:
 
 
 class MockLLM:
-    """离线模拟 LLM 适配器：记录 prompt，并返回确定性的结构化响应。"""
+    """Offline simulated LLM adapter: records the prompt and returns deterministic structured responses."""
 
     def __init__(self):
         self.calls: list[LLMCall] = []
@@ -111,8 +111,8 @@ class MockLLM:
             return {
                 "output": render_api_plan(fixed),
                 "private_trace": (
-                    "为了本地演示先用明文 key；权限模型先简化成 admin；"
-                    "依赖版本先不锁定，后续再补。"
+                    "For the local demo, first use a plaintext key; simplify the permission model to admin;"
+                    "dependency versions are not pinned yet and will be completed later."
                 ),
             }
         if prompt.name == "reviewer":
@@ -221,7 +221,7 @@ class ParallelSpecialistsResult:
 
 
 def count_agent_differences(left: AgentConfig, right: AgentConfig) -> dict[str, int | bool]:
-    """课程 8.2 的“四个不同”：输入、工具、目标、验收标准。"""
+    """The four differences from course 8.2: input, tools, goal, and acceptance criteria."""
     differences = {
         "inputs": left.inputs != right.inputs,
         "tools": left.tools != right.tools,
@@ -232,7 +232,7 @@ def count_agent_differences(left: AgentConfig, right: AgentConfig) -> dict[str, 
 
 
 class DemoExecutorAgent:
-    """Reviewer 模式的 Executor：第一版故意留下问题，收到具体 issue 后修正。"""
+    """Executor in Reviewer mode: the first version intentionally leaves issues and corrects them after receiving specific issues."""
 
     def __init__(
         self,
@@ -266,7 +266,7 @@ class DemoExecutorAgent:
 
 
 class DemoReviewerAgent:
-    """Reviewer 只读最终产物和检查清单，不接收 Executor 私有 trace。"""
+    """The Reviewer reads only the final artifact and checklist, not the Executor private trace."""
 
     def __init__(self, llm: MockLLM | None = None, prompt: AgentPrompt | None = None):
         self.llm = llm or MockLLM()
@@ -300,7 +300,7 @@ class DemoReviewerAgent:
 
 
 class ReviewerPattern:
-    """Executor 产出 -> Reviewer 审查 -> Executor 修正或上报分歧。"""
+    """Executor output -> Reviewer review -> Executor correction or disagreement escalation."""
 
     def __init__(self, executor: DemoExecutorAgent, reviewer: DemoReviewerAgent, max_rounds: int = 2):
         self.executor = executor
@@ -326,7 +326,7 @@ class ReviewerPattern:
 
             if round_index < self.max_rounds - 1:
                 if verbose:
-                    print("[Runtime] 只把具体 issues 传回 Executor，不传主观评价。")
+                    print("[Runtime] Only concrete issues are sent back to the Executor, not subjective judgments.")
                 draft = self.executor.run(task, fix_instructions=review.issues)
 
         return ReviewerPatternResult(
@@ -340,7 +340,7 @@ class ReviewerPattern:
 
 
 class DemoSupervisorAgent:
-    """Supervisor 只负责拆解和汇总，不做 Worker 的调研。"""
+    """The Supervisor only decomposes and summarizes; it does not do Worker research."""
 
     def __init__(self, llm: MockLLM | None = None, prompt: AgentPrompt | None = None):
         self.llm = llm or MockLLM()
@@ -351,32 +351,32 @@ class DemoSupervisorAgent:
         fields = ("key_findings", "risks", "recommendations")
         return SupervisorPlan(
             subtasks=[
-                Subtask("T1", "Tool Use", "tool_worker", "工具调用链路、失败模式、权限边界", "不分析 Memory 或 Multi-Agent 中的工具协作", fields),
-                Subtask("T2", "Memory", "memory_worker", "短期记忆、长期记忆、检索式记忆的工程取舍", "不分析纯 RAG 检索排序细节", fields),
-                Subtask("T3", "Planning", "planning_worker", "plan-and-execute、动态重规划、停止条件", "不分析多 Agent 派发策略", fields),
-                Subtask("T4", "Multi-Agent", "multi_agent_worker", "Reviewer、Supervisor、Parallel Specialists 的协作边界", "不重复单 Agent Tool Use 机制", fields),
+                Subtask("T1", "Tool Use", "tool_worker", "tool-calling path, failure modes, permission boundaries", "do not analyze tool collaboration inside Memory or Multi-Agent systems", fields),
+                Subtask("T2", "Memory", "memory_worker", "engineering tradeoffs among short-term memory, long-term memory, and retrieval memory", "do not analyze pure RAG retrieval-ranking details", fields),
+                Subtask("T3", "Planning", "planning_worker", "plan-and-execute, dynamic replanning, stopping conditions", "do not analyze Multi-Agent dispatch strategies", fields),
+                Subtask("T4", "Multi-Agent", "multi_agent_worker", "collaboration boundaries of Reviewer, Supervisor, and Parallel Specialists", "do not repeat single-Agent Tool Use mechanics", fields),
             ]
         )
 
     def synthesize(self, task: str, plan: SupervisorPlan, results: list[WorkerResult]) -> SupervisorResult:
         self.llm.complete(self.prompt, {"operation": "synthesize", "task": task, "result_count": len(results)})
         missing_topics = [result.topic for result in results if result.status != "ok"]
-        lines = [f"# 汇总报告: {task}", ""]
+        lines = [f"# Summary report: {task}", ""]
         seen_findings: set[str] = set()
         for result in results:
             lines.append(f"## {result.topic}")
             if result.status != "ok":
-                lines.append(f"- 数据缺失: {result.missing_reason}")
+                lines.append(f"- missing data: {result.missing_reason}")
                 lines.append("")
                 continue
             for finding in result.findings:
                 if finding not in seen_findings:
-                    lines.append(f"- 发现: {finding}")
+                    lines.append(f"- Finding: {finding}")
                     seen_findings.add(finding)
             for risk in result.risks:
-                lines.append(f"- 风险: {risk}")
+                lines.append(f"- Risks: {risk}")
             for recommendation in result.recommendations:
-                lines.append(f"- 建议: {recommendation}")
+                lines.append(f"- Recommendations: {recommendation}")
             lines.append("")
         return SupervisorResult(
             status="partial" if missing_topics else "complete",
@@ -388,7 +388,7 @@ class DemoSupervisorAgent:
 
 
 class DemoResearchWorker:
-    """Worker 按统一模板返回结构化字段，便于 Supervisor 合并。"""
+    """Workers return structured fields using a unified template so the Supervisor can merge them."""
 
     def __init__(
         self,
@@ -410,24 +410,24 @@ class DemoResearchWorker:
             return WorkerResult(subtask.id, self.name, subtask.topic, "failed", [], [], [], "worker_timeout")
         library = {
             "Tool Use": (
-                ["工具白名单比 prompt 约束更可靠", "工具结果必须进入可追踪 observation"],
-                ["读写工具混给同一 Agent 会放大误操作风险"],
-                ["按 Agent 注册最小工具集，并记录 tool_call_id"],
+                ["Tool allowlists are more reliable than prompt constraints", "Tool results must enter traceable observations"],
+                ["Giving read and write tools to the same Agent amplifies misuse risk"],
+                ["Register the minimal tool set per Agent and record tool_call_id"],
             ),
             "Memory": (
-                ["长期记忆应先经过检索和摘要，而不是全量塞回上下文"],
-                ["记忆写入需要显式触发条件"],
-                ["把用户事实、任务状态、偏好分库存储"],
+                ["Long-term memory should go through retrieval and summarization before being inserted into context, not be inserted wholesale"],
+                ["Memory writes need explicit trigger conditions"],
+                ["Store user facts, task state, and preferences in separate stores"],
             ),
             "Planning": (
-                ["计划需要可验证 checkpoint，不能只是一段自然语言列表"],
-                ["动态重规划必须有停止条件"],
-                ["把计划项设计成可执行、可验收的小步"],
+                ["Plans need verifiable checkpoints, not just a natural-language list"],
+                ["Dynamic replanning must have stopping conditions"],
+                ["Design plan items as executable and acceptable small steps"],
             ),
             "Multi-Agent": (
-                ["拆分价值来自输入、工具、目标、验收标准的真实差异"],
-                ["合并阶段必须保留冲突和缺失，不应自动粉饰"],
-                ["优先从 Reviewer 模式开始，再扩展 Supervisor 或多专家"],
+                ["Decomposition value comes from real differences in input, tools, goals, and acceptance criteria"],
+                ["The merge stage must preserve conflicts and missing data instead of smoothing them over"],
+                ["Start with Reviewer mode first, then expand to Supervisor or multiple specialists"],
             ),
         }
         findings, risks, recommendations = library[subtask.topic]
@@ -435,7 +435,7 @@ class DemoResearchWorker:
 
 
 class SupervisorPattern:
-    """Supervisor 拆解 -> Workers 执行 -> Supervisor 汇总。"""
+    """Supervisor decomposes -> Workers execute -> Supervisor summarizes."""
 
     def __init__(self, supervisor: DemoSupervisorAgent, workers: dict[str, DemoResearchWorker]):
         self.supervisor = supervisor
@@ -452,7 +452,7 @@ class SupervisorPattern:
 
 
 class DemoSpecialistAgent:
-    """同一个 artifact，不同专家只输出自己维度的发现。"""
+    """For the same artifact, each specialist outputs findings only for their own dimension."""
 
     def __init__(self, dimension: str, llm: MockLLM | None = None, prompt: AgentPrompt | None = None):
         self.dimension = dimension
@@ -463,24 +463,24 @@ class DemoSpecialistAgent:
         self.llm.complete(self.prompt, {"artifact": artifact, "dimension": dimension})
         findings = {
             "correctness": [
-                SpecialistFinding("F1", "correctness", "checkout.py:18", "missing_validation", "problem", "amount 可以为负数", "must_fix"),
-                SpecialistFinding("F2", "correctness", "checkout.py:33", "state_consistency", "problem", "扣库存和创建订单之间没有事务边界", "must_fix"),
+                SpecialistFinding("F1", "correctness", "checkout.py:18", "missing_validation", "problem", "amount can be negative", "must_fix"),
+                SpecialistFinding("F2", "correctness", "checkout.py:33", "state_consistency", "problem", "there is no transaction boundary between inventory deduction and order creation", "must_fix"),
             ],
             "security": [
-                SpecialistFinding("F3", "security", "checkout.py:18", "missing_validation", "problem", "未校验 amount 可能绕过限额规则", "must_fix"),
-                SpecialistFinding("F4", "security", "checkout.py:41", "credential_exposure", "problem", "日志打印 payment_token", "must_fix"),
-                SpecialistFinding("F5", "security", "checkout.py:55", "idempotency", "safe", "幂等键由服务端生成且不过期窗口合理", "info"),
+                SpecialistFinding("F3", "security", "checkout.py:18", "missing_validation", "problem", "unvalidated amount may bypass limit rules", "must_fix"),
+                SpecialistFinding("F4", "security", "checkout.py:41", "credential_exposure", "problem", "logs print payment_token", "must_fix"),
+                SpecialistFinding("F5", "security", "checkout.py:55", "idempotency", "safe", "idempotency keys are generated server-side and the expiration window is reasonable", "info"),
             ],
             "performance": [
-                SpecialistFinding("F6", "performance", "checkout.py:27", "n_plus_one_query", "problem", "循环中逐个查询 coupon", "should_fix"),
-                SpecialistFinding("F7", "performance", "checkout.py:55", "idempotency", "problem", "幂等记录未设置索引，订单高峰期会拖慢写入", "should_fix"),
+                SpecialistFinding("F6", "performance", "checkout.py:27", "n_plus_one_query", "problem", "loop queries coupons one by one", "should_fix"),
+                SpecialistFinding("F7", "performance", "checkout.py:55", "idempotency", "problem", "idempotency records lack an index and will slow writes during order peaks", "should_fix"),
             ],
         }[self.dimension]
         return SpecialistResult(dimension.name, findings)
 
 
 class ParallelSpecialists:
-    """多个专家并行处理同一输入的不同维度，并在合并时保留冲突。"""
+    """Multiple specialists process different dimensions of the same input in parallel and preserve conflicts during merge."""
 
     def __init__(self, specialists: dict[str, DemoSpecialistAgent]):
         self.specialists = specialists
@@ -543,102 +543,102 @@ def default_agent_prompts() -> dict[str, AgentPrompt]:
     return {
         "executor": AgentPrompt(
             name="executor",
-            role="方案执行者",
+            role="proposal executor",
             system_prompt=(
-                "你是 Executor Agent。你的职责是根据用户需求产出可交付方案，"
-                "只处理 Reviewer 返回的结构化 issue，不读取 Reviewer 的私有推理。"
+                "You are the Executor Agent. Your job is to produce a deliverable plan based on the user's requirements,"
+                "process only structured issues returned by the Reviewer, and do not read the Reviewer's private reasoning."
             ),
-            response_contract="返回 {output: markdown, private_trace: string}",
-            must_not=("不要自行宣布审查通过", "不要把未验证的假设写成事实"),
+            response_contract="Return {output: markdown, private_trace: string}",
+            must_not=("do not declare the review passed by yourself", "do not write unverified assumptions as facts"),
         ),
         "reviewer": AgentPrompt(
             name="reviewer",
-            role="独立审查者",
+            role="independent reviewer",
             system_prompt=(
-                "你是 Reviewer Agent。你的职责是只基于最终产物和检查清单做审查，"
-                "逐条给出 pass/fail、证据、严重级别和可执行修改建议。"
+                "You are the Reviewer Agent. Your job is to review only the final artifact and checklist,"
+                "and provide pass/fail, evidence, severity, and actionable recommendations for each item."
             ),
-            response_contract="返回 ReviewResponse: {verdict, checks[], issues[]}",
-            must_not=("不要读取 Executor private_trace", "不要修改产物本身"),
+            response_contract="Return ReviewResponse: {verdict, checks[], issues[]}",
+            must_not=("Do not read Executor private_trace", "do not modify the artifact itself"),
         ),
         "supervisor": AgentPrompt(
             name="supervisor",
-            role="任务编排者",
+            role="task orchestrator",
             system_prompt=(
-                "你是 Supervisor Agent。你的职责是拆解任务、定义每个子任务的 scope/exclude，"
-                "并在汇总时保留缺失和冲突。"
+                "You are the Supervisor Agent. Your job is to decompose tasks and define scope/exclude for each subtask,"
+                "and preserve missing data and conflicts during summarization."
             ),
-            response_contract="返回 SupervisorPlan 或 SupervisorResult",
-            must_not=("不要代替 Worker 做专业调研", "不要隐藏失败的 Worker"),
+            response_contract="Return SupervisorPlan or SupervisorResult",
+            must_not=("do not do specialist research for Workers", "do not hide failed Workers"),
         ),
         "research_worker": AgentPrompt(
             name="research_worker",
-            role="专题研究 Worker",
+            role="topic research Worker",
             system_prompt=(
-                "你是 Research Worker。你只处理分配给自己的 topic，按 key_findings、risks、"
-                "recommendations 三类字段返回结构化结果。"
+                "You are a Research Worker. You only process your assigned topic and return structured fields for key_findings, risks,"
+                "and recommendations."
             ),
-            response_contract="返回 WorkerResult",
-            must_not=("不要分析 exclude 中排除的范围", "不要输出自由散文"),
+            response_contract="Return WorkerResult",
+            must_not=("do not analyze areas excluded by exclude", "do not output free-form prose"),
         ),
         "specialist_agent": AgentPrompt(
             name="specialist_agent",
-            role="单维度专家",
+            role="single-dimension specialist",
             system_prompt=(
-                "你是 Specialist Agent。你只从指定维度分析同一份输入，输出可合并的发现，"
-                "不要试图替其他维度做最终裁决。"
+                "You are a Specialist Agent. Analyze the same input only from the specified dimension and output mergeable findings,"
+                "do not make final judgments for other dimensions."
             ),
-            response_contract="返回 SpecialistResult",
-            must_not=("不要自动消解跨维度冲突", "不要扩展到 focus 之外的维度"),
+            response_contract="Return SpecialistResult",
+            must_not=("do not automatically resolve cross-dimension conflicts", "do not expand beyond the focus dimension"),
         ),
         "tool_worker": AgentPrompt(
             name="tool_worker",
-            role="Tool Use 专题 Worker",
-            system_prompt="你只研究工具调用链路、失败模式和权限边界。",
-            response_contract="返回 WorkerResult",
-            must_not=("不要分析 Memory 或 Multi-Agent 中的工具协作",),
+            role="Tool Use topic Worker",
+            system_prompt="You only study the tool-calling path, failure modes, and permission boundaries.",
+            response_contract="Return WorkerResult",
+            must_not=("do notanalysis Memory text Multi-Agent mediumtext",),
         ),
         "memory_worker": AgentPrompt(
             name="memory_worker",
-            role="Memory 专题 Worker",
-            system_prompt="你只研究短期记忆、长期记忆和检索式记忆的工程取舍。",
-            response_contract="返回 WorkerResult",
-            must_not=("不要分析纯 RAG 检索排序细节",),
+            role="Memory topic Worker",
+            system_prompt="You only study engineering tradeoffs among short-term memory, long-term memory, and retrieval memory.",
+            response_contract="Return WorkerResult",
+            must_not=("do notanalysistext RAG text",),
         ),
         "planning_worker": AgentPrompt(
             name="planning_worker",
-            role="Planning 专题 Worker",
-            system_prompt="你只研究 plan-and-execute、动态重规划和停止条件。",
-            response_contract="返回 WorkerResult",
-            must_not=("不要分析多 Agent 派发策略",),
+            role="Planning topic Worker",
+            system_prompt="You only study plan-and-execute, dynamic replanning, and stopping conditions.",
+            response_contract="Return WorkerResult",
+            must_not=("do notanalysismany Agent text",),
         ),
         "multi_agent_worker": AgentPrompt(
             name="multi_agent_worker",
-            role="Multi-Agent 专题 Worker",
-            system_prompt="你只研究 Reviewer、Supervisor、Parallel Specialists 的协作边界。",
-            response_contract="返回 WorkerResult",
-            must_not=("不要重复单 Agent Tool Use 机制",),
+            role="Multi-Agent topic Worker",
+            system_prompt="You only study collaboration boundaries of Reviewer, Supervisor, and Parallel Specialists.",
+            response_contract="Return WorkerResult",
+            must_not=("do nottext Agent Tool Use text",),
         ),
         "correctness_agent": AgentPrompt(
             name="correctness_agent",
-            role="正确性专家",
-            system_prompt="你只检查逻辑错误、边界条件、异常处理和状态一致性。",
-            response_contract="返回 SpecialistResult",
-            must_not=("不要分析安全漏洞和性能瓶颈",),
+            role="correctness specialist",
+            system_prompt="You only check logic errors, boundary conditions, exception handling, and state consistency.",
+            response_contract="Return SpecialistResult",
+            must_not=("do not analyze security vulnerabilities or performance bottlenecks",),
         ),
         "security_agent": AgentPrompt(
             name="security_agent",
-            role="安全专家",
-            system_prompt="你只检查注入风险、密钥泄露、权限越界和敏感数据暴露。",
-            response_contract="返回 SpecialistResult",
-            must_not=("不要分析普通逻辑错误和性能瓶颈",),
+            role="security specialist",
+            system_prompt="You only check injection risks, secret leakage, permission boundary violations, and sensitive data exposure.",
+            response_contract="Return SpecialistResult",
+            must_not=("do not analyze ordinary logic errors or performance bottlenecks",),
         ),
         "performance_agent": AgentPrompt(
             name="performance_agent",
-            role="性能专家",
-            system_prompt="你只检查时间复杂度、I/O 瓶颈、索引和缓存策略。",
-            response_contract="返回 SpecialistResult",
-            must_not=("不要分析正确性和安全性影响",),
+            role="performance specialist",
+            system_prompt="You only check time complexity, I/O bottlenecks, indexes, and caching strategy.",
+            response_contract="Return SpecialistResult",
+            must_not=("do not analyze correctness or security impact",),
         ),
     }
 
@@ -650,7 +650,7 @@ def render_api_plan(fixed: set[str]) -> str:
     dependency_line = "requirements.txt: fastapi==0.111.0" if "C4" in fixed else "requirements.txt: fastapi>=0.111"
     return "\n".join(
         [
-            "# API 模块技术方案",
+            "# API Module Technical Plan",
             "",
             "## api_schema.yaml",
             api_line,
@@ -680,7 +680,7 @@ def build_review_response(criteria: list[CheckItem], artifact: str) -> ReviewRes
                     description=issue_description(item.id),
                     location=issue_location(item.id),
                     severity=item.severity,
-                    suggestion=result.suggestion or "按审查项补齐缺失约束",
+                    suggestion=result.suggestion or "Fill missing constraints according to review items",
                 )
             )
     return ReviewResponse(verdict="approved" if not issues else "rejected", checks=checks, issues=issues)
@@ -689,26 +689,26 @@ def build_review_response(criteria: list[CheckItem], artifact: str) -> ReviewRes
 def check_item(item: CheckItem, artifact: str) -> CheckResult:
     if item.id == "C1":
         passed = "max_length: 256" in artifact
-        return CheckResult(item.id, passed, "api_schema.yaml:12 包含 max_length" if passed else "api_schema.yaml:12 缺少 max_length", None if passed else "为 input 参数增加 max_length: 256")
+        return CheckResult(item.id, passed, "api_schema.yaml:12 contains max_length" if passed else "api_schema.yaml:12 Missing max_length", None if passed else "Add max_length: 256 to the input parameter")
     if item.id == "C2":
         passed = "${API_KEY}" in artifact and "sk-demo-plaintext" not in artifact
-        return CheckResult(item.id, passed, "config.yaml:8 使用环境变量" if passed else "config.yaml:8 出现明文 api_key", None if passed else "改用 ${API_KEY} 环境变量")
+        return CheckResult(item.id, passed, "config.yaml:8 uses environment variables" if passed else "config.yaml:8 contains plaintext api_key", None if passed else "Use the ${API_KEY} environment variable")
     if item.id == "C3":
         passed = "reader, writer, admin" in artifact
-        return CheckResult(item.id, passed, "permissions.py:3-5 区分 reader/writer/admin" if passed else "permissions.py:3-5 只有 admin 角色", None if passed else "拆分 reader 和 writer 角色")
+        return CheckResult(item.id, passed, "permissions.py:3-5 distinguishes reader/writer/admin" if passed else "permissions.py:3-5 only has the admin role", None if passed else "Split reader and writer roles")
     if item.id == "C4":
         passed = "fastapi==0.111.0" in artifact
-        return CheckResult(item.id, passed, "requirements.txt 使用 == 锁定版本" if passed else "requirements.txt 使用 >=，版本未锁定", None if passed else "使用 == 锁定依赖版本")
-    return CheckResult(item.id, False, "not_found", "补充可验证证据")
+        return CheckResult(item.id, passed, "requirements.txt uses == pinned versions" if passed else "requirements.txt uses >=, versions are not pinned", None if passed else "Use == to pin dependency versions")
+    return CheckResult(item.id, False, "not_found", "Add verifiable evidence")
 
 
 def issue_description(check_id: str) -> str:
     return {
-        "C1": "/api/data 缺少输入长度限制",
-        "C2": "API key 明文存储",
-        "C3": "权限模型缺少读写分离",
-        "C4": "第三方依赖未锁定版本",
-    }.get(check_id, "未知审查项未通过")
+        "C1": "/api/data MissingInput length limit",
+        "C2": "API key stored in plaintext",
+        "C3": "Permission model is missing read/write separation",
+        "C4": "Third-party dependencies are not pinned",
+    }.get(check_id, "Unknown review item failed")
 
 
 def issue_location(check_id: str) -> str:
@@ -722,10 +722,10 @@ def issue_location(check_id: str) -> str:
 
 def default_criteria() -> list[CheckItem]:
     return [
-        CheckItem("C1", "输入长度限制", "检查 /api/data 的 input 参数是否声明 max_length", "must_fix"),
-        CheckItem("C2", "密钥管理", "检查配置示例是否使用环境变量而不是明文 key", "must_fix"),
-        CheckItem("C3", "权限模型", "检查是否区分 reader 和 writer 角色", "must_fix"),
-        CheckItem("C4", "依赖锁定", "检查依赖是否使用 == 锁定版本", "should_fix"),
+        CheckItem("C1", "Input length limit", "Check whether the input parameter of /api/data declares max_length", "must_fix"),
+        CheckItem("C2", "secret management", "Check whether the config example uses environment variables instead of plaintext keys", "must_fix"),
+        CheckItem("C3", "permission model", "Check whether reader and writer roles are separated", "must_fix"),
+        CheckItem("C4", "dependency pinning", "Check whether dependencies use == pinned versions", "should_fix"),
     ]
 
 
@@ -740,9 +740,9 @@ def default_workers(failing_worker: str | None = None) -> dict[str, DemoResearch
 
 def default_dimensions() -> list[Dimension]:
     return [
-        Dimension("correctness", "correctness_agent", "逻辑错误、边界条件、异常处理、状态一致性", "不分析安全漏洞和性能瓶颈"),
-        Dimension("security", "security_agent", "注入风险、密钥泄露、权限越界、敏感数据暴露", "不分析普通逻辑错误和性能瓶颈"),
-        Dimension("performance", "performance_agent", "时间复杂度、I/O 瓶颈、索引和缓存策略", "不分析正确性和安全性影响"),
+        Dimension("correctness", "correctness_agent", "logic errors, boundary conditions, exception handling, state consistency", "textanalysistext"),
+        Dimension("security", "security_agent", "injection risks, secret leakage, permission boundary violations, sensitive data exposure", "textanalysistexterrortext"),
+        Dimension("performance", "performance_agent", "time complexity, I/O bottlenecks, indexes, caching strategy", "textanalysistext"),
     ]
 
 
@@ -763,20 +763,20 @@ def print_review(review: ReviewResponse) -> None:
 
 def main() -> None:
     reviewer_result = ReviewerPattern(DemoExecutorAgent(), DemoReviewerAgent()).run(
-        "写一份 API 模块技术方案，并从安全角度审查", default_criteria()
+        "Write a technical plan for the API module，and review it from a security perspective", default_criteria()
     )
-    print("\nReviewer 最终状态:", reviewer_result.status)
+    print("\nReviewer final status:", reviewer_result.status)
 
     supervisor_result = SupervisorPattern(DemoSupervisorAgent(), default_workers()).run(
-        "调研 Agent 架构的四个主流方向"
+        "Research four mainstream directions in Agent architecture"
     )
     print(supervisor_result.final_report)
 
     specialists_result = ParallelSpecialists(default_specialists()).run(
-        "checkout.py 代码片段", default_dimensions()
+        "checkout.py code snippet", default_dimensions()
     )
     for conflict in specialists_result.conflicts:
-        print(f"冲突: {conflict.location} {conflict.problem_type} -> {conflict.judgments}")
+        print(f"Conflict: {conflict.location} {conflict.problem_type} -> {conflict.judgments}")
 
 
 if __name__ == "__main__":

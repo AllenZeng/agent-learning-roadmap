@@ -21,8 +21,8 @@ test("tool context exposes schema, risk, and boundaries", () => {
 
   const readFile = registry.toContextTools().find((tool) => tool.name === "read_file");
 
-  assert.match(readFile.description, /本地文件/);
-  assert.match(readFile.description, /不要用于搜索互联网/);
+  assert.match(readFile.description, /local file/);
+  assert.match(readFile.description, /Do not use for internet search/);
   assert.equal(readFile.riskLevel, "low");
   assert.equal(readFile.idempotent, true);
   assert.deepEqual(readFile.parameters.required, ["path"]);
@@ -44,7 +44,7 @@ test("executeToolCall validates parameters before execution", async () => {
   assert.equal(observation.status, "error");
   assert.equal(observation.error.code, "missing_required");
   assert.equal(observation.error.retryable, false);
-  assert.equal(observation.error.suggestedAction, "请补充参数: path");
+  assert.equal(observation.error.suggestedAction, "Please provide arguments: path");
   assert.equal(auditLog[0].stage, "validation");
   assert.equal(auditLog[0].result, "denied");
 });
@@ -107,7 +107,7 @@ test("idempotent tools can retry transient failures", async () => {
         if (attempts.length === 1) {
           throw new Error("temporary timeout");
         }
-        return ToolResult.success("查询成功", { query }).toObject();
+        return ToolResult.success("Query succeeded", { query }).toObject();
       },
       riskLevel: "low",
       idempotent: true,
@@ -143,14 +143,14 @@ test("agent loop uses tool executor and audit log", async () => {
       tool_name: "write_file",
       arguments: {
         path: "summary.md",
-        content: "工具机制需要 Schema、权限检查、审计和结构化 Observation。",
+        content: "The tool mechanism needs Schema, permission checks, auditing, and structured Observations.",
       },
     },
-    { type: "final_answer", thought: "Done.", answer: "已写入 summary.md。" },
+    { type: "final_answer", thought: "Done.", answer: "summary.md has been written." },
   ]);
 
   const result = await runAgent({
-    userGoal: "读取 notes.md，总结后写入 summary.md",
+    userGoal: "Read notes.md, summarize it, and write summary.md",
     registry,
     permissions: new PermissionPolicy({ allowedTools: ["read_file", "write_file"] }),
     llmCall: llm.call.bind(llm),

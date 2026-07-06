@@ -1,10 +1,10 @@
 """
-Chain 模式：固定顺序执行
+Chain pattern: fixed-order execution
 
-最基础的 Planning 模式。步骤按预定顺序依次执行，每步的输出成为下一步的输入。
-无分支、无重规划、无条件跳转——确定性最强，调试最简单。
+The most basic Planning pattern. Steps run in a predefined order, and each output becomes the input to the next step.
+No branches, no replanning, no conditional transitions: strongest determinism and easiest debugging.
 
-适用场景：步骤稳定、异常少、不需要动态决策的任务。
+Use when steps are stable, exceptions are rare, and dynamic decisions are unnecessary.
 """
 
 from dataclasses import dataclass, field
@@ -16,7 +16,7 @@ from scenario import (
 
 @dataclass
 class ChainResult:
-    """Chain 执行结果"""
+    """Chain Execution result"""
     status: str = "completed"        # "completed" | "failed" | "partial"
     results: list[StepResult] = field(default_factory=list)
     context: dict = field(default_factory=dict)
@@ -26,13 +26,13 @@ class ChainResult:
 
 class ChainExecutor:
     """
-    Chain 执行器——按固定顺序依次执行步骤。
+    Chain executor: executes steps in fixed order.
 
-    核心逻辑：
-    - 顺序执行步骤列表
-    - 每步的输出写入 context
-    - 遇到错误时：如果该步骤标记了 allow_skip，则跳过继续；否则停止
-    - 无分支、无重试、无动态调整
+    Core logic：
+    - execute sequentiallysteplist
+    - each step writes output to context
+    - on error: if the step is marked allow_skip, skip and continue; otherwise stop
+    - no branches, no retries, no dynamic adjustment
     """
 
     def __init__(self, steps: Optional[list[str]] = None):
@@ -46,12 +46,12 @@ class ChainExecutor:
         on_step_end: Optional[Callable[[StepResult], None]] = None,
     ) -> ChainResult:
         """
-        按固定顺序执行所有步骤。
+        Execute all steps in fixed order.
 
         Args:
-            context: 初始上下文
-            on_step_start: 步骤开始时回调（用于 UI 更新）
-            on_step_end: 步骤结束时回调
+            context: initial context
+            on_step_start: callback when a step starts (for UI updates)
+            on_step_end: callback when a step ends
         """
         self._context = context or {}
         result = ChainResult(context=self._context)
@@ -67,12 +67,12 @@ class ChainExecutor:
                 step_result = StepResult(
                     step_name=step_name,
                     status=StepStatus.ERROR,
-                    error=f"未找到工具: {step_name}",
+                    error=f"Tool not found: {step_name}",
                 )
                 result.results.append(step_result)
                 result.status = "failed"
                 result.failed_at = i
-                result.error = f"未找到工具: {step_name}"
+                result.error = f"Tool not found: {step_name}"
                 if on_step_end:
                     on_step_end(step_result)
                 return result
@@ -96,12 +96,12 @@ class ChainExecutor:
         return result
 
     def describe(self) -> str:
-        """返回执行计划的文本描述"""
-        lines = ["Chain 执行计划（固定顺序）:", "─" * 40]
+        """Return a text description of the execution plan"""
+        lines = ["Chain Execution plan（fixed order):", "─" * 40]
         for i, step in enumerate(self.steps, 1):
             tool = TOOL_REGISTRY.get(step)
-            desc = (tool.__doc__ or "").strip().split("\n")[0] if tool else "未知步骤"
+            desc = (tool.__doc__ or "").strip().split("\n")[0] if tool else "unknown step"
             lines.append(f"  {i}. {step} → {desc}")
         lines.append("─" * 40)
-        lines.append("模式特征: 无分支 | 无重试 | 遇错即停 | 顺序执行")
+        lines.append("Pattern features: no branches | no retry | stop on error | sequential execution")
         return "\n".join(lines)

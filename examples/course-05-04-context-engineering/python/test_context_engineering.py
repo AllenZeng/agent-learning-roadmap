@@ -26,19 +26,19 @@ class ContextEngineeringTest(unittest.TestCase):
     def test_engineered_context_stays_under_budget(self):
         prompt, meta = self.assembler.engineered(build_demo_items(process_tools=True))
         self.assertLessEqual(meta["tokens"], meta["budget"])
-        self.assertIn("当前任务状态", prompt)
-        self.assertIn("README 读取结果（已瘦身）", prompt)
+        self.assertIn("Current task state", prompt)
+        self.assertIn("README read result (trimmed)", prompt)
 
     def test_engineered_context_removes_untrusted_injection(self):
         prompt, meta = self.assembler.engineered(build_demo_items(process_tools=True))
         self.assertFalse(meta["injection_exposed"])
         self.assertNotIn("ignore previous instructions", prompt)
-        self.assertNotIn("泄露部署密钥", prompt)
+        self.assertNotIn("leak deployment secret", prompt)
 
     def test_generic_processor_is_exercised(self):
         prompt, _ = self.assembler.engineered(build_demo_items(process_tools=True))
-        self.assertIn("未知工具输出（通用摘要）", prompt)
-        self.assertIn("[已移除：外部资料中的疑似指令注入]", prompt)
+        self.assertIn("unknown tool output (generic summary)", prompt)
+        self.assertIn("[Removed: suspected prompt injection from external material]", prompt)
 
     def test_engineered_strategy_keeps_key_signals(self):
         naive_prompt, naive_meta = self.assembler.naive(build_demo_items(process_tools=False))

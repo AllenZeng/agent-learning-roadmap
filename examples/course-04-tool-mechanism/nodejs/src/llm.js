@@ -69,7 +69,8 @@ async function deepSeekChatLLM(context) {
         { role: "system", content: context.system },
         {
           role: "user",
-          content: `请基于以下 Agent 运行时上下文输出下一步 JSON 决策：\n${JSON.stringify(context, null, 2)}`,
+          content: `Output the next JSON decision based on the following Agent runtime context:
+\n${JSON.stringify(context, null, 2)}`,
         },
       ],
     }),

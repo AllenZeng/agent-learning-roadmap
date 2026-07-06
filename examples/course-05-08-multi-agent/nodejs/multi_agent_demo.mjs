@@ -34,7 +34,7 @@ export class MockLLM {
       const fixed = new Set(userPayload.appliedIssueIds ?? []);
       return {
         output: renderApiPlan(fixed),
-        privateTrace: "为了本地演示先用明文 key；权限模型先简化成 admin；依赖版本先不锁定，后续再补。",
+        privateTrace: "For the local demo, first use a plaintext key; simplify the permission model to admin;dependency versions are not pinned yet and will be completed later.",
       };
     }
     if (prompt.name === "reviewer") {
@@ -140,7 +140,7 @@ export class ReviewerPattern {
         return { status: "approved", output: draft.output, reviewRounds: roundIndex + 1, reviewTrace, unresolvedIssues: [], reason: "" };
       }
       if (roundIndex < this.maxRounds - 1) {
-        if (verbose) console.log("[Runtime] 只把具体 issues 传回 Executor，不传主观评价。");
+        if (verbose) console.log("[Runtime] Only concrete issues are sent back to the Executor, not subjective judgments.");
         draft = this.executor.run(task, { fixInstructions: review.issues });
       }
     }
@@ -167,10 +167,10 @@ export class DemoSupervisorAgent {
     const outputFields = ["key_findings", "risks", "recommendations"];
     return {
       subtasks: [
-        { id: "T1", topic: "Tool Use", worker: "tool_worker", scope: "工具调用链路、失败模式、权限边界", exclude: "不分析 Memory 或 Multi-Agent 中的工具协作", outputFields },
-        { id: "T2", topic: "Memory", worker: "memory_worker", scope: "短期记忆、长期记忆、检索式记忆的工程取舍", exclude: "不分析纯 RAG 检索排序细节", outputFields },
-        { id: "T3", topic: "Planning", worker: "planning_worker", scope: "plan-and-execute、动态重规划、停止条件", exclude: "不分析多 Agent 派发策略", outputFields },
-        { id: "T4", topic: "Multi-Agent", worker: "multi_agent_worker", scope: "Reviewer、Supervisor、Parallel Specialists 的协作边界", exclude: "不重复单 Agent Tool Use 机制", outputFields },
+        { id: "T1", topic: "Tool Use", worker: "tool_worker", scope: "tool-calling path, failure modes, permission boundaries", exclude: "do not analyze tool collaboration inside Memory or Multi-Agent systems", outputFields },
+        { id: "T2", topic: "Memory", worker: "memory_worker", scope: "engineering tradeoffs among short-term memory, long-term memory, and retrieval memory", exclude: "do not analyze pure RAG retrieval-ranking details", outputFields },
+        { id: "T3", topic: "Planning", worker: "planning_worker", scope: "plan-and-execute, dynamic replanning, stopping conditions", exclude: "do not analyze Multi-Agent dispatch strategies", outputFields },
+        { id: "T4", topic: "Multi-Agent", worker: "multi_agent_worker", scope: "collaboration boundaries of Reviewer, Supervisor, and Parallel Specialists", exclude: "do not repeat single-Agent Tool Use mechanics", outputFields },
       ],
     };
   }
@@ -178,23 +178,23 @@ export class DemoSupervisorAgent {
   synthesize(task, plan, results) {
     this.llm.complete(this.prompt, { operation: "synthesize", task, resultCount: results.length });
     const missingTopics = results.filter((result) => result.status !== "ok").map((result) => result.topic);
-    const lines = [`# 汇总报告: ${task}`, ""];
+    const lines = [`# Summary report: ${task}`, ""];
     const seenFindings = new Set();
     for (const result of results) {
       lines.push(`## ${result.topic}`);
       if (result.status !== "ok") {
-        lines.push(`- 数据缺失: ${result.missingReason}`);
+        lines.push(`- missing data: ${result.missingReason}`);
         lines.push("");
         continue;
       }
       for (const finding of result.findings) {
         if (!seenFindings.has(finding)) {
-          lines.push(`- 发现: ${finding}`);
+          lines.push(`- Finding: ${finding}`);
           seenFindings.add(finding);
         }
       }
-      for (const risk of result.risks) lines.push(`- 风险: ${risk}`);
-      for (const recommendation of result.recommendations) lines.push(`- 建议: ${recommendation}`);
+      for (const risk of result.risks) lines.push(`- Risks: ${risk}`);
+      for (const recommendation of result.recommendations) lines.push(`- Recommendations: ${recommendation}`);
       lines.push("");
     }
     return {
@@ -224,24 +224,24 @@ export class DemoResearchWorker {
     }
     const library = {
       "Tool Use": [
-        ["工具白名单比 prompt 约束更可靠", "工具结果必须进入可追踪 observation"],
-        ["读写工具混给同一 Agent 会放大误操作风险"],
-        ["按 Agent 注册最小工具集，并记录 tool_call_id"],
+        ["Tool allowlists are more reliable than prompt constraints", "Tool results must enter traceable observations"],
+        ["Giving read and write tools to the same Agent amplifies misuse risk"],
+        ["Register the minimal tool set per Agent and record tool_call_id"],
       ],
       Memory: [
-        ["长期记忆应先经过检索和摘要，而不是全量塞回上下文", "记忆写入需要显式触发条件"],
-        ["把用户事实、任务状态、偏好分库存储"],
-        ["把写入条件和过期策略做成配置"],
+        ["Long-term memory should go through retrieval and summarization before being inserted into context, not be inserted wholesale", "Memory writes need explicit trigger conditions"],
+        ["Store user facts, task state, and preferences in separate stores"],
+        ["Move Writetext"],
       ],
       Planning: [
-        ["计划需要可验证 checkpoint，不能只是一段自然语言列表", "动态重规划必须有停止条件"],
-        ["计划过细会让执行成本超过收益"],
-        ["把计划项设计成可执行、可验收的小步"],
+        ["Plans need verifiable checkpoints, not just a natural-language list", "Dynamic replanning must have stopping conditions"],
+        ["textcostexceed benefits"],
+        ["Design plan items as executable and acceptable small steps"],
       ],
       "Multi-Agent": [
-        ["拆分价值来自输入、工具、目标、验收标准的真实差异", "合并阶段必须保留冲突和缺失，不应自动粉饰"],
-        ["自由对话式通信会让边界失控"],
-        ["优先从 Reviewer 模式开始，再扩展 Supervisor 或多专家"],
+        ["Decomposition value comes from real differences in input, tools, goals, and acceptance criteria", "The merge stage must preserve conflicts and missing data instead of smoothing them over"],
+        ["free-form conversational communication can make boundaries drift"],
+        ["Start with Reviewer mode first, then expand to Supervisor or multiple specialists"],
       ],
     };
     const [findings, risks, recommendations] = library[subtask.topic];
@@ -279,17 +279,17 @@ export class DemoSpecialistAgent {
     this.llm.complete(this.prompt, { artifact, dimension });
     const findings = {
       correctness: [
-        { id: "F1", dimension: "correctness", location: "checkout.py:18", problemType: "missing_validation", judgment: "problem", evidence: "amount 可以为负数", severity: "must_fix" },
-        { id: "F2", dimension: "correctness", location: "checkout.py:33", problemType: "state_consistency", judgment: "problem", evidence: "扣库存和创建订单之间没有事务边界", severity: "must_fix" },
+        { id: "F1", dimension: "correctness", location: "checkout.py:18", problemType: "missing_validation", judgment: "problem", evidence: "amount can be negative", severity: "must_fix" },
+        { id: "F2", dimension: "correctness", location: "checkout.py:33", problemType: "state_consistency", judgment: "problem", evidence: "there is no transaction boundary between inventory deduction and order creation", severity: "must_fix" },
       ],
       security: [
-        { id: "F3", dimension: "security", location: "checkout.py:18", problemType: "missing_validation", judgment: "problem", evidence: "未校验 amount 可能绕过限额规则", severity: "must_fix" },
-        { id: "F4", dimension: "security", location: "checkout.py:41", problemType: "credential_exposure", judgment: "problem", evidence: "日志打印 payment_token", severity: "must_fix" },
-        { id: "F5", dimension: "security", location: "checkout.py:55", problemType: "idempotency", judgment: "safe", evidence: "幂等键由服务端生成且不过期窗口合理", severity: "info" },
+        { id: "F3", dimension: "security", location: "checkout.py:18", problemType: "missing_validation", judgment: "problem", evidence: "unvalidated amount may bypass limit rules", severity: "must_fix" },
+        { id: "F4", dimension: "security", location: "checkout.py:41", problemType: "credential_exposure", judgment: "problem", evidence: "logs print payment_token", severity: "must_fix" },
+        { id: "F5", dimension: "security", location: "checkout.py:55", problemType: "idempotency", judgment: "safe", evidence: "idempotency keys are generated server-side and the expiration window is reasonable", severity: "info" },
       ],
       performance: [
-        { id: "F6", dimension: "performance", location: "checkout.py:27", problemType: "n_plus_one_query", judgment: "problem", evidence: "循环中逐个查询 coupon", severity: "should_fix" },
-        { id: "F7", dimension: "performance", location: "checkout.py:55", problemType: "idempotency", judgment: "problem", evidence: "幂等记录未设置索引，订单高峰期会拖慢写入", severity: "should_fix" },
+        { id: "F6", dimension: "performance", location: "checkout.py:27", problemType: "n_plus_one_query", judgment: "problem", evidence: "loop queries coupons one by one", severity: "should_fix" },
+        { id: "F7", dimension: "performance", location: "checkout.py:55", problemType: "idempotency", judgment: "problem", evidence: "idempotency records lack an index and will slow writes during order peaks", severity: "should_fix" },
       ],
     }[this.dimension];
     return { dimension: dimension.name, findings };
@@ -371,87 +371,87 @@ export function defaultAgentPrompts() {
   return {
     executor: {
       name: "executor",
-      role: "方案执行者",
-      systemPrompt: "你是 Executor Agent。你的职责是根据用户需求产出可交付方案，只处理 Reviewer 返回的结构化 issue，不读取 Reviewer 的私有推理。",
-      responseContract: "返回 {output: markdown, privateTrace: string}",
-      mustNot: ["不要自行宣布审查通过", "不要把未验证的假设写成事实"],
+      role: "proposal executor",
+      systemPrompt: "You are the Executor Agent. Your job is to produce a deliverable plan based on the user's requirements,process only structured issues returned by the Reviewer, and do not read the Reviewer's private reasoning.",
+      responseContract: "Return {output: markdown, privateTrace: string}",
+      mustNot: ["do not declare the review passed by yourself", "do not write unverified assumptions as facts"],
     },
     reviewer: {
       name: "reviewer",
-      role: "独立审查者",
-      systemPrompt: "你是 Reviewer Agent。你的职责是只基于最终产物和检查清单做审查，逐条给出 pass/fail、证据、严重级别和可执行修改建议。",
-      responseContract: "返回 ReviewResponse: {verdict, checks[], issues[]}",
-      mustNot: ["不要读取 Executor private_trace", "不要修改产物本身"],
+      role: "independent reviewer",
+      systemPrompt: "You are the Reviewer Agent. Your job is to review only the final artifact and checklist,and provide pass/fail, evidence, severity, and actionable recommendations for each item.",
+      responseContract: "Return ReviewResponse: {verdict, checks[], issues[]}",
+      mustNot: ["Do not read Executor private_trace", "do not modify the artifact itself"],
     },
     supervisor: {
       name: "supervisor",
-      role: "任务编排者",
-      systemPrompt: "你是 Supervisor Agent。你的职责是拆解任务、定义每个子任务的 scope/exclude，并在汇总时保留缺失和冲突。",
-      responseContract: "返回 SupervisorPlan 或 SupervisorResult",
-      mustNot: ["不要代替 Worker 做专业调研", "不要隐藏失败的 Worker"],
+      role: "task orchestrator",
+      systemPrompt: "You are the Supervisor Agent. Your job is to decompose tasks and define scope/exclude for each subtask,and preserve missing data and conflicts during summarization.",
+      responseContract: "Return SupervisorPlan or SupervisorResult",
+      mustNot: ["do not do specialist research for Workers", "do not hide failed Workers"],
     },
     research_worker: {
       name: "research_worker",
-      role: "专题研究 Worker",
-      systemPrompt: "你是 Research Worker。你只处理分配给自己的 topic，按 key_findings、risks、recommendations 三类字段返回结构化结果。",
-      responseContract: "返回 WorkerResult",
-      mustNot: ["不要分析 exclude 中排除的范围", "不要输出自由散文"],
+      role: "topic research Worker",
+      systemPrompt: "You are a Research Worker. You only process your assigned topic and return structured fields for key_findings, risks,and recommendations.",
+      responseContract: "Return WorkerResult",
+      mustNot: ["do not analyze areas excluded by exclude", "do not output free-form prose"],
     },
     specialist_agent: {
       name: "specialist_agent",
-      role: "单维度专家",
-      systemPrompt: "你是 Specialist Agent。你只从指定维度分析同一份输入，输出可合并的发现，不要试图替其他维度做最终裁决。",
-      responseContract: "返回 SpecialistResult",
-      mustNot: ["不要自动消解跨维度冲突", "不要扩展到 focus 之外的维度"],
+      role: "single-dimension specialist",
+      systemPrompt: "You are a Specialist Agent. Analyze the same input only from the specified dimension and output mergeable findings,do not make final judgments for other dimensions.",
+      responseContract: "Return SpecialistResult",
+      mustNot: ["do not automatically resolve cross-dimension conflicts", "do not expand beyond the focus dimension"],
     },
     tool_worker: {
       name: "tool_worker",
-      role: "Tool Use 专题 Worker",
-      systemPrompt: "你只研究工具调用链路、失败模式和权限边界。",
-      responseContract: "返回 WorkerResult",
-      mustNot: ["不要分析 Memory 或 Multi-Agent 中的工具协作"],
+      role: "Tool Use topic Worker",
+      systemPrompt: "You only study the tool-calling path, failure modes, and permission boundaries.",
+      responseContract: "Return WorkerResult",
+      mustNot: ["do notanalysis Memory text Multi-Agent mediumtext"],
     },
     memory_worker: {
       name: "memory_worker",
-      role: "Memory 专题 Worker",
-      systemPrompt: "你只研究短期记忆、长期记忆和检索式记忆的工程取舍。",
-      responseContract: "返回 WorkerResult",
-      mustNot: ["不要分析纯 RAG 检索排序细节"],
+      role: "Memory topic Worker",
+      systemPrompt: "You only study engineering tradeoffs among short-term memory, long-term memory, and retrieval memory.",
+      responseContract: "Return WorkerResult",
+      mustNot: ["do notanalysistext RAG text"],
     },
     planning_worker: {
       name: "planning_worker",
-      role: "Planning 专题 Worker",
-      systemPrompt: "你只研究 plan-and-execute、动态重规划和停止条件。",
-      responseContract: "返回 WorkerResult",
-      mustNot: ["不要分析多 Agent 派发策略"],
+      role: "Planning topic Worker",
+      systemPrompt: "You only study plan-and-execute, dynamic replanning, and stopping conditions.",
+      responseContract: "Return WorkerResult",
+      mustNot: ["do notanalysismany Agent text"],
     },
     multi_agent_worker: {
       name: "multi_agent_worker",
-      role: "Multi-Agent 专题 Worker",
-      systemPrompt: "你只研究 Reviewer、Supervisor、Parallel Specialists 的协作边界。",
-      responseContract: "返回 WorkerResult",
-      mustNot: ["不要重复单 Agent Tool Use 机制"],
+      role: "Multi-Agent topic Worker",
+      systemPrompt: "You only study collaboration boundaries of Reviewer, Supervisor, and Parallel Specialists.",
+      responseContract: "Return WorkerResult",
+      mustNot: ["do nottext Agent Tool Use text"],
     },
     correctness_agent: {
       name: "correctness_agent",
-      role: "正确性专家",
-      systemPrompt: "你只检查逻辑错误、边界条件、异常处理和状态一致性。",
-      responseContract: "返回 SpecialistResult",
-      mustNot: ["不要分析安全漏洞和性能瓶颈"],
+      role: "correctness specialist",
+      systemPrompt: "You only check logic errors, boundary conditions, exception handling, and state consistency.",
+      responseContract: "Return SpecialistResult",
+      mustNot: ["do not analyze security vulnerabilities or performance bottlenecks"],
     },
     security_agent: {
       name: "security_agent",
-      role: "安全专家",
-      systemPrompt: "你只检查注入风险、密钥泄露、权限越界和敏感数据暴露。",
-      responseContract: "返回 SpecialistResult",
-      mustNot: ["不要分析普通逻辑错误和性能瓶颈"],
+      role: "security specialist",
+      systemPrompt: "You only check injection risks, secret leakage, permission boundary violations, and sensitive data exposure.",
+      responseContract: "Return SpecialistResult",
+      mustNot: ["do not analyze ordinary logic errors or performance bottlenecks"],
     },
     performance_agent: {
       name: "performance_agent",
-      role: "性能专家",
-      systemPrompt: "你只检查时间复杂度、I/O 瓶颈、索引和缓存策略。",
-      responseContract: "返回 SpecialistResult",
-      mustNot: ["不要分析正确性和安全性影响"],
+      role: "performance specialist",
+      systemPrompt: "You only check time complexity, I/O bottlenecks, indexes, and caching strategy.",
+      responseContract: "Return SpecialistResult",
+      mustNot: ["do not analyze correctness or security impact"],
     },
   };
 }
@@ -462,7 +462,7 @@ function renderApiPlan(fixed) {
   const permissionLine = fixed.has("C3") ? "3-5: roles: reader, writer, admin" : "3-5: roles: admin";
   const dependencyLine = fixed.has("C4") ? "requirements.txt: fastapi==0.111.0" : "requirements.txt: fastapi>=0.111";
   return [
-    "# API 模块技术方案",
+    "# API Module Technical Plan",
     "",
     "## api_schema.yaml",
     apiLine,
@@ -490,7 +490,7 @@ function buildReviewResponse(criteria, artifact) {
         description: issueDescription(item.id),
         location: issueLocation(item.id),
         severity: item.severity,
-        suggestion: result.suggestion ?? "按审查项补齐缺失约束",
+        suggestion: result.suggestion ?? "Fill missing constraints according to review items",
       });
     }
   }
@@ -503,8 +503,8 @@ function checkItem(item, artifact) {
     return {
       checkId: item.id,
       passed,
-      evidence: passed ? "api_schema.yaml:12 包含 max_length" : "api_schema.yaml:12 缺少 max_length",
-      suggestion: passed ? null : "为 input 参数增加 max_length: 256",
+      evidence: passed ? "api_schema.yaml:12 contains max_length" : "api_schema.yaml:12 Missing max_length",
+      suggestion: passed ? null : "Add max_length: 256 to the input parameter",
     };
   }
   if (item.id === "C2") {
@@ -512,8 +512,8 @@ function checkItem(item, artifact) {
     return {
       checkId: item.id,
       passed,
-      evidence: passed ? "config.yaml:8 使用环境变量" : "config.yaml:8 出现明文 api_key",
-      suggestion: passed ? null : "改用 ${API_KEY} 环境变量",
+      evidence: passed ? "config.yaml:8 uses environment variables" : "config.yaml:8 contains plaintext api_key",
+      suggestion: passed ? null : "Use the ${API_KEY} environment variable",
     };
   }
   if (item.id === "C3") {
@@ -521,8 +521,8 @@ function checkItem(item, artifact) {
     return {
       checkId: item.id,
       passed,
-      evidence: passed ? "permissions.py:3-5 区分 reader/writer/admin" : "permissions.py:3-5 只有 admin 角色",
-      suggestion: passed ? null : "拆分 reader 和 writer 角色",
+      evidence: passed ? "permissions.py:3-5 distinguishes reader/writer/admin" : "permissions.py:3-5 only has the admin role",
+      suggestion: passed ? null : "Split reader and writer roles",
     };
   }
   if (item.id === "C4") {
@@ -530,20 +530,20 @@ function checkItem(item, artifact) {
     return {
       checkId: item.id,
       passed,
-      evidence: passed ? "requirements.txt 使用 == 锁定版本" : "requirements.txt 使用 >=，版本未锁定",
-      suggestion: passed ? null : "使用 == 锁定依赖版本",
+      evidence: passed ? "requirements.txt uses == pinned versions" : "requirements.txt uses >=, versions are not pinned",
+      suggestion: passed ? null : "Use == to pin dependency versions",
     };
   }
-  return { checkId: item.id, passed: false, evidence: "not_found", suggestion: "补充可验证证据" };
+  return { checkId: item.id, passed: false, evidence: "not_found", suggestion: "Add verifiable evidence" };
 }
 
 function issueDescription(checkId) {
   return {
-    C1: "/api/data 缺少输入长度限制",
-    C2: "API key 明文存储",
-    C3: "权限模型缺少读写分离",
-    C4: "第三方依赖未锁定版本",
-  }[checkId] ?? "未知审查项未通过";
+    C1: "/api/data MissingInput length limit",
+    C2: "API key stored in plaintext",
+    C3: "Permission model is missing read/write separation",
+    C4: "Third-party dependencies are not pinned",
+  }[checkId] ?? "Unknown review item failed";
 }
 
 function issueLocation(checkId) {
@@ -557,10 +557,10 @@ function issueLocation(checkId) {
 
 export function defaultCriteria() {
   return [
-    { id: "C1", check: "输入长度限制", howToVerify: "检查 /api/data 的 input 参数是否声明 max_length", severity: "must_fix" },
-    { id: "C2", check: "密钥管理", howToVerify: "检查配置示例是否使用环境变量而不是明文 key", severity: "must_fix" },
-    { id: "C3", check: "权限模型", howToVerify: "检查是否区分 reader 和 writer 角色", severity: "must_fix" },
-    { id: "C4", check: "依赖锁定", howToVerify: "检查依赖是否使用 == 锁定版本", severity: "should_fix" },
+    { id: "C1", check: "Input length limit", howToVerify: "Check whether the input parameter of /api/data declares max_length", severity: "must_fix" },
+    { id: "C2", check: "secret management", howToVerify: "Check whether the config example uses environment variables instead of plaintext keys", severity: "must_fix" },
+    { id: "C3", check: "permission model", howToVerify: "Check whether reader and writer roles are separated", severity: "must_fix" },
+    { id: "C4", check: "dependency pinning", howToVerify: "Check whether dependencies use == pinned versions", severity: "should_fix" },
   ];
 }
 
@@ -576,9 +576,9 @@ export function defaultWorkers(options = {}) {
 
 export function defaultDimensions() {
   return [
-    { name: "correctness", agent: "correctness_agent", focus: "逻辑错误、边界条件、异常处理、状态一致性", exclude: "不分析安全漏洞和性能瓶颈" },
-    { name: "security", agent: "security_agent", focus: "注入风险、密钥泄露、权限越界、敏感数据暴露", exclude: "不分析普通逻辑错误和性能瓶颈" },
-    { name: "performance", agent: "performance_agent", focus: "时间复杂度、I/O 瓶颈、索引和缓存策略", exclude: "不分析正确性和安全性影响" },
+    { name: "correctness", agent: "correctness_agent", focus: "logic errors, boundary conditions, exception handling, state consistency", exclude: "textanalysistext" },
+    { name: "security", agent: "security_agent", focus: "injection risks, secret leakage, permission boundary violations, sensitive data exposure", exclude: "textanalysistexterrortext" },
+    { name: "performance", agent: "performance_agent", focus: "time complexity, I/O bottlenecks, indexes, caching strategy", exclude: "textanalysistext" },
   ];
 }
 
@@ -599,19 +599,19 @@ function printReview(review) {
 
 export function main() {
   const reviewerResult = new ReviewerPattern(new DemoExecutorAgent(), new DemoReviewerAgent(), { maxRounds: 2 }).run(
-    "写一份 API 模块技术方案，并从安全角度审查",
+    "Write a technical plan for the API module，and review it from a security perspective",
     defaultCriteria()
   );
-  console.log("\nReviewer 最终状态:", reviewerResult.status);
+  console.log("\nReviewer final status:", reviewerResult.status);
 
   const supervisorResult = new SupervisorPattern(new DemoSupervisorAgent(), defaultWorkers()).run(
-    "调研 Agent 架构的四个主流方向"
+    "Research four mainstream directions in Agent architecture"
   );
   console.log(supervisorResult.finalReport);
 
-  const specialistsResult = new ParallelSpecialists(defaultSpecialists()).run("checkout.py 代码片段", defaultDimensions());
+  const specialistsResult = new ParallelSpecialists(defaultSpecialists()).run("checkout.py code snippet", defaultDimensions());
   for (const conflict of specialistsResult.conflicts) {
-    console.log(`冲突: ${conflict.location} ${conflict.problemType} -> ${conflict.judgments.join(",")}`);
+    console.log(`Conflict: ${conflict.location} ${conflict.problemType} -> ${conflict.judgments.join(",")}`);
   }
 }
 

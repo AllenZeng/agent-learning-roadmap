@@ -19,8 +19,8 @@ class ToolMechanismTests(unittest.TestCase):
             context_tools = registry.to_context_tools()
             read_file = next(tool for tool in context_tools if tool["name"] == "read_file")
 
-            self.assertIn("本地文件", read_file["description"])
-            self.assertIn("不要用于搜索互联网", read_file["description"])
+            self.assertIn("local file", read_file["description"])
+            self.assertIn("Do not use for internet search", read_file["description"])
             self.assertEqual(read_file["risk_level"], "low")
             self.assertTrue(read_file["idempotent"])
             self.assertEqual(read_file["parameters"]["required"], ["path"])
@@ -42,7 +42,7 @@ class ToolMechanismTests(unittest.TestCase):
             self.assertEqual(observation["status"], "error")
             self.assertEqual(observation["error"]["code"], "missing_required")
             self.assertEqual(observation["error"]["retryable"], False)
-            self.assertEqual(observation["error"]["suggested_action"], "请补充参数: path")
+            self.assertEqual(observation["error"]["suggested_action"], "Please provide arguments: path")
             self.assertEqual(audit_log[0]["stage"], "validation")
             self.assertEqual(audit_log[0]["result"], "denied")
 
@@ -60,7 +60,7 @@ class ToolMechanismTests(unittest.TestCase):
 
             self.assertEqual(observation["status"], "error")
             self.assertEqual(observation["error"]["code"], "missing_tool_name")
-            self.assertEqual(observation["error"]["suggested_action"], "请从可用工具列表中选择一个 tool_name")
+            self.assertEqual(observation["error"]["suggested_action"], "Choose a tool_name from the available tool list")
             self.assertEqual(audit_log[0]["tool_name"], "")
             self.assertEqual(audit_log[0]["stage"], "validation")
 
@@ -115,7 +115,7 @@ class ToolMechanismTests(unittest.TestCase):
             attempts.append(query)
             if len(attempts) == 1:
                 raise TimeoutError("temporary timeout")
-            return ToolResult.success("查询成功", {"query": query}).to_dict()
+            return ToolResult.success("Query succeeded", {"query": query}).to_dict()
 
         registry = ToolRegistry(
             [
@@ -165,15 +165,15 @@ class ToolMechanismTests(unittest.TestCase):
                         "tool_name": "write_file",
                         "arguments": {
                             "path": "summary.md",
-                            "content": "工具机制需要 Schema、权限检查、审计和结构化 Observation。",
+                            "content": "The tool mechanism needs Schema, permission checks, auditing, and structured Observations.",
                         },
                     },
-                    {"type": "final_answer", "thought": "Done.", "answer": "已写入 summary.md。"},
+                    {"type": "final_answer", "thought": "Done.", "answer": "summary.md has been written."},
                 ]
             )
 
             result = run_agent(
-                "读取 notes.md，总结后写入 summary.md",
+                "Read notes.md, summarize it, and write summary.md",
                 registry=registry,
                 permissions=policy,
                 llm_call=llm,

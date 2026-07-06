@@ -1,11 +1,11 @@
 """
-Plan-Execute 模式：先生成计划，再按计划执行
+Plan-Execute pattern：generate a plan first，then execute according to the plan
 
-这是 Planning 最经典的实现。面对复杂任务时，
-先让模型把任务拆成结构化步骤，用户确认后再逐步执行。
-执行过程中如果某步失败，可以触发重规划——从当前状态生成新的后续步骤。
+This is Planning text。when facing complex tasks，
+first let the modelMove textstep，user confirmationthen execute step by step。
+during executionmediumtextfailed，can triggerreplan——from currentStatusgenerate newlaterstep。
 
-适用场景：中长任务、多步骤、需要用户确认或中途重规划。
+Use case：mediumtext、manystep、needsuser confirmationtextmediumtextreplan。
 """
 
 from dataclasses import dataclass, field
@@ -18,7 +18,7 @@ from scenario import (
 
 @dataclass
 class PlanStep:
-    """计划中的一个步骤"""
+    """planmediumtextstep"""
     name: str
     tool: str
     description: str = ""
@@ -30,7 +30,7 @@ class PlanStep:
 
 @dataclass
 class Plan:
-    """执行计划"""
+    """Execution plan"""
     goal: str
     steps: list[PlanStep]
     completed_steps: list[str] = field(default_factory=list)
@@ -38,7 +38,7 @@ class Plan:
 
 @dataclass
 class PlanExecuteResult:
-    """Plan-Execute 执行结果"""
+    """Plan-Execute Execution result"""
     status: str                      # completed | failed | rejected
     plan: Optional[Plan] = None
     results: list[StepResult] = field(default_factory=list)
@@ -49,20 +49,20 @@ class PlanExecuteResult:
 
 class PlanExecuteExecutor:
     """
-    Plan-Execute 执行器。
+    Plan-Execute executor。
 
-    核心流程：
-    1. generate_plan(goal) → 结构化计划
-    2. 用户确认计划
-    3. 逐步执行：
-       - 成功 → 标记完成，继续下一步
-       - 失败 → 重试（最多 max_retries 次）
-       - 重试耗尽 → 触发 replan()，生成新的后续步骤
-    4. 所有步骤完成 → 返回结果
+    core flow：
+    1. generate_plan(goal) → structured plan
+    2. user confirmationplan
+    3. execute step by step：
+       - success → textcomplete，textNext step
+       - failed → retry（at most max_retries times)
+       - retryexhausted → trigger replan()，generate newlaterstep
+    4. textstepcomplete → ReturnResult
 
-    与 Chain 的关键区别：
-    - Chain: 步骤固定，遇错即停
-    - Plan-Execute: 步骤可动态调整，失败可重规划
+    compared with Chain key difference：
+    - Chain: stepfixed，stop on error
+    - Plan-Execute: steptext，failedtextreplan
     """
 
     def __init__(self, max_replan_count: int = 2):
@@ -71,61 +71,61 @@ class PlanExecuteExecutor:
 
     def generate_plan(self, goal: str) -> Plan:
         """
-        生成执行计划——分析目标，拆解为结构化步骤。
+        textExecution plan——analysisGoal，textstep。
 
-        实际项目中这里是 LLM 调用，根据 goal + 可用工具列表生成计划。
-        这里用规则模拟：根据 goal 关键词匹配步骤模板。
+        textmediumtext LLM call，text goal + available toolstext。
+        this uses rules to simulate：text goal keywordmatchessteptext。
         """
         goal_lower = goal.lower()
 
         # Match step templates by goal
-        if any(w in goal_lower for w in ["发布", "release"]):
+        if any(w in goal_lower for w in ["release", "release"]):
             steps = [
                 PlanStep(
-                    name="检查 README", tool="检查 README",
-                    description="检查 README 完整性：验证必要章节是否存在",
+                    name="Check README", tool="Check README",
+                    description="Check README completeness：verify required sections exist",
                     depends_on=[],
                 ),
                 PlanStep(
-                    name="运行测试", tool="运行测试",
-                    description="运行全量测试套件，确保所有 case 通过",
+                    name="Run tests", tool="Run tests",
+                    description="Run full test suite，ensure all case pass",
                     depends_on=[],
                 ),
                 PlanStep(
-                    name="整理 changelog", tool="整理 changelog",
-                    description="基于 git log 生成本次发布的 changelog",
-                    depends_on=["运行测试"],
+                    name="Prepare changelog", tool="Prepare changelog",
+                    description="based on git log textcosttimesreleasetext changelog",
+                    depends_on=["Run tests"],
                 ),
                 PlanStep(
-                    name="生成 checklist", tool="生成 checklist",
-                    description="生成发布 checklist，汇总所有待确认项",
-                    depends_on=["检查 README", "运行测试", "整理 changelog"],
+                    name="Generate checklist", tool="Generate checklist",
+                    description="Generate release checklist，summarize all pending confirmation items",
+                    depends_on=["Check README", "Run tests", "Prepare changelog"],
                 ),
             ]
-        elif any(w in goal_lower for w in ["修复", "bug", "fix"]):
+        elif any(w in goal_lower for w in ["fix", "bug", "fix"]):
             steps = [
                 PlanStep(
-                    name="运行测试", tool="运行测试",
-                    description="先运行测试，确认 bug 可复现",
+                    name="Run tests", tool="Run tests",
+                    description="textRun tests，confirm bug can be reproduced",
                     depends_on=[],
                 ),
                 PlanStep(
-                    name="整理 changelog", tool="整理 changelog",
-                    description="记录修复内容",
-                    depends_on=["运行测试"],
+                    name="Prepare changelog", tool="Prepare changelog",
+                    description="textfixtext",
+                    depends_on=["Run tests"],
                 ),
             ]
         else:
             # Generic step template
             steps = [
                 PlanStep(
-                    name="检查 README", tool="检查 README",
-                    description="检查文档完整性",
+                    name="Check README", tool="Check README",
+                    description="check documentation completeness",
                     depends_on=[],
                 ),
                 PlanStep(
-                    name="运行测试", tool="运行测试",
-                    description="运行测试验证",
+                    name="Run tests", tool="Run tests",
+                    description="run tests for validation",
                     depends_on=[],
                 ),
             ]
@@ -133,15 +133,15 @@ class PlanExecuteExecutor:
         return Plan(goal=goal, steps=steps)
 
     def generate_plan_text(self, plan: Plan) -> str:
-        """生成计划的可读文本（用于展示给用户确认）"""
-        lines = [f"执行计划: {plan.goal}", "=" * 50, ""]
+        """text（textuser confirmation)"""
+        lines = [f"Execution plan: {plan.goal}", "=" * 50, ""]
         for i, step in enumerate(plan.steps, 1):
-            deps = f" [依赖: {', '.join(step.depends_on)}]" if step.depends_on else ""
-            lines.append(f"  步骤 {i}. {step.name}{deps}")
+            deps = f" [dependencies: {', '.join(step.depends_on)}]" if step.depends_on else ""
+            lines.append(f"  step {i}. {step.name}{deps}")
             lines.append(f"      {step.description}")
         lines.append("")
-        lines.append(f"  共 {len(plan.steps)} 个步骤")
-        lines.append(f"  最大重试次数: {DEFAULT_MAX_RETRIES}")
+        lines.append(f"  total {len(plan.steps)} itemsstep")
+        lines.append(f"  maximumretrytimestext: {DEFAULT_MAX_RETRIES}")
         return "\n".join(lines)
 
     def replan(
@@ -152,57 +152,57 @@ class PlanExecuteExecutor:
         error: str,
     ) -> list[PlanStep]:
         """
-        重规划——当某步失败时，基于当前状态生成新的后续步骤。
+        replan——textfailedtext，textStatusgenerate newlaterstep。
 
-        这是 Plan-Execute 与 Chain 的核心差异：
-        Chain 遇错即停，Plan-Execute 可以生成替代路径。
+        This is Plan-Execute compared with Chain text：
+        Chain stop on error，Plan-Execute textpath。
 
         Args:
-            goal: 原始目标
-            completed_steps: 已完成的步骤名称列表
-            failed_step: 失败的步骤名称
-            error: 失败原因
+            goal: textGoal
+            completed_steps: Completedtextsteptext
+            failed_step: failedtextsteptext
+            error: failure reason
         """
         self._replan_count += 1
 
         # Choose a replanning strategy based on the failure reason
         new_steps = []
 
-        if "FileNotFound" in error or "不存在" in error:
+        if "FileNotFound" in error or "does not exist" in error:
             # File missing -> skip the current step and use an alternative step
             new_steps.append(PlanStep(
-                name=f"替代方案（{failed_step}）",
-                tool="生成 checklist",
-                description=f"由于 {failed_step} 失败（{error}），使用替代方案",
+                name=f"alternative ({failed_step})",
+                tool="Generate checklist",
+                description=f"because {failed_step} failed（{error})，use alternative",
                 depends_on=[],
             ))
 
-        elif "测试失败" in error or "AssertionError" in error:
+        elif "test failed" in error or "AssertionError" in error:
             # Test failed -> insert an "analyze failure reason" step
             new_steps.append(PlanStep(
-                name=f"分析 {failed_step} 失败原因",
-                tool="运行测试",
-                description=f"重新运行测试以确认失败原因: {error}",
+                name=f"analysis {failed_step} failure reason",
+                tool="Run tests",
+                description=f"rerun tests to confirm the failure reason: {error}",
                 depends_on=[],
             ))
             # Continue with the remaining steps of the original plan
-            remaining = [s for s in ["整理 changelog", "生成 checklist"]
+            remaining = [s for s in ["Prepare changelog", "Generate checklist"]
                         if s not in completed_steps]
             for s in remaining:
                 new_steps.append(PlanStep(
                     name=s, tool=s,
-                    description=f"继续执行: {s}",
+                    description=f"continue execution: {s}",
                     depends_on=[new_steps[-1].name] if new_steps else [],
                 ))
 
         else:
             # Generic error -> skip the failed step and continue remaining steps
-            remaining = [s for s in ["整理 changelog", "生成 checklist"]
+            remaining = [s for s in ["Prepare changelog", "Generate checklist"]
                         if s not in completed_steps and s != failed_step]
             for s in remaining:
                 new_steps.append(PlanStep(
                     name=s, tool=s,
-                    description=f"跳过 {failed_step}，继续执行: {s}",
+                    description=f"skip {failed_step}，continue execution: {s}",
                     depends_on=[],
                 ))
 
@@ -220,17 +220,17 @@ class PlanExecuteExecutor:
         on_replan: Optional[Callable[[str, list[PlanStep]], None]] = None,
     ) -> PlanExecuteResult:
         """
-        Plan-Execute 主流程。
+        Plan-Execute main flow。
 
         Args:
-            goal: 任务目标
-            context: 初始上下文
-            auto_confirm: True 则跳过用户确认（演示模式）
-            inject_failures: 步骤名 → 是否失败（用于演示重规划）
-            on_plan: 计划生成后回调
-            on_step_start: 步骤开始回调
-            on_step_end: 步骤结束回调
-            on_replan: 重规划回调
+            goal: TaskGoal
+            context: initial context
+            auto_confirm: True textskipuser confirmation（demo mode)
+            inject_failures: steptext → textfailed（for demoreplan)
+            on_plan: callback after plan generation
+            on_step_start: stepstartedtext
+            on_step_end: steptext
+            on_replan: replantext
         """
         self._replan_count = 0
         ctx = context or {}
@@ -247,7 +247,7 @@ class PlanExecuteExecutor:
                 status="waiting_confirmation",
                 plan=plan,
                 context=ctx,
-                error="等待用户确认计划后再执行",
+                error="textuser confirmationtext",
             )
 
         # ── Step 3: execute step by step ──
@@ -267,7 +267,7 @@ class PlanExecuteExecutor:
                     if dep_name not in [s.name for s in plan.steps[:i]]:
                         dep_step = PlanStep(
                             name=dep_name, tool=dep_name,
-                            description=f"依赖步骤: {dep_name}",
+                            description=f"dependency step: {dep_name}",
                             depends_on=[],
                         )
                         plan.steps.insert(i, dep_step)
@@ -283,7 +283,7 @@ class PlanExecuteExecutor:
                 step_result = StepResult(
                     step_name=step.name,
                     status=StepStatus.ERROR,
-                    error=f"未找到工具: {step.tool}",
+                    error=f"Tool not found: {step.tool}",
                 )
             else:
                 # Check whether a failure should be injected
@@ -309,8 +309,8 @@ class PlanExecuteExecutor:
                     if self._replan_count >= self.max_replan_count:
                         result.status = "failed"
                         result.error = (
-                            f"达到最大重规划次数 {self.max_replan_count}，"
-                            f"停止在步骤 '{step.name}'"
+                            f"reached maximum replan count {self.max_replan_count}，"
+                            f"stopped at step '{step.name}'"
                         )
                         result.replan_count = self._replan_count
                         return result
@@ -319,7 +319,7 @@ class PlanExecuteExecutor:
                         goal=plan.goal,
                         completed_steps=plan.completed_steps,
                         failed_step=step.name,
-                        error=step_result.error or "未知错误",
+                        error=step_result.error or "texterror",
                     )
                     step.status = "failed"
                     signature = tuple(s.name for s in new_steps)
@@ -330,13 +330,13 @@ class PlanExecuteExecutor:
                     if not new_steps:
                         # Replanning produced no alternative steps, so the task fails
                         result.status = "failed"
-                        result.error = f"步骤 '{step.name}' 失败且无法重规划"
+                        result.error = f"step '{step.name}' failed and cannot be replanned"
                         result.replan_count = self._replan_count
                         return result
 
                     if signature in seen_replans:
                         result.status = "failed"
-                        result.error = "重规划生成了重复步骤，停止以避免循环"
+                        result.error = "replan generated duplicate steps; stopping to avoid a loop"
                         result.replan_count = self._replan_count
                         return result
                     seen_replans.add(signature)

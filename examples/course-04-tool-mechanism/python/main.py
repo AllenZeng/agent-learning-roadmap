@@ -1,7 +1,7 @@
-"""Python 版课程四工具机制示例入口。
+"""Python entry point for the course 04 tool mechanism example.
 
-这个文件在课程三最小闭环基础上，演示工具 Schema、权限检查、审计日志、
-结构化 Observation 和结果截断如何进入 Runtime。
+This file builds on the course 03 minimal loop to demonstrate tool Schema, permission checks, audit logs,
+structured Observations, and result truncation inside the runtime.
 """
 
 import argparse
@@ -15,7 +15,7 @@ from tool_agent.tools import PermissionPolicy, build_tool_registry
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the course 04 tool mechanism example.")
-    parser.add_argument("--goal", default="读取 data/notes.md，总结课程四工具机制，并写入 output/summary.md")
+    parser.add_argument("--goal", default="Read data/notes.md, summarize the course 04 tool mechanism, and write output/summary.md")
     parser.add_argument("--real-llm", action="store_true", help="Use DeepSeek Chat Completions API instead of the scripted demo LLM.")
     parser.add_argument("--max-steps", type=int, default=6)
     args = parser.parse_args()
@@ -37,7 +37,7 @@ def main() -> None:
 
 
 def _print_result(result: dict) -> None:
-    """打印单轮任务循环的结果和 Trace。"""
+    """Print the result and Trace for one task loop."""
 
     print("STATUS:", result["status"])
     if result.get("answer"):
@@ -48,7 +48,7 @@ def _print_result(result: dict) -> None:
 
 
 def _print_trace_steps(trace: list) -> None:
-    """逐步打印 Trace；每一步都包含本次执行后的 State。"""
+    """Print Trace step by step; each step includes State after this execution."""
     print("\nTRACE STEPS:")
     for entry in trace:
         print("\n--- STEP %s ---" % entry["step"])
@@ -64,7 +64,7 @@ def _print_trace_steps(trace: list) -> None:
 
 
 def _print_event_log(event: dict) -> None:
-    """实时打印 Runtime 事件：LLM 决策、工具调用、工具结果和状态变化。"""
+    """Print runtime events in real time: LLM decisions, tool calls, tool results, and state changes."""
     event_type = event["event"]
     step = event["step"]
     if event_type == "llm_decision":
@@ -96,25 +96,25 @@ def _print_event_log(event: dict) -> None:
 
 
 def _demo_llm() -> ScriptedLLM:
-    """返回固定决策序列，便于离线学习和测试。"""
+    """Return a fixed decision sequence for offline learning and tests."""
     return ScriptedLLM(
         [
             {
                 "type": "call_tool",
-                "thought": "先读取课程四示例资料。",
+                "thought": "First read the course 04 example material.",
                 "tool_name": "read_file",
                 "arguments": {"path": "data/notes.md"},
             },
             {
                 "type": "call_tool",
-                "thought": "将摘要写入交付文件。",
+                "thought": "Write the summary to the deliverable file.",
                 "tool_name": "write_file",
                 "arguments": {
                     "path": "output/summary.md",
-                    "content": "工具机制把工具调用拆成 Schema 暴露、参数校验、权限检查、执行、Observation 处理、审计日志和 State Update。",
+                    "content": "The tool mechanism splits tool calls into Schema exposure, argument validation, permission checks, execution, Observation processing, audit logs, and State Update.",
                 },
             },
-            {"type": "final_answer", "thought": "摘要文件已经写入。", "answer": "已生成 output/summary.md。"},
+            {"type": "final_answer", "thought": "The summary file has been written.", "answer": "Generated output/summary.md."},
         ],
         delay_seconds=random_demo_latency_seconds,
     )

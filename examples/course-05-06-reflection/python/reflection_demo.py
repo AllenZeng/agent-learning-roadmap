@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """
-课程五 05-06 Reflection 示例
+Course 05-06 Reflection example
 
-一个交互式 REPL，演示 Reflection 的反馈决策闭环：
-  - V0：无反思 — Agent 看到 TypeError 却继续执行
-  - V1：格式修复 — Schema 校验失败触发重生成
-  - V2：工具错误处理 — 参数错误触发分类与处理决策
-  - V3：测试驱动处理 — 外部测试框架驱动下一步决策
+An interactive REPL，text Reflection text：
+  - V0：no reflection — Agent saw TypeError textcontinue execution
+  - V1：format fix — Schema textfailedtext
+  - V2：tool error handling — wrong argumenttriggerclassificationcompared withProcessingdecision
+  - V3：test-driven handling — textNext stepdecision
 
-用法:
+Usage:
     python reflection_demo.py
 
-在 REPL 中你可以:
-  - 观察 V0 中 Agent 忽略错误的完整过程
-  - 对比 V1-V3 每阶段新增的反馈处理能力
-  - 触发停止条件，观察 Reflection 循环如何终止
+In REPL mediumyou can:
+  - text V0 medium Agent ignoreerrortext
+  - text V1-V3 textaddtextProcessingtext
+  - text，text Reflection looptext
 """
 
 import sys
@@ -35,7 +35,7 @@ class ValidationStatus(Enum):
 
 @dataclass
 class ActionResult:
-    """Agent 执行动作的结果"""
+    """Agent textResult"""
     output: str
     cost: float = 0.0
     attempt: int = 0
@@ -43,7 +43,7 @@ class ActionResult:
 
 @dataclass
 class ValidationResult:
-    """外部验证器的结果（不是模型自评！）"""
+    """External validatorstextResult（not model self-evaluation！)"""
     passed: bool
     message: str = ""
     evidence: str = ""
@@ -52,7 +52,7 @@ class ValidationResult:
 
 @dataclass
 class ReflectionResult:
-    """一次完整的 Reflection 循环结果"""
+    """texttimestext Reflection loopResult"""
     status: str  # success | stopped
     output: str = ""
     attempts: int = 0
@@ -68,30 +68,30 @@ class ReflectionResult:
 # Mock note content (used for citation validation)
 MOCK_NOTES = {
     "agent-memory-mechanism.md": """
-## 写入决策与遗忘机制
+## Write decisions and forgetting mechanisms
 
-Memory 模块的 session 数据由 MemoryStore 管理。
-expired session 数据由 decay() 在每次 start_session 时清理，底层调用 _purge_old_records()。
+Memory text session data is managed by MemoryStore managed。
+expired session data is managed by decay() Inevery time start_session text，text _purge_old_records()。
 
-写入逻辑在 src/memory/write.py 中实现了两层守卫：
-1. 容量守卫：当 store 大小超过 max_size 时拒绝写入
-2. TTL 守卫：当 key 的 ttl 过期时先清理再写入
+Writetext src/memory/write.py mediumtext：
+1. capacity guard：when store size exceeds max_size textrejectWrite
+2. TTL text：when key text ttl textWrite
 
-注意：Memory 模块不提供 clear_expired() 方法。过期清理是自动的、被动的。
+Note：Memory text clear_expired() method。expiration cleanuptext、passive。
 """,
     "session-manager.md": """
 ## Session Manager API
 
-session_manager.py 的 cleanup 方法用于手动清理过期 session。
-正确用法是调用 MemoryStore.decay() 触发级联清理，而不是直接操作 _store 字典。
+session_manager.py text cleanup text session。
+text MemoryStore.decay() trigger cascading cleanup，instead of directly operating on _store dictionary。
 
-错误示例（不要这样做）：
+errortext（do nottext)：
     def cleanup(self):
         for sid in list(self._sessions.keys()):
             if self._sessions[sid].expired:
                 del self._sessions[sid]  # Bypasses the cleanup logic in decay()!
 
-正确做法：
+text：
     def cleanup(self):
         self.memory_store.decay()  # Trigger the full expiration cleanup path
 """
@@ -130,13 +130,13 @@ tests/test_memory.py:28: AssertionError
 # "Correct code" and "wrong code" for V3
 CORRECT_CLEANUP_CODE = '''
 def cleanup(self):
-    """清理过期 session"""
+    """clean expired session"""
     self.memory_store.decay()
 '''
 
 BUGGY_CLEANUP_CODE = '''
 def cleanup(self):
-    """清理过期 session"""
+    """clean expired session"""
     for sid in list(self._sessions.keys()):
         if self._sessions[sid].expired:
             del self._sessions[sid]
@@ -148,28 +148,28 @@ def cleanup(self):
 # ═══════════════════════════════════════════════════════════════════════════
 
 def validate_json_schema(output: str) -> ValidationResult:
-    """V1: JSON Schema 校验 — 确定性规则检查"""
+    """V1: JSON Schema text — deterministic rule check"""
     required_fields = ["tool_name", "args", "reason"]
     missing = [f for f in required_fields if f not in output]
     if missing:
         return ValidationResult(
             passed=False,
-            message=f"Schema 校验失败：缺少必填字段 {', '.join(missing)}",
-            evidence=f"输出中只包含字段: {[k for k in ['tool_name','args','reason'] if k in output]}",
+            message=f"Schema textfailed：Missingtext {', '.join(missing)}",
+            evidence=f"textmediumtext: {[k for k in ['tool_name','args','reason'] if k in output]}",
             error_type="schema_error"
         )
-    return ValidationResult(passed=True, message="Schema 校验通过")
+    return ValidationResult(passed=True, message="Schema validation passed")
 
 
 def validate_tool_params(params: dict) -> ValidationResult:
-    """V2: 工具参数校验 — 检查参数是否在合法范围内"""
+    """V2: tool argument validation — check whether arguments are within the valid range"""
     if "limit" in params:
         limit = params["limit"]
         if not isinstance(limit, int) or limit < 1 or limit > 100:
             return ValidationResult(
                 passed=False,
-                message=f"参数错误：limit 必须在 1-100 之间，当前值 {limit}",
-                evidence=f"工具返回: Error: limit must be 1-100 (got {limit})",
+                message=f"wrong argument：limit must be between 1-100 and，current value {limit}",
+                evidence=f"tool returned: Error: limit must be 1-100 (got {limit})",
                 error_type="tool_param_error"
             )
     if "query" in params:
@@ -177,15 +177,15 @@ def validate_tool_params(params: dict) -> ValidationResult:
         if not query or not isinstance(query, str) or query.strip() == "":
             return ValidationResult(
                 passed=False,
-                message="参数错误：query 不能为空",
-                evidence="工具返回: Error: query parameter is required and must be non-empty",
+                message="wrong argument：query cannot be empty",
+                evidence="tool returned: Error: query parameter is required and must be non-empty",
                 error_type="tool_param_error"
             )
-    return ValidationResult(passed=True, message="参数校验通过")
+    return ValidationResult(passed=True, message="argument validation passed")
 
 
 def validate_citation(output: str, notes: dict) -> ValidationResult:
-    """V4: 引用校验 — 逐条检查输出中的引用能否在知识库中找到原文"""
+    """V4: citation validation — textmediumtextknowledge basemediumFoundtext"""
     # Extract referenced API/entity names from output
     import re
     # Find references like `memory.clear_expired()`
@@ -204,40 +204,40 @@ def validate_citation(output: str, notes: dict) -> ValidationResult:
         if not found:
             return ValidationResult(
                 passed=False,
-                message=f"引用校验失败：'{ref}' 在笔记中未找到",
-                evidence=f"搜索 './notes/' 下所有文件，'{ref}' 0 匹配",
+                message=f"citation validationfailed：'{ref}' InnotesmediumtextFound",
+                evidence=f"search './notes/' all files under，'{ref}' 0 matches",
                 error_type="context_missing"
             )
 
-    return ValidationResult(passed=True, message="引用校验通过")
+    return ValidationResult(passed=True, message="text")
 
 
 def validate_tests(code: str) -> ValidationResult:
-    """V3: 测试驱动验证 — 运行外部测试框架"""
+    """V3: test-driven validation — run external test framework"""
     # Simulation: check whether the code uses the correct API
     if "memory_store.decay()" in code:
-        return ValidationResult(passed=True, message="所有测试通过 (10/10)")
+        return ValidationResult(passed=True, message="All tests passed (10/10)")
     elif "del self._sessions" in code:
         return ValidationResult(
             passed=False,
-            message="测试失败: test_memory_cleanup_on_session_end — AssertionError: assert 1 == 0",
+            message="test failed: test_memory_cleanup_on_session_end — AssertionError: assert 1 == 0",
             evidence=MOCK_TEST_FAIL,
             error_type="test_failure"
         )
     return ValidationResult(
         passed=False,
-        message="测试失败: 代码无法解析",
+        message="test failed: textnonetext",
         evidence="SyntaxError: invalid syntax at line 3",
         error_type="test_failure"
     )
 
 
 def validate_env_check(action_name: str) -> ValidationResult:
-    """环境检查 — 模拟外部环境验证（如 git repo 是否存在）"""
+    """environment check — simulate external environment validation（such as git repo whether exists)"""
     if action_name == "git_log" and "--not-a-repo" in os.getcwd():
         return ValidationResult(
             passed=False,
-            message="工具执行失败: git log → fatal: not a git repository",
+            message="toolExecution failed: git log → fatal: not a git repository",
             evidence="fatal: not a git repository (or any of the parent directories): .git",
             error_type="env_error"
         )
@@ -249,7 +249,7 @@ def validate_env_check(action_name: str) -> ValidationResult:
 # ═══════════════════════════════════════════════════════════════════════════
 
 def classify_feedback(validation: ValidationResult) -> str:
-    """根据验证结果分类反馈类型"""
+    """textResultclassificationtext"""
     return validation.error_type
 
 
@@ -265,12 +265,12 @@ def reflection_loop(
     verbose: bool = True,
 ) -> ReflectionResult:
     """
-    带 Reflection 的执行循环。
+    with Reflection execution loop。
 
-    关键设计：
-    - validate 必须是外部验证器（测试、schema、引用对比），不能是模型自评
-    - 如果选择自动修正，必须改变输入（prompt/参数/上下文），不是简单重跑
-    - 停止条件硬编码，不由模型决定
+    key design：
+    - validate textExternal validators（tests、schema、citation comparison)，not model self-evaluation
+    - textcorrection，textInput（prompt/arguments/context)，not just rerun
+    - stopping conditions are hard-coded，not decided by the model
     """
     cost_spent = 0.0
     last_error = None
@@ -280,16 +280,16 @@ def reflection_loop(
         # 1. Execute action (inject facts from the previous failure)
         result = action(last_error, attempt)
         cost_spent += result.cost
-        trace.append(f"[尝试 {attempt + 1}] 执行完成，成本 ${result.cost:.2f}")
+        trace.append(f"[attempt {attempt + 1}] executecomplete，cost ${result.cost:.2f}")
 
         # 2. External validation (not model self-evaluation!)
         validation = validate(result.output)
-        trace.append(f"[尝试 {attempt + 1}] 验证: {'✅ 通过' if validation.passed else '❌ ' + validation.message}")
+        trace.append(f"[attempt {attempt + 1}] validation: {'✅ pass' if validation.passed else '❌ ' + validation.message}")
 
         if validation.passed:
             if verbose:
-                print(f"\n  ✅ Reflection 成功！第 {attempt + 1} 次尝试通过验证")
-                print(f"     总成本: ${cost_spent:.3f}，总尝试: {attempt + 1}")
+                print(f"\n  ✅ Reflection success！rank {attempt + 1} timestext")
+                print(f"     textcost: ${cost_spent:.3f}，text: {attempt + 1}")
             return ReflectionResult(
                 status="success",
                 output=result.output,
@@ -305,14 +305,14 @@ def reflection_loop(
             "message": validation.message,
             "evidence": validation.evidence,
         }
-        trace.append(f"[尝试 {attempt + 1}] 反馈分类: {error_type}")
+        trace.append(f"[attempt {attempt + 1}] textclassification: {error_type}")
 
         # 4. Stopping-condition check
         # 4a. Cost limit
         if cost_spent > cost_budget:
-            trace.append(f"[停止] 成本超限: ${cost_spent:.2f} > ${cost_budget:.2f}")
+            trace.append(f"[stop] costover limit: ${cost_spent:.2f} > ${cost_budget:.2f}")
             if verbose:
-                print(f"\n  🛑 成本超限停止: ${cost_spent:.2f} > ${cost_budget:.2f}")
+                print(f"\n  🛑 costtext: ${cost_spent:.2f} > ${cost_budget:.2f}")
             return ReflectionResult(
                 status="stopped", reason="cost_limit",
                 attempts=attempt + 1, cost=cost_spent,
@@ -322,10 +322,10 @@ def reflection_loop(
         # 4b. Same feedback repeats (feedback type and evidence are identical after handling)
         if attempt >= 1:
             # Simplified detection: if the same feedback type appears twice in a row, treat it as repeated feedback
-            trace.append(f"[停止] 相同反馈重复出现 ({error_type})，已尝试 {attempt + 1} 次")
+            trace.append(f"[stop] same feedback repeated ({error_type})，already tried {attempt + 1} times")
             if verbose:
-                print(f"\n  🛑 相同反馈重复停止: {error_type} 已连续出现 {attempt + 1} 次")
-                print("     处理未改变失败结果，可能根因分类错误")
+                print(f"\n  🛑 same feedback repeated stop: {error_type} has appeared consecutively {attempt + 1} times")
+                print("     ProcessingtextfailedResult，textclassificationerror")
             return ReflectionResult(
                 status="stopped", reason="repeated_failure",
                 attempts=attempt + 1, cost=cost_spent,
@@ -333,13 +333,13 @@ def reflection_loop(
             )
 
         if verbose:
-            print(f"  🔄 第 {attempt + 1} 次失败 ({error_type})，处理后重试...")
-            print(f"     证据: {validation.evidence[:100]}...")
+            print(f"  🔄 rank {attempt + 1} timesfailed ({error_type})，Processingtextretry...")
+            print(f"     evidence: {validation.evidence[:100]}...")
 
     # Exceeded maximum retry count
-    trace.append(f"[停止] 超过最大重试次数 ({max_retries})")
+    trace.append(f"[stop] Exceeded maximum retry count ({max_retries})")
     if verbose:
-        print(f"\n  🛑 超过最大重试次数: {max_retries}")
+        print(f"\n  🛑 Exceeded maximum retry count: {max_retries}")
     return ReflectionResult(
         status="stopped", reason="max_retries_exceeded",
         attempts=max_retries, cost=cost_spent,
@@ -361,20 +361,20 @@ LOOP = "🔄"
 
 def print_header():
     print("\n" + "=" * 64)
-    print("  Reflection — 基于反馈的决策闭环示例")
+    print("  Reflection — decision loop example based on feedback")
     print("=" * 64)
     print()
-    print("  场景：知识助手 Agent 在三种任务中的 Reflection 表现")
+    print("  Scenario：knowledge assistant Agent textmediumtext Reflection performance")
     print()
-    print("  演示选项:")
-    print("    0 — V0 无反思：Agent 看到 TypeError，继续写 changelog")
-    print("    1 — V1 格式修复：Schema 校验失败 → 重生成")
-    print("    2 — V2 工具错误处理：参数错误 → 分类 → 决策 → 重试或停止")
-    print("    3 — V3 测试驱动处理：测试失败 → 定位断言 → 修正代码或停止")
-    print("    4 — 完整 Reflection 循环：触发→分类→决策→处理→验证或停止")
-    print("    5 — 停止条件触发：相同反馈重复出现 → 硬停止")
-    print("    6 — 对比总结")
-    print("    q — 退出")
+    print("  Demo options:")
+    print("    0 — V0 no reflection：Agent saw TypeError，continues writing changelog")
+    print("    1 — V1 format fix：Schema textfailed → regenerate")
+    print("    2 — V2 tool error handling：wrong argument → classification → decision → retrytext")
+    print("    3 — V3 test-driven handling：test failed → locate assertion → correctiontext")
+    print("    4 — full Reflection loop：trigger→classification→decision→Processing→verify or stop")
+    print("    5 — stopping condition triggered：same feedback repeated → hard stop")
+    print("    6 — comparison summary")
+    print("    q — Exit")
     print()
 
 
@@ -390,68 +390,68 @@ def section(title: str):
 
 def demo_v0_no_reflection():
     """
-    V0：无反思 — Agent 看到 TypeError 却继续执行。
+    V0：no reflection — Agent saw TypeError textcontinue execution。
 
-    对应课程 6.1：Agent 在执行"运行测试"时遇到 TypeError，
-    但它把错误输出当成普通 Observation 记录下来，然后继续写 changelog。
+    Corresponds to course 6.1：Agent text"Run tests"text TypeError，
+    textitMove errortext Observation records it，then continues writing changelog。
     """
-    section("V0：无反思 — Agent 看到错误，继续往下走")
+    section("V0：no reflection — Agent sawerror，text")
 
     print("""
-  场景：发布准备流程。Agent 执行到"运行测试"这一步。
+  Scenario：releasetext。Agent text"Run tests"this step。
 
-  [14:00] Agent 执行: npm test
-  [14:01] 输出:
+  [14:00] Agent Execute: npm test
+  [14:01] text:
     TypeError: Cannot read properties of undefined (reading 'files')
         at runTests (test_runner.js:42:18)
 
-  Agent 看到了这个输出。它做了什么？""")
+  Agent textthistext。ittext？""")
 
-    input("\n  [按 Enter 看 Agent 的反应...]")
+    input("\n  [text Enter text Agent text...]")
 
     print("""
-  Agent 的"思考":
-    "测试执行完成。输出显示了一个 TypeError。
-     这可能是测试环境的问题。
-     让我把它记录到执行日志中。"
+  Agent text"thought":
+    "textcomplete。text TypeError。
+     this may be a test environment issue。
+     textMove ittextmedium。"
 
-  Agent 的行为:
-    1. 在状态中记录: "测试: 完成（有警告）"
-    2. 继续执行下一步: "整理 changelog"
-    3. 最终汇报: "✅ 发布准备已完成"
+  Agent text:
+    1. InStatusmediumtext: "tests: complete（text)"
+    2. continue executionNext step: "Prepare changelog"
+    3. final report: "✅ releasetextCompleted"
 
   ┌─────────────────────────────────────────────────────────────┐
-  │ 问题：Agent 缺少"看到反馈信号→分类→决策→处理或停止"的闭环  │
+  │ Problem：Agent Missing"text→classification→decision→Processingtext"text  │
   │                                                             │
-  │ 这不是工具问题，不是 Planning 问题，不是 Memory 问题。      │
-  │ 这是 Reflection 的缺失。                                     │
+  │ text，text Planning Problem，text Memory Problem。      │
+  │ This is Reflection text。                                     │
   │                                                             │
-  │ 类比：仪表盘亮红灯，司机看了一眼，在日志里记下               │
-  │       "14:32 红灯亮了"，然后继续以 120km/h 往前开。         │
+  │ Analogy：dashboard red light turns on，the driver glances at it，writes in the log               │
+  │       "14:32 text"，then continues at 120km/h forward。         │
   └─────────────────────────────────────────────────────────────┘
 """)
 
 
 def demo_v1_format_fix():
     """
-    V1：格式修复 — Schema 校验失败触发重生成。
+    V1：format fix — Schema textfailedtext。
 
-    对应课程 6.4.2-6.4.4：Schema 校验失败 → 反馈分类 → 重生成。
+    Corresponds to course 6.4.2-6.4.4：Schema textfailed → textclassification → regenerate。
     """
-    section("V1：格式修复 — Schema 校验失败 → 重生成")
+    section("V1：format fix — Schema textfailed → regenerate")
 
     print("""
-  场景：Agent 需要输出结构化 JSON，包含 tool_name、args、reason 三个字段。
+  Scenario：Agent text JSON，text tool_name、args、reason text。
 
-  最基础的 Reflection 起点——不是"让模型反思内容质量"，
-  而是用确定性规则检查输出格式。""")
+  text Reflection starting point——text"making the model reflect on content quality"，
+  but checking output format with deterministic rules。""")
 
-    input("\n  [按 Enter 执行...]")
+    input("\n  [Press Enter to execute...]")
 
     # Simulate first attempt: missing field
     bad_output = '{"tool": "search_notes", "query": "memory cleanup"}'
-    print(f"\n  Agent 第 1 次输出: {bad_output}")
-    print(f"  Schema 要求: tool_name, args, reason 三个字段必填")
+    print(f"\n  Agent rank 1 timestext: {bad_output}")
+    print(f"  Schema text: tool_name, args, reason text")
 
     def action_v1(prev_error, attempt):
         if attempt == 0:
@@ -463,7 +463,7 @@ def demo_v1_format_fix():
         else:
             # After correction: fill the missing field
             return ActionResult(
-                output='{"tool_name": "search_notes", "args": {"query": "memory cleanup"}, "reason": "用户询问 memory 清理机制"}',
+                output='{"tool_name": "search_notes", "args": {"query": "memory cleanup"}, "reason": "usertext memory text"}',
                 cost=0.01
             )
 
@@ -474,35 +474,35 @@ def demo_v1_format_fix():
         verbose=True
     )
 
-    print(f"\n  📋 Reflection 结果: {result.status}")
-    print(f"     输出: {result.output}")
-    print(f"     尝试次数: {result.attempts}，成本: ${result.cost:.3f}")
+    print(f"\n  📋 Reflection Result: {result.status}")
+    print(f"     text: {result.output}")
+    print(f"     attempt count: {result.attempts}，cost: ${result.cost:.3f}")
 
     print("""
-  💡 关键点:
-     - Schema 校验是确定性规则——字段存在/不存在，没有模糊空间
-     - 不要过早加"内容反思"——先修格式问题，内容质量让用户判断
-     - 这是 Reflection 最安全的起点：实现简单、验证明确、不会引入新错误
+  💡 Key points:
+     - Schema text——text/does not exist，text
+     - do nottext"text"——text，textusertext
+     - This is Reflection text：text、text、texterror
 """)
 
 
 def demo_v2_tool_error_fix():
     """
-    V2：工具错误处理 — 参数错误触发分类与处理决策。
+    V2：tool error handling — wrong argumenttriggerclassificationcompared withProcessingdecision。
 
-    对应课程 6.4.2-6.4.4：工具返回参数错误 → 分类 → 决定修正参数并重试。
+    Corresponds to course 6.4.2-6.4.4：tool returnedwrong argument → classification → textcorrectiontextretry。
     """
-    section("V2：工具错误处理 — 参数错误 → 分类 → 决策")
+    section("V2：tool error handling — wrong argument → classification → decision")
 
     print("""
-  场景：Agent 调用 search_notes 搜索笔记，但参数不合法。
+  Scenario：Agent call search_notes searchnotes，text。
 
-  知识助手想搜索 Memory 相关内容，但 query 为空、limit 超出范围。""")
+  text Memory text，text query text、limit text。""")
 
-    input("\n  [按 Enter 执行...]")
+    input("\n  [Press Enter to execute...]")
 
-    bad_params = '{"tool_name": "search_notes", "args": {"query": "", "limit": 500}, "reason": "查 memory 清理"}'
-    print(f"\n  Agent 第 1 次调用: {bad_params}")
+    bad_params = '{"tool_name": "search_notes", "args": {"query": "", "limit": 500}, "reason": "text memory text"}'
+    print(f"\n  Agent rank 1 timescall: {bad_params}")
 
     def action_v2(prev_error, attempt):
         if attempt == 0:
@@ -514,7 +514,7 @@ def demo_v2_tool_error_fix():
         elif attempt == 1:
             # Correction: change the argument value
             return ActionResult(
-                output='search_notes(query="memory cleanup decay", limit=20) → 找到 3 条结果',
+                output='search_notes(query="memory cleanup decay", limit=20) → Found 3 textResult',
                 cost=0.02
             )
 
@@ -522,16 +522,16 @@ def demo_v2_tool_error_fix():
         if "Error: limit must be" in output:
             return ValidationResult(
                 passed=False,
-                message="参数错误: limit=500 超出范围",
-                evidence="工具返回: Error: limit must be 1-100 (got 500)",
+                message="wrong argument: limit=500 text",
+                evidence="tool returned: Error: limit must be 1-100 (got 500)",
                 error_type="tool_param_error"
             )
-        if "找到" in output and "结果" in output:
-            return ValidationResult(passed=True, message="工具执行成功")
+        if "Found" in output and "Result" in output:
+            return ValidationResult(passed=True, message="textsuccess")
         return ValidationResult(
             passed=False,
-            message="query 不能为空",
-            evidence="工具返回: Error: query parameter is required",
+            message="query cannot be empty",
+            evidence="tool returned: Error: query parameter is required",
             error_type="tool_param_error"
         )
 
@@ -542,34 +542,34 @@ def demo_v2_tool_error_fix():
         verbose=True
     )
 
-    print(f"\n  📋 Reflection 结果: {result.status}")
-    print(f"     尝试次数: {result.attempts}，成本: ${result.cost:.3f}")
+    print(f"\n  📋 Reflection Result: {result.status}")
+    print(f"     attempt count: {result.attempts}，cost: ${result.cost:.3f}")
 
     print("""
-  💡 关键点:
-     - 反馈分类决定处理方向：参数错误→改参数，不要连工具一起换
-     - 自动修正必须改变输入：limit=500→20, query=""→"memory cleanup decay"
-     - 区分可重试（网络超时）、可修正（参数错误）、不可恢复（权限不足）
+  💡 Key points:
+     - textclassificationtextProcessingtext：wrong argument→text，do nottext
+     - textcorrectiontextInput：limit=500→20, query=""→"memory cleanup decay"
+     - textretry（text)、textcorrection（wrong argument)、text（Permission denied)
 """)
 
 
 def demo_v3_test_driven_fix():
     """
-    V3：测试驱动处理 — 外部测试框架驱动下一步决策。
+    V3：test-driven handling — textNext stepdecision。
 
-    对应课程 6.4.2-6.4.5：测试失败 → 反馈分类 → 处理策略 → 重新验证或停止。
+    Corresponds to course 6.4.2-6.4.5：test failed → textclassification → Processingtext → text。
     """
-    section("V3：测试驱动处理 — 测试失败 → 定位 → 修正代码或停止")
+    section("V3：test-driven handling — test failed → text → correctiontext")
 
     print("""
-  场景：Agent 修复了 session_manager.py 的 cleanup 方法，但代码有 bug。
+  Scenario：Agent fix session_manager.py text cleanup method，text bug。
 
-  Agent 提交的代码绕过了 decay() 的清理逻辑，直接操作 _store 字典。
-  外部测试框架捕获了这个问题。""")
+  Agent text decay() text，text _store dictionary。
+  textthisProblem。""")
 
-    input("\n  [按 Enter 执行...]")
+    input("\n  [Press Enter to execute...]")
 
-    print(f"\n  Agent 第 1 次提交的代码:")
+    print(f"\n  Agent rank 1 timestext:")
     print(f"  {BUGGY_CLEANUP_CODE}")
 
     def action_v3(prev_error, attempt):
@@ -586,60 +586,60 @@ def demo_v3_test_driven_fix():
         verbose=True
     )
 
-    print(f"\n  📋 Reflection 结果: {result.status}")
-    print(f"     修正后代码: {result.output.strip()}")
-    print(f"     尝试次数: {result.attempts}，成本: ${result.cost:.3f}")
+    print(f"\n  📋 Reflection Result: {result.status}")
+    print(f"     after correctiontext: {result.output.strip()}")
+    print(f"     attempt count: {result.attempts}，cost: ${result.cost:.3f}")
 
     print("""
-  💡 关键点:
-     - validate 是外部测试框架，不是"让 LLM 再看看"
-     - 修正后必须重新跑测试——"改了就算好了"不成立
-     - 测试输出提供具体证据（报错行、断言值），修正才能精准
+  💡 Key points:
+     - validate text，text"text LLM text"
+     - after correctiontext——"text"text
+     - text（text、text)，correctiontext
 """)
 
 
 def demo_full_reflection_loop():
     """
-    完整 Reflection 循环：引用校验场景。
+    full Reflection loop：text。
 
-    对应课程 6.4.6 实战回放。
+    Corresponds to course 6.4.6 text。
     """
-    section("完整 Reflection 循环：触发→分类→决策→处理→验证或停止")
+    section("full Reflection loop：trigger→classification→decision→Processing→verify or stop")
 
     print("""
-  场景：用户让 Agent 分析代码中的 bug。Agent 引用了不存在的 API。
+  Scenario：usertext Agent analysistextmediumtext bug。Agent textdoes not existtext API。
 
-  这是课程 6.4.6 的回放——Agent 编造了 memory.clear_expired()，
-  引用校验捕获了这个幻觉。""")
+  text 6.4.6 text——Agent invented memory.clear_expired()，
+  textthistext。""")
 
-    input("\n  [按 Enter 执行...]")
+    input("\n  [Press Enter to execute...]")
 
     print("""
-  [10:00] 用户："这段代码在处理 session 清理时好像有问题，帮我看看。"
+  [10:00] user："textProcessing session text，text。"
 
-  Agent（第 1 次尝试）：
-    "问题在 session_manager.py 的 cleanup 方法中。该方法调用了
-     memory.clear_expired()，但这个 API 在 Memory 模块中不存在——
-     正确的 API 应该是 memory.remove_expired_sessions()。"
+  Agent（rank 1 timesattempt)：
+    "text session_manager.py text cleanup methodmedium。text
+     memory.clear_expired()，textthis API In Memory modulemediumdoes not exist——
+     text API text memory.remove_expired_sessions()。"
 """)
 
     def action_citation(prev_error, attempt):
         if attempt == 0:
             # Hallucinated output: invented clear_expired()
             return ActionResult(
-                output="问题在 session_manager.py 的 cleanup 方法中。该方法调用了 "
-                       "`memory.clear_expired()`，但这个 API 在 Memory 模块中不存在——"
-                       "正确的 API 应该是 `memory.remove_expired_sessions()`。",
+                output="text session_manager.py text cleanup methodmedium。text "
+                       "`memory.clear_expired()`，textthis API In Memory modulemediumdoes not exist——"
+                       "text API text `memory.remove_expired_sessions()`。",
                 cost=0.02
             )
         else:
             # After correction: correct reference based on retrieval results
             return ActionResult(
-                output="问题在 session_manager.py 的 cleanup 方法中。笔记显示 Memory "
-                       "模块的过期清理由 `decay()` → `_purge_old_records()` 完成 "
-                       "[来源: agent-memory-mechanism.md §写入决策与遗忘机制]。"
-                       "但 session_manager 的 cleanup 直接操作了 session 存储而没有调用 "
-                       "decay()，导致过期记录被跳过。",
+                output="text session_manager.py text cleanup methodmedium。notestext Memory "
+                       "textexpiration cleanuptext `decay()` → `_purge_old_records()` complete "
+                       "[source: agent-memory-mechanism.md §Write decisions and forgetting mechanisms]。"
+                       "text session_manager text cleanup text session text "
+                       "decay()，textskip。",
                 cost=0.02
             )
 
@@ -650,37 +650,37 @@ def demo_full_reflection_loop():
         verbose=True
     )
 
-    print(f"\n  📋 Reflection 结果: {result.status}")
-    print(f"     最终输出: {result.output[:120]}...")
-    print(f"     尝试次数: {result.attempts}，成本: ${result.cost:.3f}")
+    print(f"\n  📋 Reflection Result: {result.status}")
+    print(f"     text: {result.output[:120]}...")
+    print(f"     attempt count: {result.attempts}，cost: ${result.cost:.3f}")
 
     print("""
-  💡 关键点:
-     - 触发是被动的：validate() 返回 passed=false 才触发
-     - 分类决定处理方向：幻觉→上下文缺失→补充检索
-     - 自动修正改变输入：第 2 次 prompt 中多了检索到的原文
-     - 处理后重新验证：不是"改了就算好了"
+  💡 Key points:
+     - text：validate() Return passed=false text
+     - classificationtextProcessingtext：text→contextmissing→text
+     - textcorrectiontextInput：rank 2 times prompt mediumtext
+     - Processingtext：text"text"
 """)
 
 
 def demo_stop_conditions():
     """
-    停止条件触发演示：相同反馈重复出现 → 硬停止。
+    text：same feedback repeated → hard stop。
 
-    对应课程 6.4.5：停止条件。
+    Corresponds to course 6.4.5：text。
     """
-    section("停止条件触发：相同反馈重复出现 → 硬停止")
+    section("stopping condition triggered：same feedback repeated → hard stop")
 
     print("""
-  场景：Agent 的 JSON 输出持续缺少 tool_name 字段。
+  Scenario：Agent text JSON textMissing tool_name text。
 
-  第 1 次：缺 tool_name
-  第 2 次：缺 tool_name（处理没改变输入，只是重跑了相同 prompt）
-  → 停止条件触发：相同反馈重复出现
+  rank 1 times：text tool_name
+  rank 2 times：text tool_name（ProcessingtextInput，text prompt)
+  → stopping condition triggered：same feedback repeated
 
-  如果停止条件被绕过，Agent 可能会围绕同一个反馈反复处理。""")
+  text，Agent textProcessing。""")
 
-    input("\n  [按 Enter 执行...]")
+    input("\n  [Press Enter to execute...]")
 
     # Always return output missing tool_name (simulates ineffective handling)
     def action_stuck(prev_error, attempt):
@@ -694,63 +694,63 @@ def demo_stop_conditions():
         verbose=True
     )
 
-    print(f"\n  📋 Reflection 结果: {result.status}")
-    print(f"     停止原因: {result.reason}")
+    print(f"\n  📋 Reflection Result: {result.status}")
+    print(f"     stopreason: {result.reason}")
     for t in result.trace:
         print(f"     {t}")
 
     print("""
-  💡 关键点:
-     - 停止条件必须硬编码——模型在第 5 次处理时仍会说"这次应该对了"
-     - 停止条件之间是 OR 关系：任意一个满足就停止
-     - 相同反馈检测对比的是反馈类型（schema_error），不是完整错误字符串
-     - 如果处理策略没有改变输入，第二次就是浪费——应该停止
+  💡 Key points:
+     - text——textrank 5 timesProcessingtext"this timetext"
+     - text OR text：text
+     - text（schema_error)，texterrorcharacterstext
+     - textProcessingtextInput，texttimestext——text
 """)
 
 
 def demo_summary():
-    """对比总结"""
-    section("Reflection 四个阶段的对比总结")
+    """comparison summary"""
+    section("Reflection text")
 
     print("""
   ┌──────────┬──────────────────────┬──────────────────────────────┐
-  │ 阶段     │ 做什么               │ 解决什么问题                  │
+  │ text     │ text               │ text                  │
   ├──────────┼──────────────────────┼──────────────────────────────┤
-  │ V0 无反思│ 失败直接返回          │ 验证任务是否真的需要决策闭环  │
-  │ V1 格式  │ Schema 重校验+重生成  │ 结构化输出稳定性              │
-  │ V2 工具  │ 参数/超时/权限分类处理│ 工具调用稳定性                │
-  │ V3 测试  │ 测试失败→定位→处理决策│ 代码类任务质量                │
-  │ V4 引用  │ 知识库原文反向验证     │ 知识问答可信度                │
+  │ V0 no reflection│ failedtext          │ text  │
+  │ V1 text  │ Schema text+regenerate  │ text              │
+  │ V2 tool  │ arguments/text/textclassificationProcessing│ tool callingtext                │
+  │ V3 tests  │ test failed→text→Processingdecision│ text                │
+  │ V4 text  │ knowledge basetext     │ textconfidence                │
   └──────────┴──────────────────────┴──────────────────────────────┘
 
-  三个贯穿全链路的主线：
+  text：
 
-  1. 验证必须外部化
-     Reflection 的可信度完全取决于验证器的可信度。
-     → 测试框架、Schema 校验、引用原文对比、用户驳回
-     → 不是"让 LLM 自己检查"
+  1. text
+     Reflection textconfidencetextconfidence。
+     → text、Schema text、text、usertext
+     → text"text LLM text"
 
-  2. 分类先于处理，根因先于症状
-     看到"测试失败"就重跑——这不是 Reflection，这是祈祷。
-     → 先问"为什么失败"：代码逻辑错？测试环境坏？幻觉？
-     → 自动修正必须改变输入，不能只是重跑相同 prompt
+  2. classificationtextProcessing，text
+     saw"test failed"text——This is not Reflection，text。
+     → text"textfailed"：text？text？text？
+     → textcorrectiontextInput，text prompt
 
-  3. 停止条件是安全阀，不能交给模型决定
-     模型没有"该停了"的直觉。
-     → 最大重试 3 次、相同反馈 2 次即停、成本上限 $1
-     → 必须硬编码，必须在运行时强制执行
+  3. text，text
+     text"text"text。
+     → maximumretry 3 times、text 2 timestext、costtext $1
+     → text，text
 
   ───────────────────────────────────────────────────────────────
 
-  什么时候不需要 Reflection：
-     - 输出可以用确定性规则直接修正
-     - 失败成本很低，简单重跑更便宜
-     - 没有外部反馈信号（模型自评不可靠）
-     - 任务对延迟非常敏感
+  text Reflection：
+     - textcorrection
+     - failedcosttextlow，text
+     - text（text)
+     - text
 
-  实用判断：
-    "如果有明确反馈信号，并且自动处理成本低于失败成本，Reflection 值得引入。
-     如果只是让模型'再想想'，通常不值得。"
+  text：
+    "text，textProcessingcostlowtextfailedcost，Reflection text。
+     text'text'，text。"
 """)
 
 
@@ -759,13 +759,13 @@ def demo_summary():
 # ═══════════════════════════════════════════════════════════════════════════
 
 DEMOS = {
-    "0": ("V0 无反思", demo_v0_no_reflection),
-    "1": ("V1 格式修复", demo_v1_format_fix),
-    "2": ("V2 工具错误处理", demo_v2_tool_error_fix),
-    "3": ("V3 测试驱动处理", demo_v3_test_driven_fix),
-    "4": ("完整 Reflection 循环", demo_full_reflection_loop),
-    "5": ("停止条件触发", demo_stop_conditions),
-    "6": ("对比总结", demo_summary),
+    "0": ("V0 no reflection", demo_v0_no_reflection),
+    "1": ("V1 format fix", demo_v1_format_fix),
+    "2": ("V2 tool error handling", demo_v2_tool_error_fix),
+    "3": ("V3 test-driven handling", demo_v3_test_driven_fix),
+    "4": ("full Reflection loop", demo_full_reflection_loop),
+    "5": ("stopping condition triggered", demo_stop_conditions),
+    "6": ("comparison summary", demo_summary),
 }
 
 
@@ -774,22 +774,22 @@ def main():
 
     while True:
         try:
-            choice = input("  请选择演示 (0-6, q 退出): ").strip()
+            choice = input("  Please choosetext (0-6, q Exit): ").strip()
         except (EOFError, KeyboardInterrupt):
-            print("\n  再见！")
+            print("\n  Goodbye!")
             break
 
         if choice.lower() == "q":
-            print("  再见！")
+            print("  Goodbye!")
             break
 
         if choice in DEMOS:
             name, fn = DEMOS[choice]
             fn()
-            print(f"\n  ── {name} 演示完毕 ──")
-            print("  （提示：选择 6 查看对比总结，q 退出）")
+            print(f"\n  ── {name} text ──")
+            print("  （text：choose 6 text，q Exit)")
         else:
-            print(f"  无效选项 '{choice}'。请输入 0-6 或 q 退出。")
+            print(f"  nonetext '{choice}'。pleaseInput 0-6 text q Exit。")
 
 
 if __name__ == "__main__":

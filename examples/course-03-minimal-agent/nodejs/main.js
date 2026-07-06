@@ -17,7 +17,7 @@ async function main() {
   const llmCall = args.realLlm ? deepSeekChatLLM : scriptedLLM.call.bind(scriptedLLM);
 
   const result = await runAgent({
-    userGoal: args.goal || "读取 data/notes.md，总结课程三最小 Agent 闭环，并写入 output/summary.md",
+    userGoal: args.goal || "Read data/notes.md, summarize the course 03 minimal Agent loop, and write output/summary.md",
     tools: buildTools(root),
     llmCall,
     maxSteps: Number(args.maxSteps || 6),
@@ -78,24 +78,24 @@ function demoLLM() {
     [
       {
         type: "call_tool",
-        thought: "先读取课程三示例资料。",
+        thought: "First read the course 03 example material.",
         tool_name: "read_file",
         arguments: { path: "data/notes.md" },
       },
       {
         type: "call_tool",
-        thought: "将摘要写入交付文件。",
+        thought: "Write the summary to the deliverable file.",
         tool_name: "write_file",
         arguments: {
           path: "output/summary.md",
           content:
-            "最小 Agent 闭环包含 Prompt、LLM 决策、工具交互、State 状态管理和循环控制。Runtime 负责组装上下文、执行工具、记录 Observation、更新 State，并判断是否继续。",
+            "The minimal Agent loop includes Prompt, LLM decisions, tool interaction, State management, and loop control. The runtime assembles context, executes tools, records Observations, updates State, and decides whether to continue.",
         },
       },
       {
         type: "final_answer",
-        thought: "摘要文件已经写入。",
-        answer: "已生成 output/summary.md。",
+        thought: "The summary file has been written.",
+        answer: "Generated output/summary.md.",
       },
     ],
     { delayMs: randomDemoLatencyMs },

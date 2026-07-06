@@ -1,4 +1,4 @@
-"""课程四工具机制示例：工具定义、参数校验、权限、审计和 Observation 处理。"""
+"""Course 04 tool mechanism example: tool definitions, argument validation, permissions, auditing, and Observation processing."""
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -19,11 +19,11 @@ ToolHandler = Callable[..., Observation]
 
 @dataclass
 class ToolResult:
-    """统一工具返回结构。
+    """Normalized tool return structure.
 
-    course 03 里工具直接返回 `{status, summary, content, error}` 字典。
-    course 04 保留同样的外部结构，但用一个小对象集中构造成功/失败返回，
-    避免每个工具自己随意拼错误格式，导致模型下一轮无法稳定理解。
+    In course 03, tools directly return a `{status, summary, content, error}` dictionary.
+    Course 04 keeps the same external structure but uses a small object to centralize success and failure construction,
+    so each tool does not invent its own error format and confuse the model on the next turn.
     """
 
     status: str
@@ -44,10 +44,10 @@ class ToolResult:
         suggested_action: str = "",
         needs_user: bool = False,
     ) -> "ToolResult":
-        """构造结构化错误。
+        """Build a structured error.
 
-        `retryable`、`suggested_action` 和 `needs_user` 是给下一轮 LLM 决策用的：
-        它们告诉模型这个错误能否重试、应该怎么修正、是否需要用户介入。
+        `retryable`, `suggested_action`, and `needs_user` are for the next LLM decision:
+        they tell the model whether the error can be retried, how to correct it, and whether user input is needed.
         """
         return cls(
             status="error",
@@ -68,13 +68,13 @@ class ToolResult:
 
 @dataclass
 class ToolDefinition:
-    """工具的完整定义。
+    """Complete tool definition.
 
-    课程三只把函数 docstring 暴露给模型；课程四把工具定义显式拆开：
-    - `description` 说明适用/不适用场景，帮助模型选工具。
-    - `parameters` 是简化版 JSON Schema，帮助 Runtime 校验参数。
-    - `risk_level` 和 `idempotent` 给权限与重试策略使用。
-    - `handler` 才是真正执行动作的函数。
+    Course 03 only exposes function docstrings to the model; course 04 explicitly separates tool definitions:
+    - `description` explains applicable and non-applicable cases to help the model choose tools.
+    - `parameters` is a simplified JSON Schema that helps the runtime validate arguments.
+    - `risk_level` and `idempotent` are used by permission and retry policies.
+    - `handler` is the function that actually performs the action.
     """
 
     name: str
@@ -86,10 +86,10 @@ class ToolDefinition:
     max_retries: int = 0
 
     def to_context(self) -> Dict[str, Any]:
-        """返回注入 LLM 上下文的安全工具视图。
+        """Return the safe tool view injected into LLM context.
 
-        注意这里不暴露 `handler`，模型只能看到工具说明和 Schema，不能直接执行。
-        真正执行必须经过 `execute_tool_call()`。
+        Note that `handler` is not exposed here; the model only sees tool descriptions and Schema and cannot execute directly.
+        Actual execution must go through `execute_tool_call()`.
         """
         return {
             "name": self.name,
@@ -101,11 +101,11 @@ class ToolDefinition:
 
 
 class ToolRegistry:
-    """工具注册表。
+    """Tool registry.
 
-    Registry 解决两个问题：
-    1. Runtime 可以通过工具名找到实际定义和 handler。
-    2. Context Assembly 可以统一生成给模型看的工具列表。
+    The registry solves two problems:
+    1. The runtime can find the actual definition and handler by tool name.
+    2. Context Assembly can generate a unified tool list for the model.
     """
 
     def __init__(self, tools: Iterable[ToolDefinition], max_context_chars: int = 1200):
@@ -122,7 +122,7 @@ class ToolRegistry:
 
 
 class PermissionPolicy:
-    """Deny-first 权限策略：未显式允许的工具一律拒绝。"""
+    """Deny-first permission policy: reject any tool that is not explicitly allowed."""
 
     def __init__(self, allowed_tools: Optional[Set[str]] = None):
         self.allowed_tools = set(allowed_tools or set())
@@ -139,18 +139,18 @@ def execute_tool_call(
     permissions: PermissionPolicy,
     audit_log: Optional[List[Dict[str, Any]]] = None,
 ) -> Observation:
-    """执行完整工具链路。
+    """Execute the full tool path.
 
-    这是课程四相对课程三最关键的变化：Agent loop 不再直接调用函数。
-    模型输出的 tool call 必须依次经过：
-    1. 工具名检查
-    2. 工具存在性检查
-    3. arguments 结构检查
-    4. Schema 参数校验
-    5. Deny-first 权限检查
-    6. handler 执行与幂等重试
-    7. Observation 整形
-    8. 审计日志记录
+    This is the key change from course 03 to course 04: the Agent loop no longer calls functions directly.
+    A model-produced tool call must pass through these steps in order:
+    1. Tool-name check
+    2. Tool existence check
+    3. Argument structure check
+    4. Schema argument validation
+    5. Deny-first permission check
+    6. Handler execution and idempotent retry
+    7. Observation shaping
+    8. Audit log recording
     """
     audit_log = audit_log if audit_log is not None else []
     requested_tool_name = decision.get("tool_name")
@@ -162,8 +162,8 @@ def execute_tool_call(
     if not isinstance(requested_tool_name, str) or not requested_tool_name:
         observation = ToolResult.failure(
             "missing_tool_name",
-            "缺少工具名 tool_name",
-            suggested_action="请从可用工具列表中选择一个 tool_name",
+            "Missing tool name: tool_name",
+            suggested_action="Choose a tool_name from the available tool list",
         ).to_dict()
         _audit(audit_log, "", arguments, "validation", "denied", observation)
         return observation
@@ -176,8 +176,8 @@ def execute_tool_call(
     if tool is None:
         observation = ToolResult.failure(
             "tool_not_found",
-            "工具不存在: %s" % tool_name,
-            suggested_action="检查工具名，或从可用工具列表中重新选择",
+            "Tool does not exist: %s" % tool_name,
+            suggested_action="Check the tool name or choose again from the available tool list",
         ).to_dict()
         _audit(audit_log, tool_name, arguments, "lookup", "denied", observation)
         return observation
@@ -187,8 +187,8 @@ def execute_tool_call(
     if not isinstance(arguments, dict):
         observation = ToolResult.failure(
             "invalid_arguments",
-            "工具参数必须是 JSON object",
-            suggested_action="重新生成 arguments 对象",
+            "Tool arguments must be a JSON object",
+            suggested_action="Regenerate the arguments object",
         ).to_dict()
         _audit(audit_log, tool_name, arguments, "validation", "denied", observation)
         return observation
@@ -205,8 +205,8 @@ def execute_tool_call(
     if not permissions.check(tool, arguments):
         observation = ToolResult.failure(
             "permission_denied",
-            "工具 '%s' 没有执行权限" % tool.name,
-            suggested_action="请求用户授权，或选择已授权的低风险工具",
+            "Tool '%s' is not permitted" % tool.name,
+            suggested_action="Ask the user for authorization or choose an authorized low-risk tool",
             needs_user=True,
         ).to_dict()
         _audit(audit_log, tool_name, arguments, "permission", "denied", observation)
@@ -235,7 +235,7 @@ def execute_tool_call(
                 "timeout",
                 str(exc),
                 retryable=tool.idempotent and attempts < tool.max_retries,
-                suggested_action="稍后重试，或缩小查询范围",
+                suggested_action="Retry later or narrow the query scope",
             ).to_dict()
             observation["retry_count"] = attempts
             _audit(audit_log, tool_name, arguments, "execution", "error", observation)
@@ -245,7 +245,7 @@ def execute_tool_call(
                 type(exc).__name__,
                 str(exc),
                 retryable=False,
-                suggested_action="检查参数和工具实现",
+                suggested_action="Check arguments and the tool implementation",
             ).to_dict()
             observation["retry_count"] = attempts
             _audit(audit_log, tool_name, arguments, "execution", "error", observation)
@@ -253,20 +253,20 @@ def execute_tool_call(
 
 
 def build_tool_registry(workspace: Path, max_context_chars: int = 1200) -> ToolRegistry:
-    """构造示例工具集。
+    """Build the example tool set.
 
-    这里故意只放 3 个工具，便于学习者观察每个工具定义字段如何影响行为：
-    - read_file: 低风险、幂等、可重试。
-    - write_file: 中风险、非幂等、需要显式授权。
-    - list_files: 低风险、幂等，用于 file_not_found 后的恢复路径。
+    This intentionally includes only three tools so learners can observe how each tool-definition field affects behavior:
+    - read_file: low risk, idempotent, retryable。
+    - write_file: medium risk, non-idempotent, requires explicit authorization。
+    - list_files: low risk, idempotent, used as the recovery path after file_not_found。
     """
     workspace = Path(workspace)
 
     def read_file(path: str) -> Observation:
-        """读取 workspace 内文件。
+        """Read a file inside the workspace.
 
-        工具内部仍然要做路径边界检查。即使外层有 Schema 和权限，路径越界这种
-        资源级风险也必须由工具自身兜底。
+        Tools must still perform path-boundary checks internally. Even with outer Schema and permissions, out-of-bounds paths are
+        resource-level risks that each tool must guard against itself.
         """
         try:
             target = _resolve_workspace_path(workspace, path)
@@ -274,56 +274,56 @@ def build_tool_registry(workspace: Path, max_context_chars: int = 1200) -> ToolR
             return ToolResult.failure(
                 "path_not_allowed",
                 str(exc),
-                suggested_action="请选择 workspace 内的相对路径",
+                suggested_action="Choose a relative path inside the workspace",
                 needs_user=True,
             ).to_dict()
         if not target.exists():
             return ToolResult.failure(
                 "file_not_found",
-                "未找到文件: %s" % path,
-                suggested_action="使用 list_files 查看可用文件，或请用户确认路径",
+                "File not found: %s" % path,
+                suggested_action="Use list_files to view available files or ask the user to confirm the path",
                 needs_user=True,
             ).to_dict()
         if not target.is_file():
-            return ToolResult.failure("not_a_file", "路径不是文件: %s" % path).to_dict()
+            return ToolResult.failure("not_a_file", "Path is not a file: %s" % path).to_dict()
         content = target.read_text(encoding="utf-8")
         return ToolResult.success(
-            "读取到 %d 个字符: %s" % (len(content), path),
+            "Read %d characters: %s" % (len(content), path),
             {"content": content, "path": path, "total_chars": len(content)},
         ).to_dict()
 
     def write_file(path: str, content: str) -> Observation:
-        """写入 workspace 内文件。
+        """Write a file inside the workspace.
 
-        这是中风险工具：写入本身在 handler 里很简单，但是否允许写入应该由
-        `PermissionPolicy` 在执行前判断。
+        This is a medium-risk tool: the write itself is simple in the handler, but whether writing is allowed should be decided by
+        `PermissionPolicy` before execution.
         """
         target = _resolve_workspace_path(workspace, path)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding="utf-8")
-        return ToolResult.success("已写入 %d 个字符: %s" % (len(content), path), {"path": path}).to_dict()
+        return ToolResult.success("Wrote %d characters: %s" % (len(content), path), {"path": path}).to_dict()
 
     def list_files() -> Observation:
-        """列出 workspace 文件。
+        """List workspace files.
 
-        这个工具用于错误恢复：当 read_file 返回 file_not_found 时，模型可以
-        先列出可用文件，再请求用户确认或改用正确路径。
+        This tool is for error recovery: when read_file returns file_not_found, the model can
+        list available files first, then ask the user for confirmation or switch to the correct path.
         """
         files = [str(path.relative_to(workspace)) for path in workspace.rglob("*") if path.is_file()]
-        return ToolResult.success("找到 %d 个文件" % len(files), {"files": sorted(files)}).to_dict()
+        return ToolResult.success("Found %d files" % len(files), {"files": sorted(files)}).to_dict()
 
     return ToolRegistry(
         [
             ToolDefinition(
                 name="read_file",
                 description=(
-                    "读取 workspace 中的本地文件。适用于用户给出明确文件路径并要求查看、总结或搜索内容时。"
-                    "不要用于搜索互联网、不要读取 workspace 外部路径。"
+                    "Read a local file in the workspace. Use when the user gives an explicit file path and asks to view, summarize, or search content."
+                    "Do not use for internet search or paths outside the workspace."
                 ),
                 parameters={
                     "type": "object",
                     "properties": {
-                        "path": {"type": "string", "description": "workspace 内相对路径，例如 data/notes.md"}
+                        "path": {"type": "string", "description": "Relative path inside the workspace, for example data/notes.md"}
                     },
                     "required": ["path"],
                 },
@@ -335,14 +335,14 @@ def build_tool_registry(workspace: Path, max_context_chars: int = 1200) -> ToolR
             ToolDefinition(
                 name="write_file",
                 description=(
-                    "向 workspace 写入 UTF-8 文本文件。适用于用户明确要求保存结果时。"
-                    "不要用于删除、覆盖未确认的重要文件；写入动作需要权限。"
+                    "Write a UTF-8 text file into the workspace. Use when the user explicitly asks to save results."
+                    "Do not use to delete files or overwrite unconfirmed important files; write actions require permission."
                 ),
                 parameters={
                     "type": "object",
                     "properties": {
-                        "path": {"type": "string", "description": "workspace 内输出路径"},
-                        "content": {"type": "string", "description": "要写入的文本内容"},
+                        "path": {"type": "string", "description": "Output path inside the workspace"},
+                        "content": {"type": "string", "description": "Text content to write"},
                     },
                     "required": ["path", "content"],
                 },
@@ -352,7 +352,7 @@ def build_tool_registry(workspace: Path, max_context_chars: int = 1200) -> ToolR
             ),
             ToolDefinition(
                 name="list_files",
-                description="列出 workspace 内文件。适用于文件名不确定或 read_file 返回 file_not_found 后。",
+                description="List files inside the workspace. Use when the file name is uncertain or after read_file returns file_not_found.",
                 parameters={"type": "object", "properties": {}, "required": []},
                 handler=list_files,
                 risk_level="low",
@@ -364,10 +364,10 @@ def build_tool_registry(workspace: Path, max_context_chars: int = 1200) -> ToolR
 
 
 def _validate_arguments(tool: ToolDefinition, arguments: Dict[str, Any]) -> Optional[Observation]:
-    """根据工具参数 Schema 做最小校验。
+    """Perform minimal validation based on the tool argument Schema.
 
-    示例只实现课程需要的必填、未知字段和基础类型检查。真实系统可以接入
-    `jsonschema`、Pydantic 或 Zod 等库来支持 enum、minimum、format 等规则。
+    The example implements only required-field, unknown-field, and basic type checks needed by the course. Real systems can integrate
+    libraries such as `jsonschema`, Pydantic, or Zod to support rules like enum, minimum, and format.
     """
     schema = tool.parameters
     required = schema.get("required", [])
@@ -376,8 +376,8 @@ def _validate_arguments(tool: ToolDefinition, arguments: Dict[str, Any]) -> Opti
     if missing:
         return ToolResult.failure(
             "missing_required",
-            "缺少必填参数: %s" % ", ".join(missing),
-            suggested_action="请补充参数: %s" % ", ".join(missing),
+            "Missing required argument: %s" % ", ".join(missing),
+            suggested_action="Please provide arguments: %s" % ", ".join(missing),
         ).to_dict()
 
     for name, value in arguments.items():
@@ -385,23 +385,23 @@ def _validate_arguments(tool: ToolDefinition, arguments: Dict[str, Any]) -> Opti
         if prop is None:
             return ToolResult.failure(
                 "unknown_argument",
-                "未知参数: %s" % name,
-                suggested_action="只传入 Schema 中声明的参数",
+                "Unknown argument: %s" % name,
+                suggested_action="Pass only arguments declared in the Schema",
             ).to_dict()
         expected_type = prop.get("type")
         if expected_type == "string" and not isinstance(value, str):
-            return ToolResult.failure("type_error", "参数 '%s' 应为 string" % name).to_dict()
+            return ToolResult.failure("type_error", "Argument '%s' must be a string" % name).to_dict()
         if expected_type == "integer" and not isinstance(value, int):
-            return ToolResult.failure("type_error", "参数 '%s' 应为 integer" % name).to_dict()
+            return ToolResult.failure("type_error", "Argument '%s' must be an integer" % name).to_dict()
     return None
 
 
 def _shape_observation(raw: Observation, tool: ToolDefinition, arguments: Dict[str, Any], max_chars: int) -> Observation:
-    """把工具原始结果整理成适合注入 LLM 上下文的 Observation。
+    """Shape raw tool results into Observations suitable for injection into LLM context.
 
-    课程三里工具结果原样进入 state/history。课程四增加了上下文预算：
-    如果读取到很长的文本，只给模型 preview 和 `full_content_ref`，完整内容留在
-    工具结果或外部资源中，避免下一轮上下文被长文本挤爆。
+    In course 03, tool results entered state/history as-is. Course 04 adds a context budget:
+    If a read returns very long text, the model only gets preview and `full_content_ref`; the full content stays in
+    the tool result or an external resource so the next context is not flooded with long text.
     """
     if raw.get("status") != "success":
         return raw
@@ -424,9 +424,9 @@ def _shape_observation(raw: Observation, tool: ToolDefinition, arguments: Dict[s
 
 
 def _resolve_workspace_path(workspace: Path, path: str) -> Path:
-    """把模型生成的路径限制在 workspace 内。
+    """Restrict model-generated paths to the workspace.
 
-    这是工具层的安全边界：模型可能生成 `../` 或绝对路径，Runtime 不能信任。
+    This is the tool-layer safety boundary: the model may generate `../` or absolute paths, and the runtime cannot trust them.
     """
     target = (workspace / path).resolve()
     root = workspace.resolve()
@@ -443,10 +443,10 @@ def _audit(
     result: str,
     observation: Observation,
 ) -> None:
-    """记录工具链路的关键节点。
+    """Record key points in the tool path.
 
-    审计日志不是给模型看的完整 Trace，而是给开发者/系统看的安全记录：
-    哪个工具、什么参数、在哪个阶段被允许或拒绝、最终错误码是什么。
+    The audit log is not a full Trace for the model; it is a safety record for developers and systems:
+    which tool, which arguments, at which stage it was allowed or rejected, and the final error code.
     """
     audit_log.append(
         {

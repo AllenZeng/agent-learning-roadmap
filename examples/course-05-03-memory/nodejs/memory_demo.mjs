@@ -68,7 +68,7 @@ class AgentMemory {
   // ── Identify candidate memories ──
   identifyCandidates(userMessage) {
     const candidates = [];
-    for (const pattern of [/以后[^，。]*/g, /每次[^，。]*/g, /不要[^，。]*/g, /默认[^，。]*/g]) {
+    for (const pattern of [/from now on[^，。]*/g, /every time[^，。]*/g, /do not[^，。]*/g, /default[^，。]*/g]) {
       for (const match of userMessage.matchAll(pattern)) {
         candidates.push({
           type: "preference",
@@ -80,17 +80,17 @@ class AgentMemory {
       }
     }
 
-    if (/(?:api[_\s]?key|secret|token|密码)\s*[：:=]\s*\S+/i.test(userMessage)) {
+    if (/(?:api[_\s]?key|secret|token|password)\s*[：:=]\s*\S+/i.test(userMessage)) {
       candidates.push({
         type: "sensitive",
-        content: "[敏感信息]",
+        content: "[sensitive information]",
         source: "detected",
         confidence: 0.99,
         sensitive: true,
       });
     }
 
-    for (const match of userMessage.matchAll(/这次[^，。]*/g)) {
+    for (const match of userMessage.matchAll(/this time[^，。]*/g)) {
       candidates.push({
         type: "temporary",
         content: match[0],
@@ -370,7 +370,7 @@ function sleep(ms) {
 
 async function wait(message, auto = false, rl = null) {
   if (auto) {
-    console.log(`\n${DIM}── 自动进入下一步 ──${RESET}`);
+    console.log(`\n${DIM}── automatically continue to the next step ──${RESET}`);
     await sleep(500);
   } else if (rl) {
     await rl.question(message);
@@ -380,8 +380,8 @@ async function wait(message, auto = false, rl = null) {
 function showBanner() {
   console.log(`
 ${CYAN}${BOLD}╔══════════════════════════════════════════════════════════╗
-║     课程五 05-03 Memory 生命周期演示                         ║
-║     模拟知识助手 周一 → 周三 的跨会话 Memory 行为              ║
+║     Course 05-03 Memory lifecycle demo                         ║
+║     Simulate a knowledge assistant's cross-session Memory behavior from Monday to Wednesday              ║
 ╚══════════════════════════════════════════════════════════╝${RESET}
 `);
 }
@@ -422,7 +422,7 @@ function showMemoryState(memory, label = "") {
 
 function showRecallResults(recalled) {
   if (recalled.length === 0) {
-    console.log(`  ${DIM}(无相关记忆)${RESET}`);
+    console.log(`  ${DIM}(No relevant memories)${RESET}`);
     return;
   }
 
@@ -450,155 +450,155 @@ async function simulate(auto = false) {
     // SESSION 1: Monday
     // ═══════════════════════════════════════════════════
     console.log(`${BOLD}${"─".repeat(60)}${RESET}`);
-    console.log(`${BOLD}  SESSION 1：周一 10:00-10:45${RESET}`);
+    console.log(`${BOLD}  SESSION 1：Monday 10:00-10:45${RESET}`);
     console.log(`${BOLD}${"─".repeat(60)}${RESET}`);
 
     await memory.startSession("user-001");
-    console.log(`\n${DIM}[会话开始] decay check: 无过期记忆（系统初始化）${RESET}`);
+    console.log(`\n${DIM}[session start] decay check: No expired memories (system initialization)${RESET}`);
 
-    const msg = "以后写技术文章，先给我大纲确认，再展开正文。语气直接，不要营销化。";
-    console.log(`\n${GREEN}👤 用户：${msg}${RESET}`);
+    const msg = "When writing technical articles in the future, give me an outline for confirmation before expanding the body. Keep the tone direct, not marketing-oriented.";
+    console.log(`\n${GREEN}👤 user：${msg}${RESET}`);
 
     const candidates = memory.identifyCandidates(msg);
-    console.log(`${DIM}[identify] 识别到 ${candidates.length} 条候选记忆${RESET}`);
+    console.log(`${DIM}[identify] Identified ${candidates.length} candidate memories${RESET}`);
     for (const candidate of candidates) {
       const category =
-        candidate.content.includes("大纲") || candidate.content.includes("先给")
+        candidate.content.includes("outline") || candidate.content.includes("outline first")
           ? "writing_workflow"
-          : candidate.content.includes("语气") || candidate.content.includes("营销")
+          : candidate.content.includes("tone") || candidate.content.includes("marketing")
             ? "writing_tone"
             : "writing_style";
       const result = await memory.write({ ...candidate, category });
       const status =
         result.status === "written"
-          ? `${GREEN}✅ 写入${RESET}`
-          : `${RED}❌ 拒绝: ${result.reason}${RESET}`;
+          ? `${GREEN}✅ Write${RESET}`
+          : `${RED}❌ reject: ${result.reason}${RESET}`;
       console.log(`  → ${candidate.content.slice(0, 50)}... ${status}`);
     }
 
-    const msg2 = "我最近在用 TypeScript 写 Agent 框架，帮我看看这段代码";
-    console.log(`\n${GREEN}👤 用户：${msg2}${RESET}`);
-    console.log(`${DIM}[identify] 此消息未触发显式偏好规则，但系统从行为中推断：用户可能偏好 TypeScript${RESET}`);
+    const msg2 = "I am using TypeScript to write an Agent framework; help me review this code";
+    console.log(`\n${GREEN}👤 user：${msg2}${RESET}`);
+    console.log(`${DIM}[identify] This message did not trigger an explicit preference rule, but the system inferred from behavior that the user may prefer TypeScript${RESET}`);
 
     const inferred = await memory.write({
       type: "preference",
       category: "code_style",
-      content: "用户可能偏好 TypeScript 示例代码",
+      content: "User may prefer TypeScript example code",
       source: "inferred",
       confidence: 0.5,
       sensitive: false,
     });
     const inferredStatus =
       inferred.status === "written"
-        ? `${YELLOW}⚠️ 写入为候选记忆（低置信度推断，待用户确认）${RESET}`
-        : `${RED}❌ 拒绝${RESET}`;
+        ? `${YELLOW}⚠️ Wrote as a candidate memory (low-confidence inference, awaiting user confirmation)${RESET}`
+        : `${RED}❌ reject${RESET}`;
     if (inferred.status === "written") {
-      memory.pending.push({ id: inferred.id, content: "用户可能偏好 TypeScript 示例代码" });
+      memory.pending.push({ id: inferred.id, content: "User may prefer TypeScript example code" });
     }
-    console.log(`  → 推断偏好: TypeScript 示例代码... ${inferredStatus}`);
+    console.log(`  → inferred preference: TypeScript example code... ${inferredStatus}`);
 
-    const msg3 = "帮我写一篇 Agent Memory 的技术文章";
-    console.log(`\n${GREEN}👤 用户：${msg3}${RESET}`);
+    const msg3 = "Help me write a technical article about Agent Memory";
+    console.log(`\n${GREEN}👤 user：${msg3}${RESET}`);
     const recalled = memory.recall(msg3, 5);
-    console.log(`${DIM}[recall] 召回 ${recalled.length} 条相关记忆:${RESET}`);
+    console.log(`${DIM}[recall] Recall ${recalled.length} relevant memories:${RESET}`);
     showRecallResults(recalled);
-    console.log(`\n${CYAN}🤖 Agent：（因为有 #1 偏好记忆，先输出大纲等待确认）${RESET}`);
+    console.log(`\n${CYAN}🤖 Agent：（Because preference memory #1 exists, output an outline first and wait for confirmation)${RESET}`);
 
     await memory.write({
       type: "task_result",
-      content: "先大纲再正文在技术文章中效果好，3轮迭代完成",
+      content: "Outline-first writing worked well for technical articles; completed in three iterations",
       source: "auto",
       confidence: 0.8,
     });
-    console.log(`${DIM}[write] 任务经验已记录${RESET}`);
+    console.log(`${DIM}[write] Task experience recorded${RESET}`);
 
-    showMemoryState(memory, "Session 1 结束时的 Memory 状态");
+    showMemoryState(memory, "Memory state at the end of Session 1");
     await memory.endSession();
 
     // ═══════════════════════════════════════════════════
     // SESSION 2: Tuesday (Cross-session!)
     // ═══════════════════════════════════════════════════
-    await wait(`\n${DIM}按 Enter 进入 Session 2（周二，跨会话）...${RESET}`, auto, rl);
+    await wait(`\n${DIM}Press Enter to enter Session 2 (Tuesday, cross-session)...${RESET}`, auto, rl);
 
     console.log(`\n${BOLD}${"─".repeat(60)}${RESET}`);
-    console.log(`${BOLD}  SESSION 2：周二 09:00-09:30  ← 跨会话！${RESET}`);
+    console.log(`${BOLD}  SESSION 2：Tuesday 09:00-09:30  ← cross-session！${RESET}`);
     console.log(`${BOLD}${"─".repeat(60)}${RESET}`);
 
     await memory.startSession("user-001");
-    console.log(`${DIM}[会话开始] decay check: 无过期（才过了一天）${RESET}`);
+    console.log(`${DIM}[session start] decay check: No expiration (only one day has passed)${RESET}`);
 
-    const msg4 = "帮我写一篇 RAG 最佳实践的技术文章";
-    console.log(`\n${GREEN}👤 用户：${msg4}${RESET}`);
+    const msg4 = "Help me write a technical article about RAG best practices";
+    console.log(`\n${GREEN}👤 user：${msg4}${RESET}`);
     const recalled2 = memory.recall(msg4, 5);
-    console.log(`${DIM}[recall] 跨会话召回 ${recalled2.length} 条相关记忆:${RESET}`);
+    console.log(`${DIM}[recall] Cross-session recall ${recalled2.length} relevant memories:${RESET}`);
     showRecallResults(recalled2);
-    if (recalled2.some((item) => String(item.content ?? "").includes("写作") || String(item.content ?? "").includes("大纲"))) {
-      console.log(`\n${CYAN}🤖 Agent：（Memory 跨会话生效！先输出大纲，语气直接）${RESET}`);
-      console.log(`    用户不需要重新说『先给大纲』——偏好跨会话保持了。${RESET}`);
+    if (recalled2.some((item) => String(item.content ?? "").includes("writing") || String(item.content ?? "").includes("outline"))) {
+      console.log(`\n${CYAN}🤖 Agent：（Memory Cross-session memory works! Output an outline first with a direct tone)${RESET}`);
+      console.log(`    The user does not need to repeat 'give the outline first'; the preference persisted across sessions.${RESET}`);
     }
 
     await memory.write({
       type: "task_result",
-      content: "RAG 文章用先大纲方式完成，用户满意",
+      content: "RAG The article was completed outline-first and the user was satisfied",
       source: "auto",
       confidence: 0.8,
     });
 
-    showMemoryState(memory, "Session 2 结束时的 Memory 状态");
+    showMemoryState(memory, "Memory state at the end of Session 2");
     await memory.endSession();
 
     // ═══════════════════════════════════════════════════
     // SESSION 3: Wednesday (Preference changed!)
     // ═══════════════════════════════════════════════════
-    await wait(`\n${DIM}按 Enter 进入 Session 3（周三，偏好变更）...${RESET}`, auto, rl);
+    await wait(`\n${DIM}Press Enter to enter Session 3 (Wednesday, preference changed)...${RESET}`, auto, rl);
 
     console.log(`\n${BOLD}${"─".repeat(60)}${RESET}`);
-    console.log(`${BOLD}  SESSION 3：周三 14:00-14:30  ← 偏好变更！${RESET}`);
+    console.log(`${BOLD}  SESSION 3：Wednesday 14:00-14:30  ← preference changed！${RESET}`);
     console.log(`${BOLD}${"─".repeat(60)}${RESET}`);
 
     await memory.startSession("user-001");
 
-    const msg5 = "以后示例代码改用 Python";
-    console.log(`\n${GREEN}👤 用户：${msg5}${RESET}`);
+    const msg5 = "Use Python for example code from now on";
+    console.log(`\n${GREEN}👤 user：${msg5}${RESET}`);
     const candidates5 = memory.identifyCandidates(msg5);
     for (const candidate of candidates5) {
       const result = await memory.write({ ...candidate, category: "code_style" });
       if (result.status === "written") {
-        console.log(`  → ${candidate.content.slice(0, 50)}... ${GREEN}✅ 写入（检测到冲突，旧 TS 偏好已标记 superseded）${RESET}`);
+        console.log(`  → ${candidate.content.slice(0, 50)}... ${GREEN}✅ Wrote (conflict detected; the old TS preference was marked superseded)${RESET}`);
       } else {
-        console.log(`  → ${candidate.content.slice(0, 50)}... ${RED}❌ 拒绝: ${result.reason}${RESET}`);
+        console.log(`  → ${candidate.content.slice(0, 50)}... ${RED}❌ reject: ${result.reason}${RESET}`);
       }
     }
 
-    const msg6 = "帮我写一篇 Python Agent 框架的技术文章";
-    console.log(`\n${GREEN}👤 用户：${msg6}${RESET}`);
+    const msg6 = "Help me write a technical article about a Python Agent framework";
+    console.log(`\n${GREEN}👤 user：${msg6}${RESET}`);
     const recalled3 = memory.recall(msg6, 5);
-    console.log(`${DIM}[recall] 召回 ${recalled3.length} 条相关记忆:${RESET}`);
+    console.log(`${DIM}[recall] Recall ${recalled3.length} relevant memories:${RESET}`);
     showRecallResults(recalled3);
-    console.log(`\n${CYAN}🤖 Agent：（用 Python 示例，不是 TS！偏好变更生效了）${RESET}`);
+    console.log(`\n${CYAN}🤖 Agent：（Use Python examples, not TS! The preference change took effect)${RESET}`);
 
-    showMemoryState(memory, "Session 3 结束时的 Memory 状态");
+    showMemoryState(memory, "Memory state at the end of Session 3");
     await memory.endSession();
 
     // ═══════════════════════════════════════════════════
     // Summary
     // ═══════════════════════════════════════════════════
     console.log(`\n${BOLD}${"─".repeat(60)}${RESET}`);
-    console.log(`${BOLD}  📊 完整生命周期总结${RESET}`);
+    console.log(`${BOLD}  📊 Full lifecycle summary${RESET}`);
     console.log(`${BOLD}${"─".repeat(60)}${RESET}`);
 
     console.log(`
-  ✅ 跨会话延续：Session 2 不需要重新说"先给大纲"
-  ✅ 冲突替换：Session 3"用 Python"覆盖了"用 TS"
-  ✅ 审计可见：旧 TS 偏好仍保留（superseded），可追溯
-  ✅ 推断 vs 确认：推断偏好（TS）自动被显式声明（Python）覆盖
-  ✅ 审计日志：${GREEN}memory_store/audit.jsonl${RESET} 记录了所有操作
+  ✅ Cross-session persistence: Session 2 did not require repeating "give the outline first"
+  ✅ Conflict replacement: Session 3 "use Python" overrode "use TS"
+  ✅ Auditable history: the old TS preference remains (superseded) and traceable
+  ✅ Inference vs confirmation: inferred preference (TS) was automatically overridden by explicit declaration (Python)
+  ✅ Audit log：${GREEN}memory_store/audit.jsonl${RESET} recorded all operations
 
-  ${DIM}查看存储文件：${RESET}
-    ${CYAN}memory_store/preferences.json${RESET}  - 用户偏好
-    ${CYAN}memory_store/facts.json${RESET}        - 长期事实
-    ${CYAN}memory_store/task_history.json${RESET} - 任务经验
-    ${CYAN}memory_store/audit.jsonl${RESET}       - 审计日志
+  ${DIM}View storage files：${RESET}
+    ${CYAN}memory_store/preferences.json${RESET}  - User preferences
+    ${CYAN}memory_store/facts.json${RESET}        - Long-term facts
+    ${CYAN}memory_store/task_history.json${RESET} - Task experience
+    ${CYAN}memory_store/audit.jsonl${RESET}       - Audit log
 `);
   } finally {
     rl?.close();

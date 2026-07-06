@@ -162,17 +162,17 @@ async function executeTool({ decision, tools }) {
   if (!tools[toolName]) {
     return {
       status: "error",
-      summary: `工具不存在: ${toolName}`,
+      summary: `Tool does not exist: ${toolName}`,
       content: null,
-      error: { code: "tool_not_found", message: `工具不存在: ${toolName}` },
+      error: { code: "tool_not_found", message: `Tool does not exist: ${toolName}` },
     };
   }
   if (!args || typeof args !== "object" || Array.isArray(args)) {
     return {
       status: "error",
-      summary: "工具参数必须是 JSON object",
+      summary: "Tool arguments must be a JSON object",
       content: null,
-      error: { code: "invalid_arguments", message: "工具参数必须是 JSON object" },
+      error: { code: "invalid_arguments", message: "Tool arguments must be a JSON object" },
     };
   }
 

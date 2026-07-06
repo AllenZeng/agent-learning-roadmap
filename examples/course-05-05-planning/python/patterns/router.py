@@ -1,10 +1,10 @@
 """
-Router 模式：根据输入特征选择执行路径
+Router pattern：textInputtextExecution path
 
-Router 本质是"分类器 + 多条 Chain"。根据输入类型选择不同的执行路径，
-每条路径内部按固定顺序执行。
+Router is essentially a classifier plus multiple Chains.textInputtextExecution path，
+textpathtextfixed-order execution。
 
-适用场景：多类型任务入口（如问答、代码审查、任务执行走不同流程）。
+Use case：multi-type task entry（such as Q&A、code review、task execution using different flows)。
 """
 
 from dataclasses import dataclass, field
@@ -18,16 +18,16 @@ from .chain import ChainExecutor
 # ═══════════════════════════════════════════════════════════════════════════
 
 # Release preparation path
-RELEASE_ROUTE = ["检查 README", "运行测试", "整理 changelog", "生成 checklist"]
+RELEASE_ROUTE = ["Check README", "Run tests", "Prepare changelog", "Generate checklist"]
 
 # Bug-fix path
-BUGFIX_ROUTE = ["运行测试", "整理 changelog"]
+BUGFIX_ROUTE = ["Run tests", "Prepare changelog"]
 
 # Documentation update path
-DOCS_ROUTE = ["检查 README"]
+DOCS_ROUTE = ["Check README"]
 
 # Feature development path
-FEATURE_ROUTE = ["运行测试", "整理 changelog", "生成 checklist"]
+FEATURE_ROUTE = ["Run tests", "Prepare changelog", "Generate checklist"]
 
 DEFAULT_ROUTES = {
     "release": RELEASE_ROUTE,
@@ -39,7 +39,7 @@ DEFAULT_ROUTES = {
 
 @dataclass
 class RouterResult:
-    """Router 执行结果"""
+    """Router Execution result"""
     status: str
     category: str
     results: list[StepResult] = field(default_factory=list)
@@ -49,13 +49,13 @@ class RouterResult:
 
 class RouterExecutor:
     """
-    Router 执行器——分类 + 路径选择 + 执行。
+    Router executor——classification + pathchoose + execute。
 
-    核心逻辑：
-    1. 根据用户输入分类（关键词匹配 / LLM 分类）
-    2. 选择对应的执行路径
-    3. 用 Chain 模式执行该路径
-    4. 分类失败时走 default 兜底路径
+    Core logic：
+    1. textuserInputclassification（keywordmatches / LLM classification)
+    2. textExecution path
+    3. use Chain modetextpath
+    4. classificationfailedtext default textpath
     """
 
     def __init__(self, routes: Optional[dict[str, list[str]]] = None):
@@ -63,19 +63,19 @@ class RouterExecutor:
 
     def classify(self, query: str) -> str:
         """
-        分类器——根据输入关键词判断任务类型。
+        classificationtext——textInputkeywordtext。
 
-        实际项目中这里可能是 LLM 调用或专用分类模型。
-        这里用关键词匹配做演示。
+        textmediumtext LLM textclassificationtext。
+        textkeywordtext。
         """
         query_lower = query.lower()
 
         # Keyword -> category
         keywords = {
-            "release": ["发布", "release", "上线", "发版"],
-            "bugfix": ["bug", "修复", "fix", "缺陷", "补丁"],
-            "docs": ["文档", "doc", "readme", "说明"],
-            "feature": ["功能", "feature", "新功能", "新增"],
+            "release": ["release", "release", "deploy", "release"],
+            "bugfix": ["bug", "fix", "fix", "defect", "patch"],
+            "docs": ["docs", "doc", "readme", "instructions"],
+            "feature": ["feature", "feature", "new feature", "add"],
         }
 
         for category, words in keywords.items():
@@ -93,11 +93,11 @@ class RouterExecutor:
         on_step_end: Optional[Callable[[StepResult], None]] = None,
     ) -> RouterResult:
         """
-        分类 → 路由 → 执行。
+        classification → route → execute。
 
         Args:
-            query: 用户请求文本
-            context: 初始上下文
+            query: usertext
+            context: initial context
         """
         # 1. Classify
         category = self.classify(query)
@@ -122,17 +122,17 @@ class RouterExecutor:
         )
 
     def describe(self, query: str = "") -> str:
-        """返回路由信息的文本描述"""
-        category = self.classify(query) if query else "（无输入）"
+        """return a text description of routing info"""
+        category = self.classify(query) if query else "（noneInput)"
         steps = self.routes.get(category, [])
         lines = [
-            f"Router 执行计划（分类: {category}）:",
+            f"Router Execution plan（classification: {category}):",
             "─" * 40,
         ]
         if query:
-            lines.append(f"  输入: {query}")
-            lines.append(f"  分类结果: {category}")
-        lines.append(f"  执行路径: {' → '.join(steps)}")
+            lines.append(f"  Input: {query}")
+            lines.append(f"  classificationResult: {category}")
+        lines.append(f"  Execution path: {' → '.join(steps)}")
         lines.append("─" * 40)
-        lines.append("模式特征: 分类路由 | 默认兜底 | 路径内顺序执行")
+        lines.append("Pattern features: classificationroute | defaulttext | pathtext")
         return "\n".join(lines)

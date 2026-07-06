@@ -22,7 +22,7 @@ class ReflectionDemoTest(unittest.TestCase):
                     cost=0.01,
                 )
             return ActionResult(
-                output='{"tool_name": "search_notes", "args": {"query": "memory cleanup"}, "reason": "查找笔记"}',
+                output='{"tool_name": "search_notes", "args": {"query": "memory cleanup"}, "reason": "textnotes"}',
                 cost=0.01,
             )
 
@@ -45,7 +45,7 @@ class ReflectionDemoTest(unittest.TestCase):
         self.assertIn("memory_store.decay()", result.output)
 
     def test_citation_validator_catches_missing_api(self):
-        output = "错误原因是调用了 `memory.clear_expired()`。"
+        output = "errorreasontext `memory.clear_expired()`。"
 
         validation = validate_citation(output, MOCK_NOTES)
 
@@ -70,7 +70,7 @@ class ReflectionDemoTest(unittest.TestCase):
         def always_fails(output):
             return ValidationResult(
                 passed=False,
-                message="仍然失败",
+                message="textfailed",
                 evidence="validator evidence",
                 error_type="schema_error",
             )

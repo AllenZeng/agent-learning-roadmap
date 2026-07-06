@@ -27,12 +27,12 @@ class ValidationResult {
 
 const mockNotes = {
   'agent-memory-mechanism.md': `
-Memory 模块的 session 数据由 MemoryStore 管理。
-expired session 数据由 MemoryStore.decay() 在每次 start_session 时清理，底层调用 _purge_old_records()。
-注意：Memory 模块不提供 clear_expired() 方法。
+Memory text session data is managed by MemoryStore managed。
+expired session data is managed by MemoryStore.decay() Inevery time start_session text，text _purge_old_records()。
+Note：Memory text clear_expired() method。
 `,
   'session-manager.md': `
-正确做法：
+text：
     def cleanup(self):
         self.memory_store.decay()
 `,
@@ -56,49 +56,49 @@ function validateJsonSchema(text) {
   if (missing.length) {
     return new ValidationResult({
       passed: false,
-      message: `Schema 校验失败：缺少必填字段 ${missing.join(', ')}`,
+      message: `Schema textfailed：Missingtext ${missing.join(', ')}`,
       evidence: `missing=${missing.join(',')}`,
       errorType: 'schema_error',
     });
   }
-  return new ValidationResult({ passed: true, message: 'Schema 校验通过' });
+  return new ValidationResult({ passed: true, message: 'Schema validation passed' });
 }
 
 function validateToolCall(text) {
   if (text.includes('limit=500')) {
     return new ValidationResult({
       passed: false,
-      message: '参数错误：limit 必须在 1-100 之间',
-      evidence: '工具返回: Error: limit must be 1-100 (got 500)',
+      message: 'wrong argument：limit must be between 1-100 and',
+      evidence: 'tool returned: Error: limit must be 1-100 (got 500)',
       errorType: 'tool_param_error',
     });
   }
   if (text.includes('query=""')) {
     return new ValidationResult({
       passed: false,
-      message: '参数错误：query 不能为空',
-      evidence: '工具返回: Error: query parameter is required',
+      message: 'wrong argument：query cannot be empty',
+      evidence: 'tool returned: Error: query parameter is required',
       errorType: 'tool_param_error',
     });
   }
-  return new ValidationResult({ passed: true, message: '工具执行成功' });
+  return new ValidationResult({ passed: true, message: 'textsuccess' });
 }
 
 function validateTests(code) {
   if (code.includes('memory_store.decay()')) {
-    return new ValidationResult({ passed: true, message: '所有测试通过 (10/10)' });
+    return new ValidationResult({ passed: true, message: 'All tests passed (10/10)' });
   }
   if (code.includes('del self._sessions')) {
     return new ValidationResult({
       passed: false,
-      message: '测试失败：test_memory_cleanup_on_session_end',
-      evidence: 'AssertionError: assert 1 == 0; session 数据没有被 MemoryStore 清理',
+      message: 'test failed：test_memory_cleanup_on_session_end',
+      evidence: 'AssertionError: assert 1 == 0; session text MemoryStore text',
       errorType: 'test_failure',
     });
   }
   return new ValidationResult({
     passed: false,
-    message: '测试失败：代码无法解析',
+    message: 'test failed：textnonetext',
     evidence: 'SyntaxError',
     errorType: 'test_failure',
   });
@@ -111,13 +111,13 @@ function validateCitation(text) {
     if (!found) {
       return new ValidationResult({
         passed: false,
-        message: `引用校验失败：${ref} 在笔记中未找到`,
-        evidence: `搜索 notes，${ref} 0 匹配`,
+        message: `citation validationfailed：${ref} InnotesmediumtextFound`,
+        evidence: `search notes，${ref} 0 matches`,
         errorType: 'context_missing',
       });
     }
   }
-  return new ValidationResult({ passed: true, message: '引用校验通过' });
+  return new ValidationResult({ passed: true, message: 'text' });
 }
 
 function classifyError(validation) {
@@ -135,10 +135,10 @@ function reflectionLoop(action, validate, options = {}) {
   for (let attempt = 0; attempt < maxRetries; attempt += 1) {
     const result = action(previousError, attempt);
     cost += result.cost;
-    trace.push(`[尝试 ${attempt + 1}] 执行完成，成本 $${result.cost.toFixed(2)}`);
+    trace.push(`[attempt ${attempt + 1}] executecomplete，cost $${result.cost.toFixed(2)}`);
 
     const validation = validate(result.output);
-    trace.push(`[尝试 ${attempt + 1}] 验证：${validation.passed ? '通过' : validation.message}`);
+    trace.push(`[attempt ${attempt + 1}] validation：${validation.passed ? 'pass' : validation.message}`);
     if (validation.passed) {
       return { status: 'success', output: result.output, attempts: attempt + 1, cost, trace };
     }
@@ -150,14 +150,14 @@ function reflectionLoop(action, validate, options = {}) {
       message: validation.message,
       evidence: validation.evidence,
     };
-    trace.push(`[尝试 ${attempt + 1}] 反馈分类：${errorType}`);
+    trace.push(`[attempt ${attempt + 1}] textclassification：${errorType}`);
 
     if (cost > costBudget) {
-      trace.push(`[停止] 成本超限：$${cost.toFixed(2)} > $${costBudget.toFixed(2)}`);
+      trace.push(`[stop] costover limit：$${cost.toFixed(2)} > $${costBudget.toFixed(2)}`);
       return { status: 'stopped', reason: 'cost_limit', output: result.output, attempts: attempt + 1, cost, trace };
     }
     if (previousSignature === signature) {
-      trace.push('[停止] 相同反馈重复出现，处理没有改变失败结果');
+      trace.push('[stop] same feedback repeated，ProcessingtextfailedResult');
       return { status: 'stopped', reason: 'repeated_failure', output: result.output, attempts: attempt + 1, cost, trace };
     }
     previousSignature = signature;
@@ -172,32 +172,32 @@ function printResult(result) {
 }
 
 async function wait(rl) {
-  await rl.question('\n  按 Enter 继续...');
+  await rl.question('\n  Press Enter to continue...');
 }
 
 async function demoV0(rl) {
-  console.log('\n--- V0 无反思：看到 TypeError 但继续执行 ---');
+  console.log('\n--- V0 no reflection：saw TypeError textcontinue execution ---');
   await wait(rl);
   console.log(`  npm test
   TypeError: Cannot read properties of undefined (reading 'files')
-  Agent 把它记录成“测试完成（有警告）”，然后继续写 changelog。
-  问题：反馈信号没有触发停止、分类、决策和处理。`);
+  Agent Move ittext“testscomplete（text)”，then continues writing changelog。
+  Problem：feedback signal did not trigger stopping、classification、textProcessing。`);
 }
 
 async function demoV1(rl) {
-  console.log('\n--- V1 格式修复：Schema 校验失败 -> 重生成 ---');
+  console.log('\n--- V1 format fix：Schema textfailed -> regenerate ---');
   await wait(rl);
   const result = reflectionLoop(
     (previousError, attempt) => attempt === 0
       ? new ActionResult('{"tool": "search_notes", "query": "memory cleanup"}', 0.01)
-      : new ActionResult('{"tool_name": "search_notes", "args": {"query": "memory cleanup"}, "reason": "查找 Memory 清理机制"}', 0.01),
+      : new ActionResult('{"tool_name": "search_notes", "args": {"query": "memory cleanup"}, "reason": "text Memory text"}', 0.01),
     validateJsonSchema,
   );
   printResult(result);
 }
 
 async function demoV2(rl) {
-  console.log('\n--- V2 工具错误处理：参数错误 -> 分类 -> 决策 ---');
+  console.log('\n--- V2 tool error handling：wrong argument -> classification -> decision ---');
   await wait(rl);
   const result = reflectionLoop(
     (previousError, attempt) => attempt === 0
@@ -209,7 +209,7 @@ async function demoV2(rl) {
 }
 
 async function demoV3(rl) {
-  console.log('\n--- V3 测试驱动处理：测试失败 -> 修正代码或停止 ---');
+  console.log('\n--- V3 test-driven handling：test failed -> correctiontext ---');
   await wait(rl);
   const result = reflectionLoop(
     (previousError, attempt) => new ActionResult(attempt === 0 ? buggyCleanupCode : correctCleanupCode, 0.03),
@@ -220,19 +220,19 @@ async function demoV3(rl) {
 }
 
 async function demoV4(rl) {
-  console.log('\n--- V4 引用校验：幻觉 API -> 补充检索 -> 可追溯引用 ---');
+  console.log('\n--- V4 citation validation：text API -> text -> text ---');
   await wait(rl);
   const result = reflectionLoop(
     (previousError, attempt) => attempt === 0
-      ? new ActionResult('问题来自 `memory.clear_expired()`，应该改成 `memory.remove_expired_sessions()`。', 0.02)
-      : new ActionResult('问题来自 session cleanup 绕过 MemoryStore。笔记显示正确链路是 `MemoryStore.decay()` -> `_purge_old_records()`。', 0.02),
+      ? new ActionResult('text `memory.clear_expired()`，text `memory.remove_expired_sessions()`。', 0.02)
+      : new ActionResult('text session cleanup text MemoryStore。notestext `MemoryStore.decay()` -> `_purge_old_records()`。', 0.02),
     validateCitation,
   );
   printResult(result);
 }
 
 async function demoStop(rl) {
-  console.log('\n--- 停止条件：相同反馈重复出现 -> 硬停止 ---');
+  console.log('\n--- text：same feedback repeated -> hard stop ---');
   await wait(rl);
   const result = reflectionLoop(
     () => new ActionResult('{"tool": "search_notes"}', 0.01),
@@ -243,14 +243,14 @@ async function demoStop(rl) {
 
 function printMenu() {
   console.log(`
-Reflection 示例
-  0 - V0 无反思
-  1 - V1 格式修复
-  2 - V2 工具错误处理
-  3 - V3 测试驱动处理
-  4 - V4 引用校验
-  5 - 停止条件
-  q - 退出`);
+Reflection text
+  0 - V0 no reflection
+  1 - V1 format fix
+  2 - V2 tool error handling
+  3 - V3 test-driven handling
+  4 - V4 citation validation
+  5 - text
+  q - Exit`);
 }
 
 async function main() {
@@ -259,12 +259,12 @@ async function main() {
 
   printMenu();
   while (true) {
-    const choice = (await rl.question('\n请选择演示：')).trim().toLowerCase();
+    const choice = (await rl.question('\nPlease choosetext：')).trim().toLowerCase();
     if (choice === 'q') break;
     if (/^[0-5]$/.test(choice)) {
       await demos[Number(choice)](rl);
     } else {
-      console.log('无效选项，请输入 0-5 或 q。');
+      console.log('nonetext，pleaseInput 0-5 text q。');
     }
   }
   rl.close();

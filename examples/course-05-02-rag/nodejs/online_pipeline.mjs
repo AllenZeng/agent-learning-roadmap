@@ -60,24 +60,24 @@ async function loadIndex(indexDir) {
   // Chunks
   const chunksRaw = await readFile(join(indexDir, "chunks.json"), "utf-8");
   const chunks = JSON.parse(chunksRaw);
-  console.log(`[加载] chunks.json — ${chunks.length} 个 chunk`);
+  console.log(`[load] chunks.json — ${chunks.length} chunks`);
 
   // Embeddings
   const embRaw = await readFile(join(indexDir, "embeddings.json"), "utf-8");
   const embeddings = JSON.parse(embRaw);
-  console.log(`[加载] embeddings.json — ${embeddings.length} × ${embeddings[0]?.length || 0}`);
+  console.log(`[load] embeddings.json — ${embeddings.length} × ${embeddings[0]?.length || 0}`);
 
   // BM25
   const bm25Raw = await readFile(join(indexDir, "bm25_index.json"), "utf-8");
   const bm25Data = JSON.parse(bm25Raw);
-  console.log(`[加载] bm25_index.json — ${Object.keys(bm25Data.idf).length} 个词条`);
+  console.log(`[load] bm25_index.json — ${Object.keys(bm25Data.idf).length} terms`);
 
   const metaRaw = await readFile(join(indexDir, "index_meta.json"), "utf-8");
   const meta = JSON.parse(metaRaw);
 
   // Rebuild the BM25 instance
   const bm25 = SimpleBM25.fromJSON(bm25Data);
-  console.log(`[加载] 伪 embedding: hashing TF-IDF (${meta.pseudo_embedding_dim || embeddings[0]?.length || 0} 维)`);
+  console.log(`[load] pseudo embedding: hashing TF-IDF (${meta.pseudo_embedding_dim || embeddings[0]?.length || 0} dimensions)`);
   const vectorizer = {
     type: DEFAULT_RETRIEVER,
     embed: async (text) => pseudoEmbed(text, meta.pseudo_embedding_idf || {}),
@@ -91,14 +91,14 @@ async function loadIndex(indexDir) {
 // ================================================================
 
 function understandQuery(query) {
-  const pronouns = ["它", "他", "她", "这个", "那个", "这些", "那些"];
+  const pronouns = ["it", "he", "she", "this", "that", "these", "those"];
   const hasPronoun = pronouns.some((p) => query.includes(p));
 
   const expansions = {
-    "tool use": ["工具调用", "工具使用", "function calling"],
-    memory: ["记忆", "状态管理", "上下文"],
-    rag: ["检索增强生成", "外部知识", "知识库"],
-    chunking: ["分块", "切分", "文档分割"],
+    "tool use": ["tool calling", "tool use", "function calling"],
+    memory: ["memory", "state management", "context"],
+    rag: ["retrieval-augmented generation", "external knowledge", "knowledge base"],
+    chunking: ["chunking", "splitting", "document splitting"],
   };
 
   const expandedTerms = [];
@@ -227,16 +227,16 @@ function assembleContext(query, rankedChunks, maxChars = MAX_CONTEXT_CHARS) {
     const c = r.chunk;
     const score = (r.rerank_score || r.fused_score).toFixed(3);
     const header =
-      `[来源 ${i + 1}] ${c.source} — ${c.section_path}\n` +
-      `更新于 ${c.updated_at || "?"}  |  ` +
-      `标签: ${(c.tags || []).join(", ")}  |  ` +
-      `分数: ${score}`;
+      `[source ${i + 1}] ${c.source} — ${c.section_path}\n` +
+      `Updated at ${c.updated_at || "?"}  |  ` +
+      `tags: ${(c.tags || []).join(", ")}  |  ` +
+      `score: ${score}`;
 
     totalChars += header.length + c.content.length + 6;
 
     if (totalChars > maxChars && i > 0) {
       console.log(
-        `  [截断] 达到 token 预算上限，取了 ${i} / ${rankedChunks.length} 个 chunk`
+        `  [truncate] reached token budget limit, used ${i} / ${rankedChunks.length} chunks`
       );
       break;
     }
@@ -256,32 +256,32 @@ function generateAnswer(query, context, rankedChunks) {
     .map(
       (r, i) =>
         `  [${i + 1}] ${r.chunk.source} → ${r.chunk.section_path} ` +
-        `(分数: ${(r.rerank_score || r.fused_score).toFixed(3)})`
+        `(score: ${(r.rerank_score || r.fused_score).toFixed(3)})`
     )
     .join("\n");
 
-  const prompt = `你是一个个人知识助手。请基于以下笔记内容回答用户问题。
+  const prompt = `You are a personal knowledge assistant. Answer the user's question based on the notes below.
 
-## 用户问题
+## User Question
 ${query}
 
-## 相关笔记
+## Relevant Notes
 ${context}
 
-## 回答要求
-- 基于上述笔记内容回答，不要编造
-- 引用具体来源（如 [来源 1]）
-- 如果笔记中没有直接答案，明确说明
-- 如果笔记内容存在矛盾，指出并说明
+## Answer Requirements
+- Answer based on the notes above; do not fabricate
+- Cite specific sources, such as [Source 1]
+- If the notes do not contain a direct answer, say so clearly
+- If the notes conflict, point that out and explain
 `;
 
   console.log("\n" + "=".repeat(60));
-  console.log("  📤 最终 Prompt（将发送给 LLM）");
+  console.log("  📤 Final Prompt (to be sent to the LLM)");
   console.log("=".repeat(60));
   console.log(`\n${prompt}\n`);
-  console.log(`[提示] 以上 Prompt 共约 ${prompt.length} 字符`);
+  console.log(`[tip] the prompt above is about ${prompt.length} characters`);
   console.log(
-    `[提示] 替换 generateAnswer() 中的逻辑接入 LLM API 即可获得最终回答\n`
+    `[tip] replace generateAnswer() with an LLM API call to get the final answer\n`
   );
 
   return prompt;
@@ -293,8 +293,8 @@ ${context}
 
 async function runOnlinePipeline(query, indexDir = "index", topK = DEFAULT_TOP_K, debug = false) {
   console.log("=".repeat(60));
-  console.log(`  在线查询 Pipeline`);
-  console.log(`  查询: "${query}"`);
+  console.log(`  Online Query Pipeline`);
+  console.log(`  Query: "${query}"`);
   console.log("=".repeat(60));
 
   // ── Step 1: Load index ──
@@ -302,50 +302,50 @@ async function runOnlinePipeline(query, indexDir = "index", topK = DEFAULT_TOP_K
   const { chunks, embeddings, bm25, vectorizer } = await loadIndex(indexDir);
 
   // ── Step 2: Query understanding ──
-  console.log(`\n── 查询理解 (§2.4.5) ──`);
+  console.log(`\n── Query understanding (§2.4.5) ──`);
   const queryInfo = understandQuery(query);
-  console.log(`  原始查询: ${queryInfo.original}`);
+  console.log(`  Original query: ${queryInfo.original}`);
   if (queryInfo.hasPronoun) {
-    console.log(`  ⚠️ 检测到指代词，可能需要上下文补全`);
+    console.log(`  ⚠️ Detected references; context completion may be needed`);
   }
   if (queryInfo.expandedTerms.length > 0) {
-    console.log(`  扩展词: [${queryInfo.expandedTerms.join(", ")}]`);
+    console.log(`  Expanded terms: [${queryInfo.expandedTerms.join(", ")}]`);
   }
   const searchQuery = queryInfo.expandedQuery;
 
   // ── Step 3: Multi-route retrieval ──
-  console.log(`\n── 多路召回 (§2.4.6) ──`);
-  process.stdout.write(`  向量召回 top-20 ... `);
+  console.log(`\n── Multi-route retrieval (§2.4.6) ──`);
+  process.stdout.write(`  Vector retrieval top-20 ... `);
   const denseResults = await denseRetrieve(searchQuery, vectorizer, embeddings, chunks, 20);
-  console.log(`命中 ${denseResults.length}`);
+  console.log(`hits ${denseResults.length}`);
 
-  process.stdout.write(`  BM25 召回 top-20 ... `);
+  process.stdout.write(`  BM25 Recall top-20 ... `);
   const sparseResults = sparseRetrieve(searchQuery, bm25, chunks, 20);
-  console.log(`命中 ${sparseResults.length}`);
+  console.log(`hits ${sparseResults.length}`);
 
   // Metadata filtering + RRF fusion
   const filteredDense = metadataFilter(denseResults);
   const filteredSparse = metadataFilter(sparseResults);
   const fused = rrfFusion(filteredDense, filteredSparse);
-  console.log(`  RRF 融合 → ${fused.length} 个候选（去重后）`);
+  console.log(`  RRF fusion → ${fused.length} candidates after deduplication`);
 
   if (debug) {
-    console.log(`\n  候选集详情:`);
+    console.log(`\n  Candidate details:`);
     for (let i = 0; i < Math.min(fused.length, 15); i++) {
       const r = fused[i];
       console.log(
         `    #${i + 1} [${r.source}] ${r.chunk.section_path.slice(0, 50)} — ` +
-          `融合分: ${r.fused_score.toFixed(4)}`
+          `fused score: ${r.fused_score.toFixed(4)}`
       );
     }
   }
 
   // ── Step 4: Reranking ──
-  console.log(`\n── 重排序 (§2.4.6) ──`);
+  console.log(`\n── Reranking (§2.4.6) ──`);
   const ranked = await rerank(searchQuery, fused, vectorizer, topK);
   console.log(`  Rerank → top-${ranked.length}`);
 
-  console.log(`\n  最终选中的 chunk:`);
+  console.log(`\n  Final selected chunks:`);
   for (let i = 0; i < ranked.length; i++) {
     const r = ranked[i];
     const c = r.chunk;
@@ -353,21 +353,21 @@ async function runOnlinePipeline(query, indexDir = "index", topK = DEFAULT_TOP_K
       `    #${i + 1} [${c.source}] ${c.section_path}`
     );
     console.log(
-      `        分数: ${r.rerank_score.toFixed(3)}  |  ` +
-        `${c.char_count} 字符  |  标签: [${(c.tags || []).join(", ")}]`
+      `        score: ${r.rerank_score.toFixed(3)}  |  ` +
+        `${c.char_count} characters  |  tags: [${(c.tags || []).join(", ")}]`
     );
   }
 
   if (ranked.length >= 2 && fused.length > ranked.length) {
     console.log(
-      `    🔻 分数断崖：第 ${ranked.length} 名之后的内容对回答帮助显著下降`
+      `    🔻 Score cliff: after rank  ${ranked.length}  the remaining content contributes much less to the answer`
     );
   }
 
   // ── Step 5: Context assembly ──
-  console.log(`\n── 上下文组装 (§2.4.7) ──`);
+  console.log(`\n── Context assembly (§2.4.7) ──`);
   const context = assembleContext(query, ranked);
-  console.log(`  组装完成，共 ${context.length} 字符`);
+  console.log(`  Assembly complete, total ${context.length} characters`);
 
   // ── Step 6: Generate answer ──
   generateAnswer(query, context, ranked);
@@ -381,8 +381,8 @@ async function runOnlinePipeline(query, indexDir = "index", topK = DEFAULT_TOP_K
 
 async function interactiveMode(indexDir, topK, debug) {
   console.log("=".repeat(60));
-  console.log("  个人知识助手 — 交互查询");
-  console.log("  输入问题进行检索，输入 /quit 退出，/debug 切换详情");
+  console.log("  Personal Knowledge Assistant - Interactive Query");
+  console.log("  Enter a question to search; enter /quit to exit and /debug to toggle details");
   console.log("=".repeat(60));
 
   const { chunks, embeddings, bm25, vectorizer } = await loadIndex(indexDir);
@@ -393,7 +393,7 @@ async function interactiveMode(indexDir, topK, debug) {
   });
 
   const ask = () =>
-    new Promise((resolve) => rl.question("\n🔍 你的问题: ", resolve));
+    new Promise((resolve) => rl.question("\n🔍 Your question: ", resolve));
 
   while (true) {
     let query = await ask();
@@ -409,33 +409,33 @@ async function interactiveMode(indexDir, topK, debug) {
 
     // Run one query inline
     console.log("=".repeat(60));
-    console.log(`  查询: "${query}"`);
+    console.log(`  Query: "${query}"`);
     console.log("=".repeat(60));
 
     const queryInfo = understandQuery(query);
     const searchQuery = queryInfo.expandedQuery;
 
     if (queryInfo.expandedTerms.length > 0) {
-      console.log(`  扩展词: [${queryInfo.expandedTerms.join(", ")}]`);
+      console.log(`  Expanded terms: [${queryInfo.expandedTerms.join(", ")}]`);
     }
 
-    console.log(`  向量召回 top-20 ...`);
+    console.log(`  Vector retrieval top-20 ...`);
     const denseResults = await denseRetrieve(searchQuery, vectorizer, embeddings, chunks, 20);
-    console.log(`  命中 ${denseResults.length}`);
+    console.log(`  hits ${denseResults.length}`);
 
     const sparseResults = sparseRetrieve(searchQuery, bm25, chunks, 20);
-    console.log(`  BM25 命中 ${sparseResults.length}`);
+    console.log(`  BM25 hits ${sparseResults.length}`);
 
     const fused = rrfFusion(
       metadataFilter(denseResults),
       metadataFilter(sparseResults)
     );
-    console.log(`  RRF 融合 → ${fused.length} 个候选`);
+    console.log(`  RRF fusion → ${fused.length} candidates`);
 
     const ranked = await rerank(searchQuery, fused, vectorizer, topK);
     console.log(`  Rerank → top-${ranked.length}`);
 
-    console.log(`\n  最终选中的 chunk:`);
+    console.log(`\n  Final selected chunks:`);
     for (let i = 0; i < ranked.length; i++) {
       console.log(
         `    #${i + 1} [${ranked[i].chunk.source}] ${ranked[i].chunk.section_path.slice(0, 60)}`
@@ -462,6 +462,6 @@ const opts = parseArgs();
     await runOnlinePipeline(opts.query, opts.indexDir, opts.topK, opts.debug);
   }
 })().catch((err) => {
-  console.error("Pipeline 失败:", err);
+  console.error("Pipeline failed:", err);
   process.exit(1);
 });

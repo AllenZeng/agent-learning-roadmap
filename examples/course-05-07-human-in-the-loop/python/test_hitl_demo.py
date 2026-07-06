@@ -19,7 +19,7 @@ class HitlPolicyTest(unittest.TestCase):
 
     def test_read_only_action_needs_no_hitl(self):
         risk, mode = self.policy.assess(
-            ProposedAction("read_file", "notes.md", "读取笔记", reversible=True)
+            ProposedAction("read_file", "notes.md", "textnotes", reversible=True)
         )
 
         self.assertEqual(risk, Risk.LOW)
@@ -27,7 +27,7 @@ class HitlPolicyTest(unittest.TestCase):
 
     def test_delete_env_backup_requires_takeover(self):
         risk, mode = self.policy.assess(
-            ProposedAction("delete_file", "/tmp/logs/.env.backup", "清理日志", reversible=False)
+            ProposedAction("delete_file", "/tmp/logs/.env.backup", "clean logs", reversible=False)
         )
 
         self.assertEqual(risk, Risk.CRITICAL)
@@ -38,7 +38,7 @@ class HitlPolicyTest(unittest.TestCase):
             ProposedAction(
                 "refund",
                 "order-1",
-                "退款",
+                "refund",
                 reversible=False,
                 external_effect=True,
                 metadata={"amount": 2400, "previous_refunds": 0},
@@ -53,7 +53,7 @@ class HitlPolicyTest(unittest.TestCase):
             ProposedAction(
                 "refund",
                 "order-2",
-                "退款",
+                "refund",
                 reversible=False,
                 external_effect=True,
                 metadata={"amount": 299, "previous_refunds": 0},
@@ -74,20 +74,20 @@ class HitlResultHandlingTest(unittest.TestCase):
     def test_refund_rejection_prints_follow_up_action(self):
         output = self.capture(
             print_refund_result,
-            HitlDecision(HitlMode.CONFIRMATION, Risk.HIGH, "rejected", "人类拒绝操作"),
+            HitlDecision(HitlMode.CONFIRMATION, Risk.HIGH, "rejected", "humanrejecttext"),
             "ORD-1",
         )
 
-        self.assertIn("已拒绝 ORD-1 的退款操作", output)
+        self.assertIn("textreject ORD-1 textrefundtext", output)
 
     def test_takeover_prints_waiting_state(self):
         output = self.capture(
             print_takeover_result,
-            HitlDecision(HitlMode.TAKEOVER, Risk.CRITICAL, "manual_required", "关键风险操作需要人类执行"),
-            "生产数据库迁移",
+            HitlDecision(HitlMode.TAKEOVER, Risk.CRITICAL, "manual_required", "Critical-risk operations require human execution"),
+            "production database migration",
         )
 
-        self.assertIn("Agent 进入等待状态", output)
+        self.assertIn("Agent textStatus", output)
 
 
 if __name__ == "__main__":

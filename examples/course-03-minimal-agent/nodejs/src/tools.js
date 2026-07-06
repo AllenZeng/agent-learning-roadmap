@@ -33,13 +33,13 @@ function buildTools(workspace) {
     try {
       const target = resolveWorkspacePath(workspace, filePath);
       if (!fs.existsSync(target)) {
-        return error("file_not_found", `未找到文件: ${filePath}`);
+        return error("file_not_found", `File not found: ${filePath}`);
       }
       if (!fs.statSync(target).isFile()) {
-        return error("not_a_file", `路径不是文件: ${filePath}`);
+        return error("not_a_file", `Path is not a file: ${filePath}`);
       }
       const content = fs.readFileSync(target, "utf8");
-      return success(`读取到 ${content.length} 个字符: ${filePath}`, content);
+      return success(`Read ${content.length} characters: ${filePath}`, content);
     } catch (err) {
       return error("path_not_allowed", err.message);
     }
@@ -51,7 +51,7 @@ function buildTools(workspace) {
       const target = resolveWorkspacePath(workspace, filePath);
       fs.mkdirSync(path.dirname(target), { recursive: true });
       fs.writeFileSync(target, content, "utf8");
-      return success(`已写入 ${content.length} 个字符: ${filePath}`, { path: filePath });
+      return success(`Wrote ${content.length} characters: ${filePath}`, { path: filePath });
     } catch (err) {
       return error("path_not_allowed", err.message);
     }
@@ -72,9 +72,9 @@ function buildTools(workspace) {
         matches.push({ line: index + 1, text: line });
       }
     });
-    return success(`找到 ${matches.length} 条匹配`, matches);
+    return success(`Found ${matches.length} matches`, matches);
   }
-  searchText.description = "Search query in text and return matching lines. Args: query, text. 教学简化：text 由调用方传入，让学习者看到完整决策链。";
+  searchText.description = "Search query in text and return matching lines. Args: query, text. Teaching simplification: text is passed by the caller so learners can see the complete decision chain.";
 
   return {
     read_file: readFile,

@@ -1,7 +1,7 @@
-"""课程四工具机制示例的 Runtime 主循环。
+"""Runtime main loop for the course 04 tool mechanism example.
 
-LLM 只负责提出结构化工具调用意图。Runtime 负责工具 Schema 暴露、参数校验、
-权限检查、审计、执行、Observation 处理和状态更新。
+The LLM only proposes structured tool-call intent. The runtime owns tool Schema exposure, argument validation,
+permission checks, auditing, execution, Observation processing, and state updates.
 """
 
 from dataclasses import dataclass, field
@@ -20,11 +20,11 @@ Logger = Callable[[Dict[str, Any]], None]
 
 @dataclass
 class AgentState:
-    """Runtime 持有的单次任务状态。
+    """Single-task state held by the runtime.
 
-    ``step_count`` 只在工具调用步骤递增；final_answer / ask_user /
-    fail 等终止决策不计入步骤数，因此 trace 长度可能比 step_count
-    多 1（多出一条终止决策记录）。
+    ``step_count`` increments only on tool-call steps; final_answer / ask_user /
+    fail and other terminal decisions do not count as steps, so trace length may be
+    one greater than step_count because it includes the terminal decision record.
     """
 
     user_goal: str
@@ -52,7 +52,7 @@ def run_agent(
     conversation: Optional[List[Dict[str, str]]] = None,
     logger: Optional[Logger] = None,
 ) -> Dict[str, Any]:
-    """运行 ReAct 风格循环，直到任务完成、暂停、失败或被硬约束停止。"""
+    """Run a ReAct-style loop until the task is complete, paused, failed, or stopped by hard constraints."""
     state = AgentState(user_goal=user_goal, max_steps=max_steps)
     trace: List[Dict[str, Any]] = []
 
@@ -135,7 +135,7 @@ def assemble_context(
     state: AgentState,
     conversation: Optional[List[Dict[str, str]]] = None,
 ) -> Dict[str, Any]:
-    """选择哪些状态切片应该进入下一次 LLM 调用。"""
+    """Choose which state slices should enter the next LLM call."""
     return {
         "system": system_prompt,
         "goal": state.user_goal,
@@ -151,7 +151,7 @@ def assemble_context(
 
 
 def _normalize_decision(decision: Decision) -> Decision:
-    """把模型输出收敛到 Runtime 能处理的决策格式。"""
+    """Converge model output into a decision format the runtime can handle."""
     if not isinstance(decision, dict):
         return {"type": "fail", "thought": "Model output was not a JSON object.", "reason": "invalid_decision"}
     if decision.get("type") not in ("call_tool", "final_answer", "ask_user", "fail"):
@@ -162,7 +162,7 @@ def _normalize_decision(decision: Decision) -> Decision:
 
 
 def _update_state_from_tool_call(state: AgentState, decision: Decision, observation: Observation) -> None:
-    """把本轮决策和 Observation 写回 State，供后续循环使用。"""
+    """Write this turn's decision and Observation back to State for later loop iterations."""
     state.history.append({"step": state.step_count, "decision": decision, "observation": observation})
     state.tool_results.append(
         {"tool": decision.get("tool_name"), "status": observation["status"], "summary": observation["summary"]}
@@ -179,7 +179,7 @@ def _finalize(
     status: str,
     **kwargs: Any,
 ) -> Dict[str, Any]:
-    """记录最终状态快照和停止检查，返回统一的结果结构。"""
+    """Record the final state snapshot and stop check, then return a normalized result structure."""
     trace_entry["state_update"] = _state_summary(state)
     trace_entry["state_snapshot"] = _state_snapshot(state)
     trace_entry["stop_check"] = {"continue": False, "reason": state.stop_reason}
@@ -190,7 +190,7 @@ def _finalize(
 
 
 def _check_stop(state: AgentState) -> Optional[str]:
-    """检查最大步数、错误次数和重复动作等硬停止条件。"""
+    """Check hard stopping conditions such as maximum steps, error count, and repeated actions."""
     if state.step_count >= state.max_steps:
         return "max_steps_exceeded"
     if len(state.errors) >= state.max_tool_errors:
@@ -201,7 +201,7 @@ def _check_stop(state: AgentState) -> Optional[str]:
 
 
 def _repeated_action(state: AgentState, threshold: int = 3) -> bool:
-    """检测 Agent 是否连续重复相同工具调用而没有推进。"""
+    """Detect whether the agent repeats the same tool call without making progress."""
     recent = state.history[-threshold:]
     if len(recent) < threshold:
         return False
@@ -236,7 +236,7 @@ def _state_summary(state: AgentState) -> Dict[str, Any]:
 
 
 def _state_snapshot(state: AgentState) -> Dict[str, Any]:
-    """生成当前步骤执行后的完整 State 快照，便于示例逐步打印。"""
+    """Build a full State snapshot after the current step so the example can print each step."""
     return {
         "user_goal": state.user_goal,
         "max_steps": state.max_steps,

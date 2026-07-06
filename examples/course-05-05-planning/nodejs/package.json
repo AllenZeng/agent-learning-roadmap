@@ -1,7 +1,7 @@
 {
   "name": "course-05-05-planning",
   "version": "1.0.0",
-  "description": "课程五 05-05 Planning / Workflow Patterns 示例 (Node.js)",
+  "description": "Course 05-05 Planning / Workflow Patterns example (Node.js)",
   "type": "module",
   "scripts": {
     "start": "node planning_demo.mjs"

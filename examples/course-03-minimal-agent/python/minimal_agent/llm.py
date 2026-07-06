@@ -1,8 +1,8 @@
-"""最小 Agent 示例的 LLM 适配层。
+"""LLM adapter layer for the minimal Agent example.
 
-``ScriptedLLM`` 让离线演示和测试具备确定性。
-``deepseek_chat_llm`` 展示真实模型调用边界：输入是组装后的上下文，输出必须是
-Runtime 可解析的一条 JSON 决策。
+``ScriptedLLM`` makes offline demos and tests deterministic.
+``deepseek_chat_llm`` demonstrates the real model-call boundary: input is the assembled context, and output must be
+one JSON decision that the runtime can parse.
 """
 
 import json
@@ -15,7 +15,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional
 
 
 class ScriptedLLM:
-    """用于测试和离线演示的确定性 LLM 替身。"""
+    """Deterministic LLM substitute for tests and offline demos."""
 
     def __init__(
         self,
@@ -41,7 +41,7 @@ class ScriptedLLM:
 
 
 def random_demo_latency_seconds() -> float:
-    """模拟真实 LLM 调用的 1-3 秒响应耗时。"""
+    """Simulate the 1-3 second response time of a real LLM call."""
     return random.uniform(1, 3)
 
 
@@ -50,12 +50,12 @@ DEFAULT_DEEPSEEK_MODEL = "deepseek-v4-flash"
 
 
 def deepseek_chat_llm(context: Dict[str, Any]) -> Dict[str, Any]:
-    """调用 DeepSeek Chat Completions API，并解析模型返回的 JSON 决策。
+    """Call the DeepSeek Chat Completions API and parse the JSON decision returned by the model.
 
-    教学简化：这里直接把整个 context 序列化为 JSON 放进 user message，
-    让学习者一眼看清传给 LLM 的完整上下文结构。生产环境中应该将 context
-    的各个字段分别映射到 system prompt、user message 和 tool definitions
-    的对应位置，避免重复传递 tools 定义和完整 history 造成 token 浪费。
+    Teaching simplification: serialize the whole context as JSON directly into the user message,
+    so learners can see the full context structure passed to the LLM at a glance. In production, context
+    fields should be mapped separately to the system prompt, user message, and tool definitions
+    to avoid wasting tokens by repeatedly passing tool definitions and full history.
     """
     api_key = os.environ.get("DEEPSEEK_API_KEY")
     if not api_key:
@@ -69,7 +69,7 @@ def deepseek_chat_llm(context: Dict[str, Any]) -> Dict[str, Any]:
             {
                 "role": "user",
                 "content": (
-                    "请基于以下 Agent 运行时上下文输出下一步 JSON 决策：\n"
+                    "Output the next JSON decision based on the following Agent runtime context:\n"
                     + json.dumps(context, ensure_ascii=False, indent=2, default=str)
                 ),
             },

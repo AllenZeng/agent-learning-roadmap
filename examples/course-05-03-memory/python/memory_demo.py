@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-课程五 05-03 Memory 示例 —— 交互式 Memory 生命周期演示
+Course 05-03 Memory example - interactive Memory lifecycle demo
 
-模拟知识助手从周一到周三的跨会话对话，展示 Memory 系统的完整生命周期：
-  识别候选记忆 → 写入决策 → 存储 → 召回 → 更新与遗忘
+Simulates a knowledge assistant's cross-session conversations from Monday to Wednesday to show the full Memory lifecycle:
+  identify candidate memories -> write decision -> storage -> recall -> update and forgetting
 
-纯 Python 标准库实现（bag-of-words 向量），无需外部依赖。
+Implemented with only the Python standard library (bag-of-words vectors), with no external dependencies.
 
-用法：
-  python3 memory_demo.py           # 交互模式（每一步按 Enter 继续）
-  python3 memory_demo.py --auto    # 自动模式（适合查看完整输出）
+Usage:
+  python3 memory_demo.py           # Interactive mode (press Enter at each step)
+  python3 memory_demo.py --auto    # Automatic mode (useful for viewing the full output)
 """
 
 import json
@@ -26,7 +26,7 @@ from datetime import datetime, timedelta
 # ============================================================
 
 class AgentMemory:
-    """分层存储 + 写入守卫 + 语义召回 + 审计日志"""
+    """Layered storage + write guard + semantic recall + audit log"""
 
     def __init__(self, storage_dir="./memory_store"):
         self.storage_dir = storage_dir
@@ -59,16 +59,16 @@ class AgentMemory:
     # ── Identify candidate memories ──
     def identify_candidates(self, user_message):
         candidates = []
-        for pat in [r"以后[^，。]*", r"每次[^，。]*", r"不要[^，。]*", r"默认[^，。]*"]:
+        for pat in [r"from now on[^，。]*", r"every time[^，。]*", r"do not[^，。]*", r"default[^，。]*"]:
             for m in re.findall(pat, user_message):
                 candidates.append({"type": "preference", "content": m,
                     "source": "user_explicit", "confidence": 0.95, "sensitive": False})
         # Sensitive-information detection
-        if re.search(r"(?:api[_\s]?key|secret|token|密码)\s*[：:=]\s*\S+", user_message, re.I):
-            candidates.append({"type": "sensitive", "content": "[敏感信息]",
+        if re.search(r"(?:api[_\s]?key|secret|token|password)\s*[：:=]\s*\S+", user_message, re.I):
+            candidates.append({"type": "sensitive", "content": "[sensitive information]",
                 "source": "detected", "confidence": 0.99, "sensitive": True})
         # Temporary constraint
-        for m in re.findall(r"这次[^，。]*", user_message):
+        for m in re.findall(r"this time[^，。]*", user_message):
             candidates.append({"type": "temporary", "content": m,
                 "source": "user_explicit", "confidence": 0.9, "sensitive": False})
         return candidates
@@ -152,14 +152,14 @@ class AgentMemory:
         return result
 
     def _tokenize(self, text):
-        """中英文混合分词：中文用字符 bigram，英文/数字用空格分词"""
+        """Mixed Chinese/English tokenization: Chinese uses character bigrams, English/numbers use whitespace tokens"""
         text = text.lower()
         tokens = set()
         # Extract English/numeric words
         for w in re.findall(r'[a-z0-9]+', text):
             tokens.add(w)
         # Extract Chinese character bigrams
-        chinese = re.findall(r'[一-鿿]+', text)
+        chinese = re.findall(r'[\u4e00-\u9fff]+', text)
         for seg in chinese:
             for i in range(len(seg) - 1):
                 tokens.add(seg[i:i+2])
@@ -245,9 +245,9 @@ MAGENTA = "\033[35m"
 RED = "\033[31m"
 
 def wait(msg, auto=False):
-    """非交互模式下自动继续，交互模式下等待用户按 Enter"""
+    """Continue automatically in non-interactive mode; wait for the user to press Enter in interactive mode"""
     if auto:
-        print(f"\n{DIM}── 自动进入下一步 ──{RESET}")
+        print(f"\n{DIM}── automatically continue to the next step ──{RESET}")
         time.sleep(0.5)
     else:
         input(msg)
@@ -255,13 +255,13 @@ def wait(msg, auto=False):
 def show_banner():
     print(f"""
 {CYAN}{BOLD}╔══════════════════════════════════════════════════════════╗
-║     课程五 05-03 Memory 生命周期演示                         ║
-║     模拟知识助手 周一 → 周三 的跨会话 Memory 行为              ║
+║     Course 05-03 Memory lifecycle demo                         ║
+║     Simulate a knowledge assistant's cross-session Memory behavior from Monday to Wednesday              ║
 ╚══════════════════════════════════════════════════════════╝{RESET}
 """)
 
 def show_memory_state(memory, label=""):
-    """可视化当前 Memory 存储状态"""
+    """Visualize current Memory storage state"""
     print(f"\n{YELLOW}{BOLD}📦 {label}{RESET}")
     prefs = memory.preferences
     if prefs:
@@ -281,9 +281,9 @@ def show_memory_state(memory, label=""):
             print(f"    [{h['id']}] {h.get('content','')[:60]}")
 
 def show_recall_results(recalled):
-    """展示召回结果"""
+    """Show recall results"""
     if not recalled:
-        print(f"  {DIM}(无相关记忆){RESET}")
+        print(f"  {DIM}(No relevant memories){RESET}")
         return
     for i, r in enumerate(recalled):
         match_icon = "🔑" if r.get("match") == "keyword" else "🔍"
@@ -302,137 +302,137 @@ def simulate(auto=False):
     # SESSION 1: Monday
     # ═══════════════════════════════════════════════════
     print(f"{BOLD}{'─'*60}{RESET}")
-    print(f"{BOLD}  SESSION 1：周一 10:00-10:45{RESET}")
+    print(f"{BOLD}  SESSION 1：Monday 10:00-10:45{RESET}")
     print(f"{BOLD}{'─'*60}{RESET}")
 
     memory.start_session("user-001")
-    print(f"\n{DIM}[会话开始] decay check: 无过期记忆（系统初始化）{RESET}")
+    print(f"\n{DIM}[session start] decay check: No expired memories (system initialization){RESET}")
 
     # User input 1
-    msg = "以后写技术文章，先给我大纲确认，再展开正文。语气直接，不要营销化。"
-    print(f"\n{GREEN}👤 用户：{msg}{RESET}")
+    msg = "When writing technical articles in the future, give me an outline for confirmation before expanding the body. Keep the tone direct, not marketing-oriented."
+    print(f"\n{GREEN}👤 user：{msg}{RESET}")
 
     candidates = memory.identify_candidates(msg)
-    print(f"{DIM}[identify] 识别到 {len(candidates)} 条候选记忆{RESET}")
+    print(f"{DIM}[identify] Identified {len(candidates)} candidate memories{RESET}")
     for c in candidates:
         # Use a finer-grained category to prevent preferences of the same broad type from overwriting each other
-        cat = "writing_workflow" if "大纲" in c["content"] or "先给" in c["content"] else \
-              "writing_tone" if "语气" in c["content"] or "营销" in c["content"] else "writing_style"
+        cat = "writing_workflow" if "outline" in c["content"] or "outline first" in c["content"] else \
+              "writing_tone" if "tone" in c["content"] or "marketing" in c["content"] else "writing_style"
         result = memory.write({**c, "category": cat})
-        status = f"{GREEN}✅ 写入{RESET}" if result["status"] == "written" else f"{RED}❌ 拒绝: {result['reason']}{RESET}"
+        status = f"{GREEN}✅ Write{RESET}" if result["status"] == "written" else f"{RED}❌ reject: {result['reason']}{RESET}"
         print(f"  → {c['content'][:50]}... {status}")
 
     # User input 2
-    msg2 = "我最近在用 TypeScript 写 Agent 框架，帮我看看这段代码"
-    print(f"\n{GREEN}👤 用户：{msg2}{RESET}")
-    print(f"{DIM}[identify] 此消息未触发显式偏好规则，但系统从行为中推断：用户可能偏好 TypeScript{RESET}")
+    msg2 = "I am using TypeScript to write an Agent framework; help me review this code"
+    print(f"\n{GREEN}👤 user：{msg2}{RESET}")
+    print(f"{DIM}[identify] This message did not trigger an explicit preference rule, but the system inferred from behavior that the user may prefer TypeScript{RESET}")
 
     # Manually write an inferred preference (simulates a preference inferred by the system but not automatically captured by identify)
     result = memory.write({
         "type": "preference", "category": "code_style",
-        "content": "用户可能偏好 TypeScript 示例代码",
+        "content": "User may prefer TypeScript example code",
         "source": "inferred", "confidence": 0.5, "sensitive": False,
     })
-    status = f"{YELLOW}⚠️ 写入为候选记忆（低置信度推断，待用户确认）{RESET}" if result["status"] == "written" else f"{RED}❌ 拒绝{RESET}"
+    status = f"{YELLOW}⚠️ Wrote as a candidate memory (low-confidence inference, awaiting user confirmation){RESET}" if result["status"] == "written" else f"{RED}❌ reject{RESET}"
     if result["status"] == "written":
         # Mark as candidate
-        memory.pending.append({"id": result["id"], "content": "用户可能偏好 TypeScript 示例代码"})
-    print(f"  → 推断偏好: TypeScript 示例代码... {status}")
+        memory.pending.append({"id": result["id"], "content": "User may prefer TypeScript example code"})
+    print(f"  → inferred preference: TypeScript example code... {status}")
 
     # User input 3
-    msg3 = "帮我写一篇 Agent Memory 的技术文章"
-    print(f"\n{GREEN}👤 用户：{msg3}{RESET}")
+    msg3 = "Help me write a technical article about Agent Memory"
+    print(f"\n{GREEN}👤 user：{msg3}{RESET}")
     recalled = memory.recall(msg3, limit=5)
-    print(f"{DIM}[recall] 召回 {len(recalled)} 条相关记忆:{RESET}")
+    print(f"{DIM}[recall] Recall {len(recalled)} relevant memories:{RESET}")
     show_recall_results(recalled)
-    print(f"\n{CYAN}🤖 Agent：（因为有 #1 偏好记忆，先输出大纲等待确认）{RESET}")
+    print(f"\n{CYAN}🤖 Agent：（Because preference memory #1 exists, output an outline first and wait for confirmation){RESET}")
 
     # Write experience after the task is complete
-    memory.write({"type": "task_result", "content": "先大纲再正文在技术文章中效果好，3轮迭代完成",
+    memory.write({"type": "task_result", "content": "Outline-first writing worked well for technical articles; completed in three iterations",
                   "source": "auto", "confidence": 0.8})
-    print(f"{DIM}[write] 任务经验已记录{RESET}")
+    print(f"{DIM}[write] Task experience recorded{RESET}")
 
-    show_memory_state(memory, "Session 1 结束时的 Memory 状态")
+    show_memory_state(memory, "Memory state at the end of Session 1")
     memory.end_session()
 
     # ═══════════════════════════════════════════════════
     # SESSION 2: Tuesday (Cross-session!)
     # ═══════════════════════════════════════════════════
-    wait(f"\n{DIM}按 Enter 进入 Session 2（周二，跨会话）...{RESET}", auto)
+    wait(f"\n{DIM}Press Enter to enter Session 2 (Tuesday, cross-session)...{RESET}", auto)
 
     print(f"\n{BOLD}{'─'*60}{RESET}")
-    print(f"{BOLD}  SESSION 2：周二 09:00-09:30  ← 跨会话！{RESET}")
+    print(f"{BOLD}  SESSION 2：Tuesday 09:00-09:30  ← cross-session！{RESET}")
     print(f"{BOLD}{'─'*60}{RESET}")
 
     memory.start_session("user-001")
-    print(f"{DIM}[会话开始] decay check: 无过期（才过了一天）{RESET}")
+    print(f"{DIM}[session start] decay check: No expiration (only one day has passed){RESET}")
 
-    msg4 = "帮我写一篇 RAG 最佳实践的技术文章"
-    print(f"\n{GREEN}👤 用户：{msg4}{RESET}")
+    msg4 = "Help me write a technical article about RAG best practices"
+    print(f"\n{GREEN}👤 user：{msg4}{RESET}")
     recalled2 = memory.recall(msg4, limit=5)
-    print(f"{DIM}[recall] 跨会话召回 {len(recalled2)} 条相关记忆:{RESET}")
+    print(f"{DIM}[recall] Cross-session recall {len(recalled2)} relevant memories:{RESET}")
     show_recall_results(recalled2)
-    if any("写作" in r.get("content", "") or "大纲" in r.get("content", "") for r in recalled2):
-        print(f"\n{CYAN}🤖 Agent：（Memory 跨会话生效！先输出大纲，语气直接）{RESET}")
-        print(f"    用户不需要重新说『先给大纲』——偏好跨会话保持了。{RESET}")
+    if any("writing" in r.get("content", "") or "outline" in r.get("content", "") for r in recalled2):
+        print(f"\n{CYAN}🤖 Agent：（Memory Cross-session memory works! Output an outline first with a direct tone){RESET}")
+        print(f"    The user does not need to repeat 'give the outline first'; the preference persisted across sessions.{RESET}")
 
-    memory.write({"type": "task_result", "content": "RAG 文章用先大纲方式完成，用户满意",
+    memory.write({"type": "task_result", "content": "RAG The article was completed outline-first and the user was satisfied",
                   "source": "auto", "confidence": 0.8})
 
-    show_memory_state(memory, "Session 2 结束时的 Memory 状态")
+    show_memory_state(memory, "Memory state at the end of Session 2")
     memory.end_session()
 
     # ═══════════════════════════════════════════════════
     # SESSION 3: Wednesday (Preference changed!)
     # ═══════════════════════════════════════════════════
-    wait(f"\n{DIM}按 Enter 进入 Session 3（周三，偏好变更）...{RESET}", auto)
+    wait(f"\n{DIM}Press Enter to enter Session 3 (Wednesday, preference changed)...{RESET}", auto)
 
     print(f"\n{BOLD}{'─'*60}{RESET}")
-    print(f"{BOLD}  SESSION 3：周三 14:00-14:30  ← 偏好变更！{RESET}")
+    print(f"{BOLD}  SESSION 3：Wednesday 14:00-14:30  ← preference changed！{RESET}")
     print(f"{BOLD}{'─'*60}{RESET}")
 
     memory.start_session("user-001")
 
-    msg5 = "以后示例代码改用 Python"
-    print(f"\n{GREEN}👤 用户：{msg5}{RESET}")
+    msg5 = "Use Python for example code from now on"
+    print(f"\n{GREEN}👤 user：{msg5}{RESET}")
     candidates5 = memory.identify_candidates(msg5)
     for c in candidates5:
         c["category"] = "code_style"
         result = memory.write(c)
         if result["status"] == "written":
-            print(f"  → {c['content'][:50]}... {GREEN}✅ 写入（检测到冲突，旧 TS 偏好已标记 superseded）{RESET}")
+            print(f"  → {c['content'][:50]}... {GREEN}✅ Wrote (conflict detected; the old TS preference was marked superseded){RESET}")
         else:
-            print(f"  → {c['content'][:50]}... {RED}❌ 拒绝: {result['reason']}{RESET}")
+            print(f"  → {c['content'][:50]}... {RED}❌ reject: {result['reason']}{RESET}")
 
-    msg6 = "帮我写一篇 Python Agent 框架的技术文章"
-    print(f"\n{GREEN}👤 用户：{msg6}{RESET}")
+    msg6 = "Help me write a technical article about a Python Agent framework"
+    print(f"\n{GREEN}👤 user：{msg6}{RESET}")
     recalled3 = memory.recall(msg6, limit=5)
-    print(f"{DIM}[recall] 召回 {len(recalled3)} 条相关记忆:{RESET}")
+    print(f"{DIM}[recall] Recall {len(recalled3)} relevant memories:{RESET}")
     show_recall_results(recalled3)
-    print(f"\n{CYAN}🤖 Agent：（用 Python 示例，不是 TS！偏好变更生效了）{RESET}")
+    print(f"\n{CYAN}🤖 Agent：（Use Python examples, not TS! The preference change took effect){RESET}")
 
-    show_memory_state(memory, "Session 3 结束时的 Memory 状态")
+    show_memory_state(memory, "Memory state at the end of Session 3")
     memory.end_session()
 
     # ═══════════════════════════════════════════════════
     # Summary
     # ═══════════════════════════════════════════════════
     print(f"\n{BOLD}{'─'*60}{RESET}")
-    print(f"{BOLD}  📊 完整生命周期总结{RESET}")
+    print(f"{BOLD}  📊 Full lifecycle summary{RESET}")
     print(f"{BOLD}{'─'*60}{RESET}")
 
     print(f"""
-  ✅ 跨会话延续：Session 2 不需要重新说"先给大纲"
-  ✅ 冲突替换：Session 3"用 Python"覆盖了"用 TS"
-  ✅ 审计可见：旧 TS 偏好仍保留（superseded），可追溯
-  ✅ 推断 vs 确认：推断偏好（TS）自动被显式声明（Python）覆盖
-  ✅ 审计日志：{GREEN}memory_store/audit.jsonl{RESET} 记录了所有操作
+  ✅ Cross-session persistence: Session 2 did not require repeating "give the outline first"
+  ✅ Conflict replacement: Session 3 "use Python" overrode "use TS"
+  ✅ Auditable history: the old TS preference remains (superseded) and traceable
+  ✅ Inference vs confirmation: inferred preference (TS) was automatically overridden by explicit declaration (Python)
+  ✅ Audit log：{GREEN}memory_store/audit.jsonl{RESET} recorded all operations
 
-  {DIM}查看存储文件：{RESET}
-    {CYAN}memory_store/preferences.json{RESET}  - 用户偏好
-    {CYAN}memory_store/facts.json{RESET}        - 长期事实
-    {CYAN}memory_store/task_history.json{RESET} - 任务经验
-    {CYAN}memory_store/audit.jsonl{RESET}       - 审计日志
+  {DIM}View storage files：{RESET}
+    {CYAN}memory_store/preferences.json{RESET}  - User preferences
+    {CYAN}memory_store/facts.json{RESET}        - Long-term facts
+    {CYAN}memory_store/task_history.json{RESET} - Task experience
+    {CYAN}memory_store/audit.jsonl{RESET}       - Audit log
 """)
 
 

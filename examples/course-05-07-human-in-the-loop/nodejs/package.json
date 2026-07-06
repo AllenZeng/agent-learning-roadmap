@@ -1,7 +1,7 @@
 {
   "name": "course-05-07-human-in-the-loop",
   "version": "1.0.0",
-  "description": "课程五 05-07 Human-in-the-loop 示例 (Node.js)",
+  "description": "Course 05-07 Human-in-the-loop example (Node.js)",
   "type": "module",
   "scripts": {
     "start": "node hitl_demo.mjs"

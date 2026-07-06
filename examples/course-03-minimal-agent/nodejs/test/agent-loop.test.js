@@ -70,18 +70,18 @@ test("runs a multi-step loop and writes the final file", async () => {
       tool_name: "write_file",
       arguments: {
         path: "summary.md",
-        content: "Agent 最小闭环由 Prompt、LLM 决策、工具交互、State 和循环控制组成。",
+        content: "Agent The minimal loop consists of Prompt, LLM decisions, tool interaction, State, and loop control.",
       },
     },
     {
       type: "final_answer",
       thought: "The requested summary has been written.",
-      answer: "已写入 summary.md。",
+      answer: "summary.md has been written.",
     },
   ]);
 
   const result = await runAgent({
-    userGoal: "读取 notes.md，总结后写入 summary.md",
+    userGoal: "Read notes.md, summarize it, and write summary.md",
     tools: buildTools(workspace),
     llmCall: llm.call.bind(llm),
     maxSteps: 5,
@@ -95,7 +95,7 @@ test("runs a multi-step loop and writes the final file", async () => {
   assert.equal(result.trace[0].stateSnapshot.history.length, 1);
   assert.equal(result.trace[1].stateSnapshot.toolResults[1].tool, "write_file");
   assert.equal(result.trace[2].stateSnapshot.stopReason, "completed");
-  assert.match(fs.readFileSync(path.join(workspace, "summary.md"), "utf8"), /Prompt、LLM 决策/);
+  assert.match(fs.readFileSync(path.join(workspace, "summary.md"), "utf8"), /Prompt, LLM decisions/);
 });
 
 test("records tool errors in state", async () => {
@@ -115,7 +115,7 @@ test("records tool errors in state", async () => {
   ]);
 
   const result = await runAgent({
-    userGoal: "读取 missing.md",
+    userGoal: "Read missing.md",
     tools: buildTools(workspace),
     llmCall: llm.call.bind(llm),
     maxSteps: 5,
@@ -138,7 +138,7 @@ test("stops when the same tool action repeats", async () => {
   const llm = new ScriptedLLM([repeated, repeated, repeated]);
 
   const result = await runAgent({
-    userGoal: "不断搜索相同内容",
+    userGoal: "Keep searching the same content",
     tools: buildTools(process.cwd()),
     llmCall: llm.call.bind(llm),
     maxSteps: 8,
@@ -186,7 +186,7 @@ test("runtime emits execution logs", async () => {
   ]);
 
   const result = await runAgent({
-    userGoal: "搜索 Agent",
+    userGoal: "Search Agent",
     tools: buildTools(process.cwd()),
     llmCall: llm.call.bind(llm),
     logger: (event) => events.push(event),

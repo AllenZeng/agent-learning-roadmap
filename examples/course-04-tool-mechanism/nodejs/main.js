@@ -19,7 +19,7 @@ async function main() {
   const permissions = new PermissionPolicy({ allowedTools: ["read_file", "write_file", "list_files"] });
 
   const result = await runAgent({
-    userGoal: args.goal || "读取 data/notes.md，总结课程四工具机制，并写入 output/summary.md",
+    userGoal: args.goal || "Read data/notes.md, summarize the course 04 tool mechanism, and write output/summary.md",
     registry,
     permissions,
     llmCall,
@@ -81,24 +81,24 @@ function demoLLM() {
     [
       {
         type: "call_tool",
-        thought: "先读取课程四示例资料。",
+        thought: "First read the course 04 example material.",
         tool_name: "read_file",
         arguments: { path: "data/notes.md" },
       },
       {
         type: "call_tool",
-        thought: "将摘要写入交付文件。",
+        thought: "Write the summary to the deliverable file.",
         tool_name: "write_file",
         arguments: {
           path: "output/summary.md",
           content:
-            "工具机制把工具调用拆成 Schema 暴露、参数校验、权限检查、执行、Observation 处理、审计日志和 State Update。",
+            "The tool mechanism splits tool calls into Schema exposure, argument validation, permission checks, execution, Observation processing, audit logs, and State Update.",
         },
       },
       {
         type: "final_answer",
-        thought: "摘要文件已经写入。",
-        answer: "已生成 output/summary.md。",
+        thought: "The summary file has been written.",
+        answer: "Generated output/summary.md.",
       },
     ],
     { delayMs: randomDemoLatencyMs },

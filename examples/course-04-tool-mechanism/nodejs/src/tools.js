@@ -145,8 +145,8 @@ async function executeToolCall({ decision, registry, permissions, auditLog = [] 
   const tool = registry.get(toolName);
 
   if (!tool) {
-    const observation = ToolResult.error("tool_not_found", `工具不存在: ${toolName}`, {
-      suggestedAction: "检查工具名，或从可用工具列表中重新选择",
+    const observation = ToolResult.error("tool_not_found", `Tool does not exist: ${toolName}`, {
+      suggestedAction: "Check the tool name or choose again from the available tool list",
     }).toObject();
     audit(auditLog, toolName, args, "lookup", "denied", observation);
     return observation;
@@ -155,8 +155,8 @@ async function executeToolCall({ decision, registry, permissions, auditLog = [] 
   // arguments must be an object. The model may occasionally output a string, array, or null; the runtime
   // must intercept that before execution instead of leaking exceptions into tool handlers.
   if (!args || typeof args !== "object" || Array.isArray(args)) {
-    const observation = ToolResult.error("invalid_arguments", "工具参数必须是 JSON object", {
-      suggestedAction: "重新生成 arguments 对象",
+    const observation = ToolResult.error("invalid_arguments", "Tool arguments must be a JSON object", {
+      suggestedAction: "Regenerate the arguments object",
     }).toObject();
     audit(auditLog, toolName, args, "validation", "denied", observation);
     return observation;
@@ -173,8 +173,8 @@ async function executeToolCall({ decision, registry, permissions, auditLog = [] 
   // Deny-first: tools are not executable by default unless allowed. This matters especially for medium-risk tools like write_file,
   // because even plausible model-generated arguments must be allowed uniformly by the runtime.
   if (!permissions.check(tool, args)) {
-    const observation = ToolResult.error("permission_denied", `工具 '${tool.name}' 没有执行权限`, {
-      suggestedAction: "请求用户授权，或选择已授权的低风险工具",
+    const observation = ToolResult.error("permission_denied", `Tool '${tool.name}' is not permitted`, {
+      suggestedAction: "Ask the user for authorization or choose an authorized low-risk tool",
       needsUser: true,
     }).toObject();
     audit(auditLog, toolName, args, "permission", "denied", observation);
@@ -202,7 +202,7 @@ async function executeToolCall({ decision, registry, permissions, auditLog = [] 
         continue;
       }
       const observation = ToolResult.error(err.name || "Error", err.message, {
-        suggestedAction: "检查参数和工具实现",
+        suggestedAction: "Check arguments and the tool implementation",
       }).toObject();
       observation.retryCount = attempts;
       audit(auditLog, toolName, args, "execution", "error", observation);
@@ -228,21 +228,21 @@ function buildToolRegistry(workspace, options = {}) {
       target = resolveWorkspacePath(workspace, filePath);
     } catch (err) {
       return ToolResult.error("path_not_allowed", err.message, {
-        suggestedAction: "请选择 workspace 内的相对路径",
+        suggestedAction: "Choose a relative path inside the workspace",
         needsUser: true,
       }).toObject();
     }
     if (!fs.existsSync(target)) {
-      return ToolResult.error("file_not_found", `未找到文件: ${filePath}`, {
-        suggestedAction: "使用 list_files 查看可用文件，或请用户确认路径",
+      return ToolResult.error("file_not_found", `File not found: ${filePath}`, {
+        suggestedAction: "Use list_files to view available files or ask the user to confirm the path",
         needsUser: true,
       }).toObject();
     }
     if (!fs.statSync(target).isFile()) {
-      return ToolResult.error("not_a_file", `路径不是文件: ${filePath}`).toObject();
+      return ToolResult.error("not_a_file", `Path is not a file: ${filePath}`).toObject();
     }
     const content = fs.readFileSync(target, "utf8");
-    return ToolResult.success(`读取到 ${content.length} 个字符: ${filePath}`, {
+    return ToolResult.success(`Read ${content.length} characters: ${filePath}`, {
       content,
       path: filePath,
       totalChars: content.length,
@@ -255,7 +255,7 @@ function buildToolRegistry(workspace, options = {}) {
     const target = resolveWorkspacePath(workspace, filePath);
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.writeFileSync(target, content, "utf8");
-    return ToolResult.success(`已写入 ${content.length} 个字符: ${filePath}`, { path: filePath }).toObject();
+    return ToolResult.success(`Wrote ${content.length} characters: ${filePath}`, { path: filePath }).toObject();
   }
 
   function listFiles() {
@@ -263,7 +263,7 @@ function buildToolRegistry(workspace, options = {}) {
     // available files first, then ask the user for confirmation or switch to the correct path.
     const files = [];
     walk(workspace, (filePath) => files.push(path.relative(workspace, filePath)));
-    return ToolResult.success(`找到 ${files.length} 个文件`, { files: files.sort() }).toObject();
+    return ToolResult.success(`Found ${files.length} files`, { files: files.sort() }).toObject();
   }
 
   return new ToolRegistry(
@@ -271,11 +271,11 @@ function buildToolRegistry(workspace, options = {}) {
       new ToolDefinition({
         name: "read_file",
         description:
-          "读取 workspace 中的本地文件。适用于用户给出明确文件路径并要求查看、总结或搜索内容时。不要用于搜索互联网、不要读取 workspace 外部路径。",
+          "Read a local file in the workspace. Use when the user gives an explicit file path and asks to view, summarize, or search content.Do not use for internet search or paths outside the workspace.",
         parameters: {
           type: "object",
           properties: {
-            path: { type: "string", description: "workspace 内相对路径，例如 data/notes.md" },
+            path: { type: "string", description: "Relative path inside the workspace, for example data/notes.md" },
           },
           required: ["path"],
         },
@@ -287,12 +287,12 @@ function buildToolRegistry(workspace, options = {}) {
       new ToolDefinition({
         name: "write_file",
         description:
-          "向 workspace 写入 UTF-8 文本文件。适用于用户明确要求保存结果时。不要用于删除、覆盖未确认的重要文件；写入动作需要权限。",
+          "Write a UTF-8 text file into the workspace. Use when the user explicitly asks to save results.Do not use to delete files or overwrite unconfirmed important files; write actions require permission.",
         parameters: {
           type: "object",
           properties: {
-            path: { type: "string", description: "workspace 内输出路径" },
-            content: { type: "string", description: "要写入的文本内容" },
+            path: { type: "string", description: "Output path inside the workspace" },
+            content: { type: "string", description: "Text content to write" },
           },
           required: ["path", "content"],
         },
@@ -302,7 +302,7 @@ function buildToolRegistry(workspace, options = {}) {
       }),
       new ToolDefinition({
         name: "list_files",
-        description: "列出 workspace 内文件。适用于文件名不确定或 read_file 返回 file_not_found 后。",
+        description: "List files inside the workspace. Use when the file name is uncertain or after read_file returns file_not_found.",
         parameters: { type: "object", properties: {}, required: [] },
         handler: listFiles,
         riskLevel: "low",
@@ -321,22 +321,22 @@ function validateArguments(tool, args) {
   const properties = tool.parameters.properties || {};
   const missing = required.filter((name) => !(name in args));
   if (missing.length > 0) {
-    return ToolResult.error("missing_required", `缺少必填参数: ${missing.join(", ")}`, {
-      suggestedAction: `请补充参数: ${missing.join(", ")}`,
+    return ToolResult.error("missing_required", `Missing required argument: ${missing.join(", ")}`, {
+      suggestedAction: `Please provide arguments: ${missing.join(", ")}`,
     }).toObject();
   }
   for (const [name, value] of Object.entries(args)) {
     const prop = properties[name];
     if (!prop) {
-      return ToolResult.error("unknown_argument", `未知参数: ${name}`, {
-        suggestedAction: "只传入 Schema 中声明的参数",
+      return ToolResult.error("unknown_argument", `Unknown argument: ${name}`, {
+        suggestedAction: "Pass only arguments declared in the Schema",
       }).toObject();
     }
     if (prop.type === "string" && typeof value !== "string") {
-      return ToolResult.error("type_error", `参数 '${name}' 应为 string`).toObject();
+      return ToolResult.error("type_error", `Argument '${name}' must be a string`).toObject();
     }
     if (prop.type === "integer" && !Number.isInteger(value)) {
-      return ToolResult.error("type_error", `参数 '${name}' 应为 integer`).toObject();
+      return ToolResult.error("type_error", `Argument '${name}' must be an integer`).toObject();
     }
   }
   return null;

@@ -60,15 +60,15 @@ async function scanNotes(notesDir) {
     );
     withStats.sort((a, b) => b.mtime - a.mtime);
 
-    console.log(`[扫描] 发现 ${mdFiles.length} 篇 Markdown 笔记`);
+    console.log(`[scan] found ${mdFiles.length} Markdown notes`);
     for (const f of withStats) {
       console.log(
-        `        ${f.name}  (修改于 ${f.mtime.toISOString().slice(0, 10)})`
+        `        ${f.name}  (modified at ${f.mtime.toISOString().slice(0, 10)})`
       );
     }
     return withStats.map((f) => f.name);
   } catch {
-    console.error(`[错误] notes 目录不存在: ${notesDir}`);
+    console.error(`[error] notes directory does not exist: ${notesDir}`);
     process.exit(1);
   }
 }
@@ -114,7 +114,7 @@ function extractHeadings(text) {
 }
 
 function buildSectionPath(headings, chunkIdx) {
-  if (chunkIdx >= headings.length) return "正文";
+  if (chunkIdx >= headings.length) return "body";
 
   let current = headings[chunkIdx];
   const pathParts = [];
@@ -179,7 +179,7 @@ function chunkByHeadings(text, headings) {
     chunks.push({
       content: body,
       charCount: body.length,
-      sectionPath: headings.length > 0 ? headings[0].title : "正文",
+      sectionPath: headings.length > 0 ? headings[0].title : "body",
       headingLevel: 1,
       headingTitle: headings.length > 0 ? headings[0].title : "",
     });
@@ -218,10 +218,10 @@ function annotateChunk(chunk, sourceFile, frontmatter, idx) {
 // ================================================================
 
 function buildBM25Index(chunks) {
-  console.log(`[BM25] 正在构建关键词索引...`);
+  console.log(`[BM25] building keyword index...`);
   const docs = chunks.map((c) => c.content);
   const index = new SimpleBM25(docs);
-  console.log(`[BM25] 完成，词汇量: ${Object.keys(index.idf).length}`);
+  console.log(`[BM25] complete, vocabulary size: ${Object.keys(index.idf).length}`);
   return index;
 }
 
@@ -235,13 +235,13 @@ async function saveIndex(indexDir, chunks, embeddings, bm25Index, indexMeta) {
   // 1. Chunks metadata + content -> JSON
   const chunksPath = join(indexDir, "chunks.json");
   await writeFile(chunksPath, JSON.stringify(chunks, null, 2), "utf-8");
-  console.log(`[保存] chunks.json  (${chunks.length} 条记录)`);
+  console.log(`[save] chunks.json  (${chunks.length} records)`);
 
   // 2. Vector embeddings -> JSON
   const embPath = join(indexDir, "embeddings.json");
   await writeFile(embPath, JSON.stringify(embeddings), "utf-8");
   console.log(
-    `[保存] embeddings.json  (${embeddings.length} × ${embeddings[0]?.length || 0})`
+    `[save] embeddings.json  (${embeddings.length} × ${embeddings[0]?.length || 0})`
   );
 
   // 3. BM25 → JSON
@@ -252,7 +252,7 @@ async function saveIndex(indexDir, chunks, embeddings, bm25Index, indexMeta) {
     docs: chunks.map((c) => tokenize(c.content)),
   };
   await writeFile(bm25Path, JSON.stringify(bm25Data), "utf-8");
-  console.log(`[保存] bm25_index.json`);
+  console.log(`[save] bm25_index.json`);
 
   // 4. Index metadata
   const meta = {
@@ -268,7 +268,7 @@ async function saveIndex(indexDir, chunks, embeddings, bm25Index, indexMeta) {
   };
   const metaPath = join(indexDir, "index_meta.json");
   await writeFile(metaPath, JSON.stringify(meta, null, 2), "utf-8");
-  console.log(`[保存] index_meta.json`);
+  console.log(`[save] index_meta.json`);
 }
 
 // ================================================================
@@ -278,29 +278,29 @@ async function saveIndex(indexDir, chunks, embeddings, bm25Index, indexMeta) {
 async function runOfflinePipeline(opts) {
   const { notesDir, indexDir, retriever } = opts;
   console.log("=".repeat(60));
-  console.log("  离线建库 Pipeline");
-  console.log("  原始笔记 → 解析清洗 → Chunking → Embedding → 索引入库");
+  console.log("  Offline Indexing Pipeline");
+  console.log("  raw notes -> parse and clean -> Chunking -> Embedding -> index storage");
   console.log("=".repeat(60));
 
   // ── Step 1: Scan ──
   const files = await scanNotes(notesDir);
   if (files.length === 0) {
-    console.log("[错误] 没有找到 Markdown 文件");
+    console.log("[error] No Markdown files found");
     return;
   }
 
   const allChunks = [];
 
   for (const fileName of files) {
-    console.log(`\n── 处理: ${fileName} ──`);
+    console.log(`\n── Processing: ${fileName} ──`);
 
     // ── Step 2: Parse ──
     const rawText = await readFile(join(notesDir, fileName), "utf-8");
     const { meta, body } = parseFrontmatter(rawText);
     console.log(
-      `   状态: ${meta.status || "unknown"}  |  ` +
-        `标签: [${(meta.tags || []).join(", ")}]  |  ` +
-        `更新: ${meta.updated || "?"}`
+      `   Status: ${meta.status || "unknown"}  |  ` +
+        `tags: [${(meta.tags || []).join(", ")}]  |  ` +
+        `Updated: ${meta.updated || "?"}`
     );
 
     // ── Step 3: Clean ──
@@ -310,7 +310,7 @@ async function runOfflinePipeline(opts) {
     const headings = extractHeadings(cleaned);
     const chunks = chunkByHeadings(cleaned, headings);
     console.log(
-      `   标题层级: ${headings.length} 个  |  切出 ${chunks.length} 个 chunk`
+      `   heading levels: ${headings.length}  | split out ${chunks.length} chunks`
     );
 
     // ── Step 5: Metadata tagging ──
@@ -319,7 +319,7 @@ async function runOfflinePipeline(opts) {
       allChunks.push(annotated);
       console.log(
         `     chunk ${String(i).padStart(2, "0")}: ${annotated.chunk_id}  ` +
-          `(${annotated.char_count} 字符)  → ${annotated.section_path.slice(0, 60)}`
+          `(${annotated.char_count} characters)  → ${annotated.section_path.slice(0, 60)}`
       );
     }
   }
@@ -328,23 +328,23 @@ async function runOfflinePipeline(opts) {
   const published = allChunks.filter((c) => c.status !== "draft");
   if (published.length < allChunks.length) {
     console.log(
-      `\n[过滤] 排除 ${allChunks.length - published.length} 个草稿 chunk，` +
-        `保留 ${published.length} 个已发布 chunk`
+      `\n[filter] excluded ${allChunks.length - published.length} draft chunks，` +
+        `kept ${published.length} published chunks`
     );
   }
 
   // ── Step 7: Embedding ──
-  console.log(`\n[Embedding] 使用伪 embedding（hashing TF-IDF, ${PSEUDO_EMBEDDING_DIM} 维）`);
+  console.log(`\n[Embedding] using pseudo embedding (hashing TF-IDF, ${PSEUDO_EMBEDDING_DIM} dimensions)`);
   const docs = published.map((c) => c.content);
   const pseudoEmbeddingIdf = buildIdf(docs);
   const embeddings = buildPseudoEmbeddings(docs, pseudoEmbeddingIdf);
-  console.log(`[Embedding] 完成，向量维度: ${embeddings[0]?.length || "?"}`);
+  console.log(`[Embedding] complete, vector dimension: ${embeddings[0]?.length || "?"}`);
 
   // ── Step 9: BM25 index ──
   const bm25Index = buildBM25Index(published);
 
   // ── Step 10: Save ──
-  console.log(`\n── 保存索引到 ${indexDir}/ ──`);
+  console.log(`\n── save index to ${indexDir}/ ──`);
   await saveIndex(indexDir, published, embeddings, bm25Index, {
     retriever,
     embeddingModel: "pseudo-hashing-tfidf",
@@ -353,19 +353,19 @@ async function runOfflinePipeline(opts) {
   });
 
   console.log(`\n${"=".repeat(60)}`);
-  console.log(`  离线建库完成！`);
-  console.log(`  笔记: ${files.length} 篇`);
-  console.log(`  Chunk: ${published.length} 个（已发布）`);
+  console.log(`  Offline indexing complete!`);
+  console.log(`  notes: ${files.length} files`);
+  console.log(`  Chunk: ${published.length} published`);
   console.log(
-    `  总字符: ${published.reduce((s, c) => s + c.char_count, 0).toLocaleString()}`
+    `  total characters: ${published.reduce((s, c) => s + c.char_count, 0).toLocaleString()}`
   );
-  console.log(`  索引目录: ${indexDir}/`);
+  console.log(`  Index directory: ${indexDir}/`);
   console.log(`${"=".repeat(60)}`);
 }
 
 // Run
 const opts = parseArgs();
 runOfflinePipeline(opts).catch((err) => {
-  console.error("Pipeline 失败:", err);
+  console.error("Pipeline failed:", err);
   process.exit(1);
 });

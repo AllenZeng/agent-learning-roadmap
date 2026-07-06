@@ -14,17 +14,17 @@ from retrieval_core import (
 
 class RetrievalCoreTest(unittest.TestCase):
     def test_tokenize_emits_english_words_and_chinese_bigrams(self):
-        tokens = tokenize("RAG 检索增强生成 tool-use")
+        tokens = tokenize("RAG \u68c0\u7d22\u589e\u5f3a\u751f\u6210 tool-use")
 
         self.assertIn("rag", tokens)
         self.assertIn("tool", tokens)
         self.assertIn("use", tokens)
-        self.assertIn("检", tokens)
-        self.assertIn("检索", tokens)
-        self.assertIn("增强", tokens)
+        self.assertIn("\u68c0", tokens)
+        self.assertIn("\u68c0\u7d22", tokens)
+        self.assertIn("\u589e\u5f3a", tokens)
 
     def test_pseudo_embed_returns_normalized_fixed_size_vector(self):
-        vector = pseudo_embed("RAG 检索增强生成")
+        vector = pseudo_embed("RAG retrieval-augmented generation")
         norm = math.sqrt(sum(v * v for v in vector))
 
         self.assertEqual(len(vector), PSEUDO_EMBEDDING_DIM)
@@ -32,11 +32,11 @@ class RetrievalCoreTest(unittest.TestCase):
 
     def test_pseudo_embeddings_rank_related_text_above_unrelated_text(self):
         docs = [
-            "RAG 使用检索增强生成，把外部知识放入上下文。",
-            "多 Agent 协作通常包含路由、编排和自治。",
+            "RAG uses retrieval-augmented generation to place external knowledge into context.",
+            "Multi-Agent collaboration usually includes routing, orchestration, and autonomy.",
         ]
         embeddings = build_pseudo_embeddings(docs)
-        query_vec = pseudo_embed("什么是 RAG 检索增强生成")
+        query_vec = pseudo_embed("What is RAG retrieval-augmented generation")
         scores = [dot_product(emb, query_vec) for emb in embeddings]
 
         self.assertGreater(scores[0], scores[1])

@@ -82,19 +82,19 @@ class MinimalAgentLoopTests(unittest.TestCase):
                         "tool_name": "write_file",
                         "arguments": {
                             "path": "summary.md",
-                            "content": "Agent 最小闭环由 Prompt、LLM 决策、工具交互、State 和循环控制组成。",
+                            "content": "Agent The minimal loop consists of Prompt, LLM decisions, tool interaction, State, and loop control.",
                         },
                     },
                     {
                         "type": "final_answer",
                         "thought": "The requested summary has been written.",
-                        "answer": "已写入 summary.md。",
+                        "answer": "summary.md has been written.",
                     },
                 ]
             )
 
             result = run_agent(
-                user_goal="读取 notes.md，总结后写入 summary.md",
+                user_goal="Read notes.md, summarize it, and write summary.md",
                 tools=build_tools(workspace),
                 llm_call=llm,
                 max_steps=5,
@@ -108,7 +108,7 @@ class MinimalAgentLoopTests(unittest.TestCase):
             self.assertEqual(len(result["trace"][0]["state_snapshot"]["history"]), 1)
             self.assertEqual(result["trace"][1]["state_snapshot"]["tool_results"][1]["tool"], "write_file")
             self.assertEqual(result["trace"][2]["state_snapshot"]["stop_reason"], "completed")
-            self.assertIn("Prompt、LLM 决策", (workspace / "summary.md").read_text(encoding="utf-8"))
+            self.assertIn("Prompt, LLM decisions", (workspace / "summary.md").read_text(encoding="utf-8"))
 
     def test_records_tool_errors_in_state(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -130,7 +130,7 @@ class MinimalAgentLoopTests(unittest.TestCase):
             )
 
             result = run_agent(
-                user_goal="读取 missing.md",
+                user_goal="Read missing.md",
                 tools=build_tools(workspace),
                 llm_call=llm,
                 max_steps=5,
@@ -168,7 +168,7 @@ class MinimalAgentLoopTests(unittest.TestCase):
         )
 
         result = run_agent(
-            user_goal="不断搜索相同内容",
+            user_goal="Keep searching the same content",
             tools=build_tools(ROOT),
             llm_call=llm,
             max_steps=8,
@@ -218,7 +218,7 @@ class MinimalAgentLoopTests(unittest.TestCase):
         )
 
         result = run_agent(
-            user_goal="搜索 Agent",
+            user_goal="Search Agent",
             tools=build_tools(ROOT),
             llm_call=llm,
             logger=events.append,

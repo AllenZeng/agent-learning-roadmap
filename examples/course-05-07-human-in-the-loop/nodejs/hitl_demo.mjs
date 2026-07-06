@@ -129,17 +129,17 @@ class HumanSimulator {
   async choose(prompt, options, defaultKey) {
     console.log(prompt);
     for (const [key, label] of Object.entries(options)) {
-      const marker = key === defaultKey ? " (默认)" : "";
+      const marker = key === defaultKey ? " (default)" : "";
       console.log(`  ${key}. ${label}${marker}`);
     }
 
     let answer;
     if (this.rl) {
-      answer = (await this.rl.question("  请选择: ")).trim() || defaultKey;
+      answer = (await this.rl.question("  Please choose: ")).trim() || defaultKey;
     } else {
       const raw = this.pipedAnswers[this.answerIndex++] ?? "";
       answer = raw.trim() || defaultKey;
-      console.log(`  请选择: ${raw.trim()}`);
+      console.log(`  Please choose: ${raw.trim()}`);
     }
     console.log();
     return options[answer] ? answer : defaultKey;
@@ -167,7 +167,7 @@ class HitlAgent {
     const [risk, mode] = this.policy.assess(action);
     let decision;
     if (mode === HitlMode.NONE) {
-      decision = { mode, risk, decision: "direct_execute", reason: "只读或低风险操作，无需介入" };
+      decision = { mode, risk, decision: "direct_execute", reason: "textlowRiskstext，nonetext" };
     } else if (mode === HitlMode.TAKEOVER) {
       decision = await this.takeover(action, risk);
     } else {
@@ -179,60 +179,60 @@ class HitlAgent {
 
   async confirmation(action, risk) {
     const metadata = action.metadata ?? {};
-    let prompt = "\n[确认模式] Agent 请求执行操作：\n";
-    prompt += `  工具: ${action.tool}\n`;
-    prompt += `  目标: ${action.target}\n`;
-    prompt += `  原因: ${action.reason}\n`;
-    prompt += `  风险: ${risk}\n`;
-    if (metadata.impact) prompt += `  影响: ${metadata.impact}\n`;
-    if (metadata.anomalies) prompt += `  异常项: ${metadata.anomalies.join(", ")}\n`;
+    let prompt = "\n[confirmation mode] Agent requests operation execution：\n";
+    prompt += `  tool: ${action.tool}\n`;
+    prompt += `  Goal: ${action.target}\n`;
+    prompt += `  reason: ${action.reason}\n`;
+    prompt += `  Risks: ${risk}\n`;
+    if (metadata.impact) prompt += `  impact: ${metadata.impact}\n`;
+    if (metadata.anomalies) prompt += `  anomalies: ${metadata.anomalies.join(", ")}\n`;
 
     const choice = await this.human.choose(
       prompt,
       {
-        a: "批准执行",
-        s: "只执行安全子集",
-        r: "拒绝",
-        m: "转为人工处理",
+        a: "approveexecute",
+        s: "execute onlysafe subset",
+        r: "reject",
+        m: "switch tomanual handling",
       },
       metadata.default_decision ?? "s"
     );
     const mapping = {
-      a: ["approved", "人类批准完整操作"],
-      s: ["safe_subset", "人类选择只执行风险更低的子集"],
-      r: ["rejected", "人类拒绝操作"],
-      m: ["manual", "人类要求接管"],
+      a: ["approved", "humanapprovetext"],
+      s: ["safe_subset", "humantextRiskstextlowtext"],
+      r: ["rejected", "humanrejecttext"],
+      m: ["manual", "humantext"],
     };
     const [decision, reason] = mapping[choice];
     return { mode: HitlMode.CONFIRMATION, risk, decision, reason };
   }
 
   async takeover(action, risk) {
-    console.log("\n[接管模式] Agent 不会自主执行该操作。");
-    console.log(`  工具: ${action.tool}`);
-    console.log(`  目标: ${action.target}`);
-    console.log(`  原因: ${action.reason}`);
-    console.log("  已生成执行说明，由人类完成后再让 Agent 继续。");
+    console.log("\n[takeover mode] Agent will not execute this operation autonomously。");
+    console.log(`  tool: ${action.tool}`);
+    console.log(`  Goal: ${action.target}`);
+    console.log(`  reason: ${action.reason}`);
+    console.log("  textinstructions，texthumancompletetext Agent text。");
     if (action.tool === "database_migration") {
-      console.log('  建议命令: psql "$DATABASE_URL" -f ./migration.sql');
+      console.log('  Recommendationstext: psql "$DATABASE_URL" -f ./migration.sql');
     }
     console.log();
     return {
       mode: HitlMode.TAKEOVER,
       risk,
       decision: "manual_required",
-      reason: "关键风险操作需要人类执行",
+      reason: "Critical-risk operations require human execution",
     };
   }
 
   async clarifyRecentArticles() {
     const choice = await this.human.choose(
-      "\n[澄清模式] 用户说“整理最近的文章”，Agent 需要明确“最近”指什么：",
+      "\n[clarification mode] usertext“organize recent articles”，Agent needs to clarify“recent”means what：",
       {
-        a: "最近 7 天创建的文章（3 篇）",
-        b: "最近修改过的文章（8 篇）",
-        c: "最近打开过的文章（5 篇）",
-        d: "其他，我手动说明",
+        a: "recent 7 text（3 files)",
+        b: "recently modified articles（8 files)",
+        c: "recently opened articles（5 files)",
+        d: "texthe，textinstructions",
       },
       "b"
     );
@@ -243,48 +243,48 @@ class HitlAgent {
       d: "custom",
     };
     await this.audit.record(
-      { tool: "organize_articles", target: "articles", reason: "用户指令存在多义性", reversible: true },
+      { tool: "organize_articles", target: "articles", reason: "userinstructionstext", reversible: true },
       {
         mode: HitlMode.CLARIFICATION,
         risk: Risk.MEDIUM,
         decision: labels[choice],
-        reason: "人类定义模糊意图",
+        reason: "humantext",
       }
     );
   }
 
   async reviewReleaseDoc() {
-    console.log("\n[审核模式] Agent 生成了发布文档草稿，并主动标注不确定点：");
-    console.log("  1. 架构变更摘要：已生成");
-    console.log("  2. API 兼容性说明：已生成");
-    console.log("  3. 回滚方案：待确认，数据库回滚窗口不确定");
-    console.log("  4. 发布 checklist：可能遗漏数据库备份");
+    console.log("\n[review mode] Agent textreleasedocstext，and proactively marked uncertainties：");
+    console.log("  1. architecture-change summary：text");
+    console.log("  2. API textinstructions：text");
+    console.log("  3. rollback plan：pending confirmation，database rollback window is uncertain");
+    console.log("  4. release checklist：may miss database backup");
     const choice = await this.human.choose(
-      "  请审核：",
+      "  Please review：",
       {
-        p: "通过",
-        e: "要求补充数据库备份步骤",
-        r: "退回重写",
+        p: "pass",
+        e: "textstep",
+        r: "return for rewrite",
       },
       "e"
     );
     const decision = choice === "p" ? "approved" : "needs_revision";
     await this.audit.record(
-      { tool: "write_file", target: "release_notes.md", reason: "生成发布文档", reversible: true },
-      { mode: HitlMode.REVIEW, risk: Risk.MEDIUM, decision, reason: "人类审核 Agent 产出" }
+      { tool: "write_file", target: "release_notes.md", reason: "textreleasedocs", reversible: true },
+      { mode: HitlMode.REVIEW, risk: Risk.MEDIUM, decision, reason: "humantext Agent text" }
     );
 
     if (choice === "e") {
-      await this.applyTeachingFeedback("发布 checklist 必须包含数据库备份步骤", "release_checklist");
+      await this.applyTeachingFeedback("release checklist textstep", "release_checklist");
     }
   }
 
   async applyTeachingFeedback(correction, category) {
-    console.log("\n[教学反馈模式] 人类指出：", correction);
-    console.log("  Agent 即时修正当前文档，并写入可复用偏好。");
+    console.log("\n[teaching-feedback mode] humantext：", correction);
+    console.log("  Agent textcorrectiontextdocs，textWritetext。");
     await this.memory.remember(category, correction, "human_review");
     await this.audit.record(
-      { tool: "update_memory", target: category, reason: "从人工反馈中学习", reversible: true },
+      { tool: "update_memory", target: category, reason: "textmediumtext", reversible: true },
       {
         mode: HitlMode.TEACHING_FEEDBACK,
         risk: Risk.MEDIUM,
@@ -309,17 +309,17 @@ class HitlAgent {
       if (decision === "rejected") data.rejected += 1;
     }
 
-    console.log("\n[HITL 数据分析] 基于本次审计日志生成策略建议：");
+    console.log("\n[HITL textanalysis] texttimesAudit logtextRecommendations：");
     for (const [tool, data] of stats.entries()) {
       const rate = data.approved / data.total;
-      let advice = "保持当前策略";
-      if (rate >= 0.95 && data.manual === 0) advice = "可考虑降低确认频率";
-      if (data.manual > 0 || rate < 0.7) advice = "保持或提高介入强度";
-      console.log(`  - ${tool}: ${data.total} 次，直接执行/通过率 ${(rate * 100).toFixed(0)}% -> ${advice}`);
+      let advice = "keep current policy";
+      if (rate >= 0.95 && data.manual === 0) advice = "textlowtext";
+      if (data.manual > 0 || rate < 0.7) advice = "texthightext";
+      console.log(`  - ${tool}: ${data.total} times，direct execution/approval rate ${(rate * 100).toFixed(0)}% -> ${advice}`);
     }
 
     if (this.memory.items.length > 0) {
-      console.log("\n[Memory] 从教学反馈沉淀的偏好：");
+      console.log("\n[Memory] preferences distilled from teaching feedback：");
       for (const item of this.memory.items) {
         console.log(`  - ${item.category}: ${item.content}`);
       }
@@ -328,64 +328,64 @@ class HitlAgent {
 }
 
 async function runBatchDeleteDemo(agent) {
-  console.log("\n=== 1. 风险分级 + 批次确认 ===");
+  console.log("\n=== 1. Riskstext + texttimesconfirm ===");
   const decision = await agent.propose({
     tool: "delete_file",
     target: "/tmp/logs/*",
-    reason: "清理超过 30 天的日志文件",
+    reason: "clean older than 30 days of log files",
     reversible: false,
     metadata: {
-      impact: "将删除 3 个 .log 文件，共 48MB；检测到 1 个非日志异常项不会默认删除",
+      impact: "textdelete 3 items .log text，total 48MB；text 1 textdefaultdelete",
       anomalies: ["/tmp/logs/.env.backup"],
       default_decision: "s",
     },
   });
 
   if (decision.decision === "safe_subset") {
-    console.log("  执行结果: 只删除 .log 文件，保留 /tmp/logs/.env.backup\n");
+    console.log("  Execution result: textdelete .log text，kept /tmp/logs/.env.backup\n");
   } else if (decision.decision === "approved") {
-    console.log("  执行结果: 删除全部候选文件\n");
+    console.log("  Execution result: deletetext\n");
   } else {
-    console.log("  执行结果: 未执行删除\n");
+    console.log("  Execution result: not executeddelete\n");
   }
 }
 
 function printRefundResult(decision, orderId) {
   if (decision.decision === "approved") {
-    console.log(`  执行结果: 已提交 ${orderId} 的全额退款申请，并写入退款审计记录\n`);
+    console.log(`  Execution result: submitted ${orderId} textrefundtext，textWriterefundtext\n`);
   } else if (decision.decision === "safe_subset") {
-    console.log(`  执行结果: 未直接退款，已把 ${orderId} 转入人工复核队列\n`);
+    console.log(`  Execution result: textrefund，textMove  ${orderId} textmanual reviewtext\n`);
   } else if (decision.decision === "manual") {
-    console.log(`  执行结果: 人类要求接管，Agent 暂停退款流程并保留决策上下文\n`);
+    console.log(`  Execution result: humantext，Agent textrefundtextkeptdecisioncontext\n`);
   } else if (decision.decision === "manual_required") {
-    console.log(`  执行结果: 关键风险退款未执行，Agent 只生成处理说明，等待人工处理\n`);
+    console.log(`  Execution result: textRisksrefundnot executed，Agent textProcessinginstructions，textmanual handling\n`);
   } else {
-    console.log(`  执行结果: 已拒绝 ${orderId} 的退款操作，并准备向用户说明原因\n`);
+    console.log(`  Execution result: textreject ${orderId} textrefundtext，textuserinstructionsreason\n`);
   }
 }
 
 function printTakeoverResult(decision, taskName) {
   if (decision.decision === "manual_required") {
-    console.log(`  执行结果: ${taskName} 未由 Agent 执行；Agent 进入等待状态，直到人类回复“已完成”\n`);
+    console.log(`  Execution result: ${taskName} not executed by Agent execute；Agent textStatus，texthumantext“Completed”\n`);
   } else if (decision.decision === "approved") {
-    console.log(`  执行结果: ${taskName} 已获批准，但仍建议在真实系统中保留人工执行边界\n`);
+    console.log(`  Execution result: ${taskName} textapprove，textRecommendationstextsystemmediumkepttext\n`);
   } else {
-    console.log(`  执行结果: ${taskName} 未执行，当前流程安全中止\n`);
+    console.log(`  Execution result: ${taskName} not executed，textmediumtext\n`);
   }
 }
 
 async function runRefundDemo(agent) {
-  console.log("\n=== 2. 退款操作的上下文确认 ===");
+  console.log("\n=== 2. refundtextcontextconfirm ===");
   const refundDecision = await agent.propose({
     tool: "refund",
     target: "order ORD-20260629-0042",
-    reason: "用户反馈产品功能与描述不符，订单未发货",
+    reason: "usertextfeaturetext，order has not shipped",
     reversible: false,
     external_effect: true,
     metadata: {
       amount: 299,
       previous_refunds: 0,
-      impact: "全额退款 ¥299.00；用户注册 2 年，此前 0 次退款",
+      impact: "textrefund ¥299.00；usertext 2 text，previously 0 timesrefund",
       default_decision: "a",
     },
   });
@@ -394,7 +394,7 @@ async function runRefundDemo(agent) {
   const suspiciousRefundDecision = await agent.propose({
     tool: "refund",
     target: "order ORD-20260629-0099",
-    reason: "高额订单且用户近期多次退款",
+    reason: "hightextusertexttimesrefund",
     reversible: false,
     external_effect: true,
     metadata: { amount: 2400, previous_refunds: 5 },
@@ -403,15 +403,15 @@ async function runRefundDemo(agent) {
 }
 
 async function runTakeoverDemo(agent) {
-  console.log("\n=== 3. 关键风险操作进入接管模式 ===");
+  console.log("\n=== 3. textRiskstext ===");
   const decision = await agent.propose({
     tool: "database_migration",
     target: "production users.email type change",
-    reason: "迁移脚本会修改生产数据库 schema",
+    reason: "text schema",
     reversible: false,
     external_effect: true,
   });
-  printTakeoverResult(decision, "生产数据库迁移");
+  printTakeoverResult(decision, "production database migration");
 }
 
 async function runDemo() {
@@ -419,7 +419,7 @@ async function runDemo() {
   await agent.reset();
 
   console.log("=".repeat(68));
-  console.log("  Human-in-the-loop — 当 Agent 不该自己决定时");
+  console.log("  Human-in-the-loop — when Agent text");
   console.log("=".repeat(68));
 
   try {
@@ -430,7 +430,7 @@ async function runDemo() {
     await agent.reviewReleaseDoc();
     await agent.analyzeAudit();
 
-    console.log("\n输出文件:");
+    console.log("\nOutput files:");
     console.log("  - hitl_audit.jsonl");
     console.log("  - hitl_memory.json");
   } finally {

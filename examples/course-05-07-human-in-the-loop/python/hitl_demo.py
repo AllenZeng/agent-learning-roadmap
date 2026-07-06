@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-课程五 05-07 Human-in-the-loop 示例
+Course 05-07 Human-in-the-loop example
 
-演示 Agent 在不同风险等级下如何选择确认、澄清、接管、审核和教学反馈。
+text Agent textRiskstext、text、text、text。
 
-用法：
+Usage:
   python3 hitl_demo.py
 """
 
@@ -52,7 +52,7 @@ class HitlDecision:
 
 
 class HitlPolicy:
-    """基于工具、参数和上下文选择 HITL 模式。"""
+    """text、textcontextchoose HITL pattern。"""
 
     def assess(self, action: ProposedAction) -> tuple[Risk, HitlMode]:
         target = action.target
@@ -145,10 +145,10 @@ class HumanSimulator:
     def choose(self, prompt: str, options: dict[str, str], default: str) -> str:
         print(prompt)
         for key, label in options.items():
-            marker = " (默认)" if key == default else ""
+            marker = " (default)" if key == default else ""
             print(f"  {key}. {label}{marker}")
 
-        choice = input("  请选择: ").strip() or default
+        choice = input("  Please choose: ").strip() or default
         print()
         return choice if choice in options else default
 
@@ -167,7 +167,7 @@ class HitlAgent:
     def propose(self, action: ProposedAction) -> HitlDecision:
         risk, mode = self.policy.assess(action)
         if mode == HitlMode.NONE:
-            decision = HitlDecision(mode, risk, "direct_execute", "只读或低风险操作，无需介入")
+            decision = HitlDecision(mode, risk, "direct_execute", "textlowRiskstext，nonetext")
         elif mode == HitlMode.TAKEOVER:
             decision = self._takeover(action, risk)
         else:
@@ -177,54 +177,54 @@ class HitlAgent:
 
     def _confirmation(self, action: ProposedAction, risk: Risk) -> HitlDecision:
         metadata = action.metadata or {}
-        prompt = "\n[确认模式] Agent 请求执行操作：\n"
-        prompt += f"  工具: {action.tool}\n"
-        prompt += f"  目标: {action.target}\n"
-        prompt += f"  原因: {action.reason}\n"
-        prompt += f"  风险: {risk.value}\n"
+        prompt = "\n[confirmation mode] Agent requests operation execution：\n"
+        prompt += f"  tool: {action.tool}\n"
+        prompt += f"  Goal: {action.target}\n"
+        prompt += f"  reason: {action.reason}\n"
+        prompt += f"  Risks: {risk.value}\n"
         if metadata.get("impact"):
-            prompt += f"  影响: {metadata['impact']}\n"
+            prompt += f"  impact: {metadata['impact']}\n"
         if metadata.get("anomalies"):
-            prompt += f"  异常项: {', '.join(metadata['anomalies'])}\n"
+            prompt += f"  anomalies: {', '.join(metadata['anomalies'])}\n"
 
         choice = self.human.choose(
             prompt,
             {
-                "a": "批准执行",
-                "s": "只执行安全子集",
-                "r": "拒绝",
-                "m": "转为人工处理",
+                "a": "approveexecute",
+                "s": "execute onlysafe subset",
+                "r": "reject",
+                "m": "switch tomanual handling",
             },
             default=metadata.get("default_decision", "s"),
         )
         mapping = {
-            "a": ("approved", "人类批准完整操作"),
-            "s": ("safe_subset", "人类选择只执行风险更低的子集"),
-            "r": ("rejected", "人类拒绝操作"),
-            "m": ("manual", "人类要求接管"),
+            "a": ("approved", "humanapprovetext"),
+            "s": ("safe_subset", "humantextRiskstextlowtext"),
+            "r": ("rejected", "humanrejecttext"),
+            "m": ("manual", "humantext"),
         }
         decision, reason = mapping[choice]
         return HitlDecision(HitlMode.CONFIRMATION, risk, decision, reason)
 
     def _takeover(self, action: ProposedAction, risk: Risk) -> HitlDecision:
-        print("\n[接管模式] Agent 不会自主执行该操作。")
-        print(f"  工具: {action.tool}")
-        print(f"  目标: {action.target}")
-        print(f"  原因: {action.reason}")
-        print("  已生成执行说明，由人类完成后再让 Agent 继续。")
+        print("\n[takeover mode] Agent will not execute this operation autonomously。")
+        print(f"  tool: {action.tool}")
+        print(f"  Goal: {action.target}")
+        print(f"  reason: {action.reason}")
+        print("  textinstructions，texthumancompletetext Agent text。")
         if action.tool == "database_migration":
-            print("  建议命令: psql \"$DATABASE_URL\" -f ./migration.sql")
+            print("  Recommendationstext: psql \"$DATABASE_URL\" -f ./migration.sql")
         print()
-        return HitlDecision(HitlMode.TAKEOVER, risk, "manual_required", "关键风险操作需要人类执行")
+        return HitlDecision(HitlMode.TAKEOVER, risk, "manual_required", "Critical-risk operations require human execution")
 
     def clarify_recent_articles(self) -> str:
         choice = self.human.choose(
-            "\n[澄清模式] 用户说“整理最近的文章”，Agent 需要明确“最近”指什么：",
+            "\n[clarification mode] usertext“organize recent articles”，Agent needs to clarify“recent”means what：",
             {
-                "a": "最近 7 天创建的文章（3 篇）",
-                "b": "最近修改过的文章（8 篇）",
-                "c": "最近打开过的文章（5 篇）",
-                "d": "其他，我手动说明",
+                "a": "recent 7 text（3 files)",
+                "b": "recently modified articles（8 files)",
+                "c": "recently opened articles（5 files)",
+                "d": "texthe，textinstructions",
             },
             default="b",
         )
@@ -234,46 +234,46 @@ class HitlAgent:
             "c": "opened_recently",
             "d": "custom",
         }
-        decision = HitlDecision(HitlMode.CLARIFICATION, Risk.MEDIUM, labels[choice], "人类定义模糊意图")
+        decision = HitlDecision(HitlMode.CLARIFICATION, Risk.MEDIUM, labels[choice], "humantext")
         self.audit.record(
-            ProposedAction("organize_articles", "articles", "用户指令存在多义性", reversible=True),
+            ProposedAction("organize_articles", "articles", "userinstructionstext", reversible=True),
             decision,
         )
         return labels[choice]
 
     def review_release_doc(self) -> None:
-        print("\n[审核模式] Agent 生成了发布文档草稿，并主动标注不确定点：")
-        print("  1. 架构变更摘要：已生成")
-        print("  2. API 兼容性说明：已生成")
-        print("  3. 回滚方案：待确认，数据库回滚窗口不确定")
-        print("  4. 发布 checklist：可能遗漏数据库备份")
+        print("\n[review mode] Agent textreleasedocstext，and proactively marked uncertainties：")
+        print("  1. architecture-change summary：text")
+        print("  2. API textinstructions：text")
+        print("  3. rollback plan：pending confirmation，database rollback window is uncertain")
+        print("  4. release checklist：may miss database backup")
         choice = self.human.choose(
-            "  请审核：",
+            "  Please review：",
             {
-                "p": "通过",
-                "e": "要求补充数据库备份步骤",
-                "r": "退回重写",
+                "p": "pass",
+                "e": "textstep",
+                "r": "return for rewrite",
             },
             default="e",
         )
         decision = "approved" if choice == "p" else "needs_revision"
         self.audit.record(
-            ProposedAction("write_file", "release_notes.md", "生成发布文档", reversible=True),
-            HitlDecision(HitlMode.REVIEW, Risk.MEDIUM, decision, "人类审核 Agent 产出"),
+            ProposedAction("write_file", "release_notes.md", "textreleasedocs", reversible=True),
+            HitlDecision(HitlMode.REVIEW, Risk.MEDIUM, decision, "humantext Agent text"),
         )
 
         if choice == "e":
             self.apply_teaching_feedback(
-                "发布 checklist 必须包含数据库备份步骤",
+                "release checklist textstep",
                 "release_checklist",
             )
 
     def apply_teaching_feedback(self, correction: str, category: str) -> None:
-        print("\n[教学反馈模式] 人类指出：", correction)
-        print("  Agent 即时修正当前文档，并写入可复用偏好。")
+        print("\n[teaching-feedback mode] humantext：", correction)
+        print("  Agent textcorrectiontextdocs，textWritetext。")
         self.memory.remember(category, correction, "human_review")
         self.audit.record(
-            ProposedAction("update_memory", category, "从人工反馈中学习", reversible=True),
+            ProposedAction("update_memory", category, "textmediumtext", reversible=True),
             HitlDecision(HitlMode.TEACHING_FEEDBACK, Risk.MEDIUM, "remembered", correction),
         )
         print()
@@ -293,25 +293,25 @@ class HitlAgent:
             if decision == "rejected":
                 stats[tool]["rejected"] += 1
 
-        print("\n[HITL 数据分析] 基于本次审计日志生成策略建议：")
+        print("\n[HITL textanalysis] texttimesAudit logtextRecommendations：")
         for tool, data in stats.items():
             rate = data["approved"] / data["total"]
             if rate >= 0.95 and data["manual"] == 0:
-                advice = "可考虑降低确认频率"
+                advice = "textlowtext"
             elif data["manual"] > 0 or rate < 0.7:
-                advice = "保持或提高介入强度"
+                advice = "texthightext"
             else:
-                advice = "保持当前策略"
-            print(f"  - {tool}: {data['total']} 次，直接执行/通过率 {rate:.0%} -> {advice}")
+                advice = "keep current policy"
+            print(f"  - {tool}: {data['total']} times，direct execution/approval rate {rate:.0%} -> {advice}")
 
         if self.memory.items:
-            print("\n[Memory] 从教学反馈沉淀的偏好：")
+            print("\n[Memory] preferences distilled from teaching feedback：")
             for item in self.memory.items:
                 print(f"  - {item['category']}: {item['content']}")
 
 
 def run_batch_delete_demo(agent: HitlAgent) -> None:
-    print("\n=== 1. 风险分级 + 批次确认 ===")
+    print("\n=== 1. Riskstext + texttimesconfirm ===")
     candidates = [
         "/tmp/logs/access_20260501.log",
         "/tmp/logs/error_20260515.log",
@@ -321,10 +321,10 @@ def run_batch_delete_demo(agent: HitlAgent) -> None:
     action = ProposedAction(
         tool="delete_file",
         target="/tmp/logs/*",
-        reason="清理超过 30 天的日志文件",
+        reason="clean older than 30 days of log files",
         reversible=False,
         metadata={
-            "impact": "将删除 3 个 .log 文件，共 48MB；检测到 1 个非日志异常项不会默认删除",
+            "impact": "textdelete 3 items .log text，total 48MB；text 1 textdefaultdelete",
             "anomalies": ["/tmp/logs/.env.backup"],
             "default_decision": "s",
             "candidates": candidates,
@@ -332,47 +332,47 @@ def run_batch_delete_demo(agent: HitlAgent) -> None:
     )
     decision = agent.propose(action)
     if decision.decision == "safe_subset":
-        print("  执行结果: 只删除 .log 文件，保留 /tmp/logs/.env.backup\n")
+        print("  Execution result: textdelete .log text，kept /tmp/logs/.env.backup\n")
     elif decision.decision == "approved":
-        print("  执行结果: 删除全部候选文件\n")
+        print("  Execution result: deletetext\n")
     else:
-        print("  执行结果: 未执行删除\n")
+        print("  Execution result: not executeddelete\n")
 
 
 def print_refund_result(decision: HitlDecision, order_id: str) -> None:
     if decision.decision == "approved":
-        print(f"  执行结果: 已提交 {order_id} 的全额退款申请，并写入退款审计记录\n")
+        print(f"  Execution result: submitted {order_id} textrefundtext，textWriterefundtext\n")
     elif decision.decision == "safe_subset":
-        print(f"  执行结果: 未直接退款，已把 {order_id} 转入人工复核队列\n")
+        print(f"  Execution result: textrefund，textMove  {order_id} textmanual reviewtext\n")
     elif decision.decision == "manual":
-        print(f"  执行结果: 人类要求接管，Agent 暂停退款流程并保留决策上下文\n")
+        print(f"  Execution result: humantext，Agent textrefundtextkeptdecisioncontext\n")
     elif decision.decision == "manual_required":
-        print(f"  执行结果: 关键风险退款未执行，Agent 只生成处理说明，等待人工处理\n")
+        print(f"  Execution result: textRisksrefundnot executed，Agent textProcessinginstructions，textmanual handling\n")
     else:
-        print(f"  执行结果: 已拒绝 {order_id} 的退款操作，并准备向用户说明原因\n")
+        print(f"  Execution result: textreject {order_id} textrefundtext，textuserinstructionsreason\n")
 
 
 def print_takeover_result(decision: HitlDecision, task_name: str) -> None:
     if decision.decision == "manual_required":
-        print(f"  执行结果: {task_name} 未由 Agent 执行；Agent 进入等待状态，直到人类回复“已完成”\n")
+        print(f"  Execution result: {task_name} not executed by Agent execute；Agent textStatus，texthumantext“Completed”\n")
     elif decision.decision == "approved":
-        print(f"  执行结果: {task_name} 已获批准，但仍建议在真实系统中保留人工执行边界\n")
+        print(f"  Execution result: {task_name} textapprove，textRecommendationstextsystemmediumkepttext\n")
     else:
-        print(f"  执行结果: {task_name} 未执行，当前流程安全中止\n")
+        print(f"  Execution result: {task_name} not executed，textmediumtext\n")
 
 
 def run_refund_demo(agent: HitlAgent) -> None:
-    print("\n=== 2. 退款操作的上下文确认 ===")
+    print("\n=== 2. refundtextcontextconfirm ===")
     refund = ProposedAction(
         tool="refund",
         target="order ORD-20260629-0042",
-        reason="用户反馈产品功能与描述不符，订单未发货",
+        reason="usertextfeaturetext，order has not shipped",
         reversible=False,
         external_effect=True,
         metadata={
             "amount": 299,
             "previous_refunds": 0,
-            "impact": "全额退款 ¥299.00；用户注册 2 年，此前 0 次退款",
+            "impact": "textrefund ¥299.00；usertext 2 text，previously 0 timesrefund",
             "default_decision": "a",
         },
     )
@@ -382,7 +382,7 @@ def run_refund_demo(agent: HitlAgent) -> None:
     suspicious_refund = ProposedAction(
         tool="refund",
         target="order ORD-20260629-0099",
-        reason="高额订单且用户近期多次退款",
+        reason="hightextusertexttimesrefund",
         reversible=False,
         external_effect=True,
         metadata={"amount": 2400, "previous_refunds": 5},
@@ -392,16 +392,16 @@ def run_refund_demo(agent: HitlAgent) -> None:
 
 
 def run_takeover_demo(agent: HitlAgent) -> None:
-    print("\n=== 3. 关键风险操作进入接管模式 ===")
+    print("\n=== 3. textRiskstext ===")
     action = ProposedAction(
         tool="database_migration",
         target="production users.email type change",
-        reason="迁移脚本会修改生产数据库 schema",
+        reason="text schema",
         reversible=False,
         external_effect=True,
     )
     decision = agent.propose(action)
-    print_takeover_result(decision, "生产数据库迁移")
+    print_takeover_result(decision, "production database migration")
 
 
 def run_demo() -> None:
@@ -409,7 +409,7 @@ def run_demo() -> None:
     agent.reset()
 
     print("=" * 68)
-    print("  Human-in-the-loop — 当 Agent 不该自己决定时")
+    print("  Human-in-the-loop — when Agent text")
     print("=" * 68)
 
     run_batch_delete_demo(agent)
@@ -419,7 +419,7 @@ def run_demo() -> None:
     agent.review_release_doc()
     agent.analyze_audit()
 
-    print("\n输出文件:")
+    print("\nOutput files:")
     print("  - hitl_audit.jsonl")
     print("  - hitl_memory.json")
 

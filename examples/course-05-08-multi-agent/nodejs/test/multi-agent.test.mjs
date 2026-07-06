@@ -23,7 +23,7 @@ test("default agent prompts define roles and response contracts", () => {
   assert.match(prompts.executor.systemPrompt, /Executor Agent/);
   assert.match(prompts.reviewer.systemPrompt, /Reviewer Agent/);
   assert.match(prompts.reviewer.responseContract, /ReviewResponse/);
-  assert.deepEqual(prompts.reviewer.mustNot.includes("不要读取 Executor private_trace"), true);
+  assert.deepEqual(prompts.reviewer.mustNot.includes("Do not read Executor private_trace"), true);
 });
 
 test("agent configs have at least two real differences", () => {
@@ -31,15 +31,15 @@ test("agent configs have at least two real differences", () => {
     name: "Executor",
     inputs: new Set(["requirement", "retrieved_notes", "draft_trace"]),
     tools: new Set(["search_notes", "write_file"]),
-    goal: "完成技术方案",
-    acceptance: "方案覆盖业务需求",
+    goal: "Complete the technical plan",
+    acceptance: "The plan covers business requirements",
   };
   const reviewer = {
     name: "Reviewer",
     inputs: new Set(["final_artifact", "security_criteria"]),
     tools: new Set(["read_file", "run_checklist"]),
-    goal: "找出安全问题",
-    acceptance: "审查清单逐条通过",
+    goal: "Find security issues",
+    acceptance: "The review checklist passes item by item",
   };
 
   const differences = countAgentDifferences(executor, reviewer);
@@ -53,7 +53,7 @@ test("agent configs have at least two real differences", () => {
 
 test("reviewer finds specific issues before executor fixes them", () => {
   const result = new ReviewerPattern(new DemoExecutorAgent(), new DemoReviewerAgent(), { maxRounds: 2 }).run(
-    "写一份 API 模块技术方案",
+    "Write a technical plan for the API module",
     defaultCriteria(),
     { verbose: false }
   );
@@ -73,7 +73,7 @@ test("reviewer pattern records mock llm calls with role prompts", () => {
     new DemoExecutorAgent({ llm }),
     new DemoReviewerAgent({ llm }),
     { maxRounds: 2 }
-  ).run("写一份 API 模块技术方案", defaultCriteria(), { verbose: false });
+  ).run("Write a technical plan for the API module", defaultCriteria(), { verbose: false });
 
   assert.equal(result.status, "approved");
   assert.deepEqual(
@@ -88,7 +88,7 @@ test("reviewer pattern records mock llm calls with role prompts", () => {
 test("reviewer never receives executor private trace", () => {
   const reviewer = new DemoReviewerAgent();
   new ReviewerPattern(new DemoExecutorAgent(), reviewer, { maxRounds: 2 }).run(
-    "写一份 API 模块技术方案",
+    "Write a technical plan for the API module",
     defaultCriteria(),
     { verbose: false }
   );
@@ -102,7 +102,7 @@ test("unresolved issues stop as disputed after max rounds", () => {
     new DemoExecutorAgent({ fixableIssueIds: new Set(["C1"]) }),
     new DemoReviewerAgent(),
     { maxRounds: 2 }
-  ).run("写一份 API 模块技术方案", defaultCriteria(), { verbose: false });
+  ).run("Write a technical plan for the API module", defaultCriteria(), { verbose: false });
 
   assert.equal(result.status, "disputed");
   assert.equal(result.reviewRounds, 2);
@@ -115,7 +115,7 @@ test("unresolved issues stop as disputed after max rounds", () => {
 
 test("supervisor decomposes into bounded subtasks with excludes", () => {
   const result = new SupervisorPattern(new DemoSupervisorAgent(), defaultWorkers()).run(
-    "调研 Agent 架构的四个主流方向",
+    "Research four mainstream directions in Agent architecture",
     { verbose: false }
   );
 
@@ -134,16 +134,16 @@ test("supervisor marks worker failure as missing instead of hiding it", () => {
   const result = new SupervisorPattern(
     new DemoSupervisorAgent(),
     defaultWorkers({ failingWorker: "memory_worker" })
-  ).run("调研 Agent 架构的四个主流方向", { verbose: false });
+  ).run("Research four mainstream directions in Agent architecture", { verbose: false });
 
   assert.equal(result.status, "partial");
   assert.deepEqual(result.missingTopics, ["Memory"]);
-  assert.match(result.finalReport, /数据缺失: worker_timeout/);
+  assert.match(result.finalReport, /missing data: worker_timeout/);
 });
 
 test("parallel specialists deduplicate same location and problem type", () => {
   const result = new ParallelSpecialists(defaultSpecialists()).run(
-    "checkout.py 代码片段",
+    "checkout.py code snippet",
     defaultDimensions(),
     { verbose: false }
   );
@@ -158,7 +158,7 @@ test("parallel specialists deduplicate same location and problem type", () => {
 
 test("parallel specialists preserve conflicts for human review", () => {
   const result = new ParallelSpecialists(defaultSpecialists()).run(
-    "checkout.py 代码片段",
+    "checkout.py code snippet",
     defaultDimensions(),
     { verbose: false }
   );
