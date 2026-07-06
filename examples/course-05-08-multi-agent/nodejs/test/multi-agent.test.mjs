@@ -4,9 +4,15 @@ import assert from "node:assert/strict";
 import {
   DemoExecutorAgent,
   DemoReviewerAgent,
+  DemoSupervisorAgent,
+  ParallelSpecialists,
   ReviewerPattern,
+  SupervisorPattern,
   countAgentDifferences,
   defaultCriteria,
+  defaultDimensions,
+  defaultSpecialists,
+  defaultWorkers,
 } from "../multi_agent_demo.mjs";
 
 test("agent configs have at least two real differences", () => {
@@ -35,11 +41,11 @@ test("agent configs have at least two real differences", () => {
 });
 
 test("reviewer finds specific issues before executor fixes them", () => {
-  const executor = new DemoExecutorAgent();
-  const reviewer = new DemoReviewerAgent();
-  const pattern = new ReviewerPattern(executor, reviewer, { maxRounds: 2 });
-
-  const result = pattern.run("写一份 API 模块技术方案", defaultCriteria(), { verbose: false });
+  const result = new ReviewerPattern(new DemoExecutorAgent(), new DemoReviewerAgent(), { maxRounds: 2 }).run(
+    "写一份 API 模块技术方案",
+    defaultCriteria(),
+    { verbose: false }
+  );
 
   assert.equal(result.status, "approved");
   assert.equal(result.reviewRounds, 2);
@@ -51,22 +57,23 @@ test("reviewer finds specific issues before executor fixes them", () => {
 });
 
 test("reviewer never receives executor private trace", () => {
-  const executor = new DemoExecutorAgent();
   const reviewer = new DemoReviewerAgent();
-  const pattern = new ReviewerPattern(executor, reviewer, { maxRounds: 2 });
-
-  pattern.run("写一份 API 模块技术方案", defaultCriteria(), { verbose: false });
+  new ReviewerPattern(new DemoExecutorAgent(), reviewer, { maxRounds: 2 }).run(
+    "写一份 API 模块技术方案",
+    defaultCriteria(),
+    { verbose: false }
+  );
 
   assert.deepEqual(reviewer.seenPrivateTraces, []);
   assert.equal(reviewer.reviewRequests[0].executorPrivateTrace, null);
 });
 
 test("unresolved issues stop as disputed after max rounds", () => {
-  const executor = new DemoExecutorAgent({ fixableIssueIds: new Set(["C1"]) });
-  const reviewer = new DemoReviewerAgent();
-  const pattern = new ReviewerPattern(executor, reviewer, { maxRounds: 2 });
-
-  const result = pattern.run("写一份 API 模块技术方案", defaultCriteria(), { verbose: false });
+  const result = new ReviewerPattern(
+    new DemoExecutorAgent({ fixableIssueIds: new Set(["C1"]) }),
+    new DemoReviewerAgent(),
+    { maxRounds: 2 }
+  ).run("写一份 API 模块技术方案", defaultCriteria(), { verbose: false });
 
   assert.equal(result.status, "disputed");
   assert.equal(result.reviewRounds, 2);
@@ -75,4 +82,61 @@ test("unresolved issues stop as disputed after max rounds", () => {
     ["C2", "C3", "C4"]
   );
   assert.equal(result.reason, "max_review_rounds");
+});
+
+test("supervisor decomposes into bounded subtasks with excludes", () => {
+  const result = new SupervisorPattern(new DemoSupervisorAgent(), defaultWorkers()).run(
+    "调研 Agent 架构的四个主流方向",
+    { verbose: false }
+  );
+
+  assert.equal(result.status, "complete");
+  assert.equal(result.plan.subtasks.length, 4);
+  assert.equal(result.plan.subtasks.every((subtask) => subtask.exclude.length > 0), true);
+  assert.equal(
+    result.plan.subtasks.every((subtask) => subtask.outputFields.join(",") === "key_findings,risks,recommendations"),
+    true
+  );
+  assert.match(result.finalReport, /## Tool Use/);
+  assert.match(result.finalReport, /## Multi-Agent/);
+});
+
+test("supervisor marks worker failure as missing instead of hiding it", () => {
+  const result = new SupervisorPattern(
+    new DemoSupervisorAgent(),
+    defaultWorkers({ failingWorker: "memory_worker" })
+  ).run("调研 Agent 架构的四个主流方向", { verbose: false });
+
+  assert.equal(result.status, "partial");
+  assert.deepEqual(result.missingTopics, ["Memory"]);
+  assert.match(result.finalReport, /数据缺失: worker_timeout/);
+});
+
+test("parallel specialists deduplicate same location and problem type", () => {
+  const result = new ParallelSpecialists(defaultSpecialists()).run(
+    "checkout.py 代码片段",
+    defaultDimensions(),
+    { verbose: false }
+  );
+
+  const amountFindings = result.findings.filter(
+    (finding) => finding.location === "checkout.py:18" && finding.problemType === "missing_validation"
+  );
+  assert.equal(amountFindings.length, 1);
+  assert.deepEqual(amountFindings[0].dimensions, ["correctness", "security"]);
+  assert.equal(amountFindings[0].severity, "must_fix");
+});
+
+test("parallel specialists preserve conflicts for human review", () => {
+  const result = new ParallelSpecialists(defaultSpecialists()).run(
+    "checkout.py 代码片段",
+    defaultDimensions(),
+    { verbose: false }
+  );
+
+  assert.equal(result.conflicts.length, 1);
+  assert.equal(result.conflicts[0].location, "checkout.py:55");
+  assert.equal(result.conflicts[0].problemType, "idempotency");
+  assert.deepEqual(result.conflicts[0].judgments, ["problem", "safe"]);
+  assert.deepEqual(result.dimensionSummary, { correctness: 2, security: 3, performance: 2 });
 });

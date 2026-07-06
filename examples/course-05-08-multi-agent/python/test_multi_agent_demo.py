@@ -2,43 +2,21 @@ import unittest
 
 from multi_agent_demo import (
     AgentConfig,
-    CheckItem,
-    ReviewerPattern,
     DemoExecutorAgent,
     DemoReviewerAgent,
+    DemoSupervisorAgent,
+    ParallelSpecialists,
+    ReviewerPattern,
+    SupervisorPattern,
     count_agent_differences,
+    default_criteria,
+    default_dimensions,
+    default_specialists,
+    default_workers,
 )
 
 
-class MultiAgentDemoTest(unittest.TestCase):
-    def setUp(self):
-        self.criteria = [
-            CheckItem(
-                id="C1",
-                check="输入长度限制",
-                how_to_verify="检查 /api/data 的 input 参数是否声明 max_length",
-                severity="must_fix",
-            ),
-            CheckItem(
-                id="C2",
-                check="密钥管理",
-                how_to_verify="检查配置示例是否使用环境变量而不是明文 key",
-                severity="must_fix",
-            ),
-            CheckItem(
-                id="C3",
-                check="权限模型",
-                how_to_verify="检查是否区分 reader 和 writer 角色",
-                severity="must_fix",
-            ),
-            CheckItem(
-                id="C4",
-                check="依赖锁定",
-                how_to_verify="检查依赖是否使用 == 锁定版本",
-                severity="should_fix",
-            ),
-        ]
-
+class ReviewerPatternTest(unittest.TestCase):
     def test_agent_configs_have_at_least_two_real_differences(self):
         executor = AgentConfig(
             name="Executor",
@@ -57,18 +35,16 @@ class MultiAgentDemoTest(unittest.TestCase):
 
         differences = count_agent_differences(executor, reviewer)
 
-        self.assertGreaterEqual(differences["total"], 2)
+        self.assertEqual(differences["total"], 4)
         self.assertTrue(differences["inputs"])
         self.assertTrue(differences["tools"])
         self.assertTrue(differences["goal"])
         self.assertTrue(differences["acceptance"])
 
     def test_reviewer_finds_specific_issues_before_executor_fixes_them(self):
-        executor = DemoExecutorAgent()
-        reviewer = DemoReviewerAgent()
-        pattern = ReviewerPattern(executor, reviewer, max_rounds=2)
-
-        result = pattern.run("写一份 API 模块技术方案", self.criteria, verbose=False)
+        result = ReviewerPattern(DemoExecutorAgent(), DemoReviewerAgent()).run(
+            "写一份 API 模块技术方案", default_criteria(), verbose=False
+        )
 
         self.assertEqual(result.status, "approved")
         self.assertEqual(result.review_rounds, 2)
@@ -79,26 +55,73 @@ class MultiAgentDemoTest(unittest.TestCase):
         self.assertEqual(result.review_trace[1].verdict, "approved")
 
     def test_reviewer_never_receives_executor_private_trace(self):
-        executor = DemoExecutorAgent()
         reviewer = DemoReviewerAgent()
-        pattern = ReviewerPattern(executor, reviewer, max_rounds=2)
-
-        pattern.run("写一份 API 模块技术方案", self.criteria, verbose=False)
+        ReviewerPattern(DemoExecutorAgent(), reviewer).run(
+            "写一份 API 模块技术方案", default_criteria(), verbose=False
+        )
 
         self.assertEqual(reviewer.seen_private_traces, [])
-        self.assertEqual(reviewer.review_requests[0].executor_private_trace, None)
+        self.assertIsNone(reviewer.review_requests[0].executor_private_trace)
 
     def test_unresolved_issues_stop_as_disputed_after_max_rounds(self):
-        executor = DemoExecutorAgent(fixable_issue_ids={"C1"})
-        reviewer = DemoReviewerAgent()
-        pattern = ReviewerPattern(executor, reviewer, max_rounds=2)
-
-        result = pattern.run("写一份 API 模块技术方案", self.criteria, verbose=False)
+        result = ReviewerPattern(
+            DemoExecutorAgent(fixable_issue_ids={"C1"}), DemoReviewerAgent(), max_rounds=2
+        ).run("写一份 API 模块技术方案", default_criteria(), verbose=False)
 
         self.assertEqual(result.status, "disputed")
         self.assertEqual(result.review_rounds, 2)
-        self.assertIn("C2", [issue.id for issue in result.unresolved_issues])
+        self.assertEqual([issue.id for issue in result.unresolved_issues], ["C2", "C3", "C4"])
         self.assertEqual(result.reason, "max_review_rounds")
+
+
+class SupervisorPatternTest(unittest.TestCase):
+    def test_supervisor_decomposes_into_bounded_subtasks_with_excludes(self):
+        result = SupervisorPattern(DemoSupervisorAgent(), default_workers()).run(
+            "调研 Agent 架构的四个主流方向", verbose=False
+        )
+
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(len(result.plan.subtasks), 4)
+        self.assertTrue(all(subtask.exclude for subtask in result.plan.subtasks))
+        self.assertTrue(all(subtask.output_fields == ("key_findings", "risks", "recommendations") for subtask in result.plan.subtasks))
+        self.assertIn("## Tool Use", result.final_report)
+        self.assertIn("## Multi-Agent", result.final_report)
+
+    def test_supervisor_marks_worker_failure_as_missing_instead_of_hiding_it(self):
+        result = SupervisorPattern(
+            DemoSupervisorAgent(), default_workers(failing_worker="memory_worker")
+        ).run("调研 Agent 架构的四个主流方向", verbose=False)
+
+        self.assertEqual(result.status, "partial")
+        self.assertEqual(result.missing_topics, ["Memory"])
+        self.assertIn("数据缺失: worker_timeout", result.final_report)
+
+
+class ParallelSpecialistsTest(unittest.TestCase):
+    def test_parallel_specialists_deduplicate_same_location_and_problem_type(self):
+        result = ParallelSpecialists(default_specialists()).run(
+            "checkout.py 代码片段", default_dimensions(), verbose=False
+        )
+
+        amount_findings = [
+            finding
+            for finding in result.findings
+            if finding.location == "checkout.py:18" and finding.problem_type == "missing_validation"
+        ]
+        self.assertEqual(len(amount_findings), 1)
+        self.assertEqual(amount_findings[0].dimensions, ["correctness", "security"])
+        self.assertEqual(amount_findings[0].severity, "must_fix")
+
+    def test_parallel_specialists_preserve_conflicts_for_human_review(self):
+        result = ParallelSpecialists(default_specialists()).run(
+            "checkout.py 代码片段", default_dimensions(), verbose=False
+        )
+
+        self.assertEqual(len(result.conflicts), 1)
+        self.assertEqual(result.conflicts[0].location, "checkout.py:55")
+        self.assertEqual(result.conflicts[0].problem_type, "idempotency")
+        self.assertEqual(result.conflicts[0].judgments, ["problem", "safe"])
+        self.assertEqual(result.dimension_summary, {"correctness": 2, "security": 3, "performance": 2})
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # Course 05-08 Multi-Agent 示例项目
 
-本目录是课程五 05-08「Multi-Agent：从一个人干活到一支团队协作」的可运行示例。示例聚焦最小可落地的 Reviewer 模式：一个 Agent 写技术方案，另一个 Agent 只基于最终产物和审查清单做结构化审查。
+本目录是课程五 05-08「Multi-Agent：从一个人干活到一支团队协作」的可运行示例。
 
 两个版本都使用标准库实现，不需要外部服务或 API key：
 
@@ -25,28 +25,44 @@ npm start
 npm test
 ```
 
-## 你会看到什么
+## 示例覆盖的三种模式
 
-运行后会依次演示：
+### 1. Reviewer 模式
 
-1. **四个不同检查**：Executor 和 Reviewer 在输入、工具、目标、验收标准上都有真实差异。
-2. **第一轮审查失败**：Reviewer 按清单发现 4 个具体问题，并给出文件位置和证据。
-3. **只传具体 issues**：Runtime 只把结构化问题传回 Executor，不传“整体质量不好”这类主观评价。
-4. **第二轮审查通过**：Executor 根据具体 issue 修正后，Reviewer 逐条 PASS。
-5. **上下文隔离**：Reviewer 不接收 Executor 的中间推理和妥协解释。
-6. **硬停止条件**：测试中覆盖了两轮仍未通过时进入 `disputed`，等待人工裁决。
+一个 Executor 生成 API 技术方案，一个 Reviewer 只基于最终产物和审查清单做结构化审查。
 
-## 和课程正文的关系
+你会看到：
 
-示例覆盖课程 05-08 的核心决策：
+- Executor 和 Reviewer 在输入、工具、目标、验收标准上都有真实差异。
+- 第一轮 Reviewer 发现输入长度、密钥、权限、依赖锁定 4 个具体问题。
+- Runtime 只把结构化 issues 传回 Executor，不传“整体质量不好”这类主观评价。
+- 第二轮审查通过。
+- Reviewer 永远收不到 Executor 的 private trace。
+- 两轮仍未通过时进入 `disputed`，等待人工裁决。
 
-- 8.2：Multi-Agent 不是换 Prompt，而是输入、工具、目标、验收标准至少两个维度真的不同。
-- 8.3：Reviewer 模式是最小入口，解决“执行者不能公正审查自己的产出”。
-- 8.7：Agent 之间使用结构化 `ReviewRequest` / `ReviewResponse`，避免自由对话。
-- 8.8：最多两轮修正，仍失败则标记 `disputed`，不让 Agent 无限往返。
+### 2. Supervisor 模式
+
+一个 Supervisor 把“调研 Agent 架构的四个主流方向”拆成 Tool Use、Memory、Planning、Multi-Agent 四个子任务，派发给四个 Worker，再按统一模板汇总。
+
+你会看到：
+
+- 每个子任务都有 `scope`、`exclude` 和统一输出字段。
+- Worker 只输出结构化字段，不写自由散文，降低汇总成本。
+- Supervisor 合并时去重、保留缺失，不假装失败 Worker 已完成。
+- 测试覆盖 Worker 超时时报告 `partial` 和 `数据缺失`。
+
+### 3. Parallel Specialists 模式
+
+多个专家看同一段 `checkout.py` 输入，但分别从 correctness、security、performance 三个互斥维度分析。
+
+你会看到：
+
+- 相同位置 + 相同问题类型 + 相同判断会自动去重，并标注来源维度。
+- 对同一位置的矛盾判断不会自动消解，而是进入 `conflicts`。
+- 测试覆盖 `checkout.py:55 idempotency` 同时出现 `safe` 与 `problem` 时保留冲突。
 
 ## 教学简化说明
 
-- 示例不调用真实 LLM，用确定性函数模拟“第一版有问题，第二版按反馈修正”。
-- 安全审查规则用字符串检查实现，重点是展示 Multi-Agent Runtime 的数据流和边界。
-- 真实生产系统需要把 `CheckItem`、`Issue`、trace、成本和延迟统计持久化，并接入人工裁决界面。
+- 示例不调用真实 LLM，用确定性函数模拟 Agent 行为。
+- “并行”在代码中用顺序调用模拟，重点展示可并行任务的输入输出边界；真实系统可替换为线程池、队列、Promise 并发或远程 Agent 调度。
+- 真实生产系统需要把检查项、Worker 结果、冲突、trace、成本和延迟统计持久化，并接入人工裁决界面。

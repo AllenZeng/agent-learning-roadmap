@@ -2,9 +2,10 @@
 /**
  * 课程五 05-08 Multi-Agent 示例
  *
- * 用法：
- *   node multi_agent_demo.mjs
- *   node --test test/multi-agent.test.mjs
+ * 同一个离线示例项目演示三种协作模式：
+ * 1. Reviewer：一个 Agent 写方案，另一个 Agent 独立审查
+ * 2. Supervisor：一个 Supervisor 拆解任务，多个 Worker 产出结构化结果
+ * 3. Parallel Specialists：多个专家看同一个输入，从不同维度并行分析
  */
 
 export function countAgentDifferences(left, right) {
@@ -14,10 +15,7 @@ export function countAgentDifferences(left, right) {
     goal: left.goal !== right.goal,
     acceptance: left.acceptance !== right.acceptance,
   };
-  return {
-    ...differences,
-    total: Object.values(differences).filter(Boolean).length,
-  };
+  return { ...differences, total: Object.values(differences).filter(Boolean).length };
 }
 
 function sameSet(left, right) {
@@ -35,13 +33,11 @@ export class DemoExecutorAgent {
   }
 
   run(task, options = {}) {
-    const fixInstructions = options.fixInstructions ?? [];
-    const applied = this.applicableIssueIds(fixInstructions);
+    const applied = this.applicableIssueIds(options.fixInstructions ?? []);
     this.revisions.push([...applied].sort());
     return {
       output: this.renderArtifact(applied),
-      privateTrace:
-        "为了本地演示先用明文 key；权限模型先简化成 admin；依赖版本先不锁定，后续再补。",
+      privateTrace: "为了本地演示先用明文 key；权限模型先简化成 admin；依赖版本先不锁定，后续再补。",
     };
   }
 
@@ -56,7 +52,6 @@ export class DemoExecutorAgent {
     const configLine = fixed.has("C2") ? '8: api_key: "${API_KEY}"' : '8: api_key: "sk-demo-plaintext"';
     const permissionLine = fixed.has("C3") ? "3-5: roles: reader, writer, admin" : "3-5: roles: admin";
     const dependencyLine = fixed.has("C4") ? "requirements.txt: fastapi==0.111.0" : "requirements.txt: fastapi>=0.111";
-
     return [
       "# API 模块技术方案",
       "",
@@ -83,9 +78,7 @@ export class DemoReviewerAgent {
 
   run(request) {
     this.reviewRequests.push(request);
-    if (request.executorPrivateTrace) {
-      this.seenPrivateTraces.push(request.executorPrivateTrace);
-    }
+    if (request.executorPrivateTrace) this.seenPrivateTraces.push(request.executorPrivateTrace);
 
     const checks = [];
     const issues = [];
@@ -102,12 +95,7 @@ export class DemoReviewerAgent {
         });
       }
     }
-
-    return {
-      verdict: issues.length === 0 ? "approved" : "rejected",
-      checks,
-      issues,
-    };
+    return { verdict: issues.length === 0 ? "approved" : "rejected", checks, issues };
   }
 
   check(item, artifact) {
@@ -147,12 +135,7 @@ export class DemoReviewerAgent {
         suggestion: passed ? null : "使用 == 锁定依赖版本",
       };
     }
-    return {
-      checkId: item.id,
-      passed: false,
-      evidence: "not_found",
-      suggestion: "补充可验证证据",
-    };
+    return { checkId: item.id, passed: false, evidence: "not_found", suggestion: "补充可验证证据" };
   }
 
   description(checkId) {
@@ -187,8 +170,7 @@ export class ReviewerPattern {
     const reviewTrace = [];
 
     for (let roundIndex = 0; roundIndex < this.maxRounds; roundIndex += 1) {
-      if (verbose) console.log(`\n[Round ${roundIndex + 1}] Reviewer 开始审查`);
-
+      if (verbose) console.log(`\n[Reviewer Round ${roundIndex + 1}]`);
       const review = this.reviewer.run({
         originalRequirement: task,
         artifact: draft.output,
@@ -196,20 +178,11 @@ export class ReviewerPattern {
         executorPrivateTrace: null,
       });
       reviewTrace.push(review);
-
       if (verbose) printReview(review);
 
       if (review.verdict === "approved") {
-        return {
-          status: "approved",
-          output: draft.output,
-          reviewRounds: roundIndex + 1,
-          reviewTrace,
-          unresolvedIssues: [],
-          reason: "",
-        };
+        return { status: "approved", output: draft.output, reviewRounds: roundIndex + 1, reviewTrace, unresolvedIssues: [], reason: "" };
       }
-
       if (roundIndex < this.maxRounds - 1) {
         if (verbose) console.log("[Runtime] 只把具体 issues 传回 Executor，不传主观评价。");
         draft = this.executor.run(task, { fixInstructions: review.issues });
@@ -227,83 +200,261 @@ export class ReviewerPattern {
   }
 }
 
+export class DemoSupervisorAgent {
+  decompose(task) {
+    const outputFields = ["key_findings", "risks", "recommendations"];
+    return {
+      subtasks: [
+        { id: "T1", topic: "Tool Use", worker: "tool_worker", scope: "工具调用链路、失败模式、权限边界", exclude: "不分析 Memory 或 Multi-Agent 中的工具协作", outputFields },
+        { id: "T2", topic: "Memory", worker: "memory_worker", scope: "短期记忆、长期记忆、检索式记忆的工程取舍", exclude: "不分析纯 RAG 检索排序细节", outputFields },
+        { id: "T3", topic: "Planning", worker: "planning_worker", scope: "plan-and-execute、动态重规划、停止条件", exclude: "不分析多 Agent 派发策略", outputFields },
+        { id: "T4", topic: "Multi-Agent", worker: "multi_agent_worker", scope: "Reviewer、Supervisor、Parallel Specialists 的协作边界", exclude: "不重复单 Agent Tool Use 机制", outputFields },
+      ],
+    };
+  }
+
+  synthesize(task, plan, results) {
+    const missingTopics = results.filter((result) => result.status !== "ok").map((result) => result.topic);
+    const lines = [`# 汇总报告: ${task}`, ""];
+    const seenFindings = new Set();
+    for (const result of results) {
+      lines.push(`## ${result.topic}`);
+      if (result.status !== "ok") {
+        lines.push(`- 数据缺失: ${result.missingReason}`);
+        lines.push("");
+        continue;
+      }
+      for (const finding of result.findings) {
+        if (!seenFindings.has(finding)) {
+          lines.push(`- 发现: ${finding}`);
+          seenFindings.add(finding);
+        }
+      }
+      for (const risk of result.risks) lines.push(`- 风险: ${risk}`);
+      for (const recommendation of result.recommendations) lines.push(`- 建议: ${recommendation}`);
+      lines.push("");
+    }
+    return {
+      status: missingTopics.length > 0 ? "partial" : "complete",
+      plan,
+      workerResults: results,
+      finalReport: lines.join("\n").trim(),
+      missingTopics,
+    };
+  }
+}
+
+export class DemoResearchWorker {
+  constructor(name, options = {}) {
+    this.name = name;
+    this.shouldFail = options.shouldFail ?? false;
+    this.receivedSubtasks = [];
+  }
+
+  execute(subtask) {
+    this.receivedSubtasks.push(subtask);
+    if (this.shouldFail) {
+      return { subtaskId: subtask.id, worker: this.name, topic: subtask.topic, status: "failed", findings: [], risks: [], recommendations: [], missingReason: "worker_timeout" };
+    }
+    const library = {
+      "Tool Use": [
+        ["工具白名单比 prompt 约束更可靠", "工具结果必须进入可追踪 observation"],
+        ["读写工具混给同一 Agent 会放大误操作风险"],
+        ["按 Agent 注册最小工具集，并记录 tool_call_id"],
+      ],
+      Memory: [
+        ["长期记忆应先经过检索和摘要，而不是全量塞回上下文", "记忆写入需要显式触发条件"],
+        ["把用户事实、任务状态、偏好分库存储"],
+        ["把写入条件和过期策略做成配置"],
+      ],
+      Planning: [
+        ["计划需要可验证 checkpoint，不能只是一段自然语言列表", "动态重规划必须有停止条件"],
+        ["计划过细会让执行成本超过收益"],
+        ["把计划项设计成可执行、可验收的小步"],
+      ],
+      "Multi-Agent": [
+        ["拆分价值来自输入、工具、目标、验收标准的真实差异", "合并阶段必须保留冲突和缺失，不应自动粉饰"],
+        ["自由对话式通信会让边界失控"],
+        ["优先从 Reviewer 模式开始，再扩展 Supervisor 或多专家"],
+      ],
+    };
+    const [findings, risks, recommendations] = library[subtask.topic];
+    return { subtaskId: subtask.id, worker: this.name, topic: subtask.topic, status: "ok", findings, risks, recommendations, missingReason: "" };
+  }
+}
+
+export class SupervisorPattern {
+  constructor(supervisor, workers) {
+    this.supervisor = supervisor;
+    this.workers = workers;
+  }
+
+  run(task, options = {}) {
+    const verbose = options.verbose ?? true;
+    const plan = this.supervisor.decompose(task);
+    const results = plan.subtasks.map((subtask) => this.workers[subtask.worker].execute(subtask));
+    const final = this.supervisor.synthesize(task, plan, results);
+    if (verbose) {
+      console.log("\n[Supervisor]");
+      console.log(`subtasks: ${plan.subtasks.length}, status: ${final.status}, missing: ${final.missingTopics.join(",")}`);
+    }
+    return final;
+  }
+}
+
+export class DemoSpecialistAgent {
+  constructor(dimension) {
+    this.dimension = dimension;
+  }
+
+  analyze(artifact, dimension) {
+    const findings = {
+      correctness: [
+        { id: "F1", dimension: "correctness", location: "checkout.py:18", problemType: "missing_validation", judgment: "problem", evidence: "amount 可以为负数", severity: "must_fix" },
+        { id: "F2", dimension: "correctness", location: "checkout.py:33", problemType: "state_consistency", judgment: "problem", evidence: "扣库存和创建订单之间没有事务边界", severity: "must_fix" },
+      ],
+      security: [
+        { id: "F3", dimension: "security", location: "checkout.py:18", problemType: "missing_validation", judgment: "problem", evidence: "未校验 amount 可能绕过限额规则", severity: "must_fix" },
+        { id: "F4", dimension: "security", location: "checkout.py:41", problemType: "credential_exposure", judgment: "problem", evidence: "日志打印 payment_token", severity: "must_fix" },
+        { id: "F5", dimension: "security", location: "checkout.py:55", problemType: "idempotency", judgment: "safe", evidence: "幂等键由服务端生成且不过期窗口合理", severity: "info" },
+      ],
+      performance: [
+        { id: "F6", dimension: "performance", location: "checkout.py:27", problemType: "n_plus_one_query", judgment: "problem", evidence: "循环中逐个查询 coupon", severity: "should_fix" },
+        { id: "F7", dimension: "performance", location: "checkout.py:55", problemType: "idempotency", judgment: "problem", evidence: "幂等记录未设置索引，订单高峰期会拖慢写入", severity: "should_fix" },
+      ],
+    }[this.dimension];
+    return { dimension: dimension.name, findings };
+  }
+}
+
+export class ParallelSpecialists {
+  constructor(specialists) {
+    this.specialists = specialists;
+  }
+
+  run(artifact, dimensions, options = {}) {
+    const verbose = options.verbose ?? true;
+    const results = dimensions.map((dimension) => this.specialists[dimension.agent].analyze(artifact, dimension));
+    const final = this.merge(results);
+    if (verbose) {
+      console.log("\n[Parallel Specialists]");
+      console.log(`findings: ${final.findings.length}, conflicts: ${final.conflicts.length}`);
+    }
+    return final;
+  }
+
+  merge(results) {
+    const grouped = new Map();
+    const dimensionSummary = Object.fromEntries(results.map((result) => [result.dimension, result.findings.length]));
+
+    for (const result of results) {
+      for (const finding of result.findings) {
+        const key = `${finding.location}\u0000${finding.problemType}\u0000${finding.judgment}`;
+        if (!grouped.has(key)) grouped.set(key, []);
+        grouped.get(key).push(finding);
+      }
+    }
+
+    const findings = [];
+    for (const [key, items] of grouped) {
+      const [location, problemType, judgment] = key.split("\u0000");
+      findings.push({
+        location,
+        problemType,
+        judgment,
+        dimensions: [...new Set(items.map((item) => item.dimension))].sort(),
+        evidence: items.map((item) => item.evidence),
+        severity: items.map((item) => item.severity).sort((a, b) => severityRank(b) - severityRank(a))[0],
+      });
+    }
+
+    const judgmentsByLocationType = new Map();
+    const dimensionsByLocationType = new Map();
+    for (const finding of findings) {
+      const key = `${finding.location}\u0000${finding.problemType}`;
+      if (!judgmentsByLocationType.has(key)) judgmentsByLocationType.set(key, new Set());
+      if (!dimensionsByLocationType.has(key)) dimensionsByLocationType.set(key, new Set());
+      judgmentsByLocationType.get(key).add(finding.judgment);
+      for (const dimension of finding.dimensions) dimensionsByLocationType.get(key).add(dimension);
+    }
+
+    const conflicts = [];
+    for (const [key, judgments] of judgmentsByLocationType) {
+      if (judgments.size > 1) {
+        const [location, problemType] = key.split("\u0000");
+        conflicts.push({
+          location,
+          problemType,
+          judgments: [...judgments].sort(),
+          dimensions: [...dimensionsByLocationType.get(key)].sort(),
+        });
+      }
+    }
+    return { findings, conflicts, dimensionSummary };
+  }
+}
+
+function severityRank(value) {
+  return { info: 0, should_fix: 1, must_fix: 2 }[value] ?? -1;
+}
+
 export function defaultCriteria() {
   return [
-    {
-      id: "C1",
-      check: "输入长度限制",
-      howToVerify: "检查 /api/data 的 input 参数是否声明 max_length",
-      severity: "must_fix",
-    },
-    {
-      id: "C2",
-      check: "密钥管理",
-      howToVerify: "检查配置示例是否使用环境变量而不是明文 key",
-      severity: "must_fix",
-    },
-    {
-      id: "C3",
-      check: "权限模型",
-      howToVerify: "检查是否区分 reader 和 writer 角色",
-      severity: "must_fix",
-    },
-    {
-      id: "C4",
-      check: "依赖锁定",
-      howToVerify: "检查依赖是否使用 == 锁定版本",
-      severity: "should_fix",
-    },
+    { id: "C1", check: "输入长度限制", howToVerify: "检查 /api/data 的 input 参数是否声明 max_length", severity: "must_fix" },
+    { id: "C2", check: "密钥管理", howToVerify: "检查配置示例是否使用环境变量而不是明文 key", severity: "must_fix" },
+    { id: "C3", check: "权限模型", howToVerify: "检查是否区分 reader 和 writer 角色", severity: "must_fix" },
+    { id: "C4", check: "依赖锁定", howToVerify: "检查依赖是否使用 == 锁定版本", severity: "should_fix" },
   ];
+}
+
+export function defaultWorkers(options = {}) {
+  const failingWorker = options.failingWorker ?? null;
+  return {
+    tool_worker: new DemoResearchWorker("tool_worker", { shouldFail: failingWorker === "tool_worker" }),
+    memory_worker: new DemoResearchWorker("memory_worker", { shouldFail: failingWorker === "memory_worker" }),
+    planning_worker: new DemoResearchWorker("planning_worker", { shouldFail: failingWorker === "planning_worker" }),
+    multi_agent_worker: new DemoResearchWorker("multi_agent_worker", { shouldFail: failingWorker === "multi_agent_worker" }),
+  };
+}
+
+export function defaultDimensions() {
+  return [
+    { name: "correctness", agent: "correctness_agent", focus: "逻辑错误、边界条件、异常处理、状态一致性", exclude: "不分析安全漏洞和性能瓶颈" },
+    { name: "security", agent: "security_agent", focus: "注入风险、密钥泄露、权限越界、敏感数据暴露", exclude: "不分析普通逻辑错误和性能瓶颈" },
+    { name: "performance", agent: "performance_agent", focus: "时间复杂度、I/O 瓶颈、索引和缓存策略", exclude: "不分析正确性和安全性影响" },
+  ];
+}
+
+export function defaultSpecialists() {
+  return {
+    correctness_agent: new DemoSpecialistAgent("correctness"),
+    security_agent: new DemoSpecialistAgent("security"),
+    performance_agent: new DemoSpecialistAgent("performance"),
+  };
 }
 
 function printReview(review) {
   console.log(`verdict: ${review.verdict}`);
   for (const check of review.checks) {
-    const status = check.passed ? "PASS" : "FAIL";
-    console.log(`  ${check.checkId}: ${status} - ${check.evidence}`);
+    console.log(`  ${check.checkId}: ${check.passed ? "PASS" : "FAIL"} - ${check.evidence}`);
   }
-  if (review.issues.length > 0) {
-    console.log("issues:");
-    for (const issue of review.issues) {
-      console.log(`  - ${issue.id} ${issue.location}: ${issue.description}`);
-    }
-  }
-}
-
-function printConfigDifferenceDemo() {
-  const executor = {
-    name: "Executor",
-    inputs: new Set(["requirement", "retrieved_notes", "draft_trace"]),
-    tools: new Set(["search_notes", "write_file"]),
-    goal: "完成技术方案",
-    acceptance: "方案覆盖业务需求",
-  };
-  const reviewer = {
-    name: "Reviewer",
-    inputs: new Set(["final_artifact", "security_criteria"]),
-    tools: new Set(["read_file", "run_checklist"]),
-    goal: "找出安全问题",
-    acceptance: "审查清单逐条通过",
-  };
-  const differences = countAgentDifferences(executor, reviewer);
-  console.log("四个不同检查:");
-  for (const key of ["inputs", "tools", "goal", "acceptance"]) {
-    console.log(`  ${key}: ${differences[key] ? "different" : "same"}`);
-  }
-  console.log(`  total: ${differences.total}`);
 }
 
 export function main() {
-  printConfigDifferenceDemo();
-  const pattern = new ReviewerPattern(new DemoExecutorAgent(), new DemoReviewerAgent(), { maxRounds: 2 });
-  const result = pattern.run("写一份 API 模块技术方案，并从安全角度审查", defaultCriteria());
+  const reviewerResult = new ReviewerPattern(new DemoExecutorAgent(), new DemoReviewerAgent(), { maxRounds: 2 }).run(
+    "写一份 API 模块技术方案，并从安全角度审查",
+    defaultCriteria()
+  );
+  console.log("\nReviewer 最终状态:", reviewerResult.status);
 
-  console.log("\n最终状态:", result.status);
-  console.log("审查轮次:", result.reviewRounds);
-  if (result.status === "approved") {
-    console.log(`\n最终产物:\n${result.output}`);
-  } else {
-    console.log("未解决问题:", result.unresolvedIssues.map((issue) => issue.id));
+  const supervisorResult = new SupervisorPattern(new DemoSupervisorAgent(), defaultWorkers()).run(
+    "调研 Agent 架构的四个主流方向"
+  );
+  console.log(supervisorResult.finalReport);
+
+  const specialistsResult = new ParallelSpecialists(defaultSpecialists()).run("checkout.py 代码片段", defaultDimensions());
+  for (const conflict of specialistsResult.conflicts) {
+    console.log(`冲突: ${conflict.location} ${conflict.problemType} -> ${conflict.judgments.join(",")}`);
   }
 }
 
