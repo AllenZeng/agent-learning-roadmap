@@ -339,6 +339,28 @@ def run_batch_delete_demo(agent: HitlAgent) -> None:
         print("  执行结果: 未执行删除\n")
 
 
+def print_refund_result(decision: HitlDecision, order_id: str) -> None:
+    if decision.decision == "approved":
+        print(f"  执行结果: 已提交 {order_id} 的全额退款申请，并写入退款审计记录\n")
+    elif decision.decision == "safe_subset":
+        print(f"  执行结果: 未直接退款，已把 {order_id} 转入人工复核队列\n")
+    elif decision.decision == "manual":
+        print(f"  执行结果: 人类要求接管，Agent 暂停退款流程并保留决策上下文\n")
+    elif decision.decision == "manual_required":
+        print(f"  执行结果: 关键风险退款未执行，Agent 只生成处理说明，等待人工处理\n")
+    else:
+        print(f"  执行结果: 已拒绝 {order_id} 的退款操作，并准备向用户说明原因\n")
+
+
+def print_takeover_result(decision: HitlDecision, task_name: str) -> None:
+    if decision.decision == "manual_required":
+        print(f"  执行结果: {task_name} 未由 Agent 执行；Agent 进入等待状态，直到人类回复“已完成”\n")
+    elif decision.decision == "approved":
+        print(f"  执行结果: {task_name} 已获批准，但仍建议在真实系统中保留人工执行边界\n")
+    else:
+        print(f"  执行结果: {task_name} 未执行，当前流程安全中止\n")
+
+
 def run_refund_demo(agent: HitlAgent) -> None:
     print("\n=== 2. 退款操作的上下文确认 ===")
     refund = ProposedAction(
@@ -354,7 +376,8 @@ def run_refund_demo(agent: HitlAgent) -> None:
             "default_decision": "a",
         },
     )
-    agent.propose(refund)
+    decision = agent.propose(refund)
+    print_refund_result(decision, "ORD-20260629-0042")
 
     suspicious_refund = ProposedAction(
         tool="refund",
@@ -364,7 +387,8 @@ def run_refund_demo(agent: HitlAgent) -> None:
         external_effect=True,
         metadata={"amount": 2400, "previous_refunds": 5},
     )
-    agent.propose(suspicious_refund)
+    decision = agent.propose(suspicious_refund)
+    print_refund_result(decision, "ORD-20260629-0099")
 
 
 def run_takeover_demo(agent: HitlAgent) -> None:
@@ -376,7 +400,8 @@ def run_takeover_demo(agent: HitlAgent) -> None:
         reversible=False,
         external_effect=True,
     )
-    agent.propose(action)
+    decision = agent.propose(action)
+    print_takeover_result(decision, "生产数据库迁移")
 
 
 def run_demo() -> None:

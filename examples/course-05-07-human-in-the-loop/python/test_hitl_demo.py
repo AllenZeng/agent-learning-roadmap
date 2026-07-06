@@ -1,6 +1,16 @@
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 
-from hitl_demo import HitlMode, HitlPolicy, ProposedAction, Risk
+from hitl_demo import (
+    HitlDecision,
+    HitlMode,
+    HitlPolicy,
+    ProposedAction,
+    Risk,
+    print_refund_result,
+    print_takeover_result,
+)
 
 
 class HitlPolicyTest(unittest.TestCase):
@@ -52,6 +62,32 @@ class HitlPolicyTest(unittest.TestCase):
 
         self.assertEqual(risk, Risk.HIGH)
         self.assertEqual(mode, HitlMode.CONFIRMATION)
+
+
+class HitlResultHandlingTest(unittest.TestCase):
+    def capture(self, fn, *args):
+        output = StringIO()
+        with redirect_stdout(output):
+            fn(*args)
+        return output.getvalue()
+
+    def test_refund_rejection_prints_follow_up_action(self):
+        output = self.capture(
+            print_refund_result,
+            HitlDecision(HitlMode.CONFIRMATION, Risk.HIGH, "rejected", "人类拒绝操作"),
+            "ORD-1",
+        )
+
+        self.assertIn("已拒绝 ORD-1 的退款操作", output)
+
+    def test_takeover_prints_waiting_state(self):
+        output = self.capture(
+            print_takeover_result,
+            HitlDecision(HitlMode.TAKEOVER, Risk.CRITICAL, "manual_required", "关键风险操作需要人类执行"),
+            "生产数据库迁移",
+        )
+
+        self.assertIn("Agent 进入等待状态", output)
 
 
 if __name__ == "__main__":

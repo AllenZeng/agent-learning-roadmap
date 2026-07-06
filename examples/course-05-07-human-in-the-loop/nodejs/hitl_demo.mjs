@@ -350,9 +350,33 @@ async function runBatchDeleteDemo(agent) {
   }
 }
 
+function printRefundResult(decision, orderId) {
+  if (decision.decision === "approved") {
+    console.log(`  执行结果: 已提交 ${orderId} 的全额退款申请，并写入退款审计记录\n`);
+  } else if (decision.decision === "safe_subset") {
+    console.log(`  执行结果: 未直接退款，已把 ${orderId} 转入人工复核队列\n`);
+  } else if (decision.decision === "manual") {
+    console.log(`  执行结果: 人类要求接管，Agent 暂停退款流程并保留决策上下文\n`);
+  } else if (decision.decision === "manual_required") {
+    console.log(`  执行结果: 关键风险退款未执行，Agent 只生成处理说明，等待人工处理\n`);
+  } else {
+    console.log(`  执行结果: 已拒绝 ${orderId} 的退款操作，并准备向用户说明原因\n`);
+  }
+}
+
+function printTakeoverResult(decision, taskName) {
+  if (decision.decision === "manual_required") {
+    console.log(`  执行结果: ${taskName} 未由 Agent 执行；Agent 进入等待状态，直到人类回复“已完成”\n`);
+  } else if (decision.decision === "approved") {
+    console.log(`  执行结果: ${taskName} 已获批准，但仍建议在真实系统中保留人工执行边界\n`);
+  } else {
+    console.log(`  执行结果: ${taskName} 未执行，当前流程安全中止\n`);
+  }
+}
+
 async function runRefundDemo(agent) {
   console.log("\n=== 2. 退款操作的上下文确认 ===");
-  await agent.propose({
+  const refundDecision = await agent.propose({
     tool: "refund",
     target: "order ORD-20260629-0042",
     reason: "用户反馈产品功能与描述不符，订单未发货",
@@ -365,8 +389,9 @@ async function runRefundDemo(agent) {
       default_decision: "a",
     },
   });
+  printRefundResult(refundDecision, "ORD-20260629-0042");
 
-  await agent.propose({
+  const suspiciousRefundDecision = await agent.propose({
     tool: "refund",
     target: "order ORD-20260629-0099",
     reason: "高额订单且用户近期多次退款",
@@ -374,17 +399,19 @@ async function runRefundDemo(agent) {
     external_effect: true,
     metadata: { amount: 2400, previous_refunds: 5 },
   });
+  printRefundResult(suspiciousRefundDecision, "ORD-20260629-0099");
 }
 
 async function runTakeoverDemo(agent) {
   console.log("\n=== 3. 关键风险操作进入接管模式 ===");
-  await agent.propose({
+  const decision = await agent.propose({
     tool: "database_migration",
     target: "production users.email type change",
     reason: "迁移脚本会修改生产数据库 schema",
     reversible: false,
     external_effect: true,
   });
+  printTakeoverResult(decision, "生产数据库迁移");
 }
 
 async function runDemo() {
