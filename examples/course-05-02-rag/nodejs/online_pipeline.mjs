@@ -1,15 +1,15 @@
 /**
- * 在线查询 Pipeline：用户问题 → 基于笔记的回答
+ * Online query pipeline: user question -> note-based answer
  *
- * 对应 course-05-02 §2.4.5–2.4.7：
- *   2.4.5 查询理解与改写   — 指代消解、意图补全
- *   2.4.6 召回与重排序     — 多路召回 + RRF 融合 + rerank + 截断
- *   2.4.7 上下文组装与生成 — chunk 编排、来源标注、引用对齐
+ * Corresponds to course-05-02 sections 2.4.5-2.4.7:
+ *   2.4.5 Query understanding and rewriting   - reference resolution and intent completion
+ *   2.4.6 Retrieval and reranking     - multi-route retrieval + RRF fusion + rerank + truncation
+ *   2.4.7 Context assembly and generation - chunk ordering, source labels, and citation alignment
  *
- * 用法：
- *   node online_pipeline.mjs "Tool Use 和 Memory 的区别"
+ * Usage:
+ *   node online_pipeline.mjs "the difference between Tool Use and Memory"
  *   node online_pipeline.mjs --interactive
- *   node online_pipeline.mjs --top-k 5 "什么是 Chunking"
+ *   node online_pipeline.mjs --top-k 5 "what Chunking is"
  */
 
 import { readFile } from "node:fs/promises";
@@ -23,14 +23,14 @@ import {
   tokenize,
 } from "./retrieval_core.mjs";
 
-// ---------- 配置 ----------
+// ---------- Configuration ----------
 
 const DEFAULT_TOP_K = 5;
 const VECTOR_WEIGHT = 0.6;
 const BM25_WEIGHT = 0.4;
 const MAX_CONTEXT_CHARS = 3000;
 
-// ---------- 工具函数 ----------
+// ---------- Helper functions ----------
 
 function argsortDesc(arr) {
   return arr
@@ -53,7 +53,7 @@ function parseArgs() {
 }
 
 // ================================================================
-// 阶段一：加载索引
+// Stage 1: load index
 // ================================================================
 
 async function loadIndex(indexDir) {
@@ -75,7 +75,7 @@ async function loadIndex(indexDir) {
   const metaRaw = await readFile(join(indexDir, "index_meta.json"), "utf-8");
   const meta = JSON.parse(metaRaw);
 
-  // 重建 BM25 实例
+  // Rebuild the BM25 instance
   const bm25 = SimpleBM25.fromJSON(bm25Data);
   console.log(`[加载] 伪 embedding: hashing TF-IDF (${meta.pseudo_embedding_dim || embeddings[0]?.length || 0} 维)`);
   const vectorizer = {
@@ -87,7 +87,7 @@ async function loadIndex(indexDir) {
 }
 
 // ================================================================
-// 阶段二：查询理解与改写（§2.4.5）
+// Stage 2: query understanding and rewriting (section 2.4.5)
 // ================================================================
 
 function understandQuery(query) {
@@ -118,7 +118,7 @@ function understandQuery(query) {
 }
 
 // ================================================================
-// 阶段三：召回（§2.4.6）
+// Stage 3: retrieval (section 2.4.6)
 // ================================================================
 
 async function denseRetrieve(query, vectorizer, embeddings, chunks, topK = 20) {
@@ -182,13 +182,13 @@ function rrfFusion(denseResults, sparseResults, k = 60) {
 }
 
 // ================================================================
-// 阶段四：重排序（§2.4.6）
+// Stage 4: reranking (section 2.4.6)
 // ================================================================
 
 async function rerank(query, candidates, vectorizer, topK = DEFAULT_TOP_K) {
   if (candidates.length <= topK) return candidates;
 
-  // 用更精细的相似度重算
+  // Recompute with finer-grained similarity
   const queryVec = await vectorizer.embed(query);
 
   for (const c of candidates) {
@@ -199,7 +199,7 @@ async function rerank(query, candidates, vectorizer, topK = DEFAULT_TOP_K) {
 
   const ranked = candidates.sort((a, b) => b.rerank_score - a.rerank_score);
 
-  // 分数断崖检测
+  // Score-cliff detection
   let cutAt = topK;
   for (let i = topK; i < ranked.length; i++) {
     if (
@@ -215,7 +215,7 @@ async function rerank(query, candidates, vectorizer, topK = DEFAULT_TOP_K) {
 }
 
 // ================================================================
-// 阶段五：上下文组装（§2.4.7）
+// Stage 5: context assembly (section 2.4.7)
 // ================================================================
 
 function assembleContext(query, rankedChunks, maxChars = MAX_CONTEXT_CHARS) {
@@ -248,7 +248,7 @@ function assembleContext(query, rankedChunks, maxChars = MAX_CONTEXT_CHARS) {
 }
 
 // ================================================================
-// 阶段六：生成（模拟）
+// Stage 6: generation (simulated)
 // ================================================================
 
 function generateAnswer(query, context, rankedChunks) {
@@ -288,7 +288,7 @@ ${context}
 }
 
 // ================================================================
-// 主流程
+// Main flow
 // ================================================================
 
 async function runOnlinePipeline(query, indexDir = "index", topK = DEFAULT_TOP_K, debug = false) {
@@ -297,11 +297,11 @@ async function runOnlinePipeline(query, indexDir = "index", topK = DEFAULT_TOP_K
   console.log(`  查询: "${query}"`);
   console.log("=".repeat(60));
 
-  // ── Step 1: 加载索引 ──
+  // ── Step 1: Load index ──
   console.log();
   const { chunks, embeddings, bm25, vectorizer } = await loadIndex(indexDir);
 
-  // ── Step 2: 查询理解 ──
+  // ── Step 2: Query understanding ──
   console.log(`\n── 查询理解 (§2.4.5) ──`);
   const queryInfo = understandQuery(query);
   console.log(`  原始查询: ${queryInfo.original}`);
@@ -313,7 +313,7 @@ async function runOnlinePipeline(query, indexDir = "index", topK = DEFAULT_TOP_K
   }
   const searchQuery = queryInfo.expandedQuery;
 
-  // ── Step 3: 多路召回 ──
+  // ── Step 3: Multi-route retrieval ──
   console.log(`\n── 多路召回 (§2.4.6) ──`);
   process.stdout.write(`  向量召回 top-20 ... `);
   const denseResults = await denseRetrieve(searchQuery, vectorizer, embeddings, chunks, 20);
@@ -323,7 +323,7 @@ async function runOnlinePipeline(query, indexDir = "index", topK = DEFAULT_TOP_K
   const sparseResults = sparseRetrieve(searchQuery, bm25, chunks, 20);
   console.log(`命中 ${sparseResults.length}`);
 
-  // 元数据过滤 + RRF 融合
+  // Metadata filtering + RRF fusion
   const filteredDense = metadataFilter(denseResults);
   const filteredSparse = metadataFilter(sparseResults);
   const fused = rrfFusion(filteredDense, filteredSparse);
@@ -340,7 +340,7 @@ async function runOnlinePipeline(query, indexDir = "index", topK = DEFAULT_TOP_K
     }
   }
 
-  // ── Step 4: 重排序 ──
+  // ── Step 4: Reranking ──
   console.log(`\n── 重排序 (§2.4.6) ──`);
   const ranked = await rerank(searchQuery, fused, vectorizer, topK);
   console.log(`  Rerank → top-${ranked.length}`);
@@ -364,19 +364,19 @@ async function runOnlinePipeline(query, indexDir = "index", topK = DEFAULT_TOP_K
     );
   }
 
-  // ── Step 5: 上下文组装 ──
+  // ── Step 5: Context assembly ──
   console.log(`\n── 上下文组装 (§2.4.7) ──`);
   const context = assembleContext(query, ranked);
   console.log(`  组装完成，共 ${context.length} 字符`);
 
-  // ── Step 6: 生成回答 ──
+  // ── Step 6: Generate answer ──
   generateAnswer(query, context, ranked);
 
   return { ranked, context };
 }
 
 // ================================================================
-// 交互模式
+// Interactive mode
 // ================================================================
 
 async function interactiveMode(indexDir, topK, debug) {
@@ -407,7 +407,7 @@ async function interactiveMode(indexDir, topK, debug) {
       continue;
     }
 
-    // 内联执行一次查询
+    // Run one query inline
     console.log("=".repeat(60));
     console.log(`  查询: "${query}"`);
     console.log("=".repeat(60));
@@ -450,7 +450,7 @@ async function interactiveMode(indexDir, topK, debug) {
 }
 
 // ================================================================
-// 入口
+// Entry point
 // ================================================================
 
 const opts = parseArgs();

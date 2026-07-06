@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * 课程五 05-06 Reflection 示例 (Node.js)
+ * Course 05-06 Reflection example (Node.js)
  *
- * 演示由外部反馈信号触发的决策闭环：
- * 触发 -> 分类 -> 决策 -> 处理 -> 验证或停止。
+ * Demonstrates a decision loop triggered by external feedback signals:
+ * trigger -> classify -> decide -> handle -> verify or stop.
  */
 
 import readline from 'node:readline/promises';

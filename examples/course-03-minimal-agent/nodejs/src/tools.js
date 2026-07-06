@@ -1,24 +1,24 @@
 /**
- * 最小 Agent Runtime 使用的本地工具实现。
+ * Local tool implementations used by the minimal Agent runtime.
  *
- * 工具刻意保持为普通函数。它们不决定 Agent 下一步做什么，只执行受边界约束的操作，
- * 并返回结构化 Observation，供 Runtime 写入状态。
+ * Tools are intentionally kept as ordinary functions. They do not decide the agent's next action; they only perform bounded operations
+ * and return structured Observations for the runtime to write into state.
  */
 const fs = require("node:fs");
 const path = require("node:path");
 
 function success(summary, content = null) {
-  // 构造统一的成功 Observation。
+  // Build a normalized success Observation.
   return { status: "success", summary, content, error: null };
 }
 
 function error(code, message) {
-  // 构造统一的失败 Observation。
+  // Build a normalized failure Observation.
   return { status: "error", summary: message, content: null, error: { code, message } };
 }
 
 function resolveWorkspacePath(workspace, requestedPath) {
-  // 把相对路径限制在示例工作区内，避免工具越界访问。
+  // Constrain relative paths to the example workspace to prevent out-of-bounds tool access.
   const workspaceRoot = path.resolve(workspace);
   const target = path.resolve(workspaceRoot, requestedPath);
   if (target !== workspaceRoot && !target.startsWith(workspaceRoot + path.sep)) {
@@ -28,7 +28,7 @@ function resolveWorkspacePath(workspace, requestedPath) {
 }
 
 function buildTools(workspace) {
-  // 创建绑定到指定工作区的工具集合。
+  // Create a tool set bound to the specified workspace.
   function readFile({ path: filePath }) {
     try {
       const target = resolveWorkspacePath(workspace, filePath);
@@ -61,9 +61,9 @@ function buildTools(workspace) {
   /**
    * Search query in text and return matching lines.
    *
-   * 教学简化：text 由调用方传入（通常来自 readFile 的结果），
-   * 让学习者看到"先读文件，再对内容搜索"的完整决策链。生产环境中
-   * 可改为 searchFile(query, path) 让工具内部处理文件读取。
+   * Teaching simplification: text is passed by the caller, usually from readFile,
+   * so learners can see the full decision chain of reading a file before searching its content. In production,
+   * this could become searchFile(query, path) so the tool handles file reading internally.
    */
   function searchText({ query, text }) {
     const matches = [];

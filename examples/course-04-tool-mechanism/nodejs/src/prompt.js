@@ -1,8 +1,8 @@
 /**
- * 课程四工具机制示例的 Prompt 定义。
+ * Prompt definition for the course 04 tool mechanism example.
  *
- * 动态工具 Schema、权限结果、审计摘要和工具 Observation 会在
- * src/agent.js 的 Context Assembly 阶段注入。
+ * Dynamic tool Schema, permission results, audit summaries, and tool Observations are
+ * injected during the Context Assembly phase in src/agent.js.
  */
 const SYSTEM_PROMPT = `你是一个工具机制示例 Agent，用于演示课程四的 Tool Use 运行链路。
 

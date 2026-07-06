@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * 课程五 05-03 Memory 示例 —— 交互式 Memory 生命周期演示
+ * Course 05-03 Memory example - interactive Memory lifecycle demo
  *
- * 模拟知识助手从周一到周三的跨会话对话，展示 Memory 系统的完整生命周期：
- *   识别候选记忆 → 写入决策 → 存储 → 召回 → 更新与遗忘
+ * Simulates a knowledge assistant's cross-session conversations from Monday to Wednesday to show the full Memory lifecycle:
+ *   identify candidate memories -> write decision -> storage -> recall -> update and forgetting
  *
- * 纯 Node.js 标准库实现（bag-of-words 向量），无需外部依赖。
+ * Implemented with only the Node.js standard library (bag-of-words vectors), with no external dependencies.
  *
- * 用法：
- *   node memory_demo.mjs           # 交互模式（每一步按 Enter 继续）
- *   node memory_demo.mjs --auto    # 自动模式（适合查看完整输出）
+ * Usage:
+ *   node memory_demo.mjs           # Interactive mode (press Enter at each step)
+ *   node memory_demo.mjs --auto    # Automatic mode (useful for viewing the full output)
  */
 
 import crypto from "node:crypto";
@@ -26,11 +26,11 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 // ============================================================
-// 轻量 Memory 实现（核心逻辑）
+// Lightweight Memory implementation (core logic)
 // ============================================================
 
 class AgentMemory {
-  /** 分层存储 + 写入守卫 + 语义召回 + 审计日志 */
+  /** Layered storage + write guard + semantic recall + audit log */
   constructor(storageDir = "./memory_store") {
     this.storageDir = storageDir;
     this.prefPath = join(storageDir, "preferences.json");
@@ -65,7 +65,7 @@ class AgentMemory {
     await appendFile(this.auditPath, `${JSON.stringify(entry)}\n`, "utf8");
   }
 
-  // ── 识别候选记忆 ──
+  // ── Identify candidate memories ──
   identifyCandidates(userMessage) {
     const candidates = [];
     for (const pattern of [/以后[^，。]*/g, /每次[^，。]*/g, /不要[^，。]*/g, /默认[^，。]*/g]) {
@@ -103,7 +103,7 @@ class AgentMemory {
     return candidates;
   }
 
-  // ── 写入守卫 ──
+  // ── Write guard ──
   shouldRemember(candidate) {
     if (candidate.sensitive) return [false, "sensitive"];
     if (candidate.type === "temporary") return [false, "temporary"];
@@ -122,7 +122,7 @@ class AgentMemory {
     return [true, "ok"];
   }
 
-  // ── 写入 ──
+  // ── Write ──
   async write(entry) {
     const [ok, reason] = this.shouldRemember(entry);
     if (!ok) {
@@ -179,7 +179,7 @@ class AgentMemory {
     return { status: "written", id: mid };
   }
 
-  // ── 召回 ──
+  // ── Recall ──
   recall(task, limit = 5) {
     const relevant = [];
     const taskGrams = this.#tokenize(task);
@@ -263,7 +263,7 @@ class AgentMemory {
     return (Date.now() - new Date(ts).getTime()) / 86_400_000;
   }
 
-  // ── 更新 / 删除 / 衰减 ──
+  // ── Update / delete / decay ──
   async update(mid, updates) {
     for (const [store, path] of [
       [this.preferences, this.prefPath],
@@ -343,7 +343,7 @@ class AgentMemory {
 }
 
 // ============================================================
-// 交互式演示
+// Interactive demo
 // ============================================================
 
 const RESET = "\x1b[0m";
@@ -447,7 +447,7 @@ async function simulate(auto = false) {
     await memory.init();
 
     // ═══════════════════════════════════════════════════
-    // SESSION 1: 周一
+    // SESSION 1: Monday
     // ═══════════════════════════════════════════════════
     console.log(`${BOLD}${"─".repeat(60)}${RESET}`);
     console.log(`${BOLD}  SESSION 1：周一 10:00-10:45${RESET}`);
@@ -516,7 +516,7 @@ async function simulate(auto = false) {
     await memory.endSession();
 
     // ═══════════════════════════════════════════════════
-    // SESSION 2: 周二（跨会话！）
+    // SESSION 2: Tuesday (Cross-session!)
     // ═══════════════════════════════════════════════════
     await wait(`\n${DIM}按 Enter 进入 Session 2（周二，跨会话）...${RESET}`, auto, rl);
 
@@ -548,7 +548,7 @@ async function simulate(auto = false) {
     await memory.endSession();
 
     // ═══════════════════════════════════════════════════
-    // SESSION 3: 周三（偏好变更！）
+    // SESSION 3: Wednesday (Preference changed!)
     // ═══════════════════════════════════════════════════
     await wait(`\n${DIM}按 Enter 进入 Session 3（周三，偏好变更）...${RESET}`, auto, rl);
 
@@ -581,7 +581,7 @@ async function simulate(auto = false) {
     await memory.endSession();
 
     // ═══════════════════════════════════════════════════
-    // 总结
+    // Summary
     // ═══════════════════════════════════════════════════
     console.log(`\n${BOLD}${"─".repeat(60)}${RESET}`);
     console.log(`${BOLD}  📊 完整生命周期总结${RESET}`);

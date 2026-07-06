@@ -14,19 +14,19 @@ from .chain import ChainExecutor
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 预定义的执行路径
+# Predefined execution paths
 # ═══════════════════════════════════════════════════════════════════════════
 
-# 发布准备路径
+# Release preparation path
 RELEASE_ROUTE = ["检查 README", "运行测试", "整理 changelog", "生成 checklist"]
 
-# Bug 修复路径
+# Bug-fix path
 BUGFIX_ROUTE = ["运行测试", "整理 changelog"]
 
-# 文档更新路径
+# Documentation update path
 DOCS_ROUTE = ["检查 README"]
 
-# 功能开发路径
+# Feature development path
 FEATURE_ROUTE = ["运行测试", "整理 changelog", "生成 checklist"]
 
 DEFAULT_ROUTES = {
@@ -70,7 +70,7 @@ class RouterExecutor:
         """
         query_lower = query.lower()
 
-        # 关键词 → 分类
+        # Keyword -> category
         keywords = {
             "release": ["发布", "release", "上线", "发版"],
             "bugfix": ["bug", "修复", "fix", "缺陷", "补丁"],
@@ -82,7 +82,7 @@ class RouterExecutor:
             if any(w in query_lower for w in words):
                 return category
 
-        # 兜底：默认走 release（发布准备是最完整的流程，不合适的步骤会自行跳过）
+        # Fallback: default to release (release preparation is the most complete flow; unsuitable steps skip themselves)
         return "release"
 
     def execute(
@@ -99,13 +99,13 @@ class RouterExecutor:
             query: 用户请求文本
             context: 初始上下文
         """
-        # 1. 分类
+        # 1. Classify
         category = self.classify(query)
 
-        # 2. 选择路径
+        # 2. Choose path
         steps = self.routes.get(category, self.routes.get("release", []))
 
-        # 3. 执行
+        # 3. Execute
         chain = ChainExecutor(steps)
         chain_result = chain.execute(
             context=context,

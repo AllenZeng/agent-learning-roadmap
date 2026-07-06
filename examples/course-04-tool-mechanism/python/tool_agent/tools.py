@@ -6,12 +6,14 @@ from time import monotonic
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set
 
 
-# Observation 是“给模型看的工具结果”。它不是原始返回值，而是 Runtime
-# 处理后的决策简报：成功时给摘要和必要数据，失败时给错误码和下一步建议。
+# Observation is the tool result shown to the model. It is not the raw return value;
+# it is a runtime-processed decision brief: success includes a summary and necessary
+# data, while failure includes an error code and suggested next action.
 Observation = Dict[str, Any]
 
-# 示例里工具仍然是普通函数。课程四的重点不是换框架，而是在普通函数外面
-# 加上定义、校验、权限、审计和结果处理这些运行时机制。
+# Tools in this example are still ordinary functions. Course 04 focuses on adding
+# runtime mechanics around ordinary functions: definitions, validation,
+# permissions, auditing, and result processing.
 ToolHandler = Callable[..., Observation]
 
 
@@ -108,8 +110,8 @@ class ToolRegistry:
 
     def __init__(self, tools: Iterable[ToolDefinition], max_context_chars: int = 1200):
         self._tools = {tool.name: tool for tool in tools}
-        # 工具结果进入上下文前的最大字符预算。超过后转成 preview + ref，
-        # 避免把长文件或长日志直接塞进下一轮 LLM 上下文。
+        # Maximum character budget before tool results enter context. Larger results become preview + ref,
+        # so long files or logs are not pushed directly into the next LLM context.
         self.max_context_chars = max_context_chars
 
     def get(self, name: str) -> Optional[ToolDefinition]:
@@ -126,8 +128,8 @@ class PermissionPolicy:
         self.allowed_tools = set(allowed_tools or set())
 
     def check(self, tool: ToolDefinition, arguments: Dict[str, Any]) -> bool:
-        # 示例策略只按工具名授权。真实系统通常还会检查用户、资源范围、
-        # 参数中的路径/ID、风险等级，以及是否已有人工确认。
+        # The example policy authorizes only by tool name. Real systems usually also check user, resource scope,
+        # paths or IDs in arguments, risk level, and whether human confirmation already exists.
         return tool.name in self.allowed_tools
 
 
@@ -154,9 +156,9 @@ def execute_tool_call(
     requested_tool_name = decision.get("tool_name")
     arguments = decision.get("arguments", {})
 
-    # Pylance/pyright 会把 `dict.get()` 推断为 `Any | None`。先收窄成
-    # 非空字符串，再调用 `registry.get(name: str)`，同时也能给模型返回
-    # 更明确的 missing_tool_name 错误。
+    # Pylance/pyright infers `dict.get()` as `Any | None`. Narrow it to a
+    # non-empty string before calling `registry.get(name: str)`, which also
+    # lets the model receive a clearer missing_tool_name error.
     if not isinstance(requested_tool_name, str) or not requested_tool_name:
         observation = ToolResult.failure(
             "missing_tool_name",
@@ -168,8 +170,8 @@ def execute_tool_call(
 
     tool_name = requested_tool_name
 
-    # 先查注册表，而不是直接从 dict 调函数。这样工具不存在时能返回结构化错误，
-    # 并把失败记录进 audit_log。
+    # Check the registry first instead of calling a function directly from a dict, so missing tools can return structured errors
+    # and record the failure in audit_log.
     tool = registry.get(tool_name)
     if tool is None:
         observation = ToolResult.failure(
@@ -180,8 +182,8 @@ def execute_tool_call(
         _audit(audit_log, tool_name, arguments, "lookup", "denied", observation)
         return observation
 
-    # arguments 必须是对象。模型偶尔会输出字符串、数组或 null；Runtime
-    # 需要在执行前拦截，不能把异常泄漏到工具 handler 内部。
+    # arguments must be an object. The model may occasionally output a string, array, or null; the runtime
+    # must intercept that before execution instead of leaking exceptions into tool handlers.
     if not isinstance(arguments, dict):
         observation = ToolResult.failure(
             "invalid_arguments",
@@ -191,15 +193,15 @@ def execute_tool_call(
         _audit(audit_log, tool_name, arguments, "validation", "denied", observation)
         return observation
 
-    # Schema 校验在权限检查之前执行。这样缺参数、类型错误等低级问题不会被误报为
-    # 权限问题，调试时能更快定位根因。
+    # Schema validation runs before permission checks, so basic issues like missing arguments or type errors are not misreported as
+    # permission problems, making root causes easier to debug.
     validation_error = _validate_arguments(tool, arguments)
     if validation_error:
         _audit(audit_log, tool_name, arguments, "validation", "denied", validation_error)
         return validation_error
 
-    # Deny-first：没被允许的工具默认不能执行。尤其是 write_file 这类中风险工具，
-    # 即使模型生成了看似合理的参数，也必须由 Runtime 统一放行。
+    # Deny-first: tools are not executable by default unless allowed. This matters especially for medium-risk tools like write_file,
+    # because even plausible model-generated arguments must be allowed uniformly by the runtime.
     if not permissions.check(tool, arguments):
         observation = ToolResult.failure(
             "permission_denied",
@@ -214,18 +216,18 @@ def execute_tool_call(
     started_at = monotonic()
     while True:
         try:
-            # 到这里才真正执行工具。前面的所有步骤都只是在检查“是否应该执行”。
+            # Only here is the tool actually executed. All earlier steps only check whether it should be executed.
             raw = tool.handler(**arguments)
-            # 原始工具结果不一定适合直接进入下一轮上下文；这里统一做截断、
-            # 引用和元数据补充。
+            # Raw tool results are not always suitable for the next context; this step applies truncation,
+            # references, and metadata enrichment.
             observation = _shape_observation(raw, tool, arguments, registry.max_context_chars)
             observation["retry_count"] = attempts
             observation["duration_ms"] = int((monotonic() - started_at) * 1000)
             _audit(audit_log, tool_name, arguments, "execution", "allowed", observation)
             return observation
         except TimeoutError as exc:
-            # 只重试幂等工具。读文件、查询类工具通常可以重试；写入、发送、下单
-            # 等有副作用工具不应该自动重试。
+            # Retry only idempotent tools. Read-file and query tools can usually be retried; write, send, and order-placement
+            # tools with side effects should not be retried automatically.
             if tool.idempotent and attempts < tool.max_retries:
                 attempts += 1
                 continue

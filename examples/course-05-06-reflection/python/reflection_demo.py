@@ -25,7 +25,7 @@ from enum import Enum
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 基础类型
+# Base types
 # ═══════════════════════════════════════════════════════════════════════════
 
 class ValidationStatus(Enum):
@@ -62,10 +62,10 @@ class ReflectionResult:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 模拟场景数据
+# Mock scenario data
 # ═══════════════════════════════════════════════════════════════════════════
 
-# 模拟的笔记内容（用于引用校验）
+# Mock note content (used for citation validation)
 MOCK_NOTES = {
     "agent-memory-mechanism.md": """
 ## 写入决策与遗忘机制
@@ -89,15 +89,15 @@ session_manager.py 的 cleanup 方法用于手动清理过期 session。
     def cleanup(self):
         for sid in list(self._sessions.keys()):
             if self._sessions[sid].expired:
-                del self._sessions[sid]  # 绕过了 decay() 的清理逻辑！
+                del self._sessions[sid]  # Bypasses the cleanup logic in decay()!
 
 正确做法：
     def cleanup(self):
-        self.memory_store.decay()  # 触发完整的过期清理链
+        self.memory_store.decay()  # Trigger the full expiration cleanup path
 """
 }
 
-# 模拟的测试套件结果
+# Mock test-suite results
 MOCK_TEST_PASS = """============================= test session starts ==============================
 collected 10 items
 
@@ -127,7 +127,7 @@ tests/test_memory.py:28: AssertionError
 ========================= 1 failed, 9 passed in 1.45s =========================
 """
 
-# 用于 V3 的"正确代码"和"错误代码"
+# "Correct code" and "wrong code" for V3
 CORRECT_CLEANUP_CODE = '''
 def cleanup(self):
     """清理过期 session"""
@@ -144,7 +144,7 @@ def cleanup(self):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 外部验证器（注意：这些都是外部系统，不是 LLM 自评！）
+# External validators (note: these are external systems, not LLM self-evaluation!)
 # ═══════════════════════════════════════════════════════════════════════════
 
 def validate_json_schema(output: str) -> ValidationResult:
@@ -186,11 +186,11 @@ def validate_tool_params(params: dict) -> ValidationResult:
 
 def validate_citation(output: str, notes: dict) -> ValidationResult:
     """V4: 引用校验 — 逐条检查输出中的引用能否在知识库中找到原文"""
-    # 从输出中提取被引用的 API/实体名
+    # Extract referenced API/entity names from output
     import re
-    # 查找类似 `memory.clear_expired()` 的引用
+    # Find references like `memory.clear_expired()`
     api_pattern = re.findall(r'`(\w+\.\w+)\(\)`', output)
-    # 也查找 "API 'xxx'" 形式的引用
+    # Also find references of the form "API 'xxx'"
     named_pattern = re.findall(r"API '(\w+\.\w+)'", output)
 
     all_refs = set(api_pattern + named_pattern)
@@ -214,7 +214,7 @@ def validate_citation(output: str, notes: dict) -> ValidationResult:
 
 def validate_tests(code: str) -> ValidationResult:
     """V3: 测试驱动验证 — 运行外部测试框架"""
-    # 模拟：检查代码是否使用了正确的 API
+    # Simulation: check whether the code uses the correct API
     if "memory_store.decay()" in code:
         return ValidationResult(passed=True, message="所有测试通过 (10/10)")
     elif "del self._sessions" in code:
@@ -245,7 +245,7 @@ def validate_env_check(action_name: str) -> ValidationResult:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 反馈分类器
+# Feedback classifier
 # ═══════════════════════════════════════════════════════════════════════════
 
 def classify_feedback(validation: ValidationResult) -> str:
@@ -254,7 +254,7 @@ def classify_feedback(validation: ValidationResult) -> str:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# Reflection 循环 — 核心实现
+# Reflection loop - core implementation
 # ═══════════════════════════════════════════════════════════════════════════
 
 def reflection_loop(
@@ -277,12 +277,12 @@ def reflection_loop(
     trace = []
 
     for attempt in range(max_retries):
-        # 1. 执行动作（注入上次失败的事实信息）
+        # 1. Execute action (inject facts from the previous failure)
         result = action(last_error, attempt)
         cost_spent += result.cost
         trace.append(f"[尝试 {attempt + 1}] 执行完成，成本 ${result.cost:.2f}")
 
-        # 2. 外部验证（不是模型自评！）
+        # 2. External validation (not model self-evaluation!)
         validation = validate(result.output)
         trace.append(f"[尝试 {attempt + 1}] 验证: {'✅ 通过' if validation.passed else '❌ ' + validation.message}")
 
@@ -298,7 +298,7 @@ def reflection_loop(
                 trace=trace
             )
 
-        # 3. 分类失败，准备下一轮处理上下文
+        # 3. Classify the failure and prepare the next handling context
         error_type = classify_feedback(validation)
         last_error = {
             "type": error_type,
@@ -307,8 +307,8 @@ def reflection_loop(
         }
         trace.append(f"[尝试 {attempt + 1}] 反馈分类: {error_type}")
 
-        # 4. 停止条件检查
-        # 4a. 成本上限
+        # 4. Stopping-condition check
+        # 4a. Cost limit
         if cost_spent > cost_budget:
             trace.append(f"[停止] 成本超限: ${cost_spent:.2f} > ${cost_budget:.2f}")
             if verbose:
@@ -319,9 +319,9 @@ def reflection_loop(
                 output=result.output, trace=trace
             )
 
-        # 4b. 相同反馈重复出现（处理后反馈类型和 evidence 完全一致）
+        # 4b. Same feedback repeats (feedback type and evidence are identical after handling)
         if attempt >= 1:
-            # 简化检测：如果连续两次反馈类型相同，判定为相同反馈
+            # Simplified detection: if the same feedback type appears twice in a row, treat it as repeated feedback
             trace.append(f"[停止] 相同反馈重复出现 ({error_type})，已尝试 {attempt + 1} 次")
             if verbose:
                 print(f"\n  🛑 相同反馈重复停止: {error_type} 已连续出现 {attempt + 1} 次")
@@ -336,7 +336,7 @@ def reflection_loop(
             print(f"  🔄 第 {attempt + 1} 次失败 ({error_type})，处理后重试...")
             print(f"     证据: {validation.evidence[:100]}...")
 
-    # 超过最大重试次数
+    # Exceeded maximum retry count
     trace.append(f"[停止] 超过最大重试次数 ({max_retries})")
     if verbose:
         print(f"\n  🛑 超过最大重试次数: {max_retries}")
@@ -348,7 +348,7 @@ def reflection_loop(
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 显示辅助
+# Display helpers
 # ═══════════════════════════════════════════════════════════════════════════
 
 CHECK = "✅"
@@ -385,7 +385,7 @@ def section(title: str):
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 演示场景
+# Demo scenarios
 # ═══════════════════════════════════════════════════════════════════════════
 
 def demo_v0_no_reflection():
@@ -448,20 +448,20 @@ def demo_v1_format_fix():
 
     input("\n  [按 Enter 执行...]")
 
-    # 模拟第一次尝试：缺字段
+    # Simulate first attempt: missing field
     bad_output = '{"tool": "search_notes", "query": "memory cleanup"}'
     print(f"\n  Agent 第 1 次输出: {bad_output}")
     print(f"  Schema 要求: tool_name, args, reason 三个字段必填")
 
     def action_v1(prev_error, attempt):
         if attempt == 0:
-            # 第一次：缺字段
+            # First attempt: missing field
             return ActionResult(
                 output='{"tool": "search_notes", "query": "memory cleanup"}',
                 cost=0.01
             )
         else:
-            # 修正后：补全字段
+            # After correction: fill the missing field
             return ActionResult(
                 output='{"tool_name": "search_notes", "args": {"query": "memory cleanup"}, "reason": "用户询问 memory 清理机制"}',
                 cost=0.01
@@ -506,13 +506,13 @@ def demo_v2_tool_error_fix():
 
     def action_v2(prev_error, attempt):
         if attempt == 0:
-            # 第一次：参数错误
+            # First attempt: wrong argument
             return ActionResult(
                 output='search_notes(query="", limit=500) → Error: limit must be 1-100',
                 cost=0.02
             )
         elif attempt == 1:
-            # 修正：改参数值
+            # Correction: change the argument value
             return ActionResult(
                 output='search_notes(query="memory cleanup decay", limit=20) → 找到 3 条结果',
                 cost=0.02
@@ -576,7 +576,7 @@ def demo_v3_test_driven_fix():
         if attempt == 0:
             return ActionResult(output=BUGGY_CLEANUP_CODE, cost=0.03)
         else:
-            # 修正：使用正确的 API
+            # Correction: use the correct API
             return ActionResult(output=CORRECT_CLEANUP_CODE, cost=0.03)
 
     result = reflection_loop(
@@ -625,7 +625,7 @@ def demo_full_reflection_loop():
 
     def action_citation(prev_error, attempt):
         if attempt == 0:
-            # 幻觉输出：编造了 clear_expired()
+            # Hallucinated output: invented clear_expired()
             return ActionResult(
                 output="问题在 session_manager.py 的 cleanup 方法中。该方法调用了 "
                        "`memory.clear_expired()`，但这个 API 在 Memory 模块中不存在——"
@@ -633,7 +633,7 @@ def demo_full_reflection_loop():
                 cost=0.02
             )
         else:
-            # 修正后：基于检索结果的正确引用
+            # After correction: correct reference based on retrieval results
             return ActionResult(
                 output="问题在 session_manager.py 的 cleanup 方法中。笔记显示 Memory "
                        "模块的过期清理由 `decay()` → `_purge_old_records()` 完成 "
@@ -682,7 +682,7 @@ def demo_stop_conditions():
 
     input("\n  [按 Enter 执行...]")
 
-    # 永远返回缺 tool_name 的输出（模拟处理无效的情况）
+    # Always return output missing tool_name (simulates ineffective handling)
     def action_stuck(prev_error, attempt):
         output = '{"tool": "search_notes", "args": {"query": "test"}}'
         return ActionResult(output=output, cost=0.01)
@@ -755,7 +755,7 @@ def demo_summary():
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 主 REPL
+# Main REPL
 # ═══════════════════════════════════════════════════════════════════════════
 
 DEMOS = {

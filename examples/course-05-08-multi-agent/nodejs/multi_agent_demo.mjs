@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * 课程五 05-08 Multi-Agent 示例
+ * Course 05-08 Multi-Agent example
  *
- * 同一个离线示例项目演示三种协作模式：
- * 1. Reviewer：一个 Agent 写方案，另一个 Agent 独立审查
- * 2. Supervisor：一个 Supervisor 拆解任务，多个 Worker 产出结构化结果
- * 3. Parallel Specialists：多个专家看同一个输入，从不同维度并行分析
+ * The same offline example project demonstrates three collaboration patterns:
+ * 1. Reviewer: one Agent writes a proposal while another independently reviews it
+ * 2. Supervisor: one Supervisor decomposes the task while multiple Workers produce structured results
+ * 3. Parallel Specialists: multiple specialists inspect the same input and analyze it in parallel from different dimensions
  */
 
 export function countAgentDifferences(left, right) {

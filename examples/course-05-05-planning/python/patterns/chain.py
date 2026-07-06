@@ -57,11 +57,11 @@ class ChainExecutor:
         result = ChainResult(context=self._context)
 
         for i, step_name in enumerate(self.steps):
-            # 通知步骤开始
+            # Notify that the step has started
             if on_step_start:
                 on_step_start(step_name)
 
-            # 查找工具
+            # Find the tool
             tool = TOOL_REGISTRY.get(step_name)
             if not tool:
                 step_result = StepResult(
@@ -77,7 +77,7 @@ class ChainExecutor:
                     on_step_end(step_result)
                 return result
 
-            # 执行步骤
+            # Execute the step
             step_result = tool()
             result.results.append(step_result)
             self._context[step_name] = step_result.output
@@ -85,7 +85,7 @@ class ChainExecutor:
             if on_step_end:
                 on_step_end(step_result)
 
-            # 错误处理：Chain 模式默认遇到错误就停止
+            # Error handling: Chain mode stops on errors by default
             if step_result.status == StepStatus.ERROR:
                 result.status = "failed"
                 result.failed_at = i

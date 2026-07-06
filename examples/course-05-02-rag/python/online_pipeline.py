@@ -21,34 +21,34 @@ from pathlib import Path
 
 from retrieval_core import SimpleBM25, dot_product, pseudo_embed, tokenize
 
-# ---------- 配置 ----------
+# ---------- Configuration ----------
 
 DEFAULT_TOP_K = 5
-VECTOR_WEIGHT = 0.6  # 向量召回在 RRF 融合中的权重
-BM25_WEIGHT = 0.4     # BM25 在 RRF 融合中的权重
+VECTOR_WEIGHT = 0.6  # Weight of vector retrieval in RRF fusion
+BM25_WEIGHT = 0.4     # Weight of BM25 in RRF fusion
 MAX_CONTEXT_CHARS = 3000
 
 
 # ================================================================
-# 阶段一：加载索引
+# Stage 1: load index
 # ================================================================
 
 def load_index(index_dir: str) -> tuple[list[dict], list[list[float]], SimpleBM25, dict]:
     """加载所有索引文件"""
     base = Path(index_dir)
 
-    # Chunks 元数据 + 内容
+    # Chunks metadata + content
     with open(base / "chunks.json", encoding="utf-8") as f:
         chunks = json.load(f)
     print(f"[加载] chunks.json — {len(chunks)} 个 chunk")
 
-    # 向量嵌入
+    # Vector embeddings
     with open(base / "embeddings.json", encoding="utf-8") as f:
         embeddings = json.load(f)
     embedding_dim = len(embeddings[0]) if embeddings else 0
     print(f"[加载] embeddings.json — {len(embeddings)} × {embedding_dim}")
 
-    # BM25 索引
+    # BM25 index
     with open(base / "bm25_index.json", encoding="utf-8") as f:
         bm25_index = SimpleBM25.from_dict(json.load(f))
     print(f"[加载] bm25_index.json — {len(bm25_index.idf)} 个词条")
@@ -61,7 +61,7 @@ def load_index(index_dir: str) -> tuple[list[dict], list[list[float]], SimpleBM2
 
 
 # ================================================================
-# 阶段二：查询理解与改写（§2.4.5）
+# Stage 2: query understanding and rewriting (section 2.4.5)
 # ================================================================
 
 def understand_query(query: str) -> dict:
@@ -70,10 +70,10 @@ def understand_query(query: str) -> dict:
     完整实现会包括：指代消解、同义词扩展、意图分类。
     此处展示核心思路。
     """
-    # 检测是否是跟进问题（包含指代词）
+    # Detect whether this is a follow-up question with references
     has_pronoun = any(w in query for w in ["它", "他", "她", "这个", "那个", "这些", "那些"])
 
-    # 简单同义词扩展
+    # Simple synonym expansion
     expansions = {
         "tool use": ["工具调用", "工具使用", "function calling"],
         "memory": ["记忆", "状态管理", "上下文"],
@@ -95,7 +95,7 @@ def understand_query(query: str) -> dict:
 
 
 # ================================================================
-# 阶段三：召回（§2.4.6）
+# Stage 3: retrieval (section 2.4.6)
 # ================================================================
 
 def dense_retrieve(
@@ -133,7 +133,7 @@ def sparse_retrieve(query: str, bm25_index: SimpleBM25, chunks: list[dict], top_
     """
     tokenized = tokenize(query)
     scores = bm25_index.get_scores(tokenized)
-    # BM25 分数归一化到 [0, 1]
+    # Normalize BM25 scores to [0, 1]
     max_score = max(scores) if scores and max(scores) > 0 else 1
     scores = [s / max_score for s in scores]
 
@@ -141,7 +141,7 @@ def sparse_retrieve(query: str, bm25_index: SimpleBM25, chunks: list[dict], top_
 
     results = []
     for idx in top_indices:
-        if scores[idx] > 0:  # 只保留有匹配的
+        if scores[idx] > 0:  # Keep only matched results
             results.append(
                 {
                     "chunk_idx": int(idx),
@@ -158,7 +158,7 @@ def metadata_filter(results: list[dict]) -> list[dict]:
     filtered = []
     for r in results:
         c = r["chunk"]
-        # 过滤草稿
+        # Filter drafts
         if c.get("status") == "draft":
             continue
         filtered.append(r)
@@ -180,10 +180,10 @@ def rrf_fusion(dense_results: list[dict], sparse_results: list[dict], k: int = 6
         idx = r["chunk_idx"]
         scores[idx] = scores.get(idx, 0) + BM25_WEIGHT / (k + rank + 1)
 
-    # 按融合分数排序
+    # Sort by fused score
     sorted_indices = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
-    # 重建结果（保留 chunk 引用、来源、原始分数）
+    # Rebuild results while preserving chunk references, sources, and raw scores
     chunk_map = {}
     for r in dense_results + sparse_results:
         if r["chunk_idx"] not in chunk_map:
@@ -198,7 +198,7 @@ def rrf_fusion(dense_results: list[dict], sparse_results: list[dict], k: int = 6
 
 
 # ================================================================
-# 阶段四：重排序（§2.4.6）
+# Stage 4: reranking (section 2.4.6)
 # ================================================================
 
 def rerank(
@@ -217,16 +217,16 @@ def rerank(
 
     query_vec = pseudo_embed(query, meta.get("pseudo_embedding_idf", {}))
 
-    # 与融合分数加权结合
+    # Combine with the fused score using weights
     for c in candidates:
         chunk_vec = pseudo_embed(c["chunk"]["content"], meta.get("pseudo_embedding_idf", {}))
         sim_score = dot_product(chunk_vec, query_vec)
         c["rerank_score"] = 0.7 * float(sim_score) + 0.3 * c["fused_score"]
 
-    # 排序
+    # Sort
     ranked = sorted(candidates, key=lambda x: x["rerank_score"], reverse=True)
 
-    # 检测分数断崖：相邻分数差 > 30% → 截断
+    # Detect score cliffs: adjacent score gap > 30% -> truncate
     cut_at = top_k
     for i in range(top_k, len(ranked)):
         if ranked[i - 1]["rerank_score"] > 0 and ranked[i]["rerank_score"] / ranked[i - 1]["rerank_score"] < 0.7:
@@ -237,7 +237,7 @@ def rerank(
 
 
 # ================================================================
-# 阶段五：上下文组装（§2.4.7）
+# Stage 5: context assembly (section 2.4.7)
 # ================================================================
 
 def assemble_context(query: str, ranked_chunks: list[dict], max_chars: int = MAX_CONTEXT_CHARS) -> str:
@@ -270,7 +270,7 @@ def assemble_context(query: str, ranked_chunks: list[dict], max_chars: int = MAX
 
 
 # ================================================================
-# 阶段六：生成（模拟）
+# Stage 6: generation (simulated)
 # ================================================================
 
 def generate_answer(query: str, context: str, ranked_chunks: list[dict]) -> str:
@@ -311,7 +311,7 @@ def generate_answer(query: str, context: str, ranked_chunks: list[dict]) -> str:
 
 
 # ================================================================
-# 主流程
+# Main flow
 # ================================================================
 
 def run_online_pipeline(
@@ -326,11 +326,11 @@ def run_online_pipeline(
     print(f"  查询: \"{query}\"")
     print("=" * 60)
 
-    # ── Step 1: 加载索引 ──
+    # ── Step 1: Load index ──
     print()
     chunks, embeddings, bm25_index, meta = load_index(index_dir)
 
-    # ── Step 2: 查询理解 ──
+    # ── Step 2: Query understanding ──
     print(f"\n── 查询理解 (§2.4.5) ──")
     query_info = understand_query(query)
     print(f"  原始查询: {query_info['original']}")
@@ -341,7 +341,7 @@ def run_online_pipeline(
 
     search_query = query_info["expanded_query"]
 
-    # ── Step 3: 多路召回 ──
+    # ── Step 3: Multi-route retrieval ──
     print(f"\n── 多路召回 (§2.4.6) ──")
     print(f"  向量召回 top-20 ...", end=" ")
     dense_results = dense_retrieve(search_query, meta, embeddings, chunks, top_k=20)
@@ -351,11 +351,11 @@ def run_online_pipeline(
     sparse_results = sparse_retrieve(search_query, bm25_index, chunks, top_k=20)
     print(f"命中 {len(sparse_results)}")
 
-    # 元数据过滤
+    # Metadata filtering
     dense_results = metadata_filter(dense_results)
     sparse_results = metadata_filter(sparse_results)
 
-    # RRF 融合
+    # RRF fusion
     fused = rrf_fusion(dense_results, sparse_results)
     print(f"  RRF 融合 → {len(fused)} 个候选（去重后）")
 
@@ -366,7 +366,7 @@ def run_online_pipeline(
             print(f"    #{i + 1} [{r['source']}] {c['section_path'][:50]} — "
                   f"融合分: {r['fused_score']:.4f}")
 
-    # ── Step 4: 重排序 ──
+    # ── Step 4: Reranking ──
     print(f"\n── 重排序 (§2.4.6) ──")
     ranked = rerank(search_query, fused, meta, top_k=top_k)
     print(f"  Rerank → top-{len(ranked)}")
@@ -378,25 +378,25 @@ def run_online_pipeline(
         print(f"        分数: {r['rerank_score']:.3f}  |  "
               f"{c['char_count']} 字符  |  标签: {c.get('tags', [])}")
 
-    # 分数断崖检测
+    # Score-cliff detection
     if len(ranked) >= 2:
         last = ranked[-1]["rerank_score"]
         if len(fused) > len(ranked):
             print(f"    🔻 分数断崖：第 {len(ranked)} 名之后的内容对回答帮助显著下降")
 
-    # ── Step 5: 上下文组装 ──
+    # ── Step 5: Context assembly ──
     print(f"\n── 上下文组装 (§2.4.7) ──")
     context = assemble_context(query, ranked)
     print(f"  组装完成，共 {len(context)} 字符")
 
-    # ── Step 6: 生成回答 ──
+    # ── Step 6: Generate answer ──
     generate_answer(query, context, ranked)
 
     return ranked, context
 
 
 # ================================================================
-# CLI 入口
+# CLI entry point
 # ================================================================
 
 def interactive_mode(index_dir: str, top_k: int, debug: bool):
@@ -406,7 +406,7 @@ def interactive_mode(index_dir: str, top_k: int, debug: bool):
     print("  输入问题进行检索，输入 /quit 退出，/debug 切换详情")
     print("=" * 60)
 
-    # 预加载索引
+    # Preload the index
     chunks, embeddings, bm25_index, meta = load_index(index_dir)
 
     while True:

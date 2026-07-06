@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * 课程五 05-07 Human-in-the-loop 示例
+ * Course 05-07 Human-in-the-loop example
  *
- * 用法：
+ * Usage:
  *   node hitl_demo.mjs
  */
 

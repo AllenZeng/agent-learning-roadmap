@@ -56,16 +56,16 @@ def run_agent(
     state = AgentState(user_goal=user_goal, max_steps=max_steps)
     trace: List[Dict[str, Any]] = []
 
-    # 0. 启动循环
+    # 0. Start the loop
     while not state.stop_reason:
-        # 1. Context Assembly：只把本轮决策需要的状态切片交给 LLM。
+        # 1. Context Assembly: pass only the state slices needed for this decision to the LLM.
         context = assemble_context(system_prompt, registry, state, conversation=conversation or [])
-        # 2. 调用 llm 进行决策，并对输出结果进行标准化处理
+        # 2. Call the LLM for a decision and normalize the output
         decision = _normalize_decision(llm_call(context))
         _log(logger, {"event": "llm_decision", "step": state.step_count, "decision": decision})
         trace_entry = {"step": state.step_count, "context_summary": _context_summary(context), "decision": decision}
 
-        # 3. 对于决策结果进行判断，是否终止循环
+        # 3. Inspect the decision result and decide whether to stop the loop
         decision_type = decision["type"]
         if decision_type == "final_answer":
             state.stop_reason = "completed"
@@ -80,8 +80,8 @@ def run_agent(
             state.stop_reason = "failed"
             return _finalize(state, trace_entry, trace, logger, "failed", reason=decision.get("reason", ""))
 
-        # 4. 决策需要进行工具调用，则执行工具调用
-        # Interaction / Observation：Runtime 执行工具，并把结果统一成 Observation。
+        # 4. If the decision requires a tool call, execute it
+        # Interaction / Observation: the runtime executes tools and normalizes results into Observations.
         _log(
             logger,
             {
@@ -99,13 +99,13 @@ def run_agent(
         )
         _log(logger, {"event": "tool_result", "step": state.step_count, "observation": observation})
 
-        # 5. 统一工具调用结果，并写入到 state
+        # 5. Normalize the tool-call result and write it into state
         _update_state_from_tool_call(state, decision, observation)
         trace_entry["observation"] = observation
 
-        # 6. 更新状态，并进行状态判断，是否进入下一次循环
+        # 6. Update state and decide whether to enter the next loop iteration
         state.step_count += 1
-        # Continue or Stop：停止条件由 Runtime 判断，不依赖模型自觉。
+        # Continue or Stop: the runtime owns stopping conditions instead of relying on the model to stop itself.
         stop_reason = _check_stop(state)
         if stop_reason:
             state.stop_reason = stop_reason
@@ -124,7 +124,7 @@ def run_agent(
             },
         )
         trace.append(trace_entry)
-        # 7. 进行下一次循环
+        # 7. Continue to the next loop iteration
 
     return {"status": "stopped", "reason": state.stop_reason, "state": state, "trace": trace}
 

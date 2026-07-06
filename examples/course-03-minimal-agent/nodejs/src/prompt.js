@@ -1,8 +1,8 @@
 /**
- * 最小 ReAct Agent 的 Prompt 定义。
+ * Prompt definition for the minimal ReAct Agent.
  *
- * 按课程三的拆法，这里是静态行为定义：角色、协议、可用决策格式和 Runtime 边界。
- * 动态任务状态会在 src/agent.js 的 Context Assembly 阶段注入。
+ * Following the course 03 split, this is the static behavior definition: role, protocol, available decision formats, and runtime boundaries.
+ * Dynamic task state is injected during the Context Assembly phase in src/agent.js.
  */
 const SYSTEM_PROMPT = `你是一个最小 ReAct Agent，用于演示课程三的 Agent 闭环。
 

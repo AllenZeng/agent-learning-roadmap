@@ -1,12 +1,12 @@
 /**
- * 离线建库 Pipeline：原始笔记 → 可检索索引
+ * Offline indexing pipeline: raw notes -> searchable index
  *
- * 对应 course-05-02 §2.4.2–2.4.4：
- *   2.4.2 数据接入与预处理 — 扫描、解析、清洗、元数据标注
- *   2.4.3 Chunking 策略      — 按 Markdown 标题层级切分
- *   2.4.4 Embedding 与索引   — 向量化 + BM25 索引入库
+ * Corresponds to course-05-02 sections 2.4.2-2.4.4:
+ *   2.4.2 Data ingestion and preprocessing - scan, parse, clean, and tag metadata
+ *   2.4.3 Chunking strategy      - split by Markdown heading hierarchy
+ *   2.4.4 Embedding and indexing   - vectorization + BM25 indexing
  *
- * 用法：
+ * Usage:
  *   node offline_pipeline.mjs
  *   node offline_pipeline.mjs --notes-dir custom/notes --index-dir custom/index
  */
@@ -22,11 +22,11 @@ import {
   tokenize,
 } from "./retrieval_core.mjs";
 
-// ---------- 配置 ----------
+// ---------- Configuration ----------
 
 const MIN_CHUNK_CHARS = 100;
 
-// ---------- 工具函数 ----------
+// ---------- Helper functions ----------
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -43,7 +43,7 @@ function parseArgs() {
 }
 
 // ================================================================
-// 阶段一：数据接入与预处理（§2.4.2）
+// Stage 1: data ingestion and preprocessing (section 2.4.2)
 // ================================================================
 
 async function scanNotes(notesDir) {
@@ -51,7 +51,7 @@ async function scanNotes(notesDir) {
     const files = await readdir(notesDir);
     const mdFiles = files.filter((f) => extname(f) === ".md");
 
-    // 按修改时间排序
+    // Sort by modification time
     const withStats = await Promise.all(
       mdFiles.map(async (f) => {
         const s = await stat(join(notesDir, f));
@@ -138,7 +138,7 @@ function cleanContent(text) {
 }
 
 // ================================================================
-// 阶段二：Chunking（§2.4.3）
+// Stage 2: Chunking (section 2.4.3)
 // ================================================================
 
 function chunkByHeadings(text, headings) {
@@ -169,7 +169,7 @@ function chunkByHeadings(text, headings) {
     }
   }
 
-  // 无 ## 标题 → 整篇作为一个 chunk
+  // No ## headings -> treat the whole document as one chunk
   if (chunks.length === 0 && text.trim().length >= MIN_CHUNK_CHARS) {
     let body = text;
     if (headings.length > 0 && headings[0].level === 1) {
@@ -189,7 +189,7 @@ function chunkByHeadings(text, headings) {
 }
 
 // ================================================================
-// 阶段三：元数据标注（§2.4.2）
+// Stage 3: metadata tagging (section 2.4.2)
 // ================================================================
 
 function annotateChunk(chunk, sourceFile, frontmatter, idx) {
@@ -214,7 +214,7 @@ function annotateChunk(chunk, sourceFile, frontmatter, idx) {
 }
 
 // ================================================================
-// 阶段四：Embedding + BM25 索引（§2.4.4）
+// Stage 4: Embedding + BM25 index (section 2.4.4)
 // ================================================================
 
 function buildBM25Index(chunks) {
@@ -226,18 +226,18 @@ function buildBM25Index(chunks) {
 }
 
 // ================================================================
-// 保存索引
+// Save the index
 // ================================================================
 
 async function saveIndex(indexDir, chunks, embeddings, bm25Index, indexMeta) {
   await mkdir(indexDir, { recursive: true });
 
-  // 1. Chunks 元数据 + 内容 → JSON
+  // 1. Chunks metadata + content -> JSON
   const chunksPath = join(indexDir, "chunks.json");
   await writeFile(chunksPath, JSON.stringify(chunks, null, 2), "utf-8");
   console.log(`[保存] chunks.json  (${chunks.length} 条记录)`);
 
-  // 2. 向量嵌入 → JSON
+  // 2. Vector embeddings -> JSON
   const embPath = join(indexDir, "embeddings.json");
   await writeFile(embPath, JSON.stringify(embeddings), "utf-8");
   console.log(
@@ -246,7 +246,7 @@ async function saveIndex(indexDir, chunks, embeddings, bm25Index, indexMeta) {
 
   // 3. BM25 → JSON
   const bm25Path = join(indexDir, "bm25_index.json");
-  // 保存 tokenized docs 供后续检索使用
+  // Save tokenized docs for later retrieval
   const bm25Data = {
     ...bm25Index.toJSON(),
     docs: chunks.map((c) => tokenize(c.content)),
@@ -254,7 +254,7 @@ async function saveIndex(indexDir, chunks, embeddings, bm25Index, indexMeta) {
   await writeFile(bm25Path, JSON.stringify(bm25Data), "utf-8");
   console.log(`[保存] bm25_index.json`);
 
-  // 4. 索引元信息
+  // 4. Index metadata
   const meta = {
     total_chunks: chunks.length,
     embedding_dim: embeddings[0]?.length || 0,
@@ -272,7 +272,7 @@ async function saveIndex(indexDir, chunks, embeddings, bm25Index, indexMeta) {
 }
 
 // ================================================================
-// 主流程
+// Main flow
 // ================================================================
 
 async function runOfflinePipeline(opts) {
@@ -282,7 +282,7 @@ async function runOfflinePipeline(opts) {
   console.log("  原始笔记 → 解析清洗 → Chunking → Embedding → 索引入库");
   console.log("=".repeat(60));
 
-  // ── Step 1: 扫描 ──
+  // ── Step 1: Scan ──
   const files = await scanNotes(notesDir);
   if (files.length === 0) {
     console.log("[错误] 没有找到 Markdown 文件");
@@ -294,7 +294,7 @@ async function runOfflinePipeline(opts) {
   for (const fileName of files) {
     console.log(`\n── 处理: ${fileName} ──`);
 
-    // ── Step 2: 解析 ──
+    // ── Step 2: Parse ──
     const rawText = await readFile(join(notesDir, fileName), "utf-8");
     const { meta, body } = parseFrontmatter(rawText);
     console.log(
@@ -303,7 +303,7 @@ async function runOfflinePipeline(opts) {
         `更新: ${meta.updated || "?"}`
     );
 
-    // ── Step 3: 清洗 ──
+    // ── Step 3: Clean ──
     const cleaned = cleanContent(body);
 
     // ── Step 4: Chunking ──
@@ -313,7 +313,7 @@ async function runOfflinePipeline(opts) {
       `   标题层级: ${headings.length} 个  |  切出 ${chunks.length} 个 chunk`
     );
 
-    // ── Step 5: 元数据标注 ──
+    // ── Step 5: Metadata tagging ──
     for (let i = 0; i < chunks.length; i++) {
       const annotated = annotateChunk(chunks[i], fileName, meta, i);
       allChunks.push(annotated);
@@ -324,7 +324,7 @@ async function runOfflinePipeline(opts) {
     }
   }
 
-  // ── Step 6: 过滤草稿 ──
+  // ── Step 6: Filter drafts ──
   const published = allChunks.filter((c) => c.status !== "draft");
   if (published.length < allChunks.length) {
     console.log(
@@ -340,10 +340,10 @@ async function runOfflinePipeline(opts) {
   const embeddings = buildPseudoEmbeddings(docs, pseudoEmbeddingIdf);
   console.log(`[Embedding] 完成，向量维度: ${embeddings[0]?.length || "?"}`);
 
-  // ── Step 9: BM25 索引 ──
+  // ── Step 9: BM25 index ──
   const bm25Index = buildBM25Index(published);
 
-  // ── Step 10: 保存 ──
+  // ── Step 10: Save ──
   console.log(`\n── 保存索引到 ${indexDir}/ ──`);
   await saveIndex(indexDir, published, embeddings, bm25Index, {
     retriever,
@@ -363,7 +363,7 @@ async function runOfflinePipeline(opts) {
   console.log(`${"=".repeat(60)}`);
 }
 
-// 运行
+// Run
 const opts = parseArgs();
 runOfflinePipeline(opts).catch((err) => {
   console.error("Pipeline 失败:", err);

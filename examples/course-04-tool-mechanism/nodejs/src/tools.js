@@ -1,18 +1,18 @@
 /**
- * 课程四工具机制示例：工具定义、参数校验、权限、审计和 Observation 处理。
+ * Course 04 tool mechanism example: tool definitions, argument validation, permissions, auditing, and Observation processing.
  *
- * course 03 的工具只是普通函数集合；course 04 在普通函数外面加了一层
- * Runtime 机制：工具定义、Schema、权限、审计、重试和 Observation 整形。
+ * In course 03, tools are just a set of ordinary functions; course 04 adds a layer around those functions:
+ * runtime mechanics for tool definitions, Schema, permissions, auditing, retries, and Observation shaping.
  */
 const fs = require("node:fs");
 const path = require("node:path");
 
 class ToolResult {
   /**
-   * 统一工具返回结构。
+   * Normalized tool return structure.
    *
-   * 成功和失败都走同一结构，模型下一轮才能稳定读取 `status`、`summary`
-   * 和 `error.code`。这比每个工具随意返回字符串或异常堆栈更适合 Agent loop。
+   * Success and failure both use the same structure so the model can reliably read `status`, `summary`,
+   * and `error.code` on the next turn. This fits an Agent loop better than arbitrary strings or exception stacks from each tool.
    */
   constructor({ status, summary, content = null, error = null }) {
     this.status = status;
@@ -26,8 +26,8 @@ class ToolResult {
   }
 
   static error(code, message, options = {}) {
-    // `retryable`、`suggestedAction` 和 `needsUser` 是给下一轮 LLM 决策用的：
-    // 它们告诉模型这个错误能否重试、应该怎么修正、是否需要用户介入。
+    // `retryable`, `suggestedAction`, and `needsUser` are for the next LLM decision:
+    // they tell the model whether the error can be retried, how it should be corrected, and whether user input is needed.
     return new ToolResult({
       status: "error",
       summary: message,
@@ -53,12 +53,12 @@ class ToolResult {
 
 class ToolDefinition {
   /**
-   * 工具的完整定义。
+   * Complete tool definition.
    *
-   * - `description` 说明适用/不适用场景，帮助模型选工具。
-   * - `parameters` 是简化版 JSON Schema，帮助 Runtime 校验参数。
-   * - `riskLevel` 和 `idempotent` 给权限与重试策略使用。
-   * - `handler` 才是真正执行动作的函数，不会暴露给模型。
+   * - `description` describes applicable and non-applicable cases to help the model choose tools.
+   * - `parameters` is a simplified JSON Schema that helps the runtime validate arguments.
+   * - `riskLevel` and `idempotent` are used by permission and retry policies.
+   * - `handler` is the function that actually performs the action and is not exposed to the model.
    */
   constructor({ name, description, parameters, handler, riskLevel = "low", idempotent = true, maxRetries = 0 }) {
     this.name = name;
@@ -71,8 +71,8 @@ class ToolDefinition {
   }
 
   toContext() {
-    // 返回注入 LLM 上下文的安全工具视图。模型只能看到工具说明和 Schema，
-    // 不能直接执行 handler；真正执行必须经过 executeToolCall。
+    // Return the safe tool view injected into LLM context. The model can only see tool descriptions and Schema,
+    // and cannot execute handlers directly; real execution must go through executeToolCall.
     return {
       name: this.name,
       description: this.description,
@@ -85,16 +85,16 @@ class ToolDefinition {
 
 class ToolRegistry {
   /**
-   * 工具注册表。
+   * Tool registry.
    *
-   * Registry 解决两个问题：
-   * 1. Runtime 可以通过工具名找到实际定义和 handler。
-   * 2. Context Assembly 可以统一生成给模型看的工具列表。
+   * The registry solves two problems:
+   * 1. the runtime can find the actual definition and handler by tool name.
+   * 2. Context Assembly can generate a unified tool list for the model.
    */
   constructor(tools, options = {}) {
     this.tools = new Map(tools.map((tool) => [tool.name, tool]));
-    // 工具结果进入上下文前的最大字符预算。超过后转成 preview + ref，
-    // 避免把长文件或长日志直接塞进下一轮 LLM 上下文。
+    // Maximum character budget before tool results enter context. Larger results become preview + ref,
+    // so long files or logs are not pushed directly into the next LLM context.
     this.maxContextChars = options.maxContextChars || 1200;
   }
 
@@ -109,10 +109,10 @@ class ToolRegistry {
 
 class PermissionPolicy {
   /**
-   * Deny-first 权限策略：未显式允许的工具一律拒绝。
+   * Deny-first permission policy: reject any tool that is not explicitly allowed.
    *
-   * 示例策略只按工具名授权。真实系统通常还会检查用户、资源范围、
-   * 参数中的路径/ID、风险等级，以及是否已有人工确认。
+   * The example policy authorizes only by tool name. Real systems usually also check user, resource scope,
+   * paths or IDs in arguments, risk level, and whether human confirmation already exists.
    */
   constructor({ allowedTools = [] } = {}) {
     this.allowedTools = new Set(allowedTools);
@@ -125,23 +125,23 @@ class PermissionPolicy {
 
 async function executeToolCall({ decision, registry, permissions, auditLog = [] }) {
   /**
-   * 执行完整工具链路。
+   * Execute the full tool path.
    *
-   * 这是课程四相对课程三最关键的变化：Agent loop 不再直接调用函数。
-   * 模型输出的 tool call 必须依次经过：
-   * 1. 工具存在性检查
-   * 2. arguments 结构检查
-   * 3. Schema 参数校验
-   * 4. Deny-first 权限检查
-   * 5. handler 执行与幂等重试
-   * 6. Observation 整形
-   * 7. 审计日志记录
+   * This is the key change from course 03 to course 04: the Agent loop no longer calls functions directly.
+   * A model-produced tool call must pass through these steps in order:
+   * 1. Tool existence check
+   * 2. Argument structure check
+   * 3. Schema argument validation
+   * 4. Deny-first permission check
+   * 5. Handler execution and idempotent retry
+   * 6. Observation shaping
+   * 7. Audit log recording
    */
   const toolName = decision.tool_name;
   const args = decision.arguments || {};
 
-  // 先查注册表，而不是直接从对象上调函数。这样工具不存在时能返回结构化错误，
-  // 并把失败记录进 auditLog。
+  // Check the registry first instead of calling a function directly from an object, so missing tools can return structured errors
+  // and record the failure in auditLog.
   const tool = registry.get(toolName);
 
   if (!tool) {
@@ -152,8 +152,8 @@ async function executeToolCall({ decision, registry, permissions, auditLog = [] 
     return observation;
   }
 
-  // arguments 必须是对象。模型偶尔会输出字符串、数组或 null；Runtime
-  // 需要在执行前拦截，不能把异常泄漏到工具 handler 内部。
+  // arguments must be an object. The model may occasionally output a string, array, or null; the runtime
+  // must intercept that before execution instead of leaking exceptions into tool handlers.
   if (!args || typeof args !== "object" || Array.isArray(args)) {
     const observation = ToolResult.error("invalid_arguments", "工具参数必须是 JSON object", {
       suggestedAction: "重新生成 arguments 对象",
@@ -162,16 +162,16 @@ async function executeToolCall({ decision, registry, permissions, auditLog = [] 
     return observation;
   }
 
-  // Schema 校验在权限检查之前执行。这样缺参数、类型错误等低级问题不会被误报为
-  // 权限问题，调试时能更快定位根因。
+  // Schema validation runs before permission checks, so basic issues like missing arguments or type errors are not misreported as
+  // permission problems, making root causes easier to debug.
   const validationError = validateArguments(tool, args);
   if (validationError) {
     audit(auditLog, toolName, args, "validation", "denied", validationError);
     return validationError;
   }
 
-  // Deny-first：没被允许的工具默认不能执行。尤其是 write_file 这类中风险工具，
-  // 即使模型生成了看似合理的参数，也必须由 Runtime 统一放行。
+  // Deny-first: tools are not executable by default unless allowed. This matters especially for medium-risk tools like write_file,
+  // because even plausible model-generated arguments must be allowed uniformly by the runtime.
   if (!permissions.check(tool, args)) {
     const observation = ToolResult.error("permission_denied", `工具 '${tool.name}' 没有执行权限`, {
       suggestedAction: "请求用户授权，或选择已授权的低风险工具",
@@ -185,18 +185,18 @@ async function executeToolCall({ decision, registry, permissions, auditLog = [] 
   let attempts = 0;
   while (true) {
     try {
-      // 到这里才真正执行工具。前面的所有步骤都只是在检查“是否应该执行”。
+      // Only here is the tool actually executed. All earlier steps only check whether it should be executed.
       const raw = await tool.handler(args);
-      // 原始工具结果不一定适合直接进入下一轮上下文；这里统一做截断、
-      // 引用和元数据补充。
+      // Raw tool results are not always suitable for the next context; this step applies truncation,
+      // references, and metadata enrichment.
       const observation = shapeObservation(raw, tool, args, registry.maxContextChars);
       observation.retryCount = attempts;
       observation.durationMs = Date.now() - startedAt;
       audit(auditLog, toolName, args, "execution", "allowed", observation);
       return observation;
     } catch (err) {
-      // 只重试幂等工具。读文件、查询类工具通常可以重试；写入、发送、下单
-      // 等有副作用工具不应该自动重试。
+      // Retry only idempotent tools. Read-file and query tools can usually be retried; write, send, and order-placement
+      // tools with side effects should not be retried automatically.
       if (tool.idempotent && attempts < tool.maxRetries) {
         attempts += 1;
         continue;
@@ -213,16 +213,16 @@ async function executeToolCall({ decision, registry, permissions, auditLog = [] 
 
 function buildToolRegistry(workspace, options = {}) {
   /**
-   * 构造示例工具集。
+   * Build the example tool set.
    *
-   * 这里故意只放 3 个工具，便于学习者观察每个工具定义字段如何影响行为：
-   * - read_file: 低风险、幂等、可重试。
-   * - write_file: 中风险、非幂等、需要显式授权。
-   * - list_files: 低风险、幂等，用于 file_not_found 后的恢复路径。
+   * This intentionally includes only three tools so learners can observe how each tool-definition field affects behavior:
+   * - read_file: low risk, idempotent, retryable.
+   * - write_file: medium risk, non-idempotent, requires explicit authorization.
+   * - list_files: low risk, idempotent, used as the recovery path after file_not_found.
    */
   function readFile({ path: filePath }) {
-    // 工具内部仍然要做路径边界检查。即使外层有 Schema 和权限，路径越界这种
-    // 资源级风险也必须由工具自身兜底。
+    // Tools must still perform path-boundary checks internally. Even with outer Schema and permissions, out-of-bounds paths are
+    // resource-level risks that each tool must guard against itself.
     let target;
     try {
       target = resolveWorkspacePath(workspace, filePath);
@@ -250,8 +250,8 @@ function buildToolRegistry(workspace, options = {}) {
   }
 
   function writeFile({ path: filePath, content }) {
-    // 这是中风险工具：写入本身在 handler 里很简单，但是否允许写入应该由
-    // PermissionPolicy 在执行前判断。
+    // This is a medium-risk tool: the write itself is simple in the handler, but whether writing is allowed should be decided by
+    // PermissionPolicy before execution.
     const target = resolveWorkspacePath(workspace, filePath);
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.writeFileSync(target, content, "utf8");
@@ -259,8 +259,8 @@ function buildToolRegistry(workspace, options = {}) {
   }
 
   function listFiles() {
-    // 错误恢复工具：当 read_file 返回 file_not_found 时，模型可以先列出
-    // 可用文件，再请求用户确认或改用正确路径。
+    // Error-recovery tool: when read_file returns file_not_found, the model can list
+    // available files first, then ask the user for confirmation or switch to the correct path.
     const files = [];
     walk(workspace, (filePath) => files.push(path.relative(workspace, filePath)));
     return ToolResult.success(`找到 ${files.length} 个文件`, { files: files.sort() }).toObject();
@@ -314,9 +314,9 @@ function buildToolRegistry(workspace, options = {}) {
 }
 
 function validateArguments(tool, args) {
-  // 根据工具参数 Schema 做最小校验。
-  // 示例只实现课程需要的必填、未知字段和基础类型检查。真实系统可以接入
-  // AJV、Zod 等库来支持 enum、minimum、format 等规则。
+  // Perform minimal validation based on the tool argument Schema.
+  // The example implements only required-field, unknown-field, and basic type checks needed by the course. Real systems can integrate
+  // libraries such as AJV or Zod to support rules like enum, minimum, and format.
   const required = tool.parameters.required || [];
   const properties = tool.parameters.properties || {};
   const missing = required.filter((name) => !(name in args));
@@ -343,9 +343,9 @@ function validateArguments(tool, args) {
 }
 
 function shapeObservation(raw, tool, args, maxChars) {
-  // 把工具原始结果整理成适合注入 LLM 上下文的 Observation。
-  // course 03 里工具结果原样进入 state/history；course 04 增加上下文预算：
-  // 长文本只给模型 preview 和 fullContentRef，避免下一轮上下文被长文本挤爆。
+  // Shape raw tool results into Observations suitable for injection into LLM context.
+  // In course 03, tool results entered state/history as-is; course 04 adds a context budget:
+  // long text gives the model only preview and fullContentRef so the next context is not flooded.
   if (raw.status !== "success") {
     return raw;
   }
@@ -367,8 +367,8 @@ function shapeObservation(raw, tool, args, maxChars) {
 }
 
 function resolveWorkspacePath(workspace, requestedPath) {
-  // 把模型生成的路径限制在 workspace 内。
-  // 这是工具层的安全边界：模型可能生成 ../ 或绝对路径，Runtime 不能信任。
+  // Restrict model-generated paths to the workspace.
+  // This is the tool-layer safety boundary: the model may generate ../ or absolute paths, and the runtime cannot trust them.
   const root = path.resolve(workspace);
   const target = path.resolve(root, requestedPath);
   if (target !== root && !target.startsWith(root + path.sep)) {
@@ -389,9 +389,9 @@ function walk(root, onFile) {
 }
 
 function audit(auditLog, toolName, args, stage, result, observation) {
-  // 记录工具链路的关键节点。
-  // 审计日志不是给模型看的完整 Trace，而是给开发者/系统看的安全记录：
-  // 哪个工具、什么参数、在哪个阶段被允许或拒绝、最终错误码是什么。
+  // Record key points in the tool path.
+  // The audit log is not a full Trace for the model; it is a safety record for developers and systems:
+  // which tool, which arguments, at which stage it was allowed or rejected, and the final error code.
   auditLog.push({
     toolName,
     arguments: args,

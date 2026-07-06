@@ -22,7 +22,7 @@ import time
 from datetime import datetime, timedelta
 
 # ============================================================
-# 轻量 Memory 实现（核心逻辑，约 200 行）
+# Lightweight Memory implementation (core logic, about 200 lines)
 # ============================================================
 
 class AgentMemory:
@@ -56,36 +56,36 @@ class AgentMemory:
         with open(self.audit_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
-    # ── 识别候选记忆 ──
+    # ── Identify candidate memories ──
     def identify_candidates(self, user_message):
         candidates = []
         for pat in [r"以后[^，。]*", r"每次[^，。]*", r"不要[^，。]*", r"默认[^，。]*"]:
             for m in re.findall(pat, user_message):
                 candidates.append({"type": "preference", "content": m,
                     "source": "user_explicit", "confidence": 0.95, "sensitive": False})
-        # 敏感信息检测
+        # Sensitive-information detection
         if re.search(r"(?:api[_\s]?key|secret|token|密码)\s*[：:=]\s*\S+", user_message, re.I):
             candidates.append({"type": "sensitive", "content": "[敏感信息]",
                 "source": "detected", "confidence": 0.99, "sensitive": True})
-        # 临时约束
+        # Temporary constraint
         for m in re.findall(r"这次[^，。]*", user_message):
             candidates.append({"type": "temporary", "content": m,
                 "source": "user_explicit", "confidence": 0.9, "sensitive": False})
         return candidates
 
-    # ── 写入守卫 ──
+    # ── Write guard ──
     def should_remember(self, c):
         if c.get("sensitive"): return False, "sensitive"
         if c.get("type") == "temporary": return False, "temporary"
         if c.get("confidence", 0) < 0.5: return False, "low_confidence"
-        # 冲突检测
+        # Conflict detection
         if c["type"] == "preference":
             for k, v in self.preferences.items():
                 if v.get("category") == c.get("category") and v.get("content") != c.get("content"):
                     return True, f"conflict: replacing old preference"
         return True, "ok"
 
-    # ── 写入 ──
+    # ── Write ──
     def write(self, entry):
         ok, reason = self.should_remember(entry)
         if not ok:
@@ -98,7 +98,7 @@ class AgentMemory:
             key = (entry.get("category", "general") + "_" +
                    hashlib.md5(entry.get("content", "").encode()).hexdigest()[:6])
             old = self.preferences.get(key)
-            # 按 key 找不到的话，按 category 搜索冲突（不同 content 但同 category）
+            # If no match is found by key, search conflicts by category (different content but same category)
             if not old:
                 for k, v in self.preferences.items():
                     if v.get("category") == entry.get("category") and v.get("content") != entry.get("content"):
@@ -122,25 +122,25 @@ class AgentMemory:
         self._audit("write_accepted", {"id": mid, "type": entry["type"]})
         return {"status": "written", "id": mid}
 
-    # ── 召回 ──
+    # ── Recall ──
     def recall(self, task, limit=5):
         relevant = []
-        # 关键词匹配（支持中英文混合：用字符 bigram 处理中文，用空格分词处理英文）
+        # Keyword matching (supports mixed Chinese/English: character bigrams for Chinese, whitespace tokens for English)
         task_grams = self._tokenize(task)
         for k, pref in self.preferences.items():
             if pref.get("status") == "superseded": continue
             mem_grams = self._tokenize(pref.get("content", ""))
             overlap = len(task_grams & mem_grams)
-            if overlap >= 1:  # 偏好匹配阈值较低（至少 1 个 token/bigram 重叠）
+            if overlap >= 1:  # Preference matching uses a low threshold (at least one token/bigram overlap)
                 relevant.append({**pref, "score": min(0.95, 0.7 + overlap * 0.05), "match": "keyword"})
-        # 语义召回 (bag-of-words 向量)
+        # Semantic recall (bag-of-words vectors)
         tv = self._embed(task)
         for fact in self.facts:
             if fact.get("status") == "superseded": continue
             fv = self._embed(fact.get("content", ""))
             score = self._cosine(tv, fv)
             if score > 0.3: relevant.append({**fact, "score": round(score, 3), "match": "semantic"})
-        # 排序：分数 × 时间衰减
+        # Sort by score x time decay
         for m in relevant:
             days = self._days_since(m.get("updated_at", m.get("created_at")))
             tf = max(0.5, 1.0 - days / 180)
@@ -155,10 +155,10 @@ class AgentMemory:
         """中英文混合分词：中文用字符 bigram，英文/数字用空格分词"""
         text = text.lower()
         tokens = set()
-        # 提取英文/数字单词
+        # Extract English/numeric words
         for w in re.findall(r'[a-z0-9]+', text):
             tokens.add(w)
-        # 提取中文字符 bigram
+        # Extract Chinese character bigrams
         chinese = re.findall(r'[一-鿿]+', text)
         for seg in chinese:
             for i in range(len(seg) - 1):
@@ -180,7 +180,7 @@ class AgentMemory:
         if not ts: return 999
         return (datetime.now() - datetime.fromisoformat(ts)).total_seconds() / 86400
 
-    # ── 更新 / 删除 / 衰减 ──
+    # ── Update / delete / decay ──
     def update(self, mid, updates):
         for store, path in [(self.preferences, self.pref_path), (self.facts, self.facts_path), (self.history, self.history_path)]:
             items = store.values() if isinstance(store, dict) else store
@@ -232,7 +232,7 @@ class AgentMemory:
 
 
 # ============================================================
-# 交互式演示
+# Interactive demo
 # ============================================================
 
 RESET = "\033[0m"
@@ -292,14 +292,14 @@ def show_recall_results(recalled):
 def simulate(auto=False):
     show_banner()
 
-    # 清理旧数据
+    # Clean up old data
     if os.path.exists("./memory_store"):
         shutil.rmtree("./memory_store")
 
     memory = AgentMemory("./memory_store")
 
     # ═══════════════════════════════════════════════════
-    # SESSION 1: 周一
+    # SESSION 1: Monday
     # ═══════════════════════════════════════════════════
     print(f"{BOLD}{'─'*60}{RESET}")
     print(f"{BOLD}  SESSION 1：周一 10:00-10:45{RESET}")
@@ -308,26 +308,26 @@ def simulate(auto=False):
     memory.start_session("user-001")
     print(f"\n{DIM}[会话开始] decay check: 无过期记忆（系统初始化）{RESET}")
 
-    # 用户输入 1
+    # User input 1
     msg = "以后写技术文章，先给我大纲确认，再展开正文。语气直接，不要营销化。"
     print(f"\n{GREEN}👤 用户：{msg}{RESET}")
 
     candidates = memory.identify_candidates(msg)
     print(f"{DIM}[identify] 识别到 {len(candidates)} 条候选记忆{RESET}")
     for c in candidates:
-        # 用更细粒度的 category 避免同类偏好被互相覆盖
+        # Use a finer-grained category to prevent preferences of the same broad type from overwriting each other
         cat = "writing_workflow" if "大纲" in c["content"] or "先给" in c["content"] else \
               "writing_tone" if "语气" in c["content"] or "营销" in c["content"] else "writing_style"
         result = memory.write({**c, "category": cat})
         status = f"{GREEN}✅ 写入{RESET}" if result["status"] == "written" else f"{RED}❌ 拒绝: {result['reason']}{RESET}"
         print(f"  → {c['content'][:50]}... {status}")
 
-    # 用户输入 2
+    # User input 2
     msg2 = "我最近在用 TypeScript 写 Agent 框架，帮我看看这段代码"
     print(f"\n{GREEN}👤 用户：{msg2}{RESET}")
     print(f"{DIM}[identify] 此消息未触发显式偏好规则，但系统从行为中推断：用户可能偏好 TypeScript{RESET}")
 
-    # 手动写入推断偏好（模拟 identify 无法自动捕获但系统推断出的偏好）
+    # Manually write an inferred preference (simulates a preference inferred by the system but not automatically captured by identify)
     result = memory.write({
         "type": "preference", "category": "code_style",
         "content": "用户可能偏好 TypeScript 示例代码",
@@ -335,11 +335,11 @@ def simulate(auto=False):
     })
     status = f"{YELLOW}⚠️ 写入为候选记忆（低置信度推断，待用户确认）{RESET}" if result["status"] == "written" else f"{RED}❌ 拒绝{RESET}"
     if result["status"] == "written":
-        # 标记为候选
+        # Mark as candidate
         memory.pending.append({"id": result["id"], "content": "用户可能偏好 TypeScript 示例代码"})
     print(f"  → 推断偏好: TypeScript 示例代码... {status}")
 
-    # 用户输入 3
+    # User input 3
     msg3 = "帮我写一篇 Agent Memory 的技术文章"
     print(f"\n{GREEN}👤 用户：{msg3}{RESET}")
     recalled = memory.recall(msg3, limit=5)
@@ -347,7 +347,7 @@ def simulate(auto=False):
     show_recall_results(recalled)
     print(f"\n{CYAN}🤖 Agent：（因为有 #1 偏好记忆，先输出大纲等待确认）{RESET}")
 
-    # 任务完成后写入经验
+    # Write experience after the task is complete
     memory.write({"type": "task_result", "content": "先大纲再正文在技术文章中效果好，3轮迭代完成",
                   "source": "auto", "confidence": 0.8})
     print(f"{DIM}[write] 任务经验已记录{RESET}")
@@ -356,7 +356,7 @@ def simulate(auto=False):
     memory.end_session()
 
     # ═══════════════════════════════════════════════════
-    # SESSION 2: 周二（跨会话！）
+    # SESSION 2: Tuesday (Cross-session!)
     # ═══════════════════════════════════════════════════
     wait(f"\n{DIM}按 Enter 进入 Session 2（周二，跨会话）...{RESET}", auto)
 
@@ -383,7 +383,7 @@ def simulate(auto=False):
     memory.end_session()
 
     # ═══════════════════════════════════════════════════
-    # SESSION 3: 周三（偏好变更！）
+    # SESSION 3: Wednesday (Preference changed!)
     # ═══════════════════════════════════════════════════
     wait(f"\n{DIM}按 Enter 进入 Session 3（周三，偏好变更）...{RESET}", auto)
 
@@ -415,7 +415,7 @@ def simulate(auto=False):
     memory.end_session()
 
     # ═══════════════════════════════════════════════════
-    # 总结
+    # Summary
     # ═══════════════════════════════════════════════════
     print(f"\n{BOLD}{'─'*60}{RESET}")
     print(f"{BOLD}  📊 完整生命周期总结{RESET}")

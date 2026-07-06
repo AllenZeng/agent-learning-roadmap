@@ -28,14 +28,14 @@ from retrieval_core import (
     tokenize,
 )
 
-# ---------- 配置 ----------
+# ---------- Configuration ----------
 
-# 最小 chunk 字符数（太短的合并到上一个 chunk）
+# Minimum chunk character count (shorter chunks are merged into the previous chunk)
 MIN_CHUNK_CHARS = 100
 
 
 # ================================================================
-# 阶段一：数据接入与预处理（§2.4.2）
+# Stage 1: data ingestion and preprocessing (section 2.4.2)
 # ================================================================
 
 def scan_notes(notes_dir: str) -> list[Path]:
@@ -63,7 +63,7 @@ def parse_frontmatter(text: str) -> tuple[dict, str]:
                 if ":" in line:
                     key, _, val = line.partition(":")
                     key, val = key.strip(), val.strip()
-                    # 简单列表解析 [a, b, c]
+                    # Simple list parsing [a, b, c]
                     if val.startswith("[") and val.endswith("]"):
                         val = [v.strip().strip("\"'") for v in val[1:-1].split(",")]
                     meta[key] = val
@@ -89,7 +89,7 @@ def build_section_path(headings: list[dict], chunk_idx: int) -> str:
     current = headings[chunk_idx]
     path_parts = []
 
-    # 向上查找父级标题
+    # Look upward for parent headings
     for h in reversed(headings[: chunk_idx + 1]):
         if h["level"] <= current["level"]:
             path_parts.insert(0, h["title"])
@@ -102,15 +102,15 @@ def build_section_path(headings: list[dict], chunk_idx: int) -> str:
 
 def clean_content(text: str) -> str:
     """清洗笔记正文：去除多余空行、代码块暂时保留"""
-    # 统一换行
+    # Normalize line endings
     text = text.replace("\r\n", "\n").replace("\r", "\n")
-    # 去除 3 个以上的连续空行
+    # Remove runs of more than three blank lines
     text = re.sub(r"\n{4,}", "\n\n\n", text)
     return text.strip()
 
 
 # ================================================================
-# 阶段二：Chunking（§2.4.3）
+# Stage 2: Chunking (section 2.4.3)
 # ================================================================
 
 def chunk_by_headings(text: str, headings: list[dict]) -> list[dict]:
@@ -125,11 +125,11 @@ def chunk_by_headings(text: str, headings: list[dict]) -> list[dict]:
 
     for i, h in enumerate(effective_headings):
         start = h["position"]
-        # 下一个同级的结束位置
+        # End position of the next peer heading
         end = effective_headings[i + 1]["position"] if i + 1 < len(effective_headings) else len(text)
         content = text[start:end].strip()
 
-        # 提取标题行之后的内容
+        # Extract content after the heading line
         first_newline = content.find("\n")
         if first_newline > 0:
             content = content[first_newline:].strip()
@@ -145,9 +145,9 @@ def chunk_by_headings(text: str, headings: list[dict]) -> list[dict]:
                 }
             )
 
-    # 如果没有任何 ## 标题，整篇作为一个 chunk
+    # If there are no ## headings, treat the whole document as one chunk
     if not chunks and len(text.strip()) >= MIN_CHUNK_CHARS:
-        # 去掉 h1 标题行
+        # Remove the h1 heading line
         body = text
         if headings and headings[0]["level"] == 1:
             first_line_end = text.find("\n")
@@ -167,12 +167,12 @@ def chunk_by_headings(text: str, headings: list[dict]) -> list[dict]:
 
 
 # ================================================================
-# 阶段三：元数据标注（§2.4.2）
+# Stage 3: metadata tagging (section 2.4.2)
 # ================================================================
 
 def annotate_chunk(chunk: dict, source_file: str, frontmatter: dict, idx: int) -> dict:
     """为 chunk 绑定来源、时间、标签、状态等元数据"""
-    # 生成语义化的 chunk_id
+    # Generate a semantic chunk_id
     safe_name = Path(source_file).stem.replace(" ", "-").lower()
     safe_section = re.sub(r"[^\w]+", "-", chunk.get("section_path", "body")).lower()[:50]
     chunk_id = f"{safe_name}_sec_{idx:02d}"
@@ -191,7 +191,7 @@ def annotate_chunk(chunk: dict, source_file: str, frontmatter: dict, idx: int) -
 
 
 # ================================================================
-# 阶段四：伪 Embedding + 索引（§2.4.4）
+# Stage 4: pseudo-Embedding + index (section 2.4.4)
 # ================================================================
 
 def build_bm25_index(chunks: list[dict]):
@@ -204,7 +204,7 @@ def build_bm25_index(chunks: list[dict]):
 
 
 # ================================================================
-# 保存索引
+# Save the index
 # ================================================================
 
 def save_index(
@@ -217,26 +217,26 @@ def save_index(
     """保存所有索引文件到 index/ 目录"""
     os.makedirs(index_dir, exist_ok=True)
 
-    # 1. Chunk 元数据 + 内容 → JSON
+    # 1. Chunk metadata + content -> JSON
     chunks_path = os.path.join(index_dir, "chunks.json")
     with open(chunks_path, "w", encoding="utf-8") as f:
         json.dump(chunks, f, ensure_ascii=False, indent=2)
     print(f"[保存] chunks.json  ({len(chunks)} 条记录)")
 
-    # 2. 向量嵌入 → JSON
+    # 2. Vector embeddings -> JSON
     emb_path = os.path.join(index_dir, "embeddings.json")
     with open(emb_path, "w", encoding="utf-8") as f:
         json.dump(embeddings, f)
     embedding_dim = len(embeddings[0]) if embeddings else 0
     print(f"[保存] embeddings.json  ({len(embeddings)} × {embedding_dim})")
 
-    # 3. BM25 索引 → JSON
+    # 3. BM25 index -> JSON
     bm25_path = os.path.join(index_dir, "bm25_index.json")
     with open(bm25_path, "w", encoding="utf-8") as f:
         json.dump(bm25_index.to_dict(), f, ensure_ascii=False)
     print(f"[保存] bm25_index.json")
 
-    # 4. 索引元信息
+    # 4. Index metadata
     meta = {
         "total_chunks": len(chunks),
         "embedding_dim": embedding_dim,
@@ -255,7 +255,7 @@ def save_index(
 
 
 # ================================================================
-# 主流程
+# Main flow
 # ================================================================
 
 def run_offline_pipeline(notes_dir: str = "notes", index_dir: str = "output"):
@@ -265,7 +265,7 @@ def run_offline_pipeline(notes_dir: str = "notes", index_dir: str = "output"):
     print("  原始笔记 → 解析清洗 → Chunking → Embedding → 索引入库")
     print("=" * 60)
 
-    # ── Step 1: 扫描 ──
+    # ── Step 1: Scan ──
     files = scan_notes(notes_dir)
     if not files:
         print("[错误] 没有找到 Markdown 文件，请先运行 generate_notes.py")
@@ -276,14 +276,14 @@ def run_offline_pipeline(notes_dir: str = "notes", index_dir: str = "output"):
     for file_path in files:
         print(f"\n── 处理: {file_path.name} ──")
 
-        # ── Step 2: 解析 ──
+        # ── Step 2: Parse ──
         raw_text = file_path.read_text(encoding="utf-8")
         frontmatter, body = parse_frontmatter(raw_text)
         print(f"   状态: {frontmatter.get('status', 'unknown')}  |  "
               f"标签: {frontmatter.get('tags', [])}  |  "
               f"更新: {frontmatter.get('updated', '?')}")
 
-        # ── Step 3: 清洗 ──
+        # ── Step 3: Clean ──
         body = clean_content(body)
 
         # ── Step 4: Chunking ──
@@ -292,7 +292,7 @@ def run_offline_pipeline(notes_dir: str = "notes", index_dir: str = "output"):
         chunks = chunk_by_headings(body, headings)
         print(f"切出 {len(chunks)} 个 chunk")
 
-        # ── Step 5: 元数据标注 ──
+        # ── Step 5: Metadata tagging ──
         for i, chunk in enumerate(chunks):
             annotated = annotate_chunk(chunk, str(file_path), frontmatter, i)
             all_chunks.append(annotated)
@@ -300,7 +300,7 @@ def run_offline_pipeline(notes_dir: str = "notes", index_dir: str = "output"):
                   f"({annotated['char_count']} 字符)  "
                   f"→ {annotated['section_path'][:60]}")
 
-    # ── Step 6: 过滤草稿 ──
+    # ── Step 6: Filter drafts ──
     published = [c for c in all_chunks if c["status"] != "draft"]
     if len(published) < len(all_chunks):
         print(f"\n[过滤] 排除 {len(all_chunks) - len(published)} 个草稿 chunk，"
@@ -314,10 +314,10 @@ def run_offline_pipeline(notes_dir: str = "notes", index_dir: str = "output"):
     embedding_dim = len(embeddings[0]) if embeddings else 0
     print(f"[Embedding] 完成，向量维度: {embedding_dim}")
 
-    # ── Step 9: BM25 索引 ──
+    # ── Step 9: BM25 index ──
     bm25_index = build_bm25_index(published)
 
-    # ── Step 10: 保存 ──
+    # ── Step 10: Save ──
     print(f"\n── 保存索引到 {index_dir}/ ──")
     save_index(index_dir, published, embeddings, bm25_index, pseudo_embedding_idf)
 

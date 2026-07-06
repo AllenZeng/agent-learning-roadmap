@@ -19,9 +19,9 @@ from scenario import StepResult, StepStatus, TOOL_REGISTRY
 class Node:
     """图中的一个节点"""
     name: str
-    action: Callable[[dict], StepResult]    # 节点要执行的动作
-    on_success: Optional[str] = None         # 成功后跳转到哪个节点
-    on_error: Optional[str] = None           # 失败后跳转到哪个节点
+    action: Callable[[dict], StepResult]    # Action executed by the node
+    on_success: Optional[str] = None         # Node to jump to after success
+    on_error: Optional[str] = None           # Node to jump to after failure
     max_retries: int = 1
     retry_count: int = 0
     description: str = ""
@@ -31,7 +31,7 @@ class Node:
 class GraphResult:
     """Graph 执行结果"""
     status: str                      # completed | failed
-    path: list[str]                  # 实际执行路径
+    path: list[str]                  # Actual execution path
     results: dict[str, StepResult] = field(default_factory=dict)
     context: dict = field(default_factory=dict)
     error: Optional[str] = None
@@ -104,7 +104,7 @@ class WorkflowGraph:
         ctx = context or {}
         result = GraphResult(status="completed", path=[], context=ctx)
         current = self._entry
-        visited_count: dict[str, int] = {}  # 用于环路检测
+        visited_count: dict[str, int] = {}  # Used for loop detection
 
         while current:
             node = self.nodes.get(current)
@@ -113,7 +113,7 @@ class WorkflowGraph:
                 result.status = "failed"
                 return result
 
-            # 环路检测
+            # Loop detection
             visited_count[current] = visited_count.get(current, 0) + 1
             if visited_count[current] > node.max_retries + 1:
                 result.error = f"检测到环路: 节点 '{current}' 被访问了 {visited_count[current]} 次"
@@ -125,26 +125,26 @@ class WorkflowGraph:
             if on_node_start:
                 on_node_start(current)
 
-            # 执行节点动作
+            # Execute node action
             step_result = node.action(ctx)
             result.results[current] = step_result
             ctx[current] = step_result.output
 
-            # 决定下一个节点
+            # Decide the next node
             if step_result.status == StepStatus.ERROR:
                 node.retry_count += 1
                 if node.retry_count < node.max_retries:
-                    next_node = current  # 重试当前节点
+                    next_node = current  # Retry the current node
                 else:
                     next_node = node.on_error
             else:
                 next_node = node.on_success
-                node.retry_count = 0  # 成功后重置重试计数
+                node.retry_count = 0  # Reset retry count after success
 
             if on_node_end:
                 on_node_end(current, step_result, next_node or "（终止）")
 
-            # 防止无限循环（同一个节点连续执行不超过 max_retries+1 次）
+            # Prevent infinite loops (the same node cannot run more than max_retries + 1 consecutive times)
             if next_node == current and node.retry_count >= node.max_retries:
                 result.error = f"节点 '{current}' 重试 {node.retry_count} 次后仍然失败"
                 result.status = "failed"
@@ -181,7 +181,7 @@ class WorkflowGraph:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 预构建的"发布准备"工作流图
+# Prebuilt "release preparation" workflow graph
 # ═══════════════════════════════════════════════════════════════════════════
 
 def build_release_workflow(inject_failures: Optional[dict[str, bool]] = None) -> WorkflowGraph:
@@ -229,7 +229,7 @@ def build_release_workflow(inject_failures: Optional[dict[str, bool]] = None) ->
             return tool(fail=should_fail)
         return action
 
-    # 节点定义
+    # Node definitions
     graph.add_node(
         "check_readme",
         action=make_action("检查 README"),
@@ -245,7 +245,7 @@ def build_release_workflow(inject_failures: Optional[dict[str, bool]] = None) ->
             status=StepStatus.SUCCESS,
             output="README 缺失内容已补充。建议重新运行检查。",
         ),
-        on_success=None,  # 修复后终止（需要人工检查）
+        on_success=None,  # Stop after fixing (requires human review)
         on_error=None,
         description="尝试自动修复 README 缺失章节",
     )
@@ -267,7 +267,7 @@ def build_release_workflow(inject_failures: Optional[dict[str, bool]] = None) ->
             output="重试后测试通过（可能是环境波动）",
         ),
         on_success="changelog",
-        on_error=None,  # 重试也失败 → 终止
+        on_error=None,  # Retry also failed -> stop
         description="重试测试（可能是环境波动导致）",
     )
 
@@ -275,15 +275,15 @@ def build_release_workflow(inject_failures: Optional[dict[str, bool]] = None) ->
         "changelog",
         action=make_action("整理 changelog"),
         on_success="checklist",
-        on_error=None,  # changelog 失败 → 终止
+        on_error=None,  # changelog failed -> stop
         description="基于 git log 生成 changelog",
     )
 
     graph.add_node(
         "checklist",
         action=make_action("生成 checklist"),
-        on_success=None,  # 完成！
-        on_error=None,    # checklist 失败 → 终止
+        on_success=None,  # Done!
+        on_error=None,    # checklist failed -> stop
         description="生成发布 checklist",
     )
 

@@ -13,7 +13,7 @@ from typing import Callable, Optional
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 步骤结果
+# Step result
 # ═══════════════════════════════════════════════════════════════════════════
 
 class StepStatus(Enum):
@@ -33,10 +33,10 @@ class StepResult:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 模拟工具集
+# Mock tool set
 # ═══════════════════════════════════════════════════════════════════════════
 
-# 模拟的 README 内容（故意缺少一些必要章节）
+# Mock README content (intentionally missing some required sections)
 MOCK_README = """# MyAgent
 
 A lightweight Agent framework.
@@ -60,7 +60,7 @@ agent.run("Hello")
 See docs/api.md for details.
 """
 
-# 模拟的 git log
+# Mock git log
 MOCK_GIT_LOG = """abc1234 (HEAD -> main) fix: resolve memory leak in session pool
 def5678 feat: add streaming support for tool calls
 ghi9012 docs: update API documentation
@@ -68,7 +68,7 @@ jkl3456 fix: handle empty response from LLM
 mno7890 feat: add retry with exponential backoff
 """
 
-# 模拟的测试结果
+# Mock test results
 MOCK_TEST_OUTPUT = """============================= test session starts ==============================
 collected 42 items
 
@@ -107,7 +107,7 @@ tests/test_memory.py:28: AssertionError
 
 def check_readme(fail: bool = False) -> StepResult:
     """检查 README 完整性——模拟文件读取和内容分析"""
-    time.sleep(0.3)  # 模拟 I/O
+    time.sleep(0.3)  # Simulate I/O
     if fail:
         return StepResult(
             step_name="检查 README",
@@ -115,7 +115,7 @@ def check_readme(fail: bool = False) -> StepResult:
             error="FileNotFoundError: README.md 不存在于项目根目录",
         )
 
-    # 检查必要章节
+    # Check required sections
     required_sections = ["Installation", "Quick Start", "API", "Contributing"]
     missing = [s for s in required_sections if s not in MOCK_README]
 
@@ -134,7 +134,7 @@ def check_readme(fail: bool = False) -> StepResult:
 
 def run_tests(fail: bool = False) -> StepResult:
     """运行测试——模拟测试执行"""
-    time.sleep(0.8)  # 模拟测试运行
+    time.sleep(0.8)  # Simulate test run
     if fail:
         return StepResult(
             step_name="运行测试",
@@ -207,7 +207,7 @@ def create_checklist(fail: bool = False) -> StepResult:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 工具注册表：step_name → callable
+# Tool registry: step_name -> callable
 # ═══════════════════════════════════════════════════════════════════════════
 
 TOOL_REGISTRY: dict[str, Callable[..., StepResult]] = {
@@ -217,15 +217,15 @@ TOOL_REGISTRY: dict[str, Callable[..., StepResult]] = {
     "生成 checklist": create_checklist,
 }
 
-# 步骤依赖关系：哪些步骤必须在哪些步骤之前
+# Step dependencies: which steps must run before which other steps
 STEP_DEPENDENCIES = {
-    "检查 README": [],           # 无依赖
-    "运行测试": [],               # 无依赖（可与 README 检查并行）
-    "整理 changelog": ["运行测试"],  # 必须在测试通过后
-    "生成 checklist": ["检查 README", "运行测试", "整理 changelog"],  # 必须在所有步骤后
+    "检查 README": [],           # No dependencies
+    "运行测试": [],               # No dependencies (can run in parallel with README check)
+    "整理 changelog": ["运行测试"],  # Must run after tests pass
+    "生成 checklist": ["检查 README", "运行测试", "整理 changelog"],  # Must run after all steps
 }
 
-# 默认发布准备步骤（Chain 模式使用）
+# Default release preparation steps (used by Chain mode)
 DEFAULT_RELEASE_STEPS = [
     "检查 README",
     "运行测试",
@@ -233,7 +233,7 @@ DEFAULT_RELEASE_STEPS = [
     "生成 checklist",
 ]
 
-# 步骤默认重试次数
+# Default retry count per step
 DEFAULT_MAX_RETRIES = 2
 
 

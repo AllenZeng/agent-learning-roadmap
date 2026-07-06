@@ -17,7 +17,7 @@ import hashlib
 import re
 
 
-# Token 预算模块：示例使用启发式估算，真实项目应替换为模型 tokenizer。
+# Token budget module: this example uses heuristic estimates; real projects should replace it with the model tokenizer.
 def estimate_tokens(text: str) -> int:
     """轻量 token 估算：中文按 1 字约 1 token，英文按 4 字符约 1 token。"""
     chinese = len(re.findall(r"[\u4e00-\u9fff]", text))

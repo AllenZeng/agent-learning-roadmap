@@ -78,7 +78,7 @@ class PlanExecuteExecutor:
         """
         goal_lower = goal.lower()
 
-        # 根据目标匹配步骤模板
+        # Match step templates by goal
         if any(w in goal_lower for w in ["发布", "release"]):
             steps = [
                 PlanStep(
@@ -116,7 +116,7 @@ class PlanExecuteExecutor:
                 ),
             ]
         else:
-            # 通用步骤模板
+            # Generic step template
             steps = [
                 PlanStep(
                     name="检查 README", tool="检查 README",
@@ -165,11 +165,11 @@ class PlanExecuteExecutor:
         """
         self._replan_count += 1
 
-        # 基于失败原因决定重规划策略
+        # Choose a replanning strategy based on the failure reason
         new_steps = []
 
         if "FileNotFound" in error or "不存在" in error:
-            # 文件不存在 → 跳过当前步骤，用替代步骤
+            # File missing -> skip the current step and use an alternative step
             new_steps.append(PlanStep(
                 name=f"替代方案（{failed_step}）",
                 tool="生成 checklist",
@@ -178,14 +178,14 @@ class PlanExecuteExecutor:
             ))
 
         elif "测试失败" in error or "AssertionError" in error:
-            # 测试失败 → 插入"分析失败原因"步骤
+            # Test failed -> insert an "analyze failure reason" step
             new_steps.append(PlanStep(
                 name=f"分析 {failed_step} 失败原因",
                 tool="运行测试",
                 description=f"重新运行测试以确认失败原因: {error}",
                 depends_on=[],
             ))
-            # 继续原计划的后续步骤
+            # Continue with the remaining steps of the original plan
             remaining = [s for s in ["整理 changelog", "生成 checklist"]
                         if s not in completed_steps]
             for s in remaining:
@@ -196,7 +196,7 @@ class PlanExecuteExecutor:
                 ))
 
         else:
-            # 通用错误 → 跳过失败步骤，继续执行剩余步骤
+            # Generic error -> skip the failed step and continue remaining steps
             remaining = [s for s in ["整理 changelog", "生成 checklist"]
                         if s not in completed_steps and s != failed_step]
             for s in remaining:
@@ -236,12 +236,12 @@ class PlanExecuteExecutor:
         ctx = context or {}
         inject_failures = inject_failures or {}
 
-        # ── 第 1 步：生成计划 ──
+        # ── Step 1: generate plan ──
         plan = self.generate_plan(goal)
         if on_plan:
             on_plan(plan)
 
-        # ── 第 2 步：用户确认（演示模式下自动确认）──
+        # ── Step 2: user confirmation (auto-confirmed in demo mode)──
         if not auto_confirm:
             return PlanExecuteResult(
                 status="waiting_confirmation",
@@ -250,7 +250,7 @@ class PlanExecuteExecutor:
                 error="等待用户确认计划后再执行",
             )
 
-        # ── 第 3 步：逐步执行 ──
+        # ── Step 3: execute step by step ──
         result = PlanExecuteResult(status="completed", plan=plan, context=ctx)
         i = 0
         seen_replans: set[tuple[str, ...]] = set()
@@ -258,11 +258,11 @@ class PlanExecuteExecutor:
         while i < len(plan.steps):
             step = plan.steps[i]
 
-            # 检查依赖是否满足
+            # Check whether dependencies are satisfied
             unmet = [d for d in step.depends_on if d not in plan.completed_steps]
             if unmet:
-                # 依赖未满足，先执行依赖步骤
-                # 将未满足的依赖插入到当前位置之前
+                # If dependencies are not satisfied, execute dependency steps first
+                # Insert unsatisfied dependencies before the current position
                 for dep_name in unmet:
                     if dep_name not in [s.name for s in plan.steps[:i]]:
                         dep_step = PlanStep(
@@ -271,13 +271,13 @@ class PlanExecuteExecutor:
                             depends_on=[],
                         )
                         plan.steps.insert(i, dep_step)
-                continue  # 重新处理当前位置
+                continue  # Process the current position again
 
             step.status = "running"
             if on_step_start:
                 on_step_start(step.name)
 
-            # 查找并执行工具
+            # Find and execute the tool
             tool = TOOL_REGISTRY.get(step.tool)
             if not tool:
                 step_result = StepResult(
@@ -286,7 +286,7 @@ class PlanExecuteExecutor:
                     error=f"未找到工具: {step.tool}",
                 )
             else:
-                # 检查是否需要注入失败
+                # Check whether a failure should be injected
                 should_fail = inject_failures.get(step.name, False)
                 step_result = tool(fail=should_fail)
 
@@ -296,16 +296,16 @@ class PlanExecuteExecutor:
             if on_step_end:
                 on_step_end(step_result)
 
-            # ── 处理失败 ──
+            # ── Handle failure ──
             if step_result.status == StepStatus.ERROR:
                 step.retries += 1
 
                 if step.retries < step.max_retries:
-                    # 重试
+                    # Retry
                     step.status = "pending"
                     continue
                 else:
-                    # 重试耗尽 → 触发重规划
+                    # Retries exhausted -> trigger replanning
                     if self._replan_count >= self.max_replan_count:
                         result.status = "failed"
                         result.error = (
@@ -328,7 +328,7 @@ class PlanExecuteExecutor:
                         on_replan(step.name, new_steps)
 
                     if not new_steps:
-                        # 重规划没有生成替代步骤，任务失败
+                        # Replanning produced no alternative steps, so the task fails
                         result.status = "failed"
                         result.error = f"步骤 '{step.name}' 失败且无法重规划"
                         result.replan_count = self._replan_count
@@ -341,15 +341,15 @@ class PlanExecuteExecutor:
                         return result
                     seen_replans.add(signature)
 
-                    # 用新步骤替换当前及后续步骤
+                    # Replace the current and later steps with new steps
                     plan.steps = (
-                        plan.steps[:i] +  # 已处理的步骤（包括失败的）
-                        new_steps           # 新生成的步骤
+                        plan.steps[:i] +  # Processed steps (including the failed one)
+                        new_steps           # Newly generated steps
                     )
                     result.replan_count = self._replan_count
                     continue
 
-            # 成功
+            # Success
             step.status = "completed"
             plan.completed_steps.append(step.name)
             i += 1

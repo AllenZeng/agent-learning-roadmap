@@ -1,8 +1,8 @@
 /**
- * Node.js 版课程四工具机制示例入口。
+ * Node.js entry point for the course 04 tool mechanism example.
  *
- * 这个文件在课程三最小闭环基础上，演示工具 Schema、权限检查、审计日志、
- * 结构化 Observation 和结果截断如何进入 Runtime。
+ * This file builds on the course 03 minimal loop to demonstrate tool Schema, permission checks, audit logs,
+ * structured Observations, and result truncation inside the runtime.
  */
 const path = require("node:path");
 
@@ -76,7 +76,7 @@ function printEventLog(event) {
 }
 
 function demoLLM() {
-  // 固定决策序列，便于离线学习和测试。
+  // Fixed decision sequence for offline learning and tests.
   return new ScriptedLLM(
     [
       {

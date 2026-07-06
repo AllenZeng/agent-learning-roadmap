@@ -20,7 +20,7 @@
 import sys
 import os
 
-# 确保可以导入同目录的模块
+# Ensure modules in the same directory can be imported
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from scenario import (
@@ -33,7 +33,7 @@ from patterns.graph import build_release_workflow, GraphResult
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 显示辅助函数
+# Display helper functions
 # ═══════════════════════════════════════════════════════════════════════════
 
 CHECK = "✅"
@@ -67,7 +67,7 @@ def print_step_end(result):
     if result.status == StepStatus.SUCCESS:
         print(f"{CHECK} 成功 ({result.duration_ms:.0f}ms)")
         if result.output:
-            # 只显示前 80 个字符
+            # Show only the first 80 characters
             preview = result.output[:80].replace("\n", " ")
             print(f"     {preview}...")
     else:
@@ -95,7 +95,7 @@ def print_result_summary(mode: str, status: str, steps_count: int, replan_count:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 模式执行函数
+# Pattern execution functions
 # ═══════════════════════════════════════════════════════════════════════════
 
 def demo_chain():
@@ -135,7 +135,7 @@ def demo_chain_with_failure():
     print('  下面模拟「运行测试」步骤失败，看看会发生什么。')
     print()
 
-    # 手动模拟 Chain 执行，注入测试失败
+    # Manually simulate Chain execution and inject a test failure
     steps = DEFAULT_RELEASE_STEPS
     from scenario import TOOL_REGISTRY, StepResult, StepStatus
 
@@ -175,7 +175,7 @@ def demo_router():
 
     executor = RouterExecutor()
 
-    # 展示三个不同输入的路由结果
+    # Show routing results for three different inputs
     queries = [
         "帮我做 v1.2.0 发布准备",
         "修复 session pool 内存泄漏 bug",
@@ -361,7 +361,7 @@ def demo_graph_with_failure():
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 对比模式
+# Comparison mode
 # ═══════════════════════════════════════════════════════════════════════════
 
 def demo_compare():
@@ -384,7 +384,7 @@ def demo_compare():
         ("适用场景", "步骤固定、异常少", "多类型入口", "中长任务、需规划", "状态复杂、分支多"),
     ]
 
-    # 打印表格
+    # Print the table
     col_widths = [14, 16, 18, 18, 18]
     for row in comparisons:
         print("  ", end="")
@@ -403,7 +403,7 @@ def demo_compare():
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# REPL 主菜单
+# REPL main menu
 # ═══════════════════════════════════════════════════════════════════════════
 
 def main():
@@ -443,7 +443,7 @@ def main():
                 fn()
                 break
         else:
-            # 检查是否是数字
+            # Check whether it is a number
             try:
                 idx = int(choice) - 1
                 menu_items[idx][2]()

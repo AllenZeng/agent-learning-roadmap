@@ -1,18 +1,18 @@
 /**
- * 课程三最小 Agent 的 Runtime 主循环。
+ * Runtime main loop for the course 03 minimal Agent.
  *
- * LLM 只负责提出结构化决策。本模块负责确定性的运行时职责：组装上下文、分发工具、
- * 记录 Observation、更新 State、收集 Trace，以及检查停止条件。
+ * The LLM only proposes structured decisions. This module owns deterministic runtime duties: assembling context, dispatching tools,
+ * recording Observations, updating State, collecting Trace, and checking stop conditions.
  */
 const { SYSTEM_PROMPT } = require("./prompt");
 
 class AgentState {
   /**
-   * Runtime 持有的单次任务状态。
+   * Single-task state held by the runtime.
    *
-   * ``stepCount`` 只在工具调用步骤递增；final_answer / ask_user /
-   * fail 等终止决策不计入步骤数，因此 trace 长度可能比 stepCount
-   * 多 1（多出一条终止决策记录）。
+   * ``stepCount`` increments only on tool-call steps; final_answer / ask_user /
+   * fail and other terminal decisions do not count as steps, so trace length may be
+   * one greater than stepCount because it includes the terminal decision record.
    */
   constructor({ userGoal, maxSteps = 8, maxToolErrors = 5 }) {
     this.userGoal = userGoal;
@@ -40,16 +40,16 @@ async function runAgent({
   conversation = [],
   logger = null,
 }) {
-  // State 和 Trace 独立于 LLM 保存，这样循环行为可以被回放和审计。
+  // State and Trace are stored outside the LLM so loop behavior can be replayed and audited.
   const state = new AgentState({ userGoal, maxSteps });
   const trace = [];
 
-  // 0. 启动循环
+  // 0. Start the loop
   while (!state.stopReason) {
-    // 1. Context Assembly：只把本轮决策需要的状态切片交给 LLM。
+    // 1. Context Assembly: pass only the state slices needed for this decision to the LLM.
     const context = assembleContext({ systemPrompt, tools, state, conversation });
 
-    // 2. 调用 llm 进行决策，并对结果进行标准化处理
+    // 2. Call the LLM for a decision and normalize the result
     const decision = normalizeDecision(await llmCall(context));
     logEvent(logger, { event: "llm_decision", step: state.stepCount, decision });
     const traceEntry = {
@@ -58,7 +58,7 @@ async function runAgent({
       decision,
     };
 
-    // 3. 对结果进行判断
+    // 3. Inspect the result
     if (decision.type === "final_answer") {
       state.stopReason = "completed";
       state.finalAnswer = decision.answer || "";
@@ -75,7 +75,7 @@ async function runAgent({
       return finalize({ state, traceEntry, trace, logger, status: "failed", fields: { reason: decision.reason || "" } });
     }
 
-    // Interaction / Observation：Runtime 执行工具，并把结果统一成 Observation。
+    // Interaction / Observation: the runtime executes tools and normalizes results into Observations.
     logEvent(logger, {
       event: "tool_call",
       step: state.stepCount,
@@ -83,16 +83,16 @@ async function runAgent({
       arguments: decision.arguments || {},
     });
 
-    // 4. 决策结果是要调用工具，执行工具
+    // 4. If the decision is a tool call, execute the tool
     const observation = await executeTool({ decision, tools });
     logEvent(logger, { event: "tool_result", step: state.stepCount, observation });
 
-    // 5. 标准化处理工具执行结果并写入 state
+    // 5. Normalize the tool execution result and write it into state
     updateStateFromToolCall({ state, decision, observation });
     traceEntry.observation = observation;
 
     state.stepCount += 1;
-    // 6. Continue or Stop：停止条件由 Runtime 判断，不依赖模型自觉。
+    // 6. Continue or Stop: the runtime owns stopping conditions instead of relying on the model to stop itself.
     const stopReason = checkStop(state);
     if (stopReason) {
       state.stopReason = stopReason;
@@ -109,14 +109,14 @@ async function runAgent({
       reason: state.stopReason,
     });
     trace.push(traceEntry);
-    // 7. 进行下一次循环
+    // 7. Continue to the next loop iteration
   }
 
   return { status: "stopped", reason: state.stopReason, state, trace };
 }
 
 function finalize({ state, traceEntry, trace, logger, status, fields = {} }) {
-  /** 记录最终状态快照和停止检查，返回统一的结果结构。 */
+  /** Record the final state snapshot and stop check, then return a normalized result structure. */
   traceEntry.stateUpdate = stateSummary(state);
   traceEntry.stateSnapshot = stateSnapshot(state);
   traceEntry.stopCheck = { continue: false, reason: state.stopReason };
@@ -127,7 +127,7 @@ function finalize({ state, traceEntry, trace, logger, status, fields = {} }) {
 }
 
 function assembleContext({ systemPrompt, tools, state, conversation = [] }) {
-  // 选择哪些状态切片应该进入下一次 LLM 调用。
+  // Choose which state slices should enter the next LLM call.
   return {
     system: systemPrompt,
     goal: state.userGoal,
@@ -142,7 +142,7 @@ function assembleContext({ systemPrompt, tools, state, conversation = [] }) {
 }
 
 function normalizeDecision(decision) {
-  // 把模型输出收敛到 Runtime 能处理的决策格式。
+  // Converge model output into a decision format the runtime can handle.
   if (!decision || typeof decision !== "object" || Array.isArray(decision)) {
     return { type: "fail", thought: "Model output was not a JSON object.", reason: "invalid_decision" };
   }
@@ -156,7 +156,7 @@ function normalizeDecision(decision) {
 }
 
 async function executeTool({ decision, tools }) {
-  // 执行模型请求的工具调用，并把成功或失败都包装成 Observation。
+  // Execute the tool call requested by the model and wrap success or failure as an Observation.
   const toolName = decision.tool_name;
   const args = decision.arguments || {};
   if (!tools[toolName]) {
@@ -189,7 +189,7 @@ async function executeTool({ decision, tools }) {
 }
 
 function updateStateFromToolCall({ state, decision, observation }) {
-  // 把本轮决策和 Observation 写回 State，供后续循环使用。
+  // Write this turn's decision and Observation back to State for later loop iterations.
   state.history.push({ step: state.stepCount, decision, observation });
   state.toolResults.push({
     tool: decision.tool_name,
@@ -202,7 +202,7 @@ function updateStateFromToolCall({ state, decision, observation }) {
 }
 
 function checkStop(state) {
-  // 检查最大步数、错误次数和重复动作等硬停止条件。
+  // Check hard stopping conditions such as maximum steps, error count, and repeated actions.
   if (state.stepCount >= state.maxSteps) {
     return "max_steps_exceeded";
   }
@@ -216,7 +216,7 @@ function checkStop(state) {
 }
 
 function repeatedAction(state, threshold = 3) {
-  // 检测 Agent 是否连续重复相同工具调用而没有推进。
+  // Detect whether the agent repeats the same tool call without making progress.
   const recent = state.history.slice(-threshold);
   if (recent.length < threshold) {
     return false;
@@ -266,7 +266,7 @@ function stateSummary(state) {
 }
 
 function stateSnapshot(state) {
-  // 生成当前步骤执行后的完整 State 快照，便于示例逐步打印。
+  // Build a full State snapshot after the current step so the example can print each step.
   return {
     userGoal: state.userGoal,
     maxSteps: state.maxSteps,

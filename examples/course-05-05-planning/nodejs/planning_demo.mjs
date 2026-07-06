@@ -1,13 +1,13 @@
 /**
- * 课程五 05-05 Planning / Workflow Patterns 示例 (Node.js)
+ * Course 05-05 Planning / Workflow Patterns example (Node.js)
  *
- * 演示四种 Planning 模式处理"发布准备"任务：
- *   - Chain：固定顺序执行
- *   - Router：根据输入分类路由
- *   - Plan-Execute：生成计划、执行、重规划
- *   - Graph：节点图、条件跳转、失败分支
+ * Demonstrates four Planning patterns for a "release preparation" task:
+ *   - Chain: fixed-order execution
+ *   - Router: route by input classification
+ *   - Plan-Execute: generate a plan, execute, and replan
+ *   - Graph: node graph, conditional transitions, and failure branches
  *
- * 用法:
+ * Usage:
  *   node planning_demo.mjs
  */
 
@@ -15,7 +15,7 @@ import * as readline from 'node:readline';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 模拟工具集
+// Mock tool set
 // ═══════════════════════════════════════════════════════════════════════════
 
 const MOCK_README = `# MyAgent
@@ -92,7 +92,7 @@ const TOOLS = {
 const DEFAULT_STEPS = ['检查 README', '运行测试', '整理 changelog', '生成 checklist'];
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 显示辅助
+// Display helpers
 // ═══════════════════════════════════════════════════════════════════════════
 
 const CHECK = '✅';
@@ -133,7 +133,7 @@ function pressEnterToContinue(rl) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 模式 1: Chain
+// Pattern 1: Chain
 // ═══════════════════════════════════════════════════════════════════════════
 
 function executeChain(steps, injectFailures = {}) {
@@ -157,7 +157,7 @@ function executeChain(steps, injectFailures = {}) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 模式 2: Router
+// Pattern 2: Router
 // ═══════════════════════════════════════════════════════════════════════════
 
 const ROUTES = {
@@ -173,7 +173,7 @@ function classify(query) {
   if (/bug|修复|fix|缺陷|补丁/.test(q)) return 'bugfix';
   if (/文档|doc|readme|说明/.test(q)) return 'docs';
   if (/功能|feature|新功能|新增/.test(q)) return 'feature';
-  return 'release'; // 兜底
+  return 'release'; // Fallback
 }
 
 function executeRouter(query) {
@@ -187,7 +187,7 @@ function executeRouter(query) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 模式 3: Plan-Execute
+// Pattern 3: Plan-Execute
 // ═══════════════════════════════════════════════════════════════════════════
 
 function generatePlan(goal) {
@@ -255,7 +255,7 @@ function executePlanExecute(goal, injectFailures = {}, maxRetries = 2, maxReplan
   while (i < plan.steps.length) {
     const step = plan.steps[i];
 
-    // 检查依赖
+    // Check dependencies
     const unmet = step.deps.filter(d => !plan.completedSteps.includes(d));
     if (unmet.length > 0) {
       unmet.forEach(depName => {
@@ -284,10 +284,10 @@ function executePlanExecute(goal, injectFailures = {}, maxRetries = 2, maxReplan
     if (!result.success) {
       step.retries = (step.retries || 0) + 1;
       if (step.retries < (step.maxRetries || maxRetries)) {
-        continue; // 重试
+        continue; // Retry
       }
 
-      // 重规划
+      // Replan
       if (replanCount >= maxReplanCount) {
         return {
           status: 'failed',
@@ -325,7 +325,7 @@ function executePlanExecute(goal, injectFailures = {}, maxRetries = 2, maxReplan
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 模式 4: Graph
+// Pattern 4: Graph
 // ═══════════════════════════════════════════════════════════════════════════
 
 function buildReleaseGraph(injectFailures = {}) {
@@ -399,7 +399,7 @@ function runGraph(graph) {
       return { status: 'failed', path, error: `节点 '${current}' 不存在` };
     }
 
-    // 环路检测
+    // Loop detection
     visitCount[current] = (visitCount[current] || 0) + 1;
     const maxVisits = (node.maxRetries || 1) + 1;
     if (visitCount[current] > maxVisits) {
@@ -418,7 +418,7 @@ function runGraph(graph) {
     if (!result.success) {
       node.retryCount++;
       if (node.retryCount < (node.maxRetries || 1)) {
-        nextNode = current; // 重试
+        nextNode = current; // Retry
       } else {
         nextNode = node.onError;
       }
@@ -441,7 +441,7 @@ function runGraph(graph) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// 演示函数
+// Demo functions
 // ═══════════════════════════════════════════════════════════════════════════
 
 async function demoChain(rl) {
@@ -634,7 +634,7 @@ async function demoCompare() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// REPL 主菜单
+// REPL main menu
 // ═══════════════════════════════════════════════════════════════════════════
 
 async function main() {

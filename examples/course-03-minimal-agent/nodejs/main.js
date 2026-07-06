@@ -1,8 +1,8 @@
 /**
- * Node.js 版最小 Agent 闭环的命令行入口。
+ * Command-line entry point for the Node.js minimal Agent loop.
  *
- * 这个文件把课程三的几个构件串起来：Prompt 位于 src/prompt.js，决策来自脚本化
- * 或真实 LLM 适配器，工具是本地函数，runAgent 负责状态和循环控制。
+ * This file wires together the course 03 components: Prompt lives in src/prompt.js, decisions come from a scripted
+ * or real LLM adapter, tools are local functions, and runAgent owns state and loop control.
  */
 const path = require("node:path");
 
@@ -73,7 +73,7 @@ function printEventLog(event) {
 }
 
 function demoLLM() {
-  // 固定决策序列，便于离线学习和测试。
+  // Fixed decision sequence for offline learning and tests.
   return new ScriptedLLM(
     [
       {
