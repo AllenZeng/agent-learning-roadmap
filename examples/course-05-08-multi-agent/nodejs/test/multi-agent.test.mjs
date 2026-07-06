@@ -5,15 +5,26 @@ import {
   DemoExecutorAgent,
   DemoReviewerAgent,
   DemoSupervisorAgent,
+  MockLLM,
   ParallelSpecialists,
   ReviewerPattern,
   SupervisorPattern,
   countAgentDifferences,
+  defaultAgentPrompts,
   defaultCriteria,
   defaultDimensions,
   defaultSpecialists,
   defaultWorkers,
 } from "../multi_agent_demo.mjs";
+
+test("default agent prompts define roles and response contracts", () => {
+  const prompts = defaultAgentPrompts();
+
+  assert.match(prompts.executor.systemPrompt, /Executor Agent/);
+  assert.match(prompts.reviewer.systemPrompt, /Reviewer Agent/);
+  assert.match(prompts.reviewer.responseContract, /ReviewResponse/);
+  assert.deepEqual(prompts.reviewer.mustNot.includes("不要读取 Executor private_trace"), true);
+});
 
 test("agent configs have at least two real differences", () => {
   const executor = {
@@ -54,6 +65,24 @@ test("reviewer finds specific issues before executor fixes them", () => {
   assert.equal(result.reviewTrace[0].issues.length, 4);
   assert.equal(result.reviewTrace[0].issues[0].location, "api_schema.yaml:12");
   assert.equal(result.reviewTrace[1].verdict, "approved");
+});
+
+test("reviewer pattern records mock llm calls with role prompts", () => {
+  const llm = new MockLLM();
+  const result = new ReviewerPattern(
+    new DemoExecutorAgent({ llm }),
+    new DemoReviewerAgent({ llm }),
+    { maxRounds: 2 }
+  ).run("写一份 API 模块技术方案", defaultCriteria(), { verbose: false });
+
+  assert.equal(result.status, "approved");
+  assert.deepEqual(
+    llm.calls.map((call) => call.agent),
+    ["executor", "reviewer", "executor", "reviewer"]
+  );
+  assert.match(llm.calls[0].systemPrompt, /Executor Agent/);
+  assert.match(llm.calls[1].systemPrompt, /Reviewer Agent/);
+  assert.equal(Object.hasOwn(llm.calls[1].userPayload, "privateTrace"), false);
 });
 
 test("reviewer never receives executor private trace", () => {

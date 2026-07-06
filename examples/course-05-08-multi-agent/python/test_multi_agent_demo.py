@@ -5,10 +5,12 @@ from multi_agent_demo import (
     DemoExecutorAgent,
     DemoReviewerAgent,
     DemoSupervisorAgent,
+    MockLLM,
     ParallelSpecialists,
     ReviewerPattern,
     SupervisorPattern,
     count_agent_differences,
+    default_agent_prompts,
     default_criteria,
     default_dimensions,
     default_specialists,
@@ -17,6 +19,14 @@ from multi_agent_demo import (
 
 
 class ReviewerPatternTest(unittest.TestCase):
+    def test_default_agent_prompts_define_roles_and_response_contracts(self):
+        prompts = default_agent_prompts()
+
+        self.assertIn("Executor Agent", prompts["executor"].system_prompt)
+        self.assertIn("Reviewer Agent", prompts["reviewer"].system_prompt)
+        self.assertIn("ReviewResponse", prompts["reviewer"].response_contract)
+        self.assertIn("不要读取 Executor private_trace", prompts["reviewer"].must_not)
+
     def test_agent_configs_have_at_least_two_real_differences(self):
         executor = AgentConfig(
             name="Executor",
@@ -53,6 +63,19 @@ class ReviewerPatternTest(unittest.TestCase):
         self.assertEqual(len(result.review_trace[0].issues), 4)
         self.assertEqual(result.review_trace[0].issues[0].location, "api_schema.yaml:12")
         self.assertEqual(result.review_trace[1].verdict, "approved")
+
+    def test_reviewer_pattern_records_mock_llm_calls_with_role_prompts(self):
+        llm = MockLLM()
+        result = ReviewerPattern(
+            DemoExecutorAgent(llm=llm),
+            DemoReviewerAgent(llm=llm),
+        ).run("写一份 API 模块技术方案", default_criteria(), verbose=False)
+
+        self.assertEqual(result.status, "approved")
+        self.assertEqual([call.agent for call in llm.calls], ["executor", "reviewer", "executor", "reviewer"])
+        self.assertIn("Executor Agent", llm.calls[0].system_prompt)
+        self.assertIn("Reviewer Agent", llm.calls[1].system_prompt)
+        self.assertNotIn("private_trace", llm.calls[1].user_payload)
 
     def test_reviewer_never_receives_executor_private_trace(self):
         reviewer = DemoReviewerAgent()

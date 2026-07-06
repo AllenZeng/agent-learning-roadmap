@@ -18,6 +18,34 @@ export function countAgentDifferences(left, right) {
   return { ...differences, total: Object.values(differences).filter(Boolean).length };
 }
 
+export class MockLLM {
+  constructor() {
+    this.calls = [];
+  }
+
+  complete(prompt, userPayload) {
+    this.calls.push({
+      agent: prompt.name,
+      systemPrompt: prompt.systemPrompt,
+      userPayload,
+      responseContract: prompt.responseContract,
+    });
+    if (prompt.name === "executor") {
+      const fixed = new Set(userPayload.appliedIssueIds ?? []);
+      return {
+        output: renderApiPlan(fixed),
+        privateTrace: "为了本地演示先用明文 key；权限模型先简化成 admin；依赖版本先不锁定，后续再补。",
+      };
+    }
+    if (prompt.name === "reviewer") {
+      return { review: buildReviewResponse(userPayload.criteria, userPayload.artifact) };
+    }
+    if (prompt.name === "supervisor") return { note: "decompose_or_synthesize" };
+    if (prompt.name.endsWith("_worker") || prompt.name.endsWith("_agent")) return { note: "specialized_analysis" };
+    return { note: "mock_response" };
+  }
+}
+
 function sameSet(left, right) {
   if (left.size !== right.size) return false;
   for (const item of left) {
@@ -29,16 +57,19 @@ function sameSet(left, right) {
 export class DemoExecutorAgent {
   constructor(options = {}) {
     this.fixableIssueIds = options.fixableIssueIds ?? null;
+    this.llm = options.llm ?? new MockLLM();
+    this.prompt = options.prompt ?? defaultAgentPrompts().executor;
     this.revisions = [];
   }
 
   run(task, options = {}) {
     const applied = this.applicableIssueIds(options.fixInstructions ?? []);
     this.revisions.push([...applied].sort());
-    return {
-      output: this.renderArtifact(applied),
-      privateTrace: "为了本地演示先用明文 key；权限模型先简化成 admin；依赖版本先不锁定，后续再补。",
-    };
+    return this.llm.complete(this.prompt, {
+      task,
+      fixInstructions: options.fixInstructions ?? [],
+      appliedIssueIds: [...applied].sort(),
+    });
   }
 
   applicableIssueIds(issues) {
@@ -47,31 +78,12 @@ export class DemoExecutorAgent {
     return new Set([...issueIds].filter((id) => this.fixableIssueIds.has(id)));
   }
 
-  renderArtifact(fixed) {
-    const apiLine = fixed.has("C1") ? "12: input: string, max_length: 256" : "12: input: string";
-    const configLine = fixed.has("C2") ? '8: api_key: "${API_KEY}"' : '8: api_key: "sk-demo-plaintext"';
-    const permissionLine = fixed.has("C3") ? "3-5: roles: reader, writer, admin" : "3-5: roles: admin";
-    const dependencyLine = fixed.has("C4") ? "requirements.txt: fastapi==0.111.0" : "requirements.txt: fastapi>=0.111";
-    return [
-      "# API 模块技术方案",
-      "",
-      "## api_schema.yaml",
-      apiLine,
-      "",
-      "## config.yaml",
-      configLine,
-      "",
-      "## permissions.py",
-      permissionLine,
-      "",
-      "## dependencies",
-      dependencyLine,
-    ].join("\n");
-  }
 }
 
 export class DemoReviewerAgent {
-  constructor() {
+  constructor(options = {}) {
+    this.llm = options.llm ?? new MockLLM();
+    this.prompt = options.prompt ?? defaultAgentPrompts().reviewer;
     this.reviewRequests = [];
     this.seenPrivateTraces = [];
   }
@@ -80,80 +92,24 @@ export class DemoReviewerAgent {
     this.reviewRequests.push(request);
     if (request.executorPrivateTrace) this.seenPrivateTraces.push(request.executorPrivateTrace);
 
-    const checks = [];
-    const issues = [];
-    for (const item of request.criteria) {
-      const result = this.check(item, request.artifact);
-      checks.push(result);
-      if (!result.passed) {
-        issues.push({
-          id: item.id,
-          description: this.description(item.id),
-          location: this.location(item.id),
-          severity: item.severity,
-          suggestion: result.suggestion ?? "按审查项补齐缺失约束",
-        });
-      }
-    }
-    return { verdict: issues.length === 0 ? "approved" : "rejected", checks, issues };
+    const response = this.llm.complete(this.prompt, {
+      originalRequirement: request.originalRequirement,
+      artifact: request.artifact,
+      criteria: request.criteria,
+    });
+    return response.review;
   }
 
   check(item, artifact) {
-    if (item.id === "C1") {
-      const passed = artifact.includes("max_length: 256");
-      return {
-        checkId: item.id,
-        passed,
-        evidence: passed ? "api_schema.yaml:12 包含 max_length" : "api_schema.yaml:12 缺少 max_length",
-        suggestion: passed ? null : "为 input 参数增加 max_length: 256",
-      };
-    }
-    if (item.id === "C2") {
-      const passed = artifact.includes("${API_KEY}") && !artifact.includes("sk-demo-plaintext");
-      return {
-        checkId: item.id,
-        passed,
-        evidence: passed ? "config.yaml:8 使用环境变量" : "config.yaml:8 出现明文 api_key",
-        suggestion: passed ? null : "改用 ${API_KEY} 环境变量",
-      };
-    }
-    if (item.id === "C3") {
-      const passed = artifact.includes("reader, writer, admin");
-      return {
-        checkId: item.id,
-        passed,
-        evidence: passed ? "permissions.py:3-5 区分 reader/writer/admin" : "permissions.py:3-5 只有 admin 角色",
-        suggestion: passed ? null : "拆分 reader 和 writer 角色",
-      };
-    }
-    if (item.id === "C4") {
-      const passed = artifact.includes("fastapi==0.111.0");
-      return {
-        checkId: item.id,
-        passed,
-        evidence: passed ? "requirements.txt 使用 == 锁定版本" : "requirements.txt 使用 >=，版本未锁定",
-        suggestion: passed ? null : "使用 == 锁定依赖版本",
-      };
-    }
-    return { checkId: item.id, passed: false, evidence: "not_found", suggestion: "补充可验证证据" };
+    return checkItem(item, artifact);
   }
 
   description(checkId) {
-    return {
-      C1: "/api/data 缺少输入长度限制",
-      C2: "API key 明文存储",
-      C3: "权限模型缺少读写分离",
-      C4: "第三方依赖未锁定版本",
-    }[checkId] ?? "未知审查项未通过";
+    return issueDescription(checkId);
   }
 
   location(checkId) {
-    return {
-      C1: "api_schema.yaml:12",
-      C2: "config.yaml:8",
-      C3: "permissions.py:3-5",
-      C4: "requirements.txt",
-    }[checkId] ?? "unknown";
+    return issueLocation(checkId);
   }
 }
 
@@ -201,7 +157,13 @@ export class ReviewerPattern {
 }
 
 export class DemoSupervisorAgent {
+  constructor(options = {}) {
+    this.llm = options.llm ?? new MockLLM();
+    this.prompt = options.prompt ?? defaultAgentPrompts().supervisor;
+  }
+
   decompose(task) {
+    this.llm.complete(this.prompt, { operation: "decompose", task });
     const outputFields = ["key_findings", "risks", "recommendations"];
     return {
       subtasks: [
@@ -214,6 +176,7 @@ export class DemoSupervisorAgent {
   }
 
   synthesize(task, plan, results) {
+    this.llm.complete(this.prompt, { operation: "synthesize", task, resultCount: results.length });
     const missingTopics = results.filter((result) => result.status !== "ok").map((result) => result.topic);
     const lines = [`# 汇总报告: ${task}`, ""];
     const seenFindings = new Set();
@@ -248,11 +211,14 @@ export class DemoResearchWorker {
   constructor(name, options = {}) {
     this.name = name;
     this.shouldFail = options.shouldFail ?? false;
+    this.llm = options.llm ?? new MockLLM();
+    this.prompt = options.prompt ?? defaultAgentPrompts()[name] ?? defaultAgentPrompts().research_worker;
     this.receivedSubtasks = [];
   }
 
   execute(subtask) {
     this.receivedSubtasks.push(subtask);
+    this.llm.complete(this.prompt, { subtask });
     if (this.shouldFail) {
       return { subtaskId: subtask.id, worker: this.name, topic: subtask.topic, status: "failed", findings: [], risks: [], recommendations: [], missingReason: "worker_timeout" };
     }
@@ -303,11 +269,14 @@ export class SupervisorPattern {
 }
 
 export class DemoSpecialistAgent {
-  constructor(dimension) {
+  constructor(dimension, options = {}) {
     this.dimension = dimension;
+    this.llm = options.llm ?? new MockLLM();
+    this.prompt = options.prompt ?? defaultAgentPrompts()[`${dimension}_agent`] ?? defaultAgentPrompts().specialist_agent;
   }
 
   analyze(artifact, dimension) {
+    this.llm.complete(this.prompt, { artifact, dimension });
     const findings = {
       correctness: [
         { id: "F1", dimension: "correctness", location: "checkout.py:18", problemType: "missing_validation", judgment: "problem", evidence: "amount 可以为负数", severity: "must_fix" },
@@ -396,6 +365,194 @@ export class ParallelSpecialists {
 
 function severityRank(value) {
   return { info: 0, should_fix: 1, must_fix: 2 }[value] ?? -1;
+}
+
+export function defaultAgentPrompts() {
+  return {
+    executor: {
+      name: "executor",
+      role: "方案执行者",
+      systemPrompt: "你是 Executor Agent。你的职责是根据用户需求产出可交付方案，只处理 Reviewer 返回的结构化 issue，不读取 Reviewer 的私有推理。",
+      responseContract: "返回 {output: markdown, privateTrace: string}",
+      mustNot: ["不要自行宣布审查通过", "不要把未验证的假设写成事实"],
+    },
+    reviewer: {
+      name: "reviewer",
+      role: "独立审查者",
+      systemPrompt: "你是 Reviewer Agent。你的职责是只基于最终产物和检查清单做审查，逐条给出 pass/fail、证据、严重级别和可执行修改建议。",
+      responseContract: "返回 ReviewResponse: {verdict, checks[], issues[]}",
+      mustNot: ["不要读取 Executor private_trace", "不要修改产物本身"],
+    },
+    supervisor: {
+      name: "supervisor",
+      role: "任务编排者",
+      systemPrompt: "你是 Supervisor Agent。你的职责是拆解任务、定义每个子任务的 scope/exclude，并在汇总时保留缺失和冲突。",
+      responseContract: "返回 SupervisorPlan 或 SupervisorResult",
+      mustNot: ["不要代替 Worker 做专业调研", "不要隐藏失败的 Worker"],
+    },
+    research_worker: {
+      name: "research_worker",
+      role: "专题研究 Worker",
+      systemPrompt: "你是 Research Worker。你只处理分配给自己的 topic，按 key_findings、risks、recommendations 三类字段返回结构化结果。",
+      responseContract: "返回 WorkerResult",
+      mustNot: ["不要分析 exclude 中排除的范围", "不要输出自由散文"],
+    },
+    specialist_agent: {
+      name: "specialist_agent",
+      role: "单维度专家",
+      systemPrompt: "你是 Specialist Agent。你只从指定维度分析同一份输入，输出可合并的发现，不要试图替其他维度做最终裁决。",
+      responseContract: "返回 SpecialistResult",
+      mustNot: ["不要自动消解跨维度冲突", "不要扩展到 focus 之外的维度"],
+    },
+    tool_worker: {
+      name: "tool_worker",
+      role: "Tool Use 专题 Worker",
+      systemPrompt: "你只研究工具调用链路、失败模式和权限边界。",
+      responseContract: "返回 WorkerResult",
+      mustNot: ["不要分析 Memory 或 Multi-Agent 中的工具协作"],
+    },
+    memory_worker: {
+      name: "memory_worker",
+      role: "Memory 专题 Worker",
+      systemPrompt: "你只研究短期记忆、长期记忆和检索式记忆的工程取舍。",
+      responseContract: "返回 WorkerResult",
+      mustNot: ["不要分析纯 RAG 检索排序细节"],
+    },
+    planning_worker: {
+      name: "planning_worker",
+      role: "Planning 专题 Worker",
+      systemPrompt: "你只研究 plan-and-execute、动态重规划和停止条件。",
+      responseContract: "返回 WorkerResult",
+      mustNot: ["不要分析多 Agent 派发策略"],
+    },
+    multi_agent_worker: {
+      name: "multi_agent_worker",
+      role: "Multi-Agent 专题 Worker",
+      systemPrompt: "你只研究 Reviewer、Supervisor、Parallel Specialists 的协作边界。",
+      responseContract: "返回 WorkerResult",
+      mustNot: ["不要重复单 Agent Tool Use 机制"],
+    },
+    correctness_agent: {
+      name: "correctness_agent",
+      role: "正确性专家",
+      systemPrompt: "你只检查逻辑错误、边界条件、异常处理和状态一致性。",
+      responseContract: "返回 SpecialistResult",
+      mustNot: ["不要分析安全漏洞和性能瓶颈"],
+    },
+    security_agent: {
+      name: "security_agent",
+      role: "安全专家",
+      systemPrompt: "你只检查注入风险、密钥泄露、权限越界和敏感数据暴露。",
+      responseContract: "返回 SpecialistResult",
+      mustNot: ["不要分析普通逻辑错误和性能瓶颈"],
+    },
+    performance_agent: {
+      name: "performance_agent",
+      role: "性能专家",
+      systemPrompt: "你只检查时间复杂度、I/O 瓶颈、索引和缓存策略。",
+      responseContract: "返回 SpecialistResult",
+      mustNot: ["不要分析正确性和安全性影响"],
+    },
+  };
+}
+
+function renderApiPlan(fixed) {
+  const apiLine = fixed.has("C1") ? "12: input: string, max_length: 256" : "12: input: string";
+  const configLine = fixed.has("C2") ? '8: api_key: "${API_KEY}"' : '8: api_key: "sk-demo-plaintext"';
+  const permissionLine = fixed.has("C3") ? "3-5: roles: reader, writer, admin" : "3-5: roles: admin";
+  const dependencyLine = fixed.has("C4") ? "requirements.txt: fastapi==0.111.0" : "requirements.txt: fastapi>=0.111";
+  return [
+    "# API 模块技术方案",
+    "",
+    "## api_schema.yaml",
+    apiLine,
+    "",
+    "## config.yaml",
+    configLine,
+    "",
+    "## permissions.py",
+    permissionLine,
+    "",
+    "## dependencies",
+    dependencyLine,
+  ].join("\n");
+}
+
+function buildReviewResponse(criteria, artifact) {
+  const checks = [];
+  const issues = [];
+  for (const item of criteria) {
+    const result = checkItem(item, artifact);
+    checks.push(result);
+    if (!result.passed) {
+      issues.push({
+        id: item.id,
+        description: issueDescription(item.id),
+        location: issueLocation(item.id),
+        severity: item.severity,
+        suggestion: result.suggestion ?? "按审查项补齐缺失约束",
+      });
+    }
+  }
+  return { verdict: issues.length === 0 ? "approved" : "rejected", checks, issues };
+}
+
+function checkItem(item, artifact) {
+  if (item.id === "C1") {
+    const passed = artifact.includes("max_length: 256");
+    return {
+      checkId: item.id,
+      passed,
+      evidence: passed ? "api_schema.yaml:12 包含 max_length" : "api_schema.yaml:12 缺少 max_length",
+      suggestion: passed ? null : "为 input 参数增加 max_length: 256",
+    };
+  }
+  if (item.id === "C2") {
+    const passed = artifact.includes("${API_KEY}") && !artifact.includes("sk-demo-plaintext");
+    return {
+      checkId: item.id,
+      passed,
+      evidence: passed ? "config.yaml:8 使用环境变量" : "config.yaml:8 出现明文 api_key",
+      suggestion: passed ? null : "改用 ${API_KEY} 环境变量",
+    };
+  }
+  if (item.id === "C3") {
+    const passed = artifact.includes("reader, writer, admin");
+    return {
+      checkId: item.id,
+      passed,
+      evidence: passed ? "permissions.py:3-5 区分 reader/writer/admin" : "permissions.py:3-5 只有 admin 角色",
+      suggestion: passed ? null : "拆分 reader 和 writer 角色",
+    };
+  }
+  if (item.id === "C4") {
+    const passed = artifact.includes("fastapi==0.111.0");
+    return {
+      checkId: item.id,
+      passed,
+      evidence: passed ? "requirements.txt 使用 == 锁定版本" : "requirements.txt 使用 >=，版本未锁定",
+      suggestion: passed ? null : "使用 == 锁定依赖版本",
+    };
+  }
+  return { checkId: item.id, passed: false, evidence: "not_found", suggestion: "补充可验证证据" };
+}
+
+function issueDescription(checkId) {
+  return {
+    C1: "/api/data 缺少输入长度限制",
+    C2: "API key 明文存储",
+    C3: "权限模型缺少读写分离",
+    C4: "第三方依赖未锁定版本",
+  }[checkId] ?? "未知审查项未通过";
+}
+
+function issueLocation(checkId) {
+  return {
+    C1: "api_schema.yaml:12",
+    C2: "config.yaml:8",
+    C3: "permissions.py:3-5",
+    C4: "requirements.txt",
+  }[checkId] ?? "unknown";
 }
 
 export function defaultCriteria() {

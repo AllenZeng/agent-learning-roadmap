@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -23,6 +24,25 @@ class AgentConfig:
     tools: set[str]
     goal: str
     acceptance: str
+
+
+@dataclass(frozen=True)
+class AgentPrompt:
+    """真实系统中会作为 system prompt 传给模型的角色设定。"""
+
+    name: str
+    role: str
+    system_prompt: str
+    response_contract: str
+    must_not: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class LLMCall:
+    agent: str
+    system_prompt: str
+    user_payload: dict[str, Any]
+    response_contract: str
 
 
 @dataclass(frozen=True)
@@ -69,6 +89,39 @@ class ReviewResponse:
 class Draft:
     output: str
     private_trace: str = ""
+
+
+class MockLLM:
+    """离线模拟 LLM 适配器：记录 prompt，并返回确定性的结构化响应。"""
+
+    def __init__(self):
+        self.calls: list[LLMCall] = []
+
+    def complete(self, prompt: AgentPrompt, user_payload: dict[str, Any]) -> dict[str, Any]:
+        self.calls.append(
+            LLMCall(
+                agent=prompt.name,
+                system_prompt=prompt.system_prompt,
+                user_payload=user_payload,
+                response_contract=prompt.response_contract,
+            )
+        )
+        if prompt.name == "executor":
+            fixed = set(user_payload.get("applied_issue_ids", []))
+            return {
+                "output": render_api_plan(fixed),
+                "private_trace": (
+                    "为了本地演示先用明文 key；权限模型先简化成 admin；"
+                    "依赖版本先不锁定，后续再补。"
+                ),
+            }
+        if prompt.name == "reviewer":
+            return {"review": build_review_response(user_payload["criteria"], user_payload["artifact"])}
+        if prompt.name == "supervisor":
+            return {"note": "decompose_or_synthesize"}
+        if prompt.name.endswith("_worker") or prompt.name.endswith("_agent"):
+            return {"note": "specialized_analysis"}
+        return {"note": "mock_response"}
 
 
 @dataclass
@@ -181,20 +234,29 @@ def count_agent_differences(left: AgentConfig, right: AgentConfig) -> dict[str, 
 class DemoExecutorAgent:
     """Reviewer 模式的 Executor：第一版故意留下问题，收到具体 issue 后修正。"""
 
-    def __init__(self, fixable_issue_ids: set[str] | None = None):
+    def __init__(
+        self,
+        fixable_issue_ids: set[str] | None = None,
+        llm: MockLLM | None = None,
+        prompt: AgentPrompt | None = None,
+    ):
         self.fixable_issue_ids = fixable_issue_ids
+        self.llm = llm or MockLLM()
+        self.prompt = prompt or default_agent_prompts()["executor"]
         self.revisions: list[list[str]] = []
 
     def run(self, task: str, fix_instructions: list[Issue] | None = None) -> Draft:
         applied = self._applicable_issue_ids(fix_instructions or [])
         self.revisions.append(sorted(applied))
-        return Draft(
-            output=self._render_artifact(applied),
-            private_trace=(
-                "为了本地演示先用明文 key；权限模型先简化成 admin；"
-                "依赖版本先不锁定，后续再补。"
-            ),
+        response = self.llm.complete(
+            self.prompt,
+            {
+                "task": task,
+                "fix_instructions": [issue.__dict__ for issue in fix_instructions or []],
+                "applied_issue_ids": sorted(applied),
+            },
         )
+        return Draft(output=response["output"], private_trace=response["private_trace"])
 
     def _applicable_issue_ids(self, issues: list[Issue]) -> set[str]:
         issue_ids = {issue.id for issue in issues}
@@ -202,34 +264,13 @@ class DemoExecutorAgent:
             return issue_ids
         return issue_ids & self.fixable_issue_ids
 
-    def _render_artifact(self, fixed: set[str]) -> str:
-        api_line = "12: input: string, max_length: 256" if "C1" in fixed else "12: input: string"
-        config_line = '8: api_key: "${API_KEY}"' if "C2" in fixed else '8: api_key: "sk-demo-plaintext"'
-        permission_line = "3-5: roles: reader, writer, admin" if "C3" in fixed else "3-5: roles: admin"
-        dependency_line = "requirements.txt: fastapi==0.111.0" if "C4" in fixed else "requirements.txt: fastapi>=0.111"
-        return "\n".join(
-            [
-                "# API 模块技术方案",
-                "",
-                "## api_schema.yaml",
-                api_line,
-                "",
-                "## config.yaml",
-                config_line,
-                "",
-                "## permissions.py",
-                permission_line,
-                "",
-                "## dependencies",
-                dependency_line,
-            ]
-        )
-
 
 class DemoReviewerAgent:
     """Reviewer 只读最终产物和检查清单，不接收 Executor 私有 trace。"""
 
-    def __init__(self):
+    def __init__(self, llm: MockLLM | None = None, prompt: AgentPrompt | None = None):
+        self.llm = llm or MockLLM()
+        self.prompt = prompt or default_agent_prompts()["reviewer"]
         self.review_requests: list[ReviewRequest] = []
         self.seen_private_traces: list[str] = []
 
@@ -238,54 +279,24 @@ class DemoReviewerAgent:
         if request.executor_private_trace:
             self.seen_private_traces.append(request.executor_private_trace)
 
-        checks: list[CheckResult] = []
-        issues: list[Issue] = []
-        for item in request.criteria:
-            result = self._check(item, request.artifact)
-            checks.append(result)
-            if not result.passed:
-                issues.append(
-                    Issue(
-                        id=item.id,
-                        description=self._description(item.id),
-                        location=self._location(item.id),
-                        severity=item.severity,
-                        suggestion=result.suggestion or "按审查项补齐缺失约束",
-                    )
-                )
-
-        return ReviewResponse(verdict="approved" if not issues else "rejected", checks=checks, issues=issues)
+        response = self.llm.complete(
+            self.prompt,
+            {
+                "original_requirement": request.original_requirement,
+                "artifact": request.artifact,
+                "criteria": request.criteria,
+            },
+        )
+        return response["review"]
 
     def _check(self, item: CheckItem, artifact: str) -> CheckResult:
-        if item.id == "C1":
-            passed = "max_length: 256" in artifact
-            return CheckResult(item.id, passed, "api_schema.yaml:12 包含 max_length" if passed else "api_schema.yaml:12 缺少 max_length", None if passed else "为 input 参数增加 max_length: 256")
-        if item.id == "C2":
-            passed = "${API_KEY}" in artifact and "sk-demo-plaintext" not in artifact
-            return CheckResult(item.id, passed, "config.yaml:8 使用环境变量" if passed else "config.yaml:8 出现明文 api_key", None if passed else "改用 ${API_KEY} 环境变量")
-        if item.id == "C3":
-            passed = "reader, writer, admin" in artifact
-            return CheckResult(item.id, passed, "permissions.py:3-5 区分 reader/writer/admin" if passed else "permissions.py:3-5 只有 admin 角色", None if passed else "拆分 reader 和 writer 角色")
-        if item.id == "C4":
-            passed = "fastapi==0.111.0" in artifact
-            return CheckResult(item.id, passed, "requirements.txt 使用 == 锁定版本" if passed else "requirements.txt 使用 >=，版本未锁定", None if passed else "使用 == 锁定依赖版本")
-        return CheckResult(item.id, False, "not_found", "补充可验证证据")
+        return check_item(item, artifact)
 
     def _description(self, check_id: str) -> str:
-        return {
-            "C1": "/api/data 缺少输入长度限制",
-            "C2": "API key 明文存储",
-            "C3": "权限模型缺少读写分离",
-            "C4": "第三方依赖未锁定版本",
-        }.get(check_id, "未知审查项未通过")
+        return issue_description(check_id)
 
     def _location(self, check_id: str) -> str:
-        return {
-            "C1": "api_schema.yaml:12",
-            "C2": "config.yaml:8",
-            "C3": "permissions.py:3-5",
-            "C4": "requirements.txt",
-        }.get(check_id, "unknown")
+        return issue_location(check_id)
 
 
 class ReviewerPattern:
@@ -331,7 +342,12 @@ class ReviewerPattern:
 class DemoSupervisorAgent:
     """Supervisor 只负责拆解和汇总，不做 Worker 的调研。"""
 
+    def __init__(self, llm: MockLLM | None = None, prompt: AgentPrompt | None = None):
+        self.llm = llm or MockLLM()
+        self.prompt = prompt or default_agent_prompts()["supervisor"]
+
     def decompose(self, task: str) -> SupervisorPlan:
+        self.llm.complete(self.prompt, {"operation": "decompose", "task": task})
         fields = ("key_findings", "risks", "recommendations")
         return SupervisorPlan(
             subtasks=[
@@ -343,6 +359,7 @@ class DemoSupervisorAgent:
         )
 
     def synthesize(self, task: str, plan: SupervisorPlan, results: list[WorkerResult]) -> SupervisorResult:
+        self.llm.complete(self.prompt, {"operation": "synthesize", "task": task, "result_count": len(results)})
         missing_topics = [result.topic for result in results if result.status != "ok"]
         lines = [f"# 汇总报告: {task}", ""]
         seen_findings: set[str] = set()
@@ -373,13 +390,22 @@ class DemoSupervisorAgent:
 class DemoResearchWorker:
     """Worker 按统一模板返回结构化字段，便于 Supervisor 合并。"""
 
-    def __init__(self, name: str, should_fail: bool = False):
+    def __init__(
+        self,
+        name: str,
+        should_fail: bool = False,
+        llm: MockLLM | None = None,
+        prompt: AgentPrompt | None = None,
+    ):
         self.name = name
         self.should_fail = should_fail
+        self.llm = llm or MockLLM()
+        self.prompt = prompt or default_agent_prompts().get(name, default_agent_prompts()["research_worker"])
         self.received_subtasks: list[Subtask] = []
 
     def execute(self, subtask: Subtask) -> WorkerResult:
         self.received_subtasks.append(subtask)
+        self.llm.complete(self.prompt, {"subtask": subtask})
         if self.should_fail:
             return WorkerResult(subtask.id, self.name, subtask.topic, "failed", [], [], [], "worker_timeout")
         library = {
@@ -428,10 +454,13 @@ class SupervisorPattern:
 class DemoSpecialistAgent:
     """同一个 artifact，不同专家只输出自己维度的发现。"""
 
-    def __init__(self, dimension: str):
+    def __init__(self, dimension: str, llm: MockLLM | None = None, prompt: AgentPrompt | None = None):
         self.dimension = dimension
+        self.llm = llm or MockLLM()
+        self.prompt = prompt or default_agent_prompts().get(f"{dimension}_agent", default_agent_prompts()["specialist_agent"])
 
     def analyze(self, artifact: str, dimension: Dimension) -> SpecialistResult:
+        self.llm.complete(self.prompt, {"artifact": artifact, "dimension": dimension})
         findings = {
             "correctness": [
                 SpecialistFinding("F1", "correctness", "checkout.py:18", "missing_validation", "problem", "amount 可以为负数", "must_fix"),
@@ -508,6 +537,187 @@ class ParallelSpecialists:
 
 def severity_rank(value: str) -> int:
     return {"info": 0, "should_fix": 1, "must_fix": 2}.get(value, -1)
+
+
+def default_agent_prompts() -> dict[str, AgentPrompt]:
+    return {
+        "executor": AgentPrompt(
+            name="executor",
+            role="方案执行者",
+            system_prompt=(
+                "你是 Executor Agent。你的职责是根据用户需求产出可交付方案，"
+                "只处理 Reviewer 返回的结构化 issue，不读取 Reviewer 的私有推理。"
+            ),
+            response_contract="返回 {output: markdown, private_trace: string}",
+            must_not=("不要自行宣布审查通过", "不要把未验证的假设写成事实"),
+        ),
+        "reviewer": AgentPrompt(
+            name="reviewer",
+            role="独立审查者",
+            system_prompt=(
+                "你是 Reviewer Agent。你的职责是只基于最终产物和检查清单做审查，"
+                "逐条给出 pass/fail、证据、严重级别和可执行修改建议。"
+            ),
+            response_contract="返回 ReviewResponse: {verdict, checks[], issues[]}",
+            must_not=("不要读取 Executor private_trace", "不要修改产物本身"),
+        ),
+        "supervisor": AgentPrompt(
+            name="supervisor",
+            role="任务编排者",
+            system_prompt=(
+                "你是 Supervisor Agent。你的职责是拆解任务、定义每个子任务的 scope/exclude，"
+                "并在汇总时保留缺失和冲突。"
+            ),
+            response_contract="返回 SupervisorPlan 或 SupervisorResult",
+            must_not=("不要代替 Worker 做专业调研", "不要隐藏失败的 Worker"),
+        ),
+        "research_worker": AgentPrompt(
+            name="research_worker",
+            role="专题研究 Worker",
+            system_prompt=(
+                "你是 Research Worker。你只处理分配给自己的 topic，按 key_findings、risks、"
+                "recommendations 三类字段返回结构化结果。"
+            ),
+            response_contract="返回 WorkerResult",
+            must_not=("不要分析 exclude 中排除的范围", "不要输出自由散文"),
+        ),
+        "specialist_agent": AgentPrompt(
+            name="specialist_agent",
+            role="单维度专家",
+            system_prompt=(
+                "你是 Specialist Agent。你只从指定维度分析同一份输入，输出可合并的发现，"
+                "不要试图替其他维度做最终裁决。"
+            ),
+            response_contract="返回 SpecialistResult",
+            must_not=("不要自动消解跨维度冲突", "不要扩展到 focus 之外的维度"),
+        ),
+        "tool_worker": AgentPrompt(
+            name="tool_worker",
+            role="Tool Use 专题 Worker",
+            system_prompt="你只研究工具调用链路、失败模式和权限边界。",
+            response_contract="返回 WorkerResult",
+            must_not=("不要分析 Memory 或 Multi-Agent 中的工具协作",),
+        ),
+        "memory_worker": AgentPrompt(
+            name="memory_worker",
+            role="Memory 专题 Worker",
+            system_prompt="你只研究短期记忆、长期记忆和检索式记忆的工程取舍。",
+            response_contract="返回 WorkerResult",
+            must_not=("不要分析纯 RAG 检索排序细节",),
+        ),
+        "planning_worker": AgentPrompt(
+            name="planning_worker",
+            role="Planning 专题 Worker",
+            system_prompt="你只研究 plan-and-execute、动态重规划和停止条件。",
+            response_contract="返回 WorkerResult",
+            must_not=("不要分析多 Agent 派发策略",),
+        ),
+        "multi_agent_worker": AgentPrompt(
+            name="multi_agent_worker",
+            role="Multi-Agent 专题 Worker",
+            system_prompt="你只研究 Reviewer、Supervisor、Parallel Specialists 的协作边界。",
+            response_contract="返回 WorkerResult",
+            must_not=("不要重复单 Agent Tool Use 机制",),
+        ),
+        "correctness_agent": AgentPrompt(
+            name="correctness_agent",
+            role="正确性专家",
+            system_prompt="你只检查逻辑错误、边界条件、异常处理和状态一致性。",
+            response_contract="返回 SpecialistResult",
+            must_not=("不要分析安全漏洞和性能瓶颈",),
+        ),
+        "security_agent": AgentPrompt(
+            name="security_agent",
+            role="安全专家",
+            system_prompt="你只检查注入风险、密钥泄露、权限越界和敏感数据暴露。",
+            response_contract="返回 SpecialistResult",
+            must_not=("不要分析普通逻辑错误和性能瓶颈",),
+        ),
+        "performance_agent": AgentPrompt(
+            name="performance_agent",
+            role="性能专家",
+            system_prompt="你只检查时间复杂度、I/O 瓶颈、索引和缓存策略。",
+            response_contract="返回 SpecialistResult",
+            must_not=("不要分析正确性和安全性影响",),
+        ),
+    }
+
+
+def render_api_plan(fixed: set[str]) -> str:
+    api_line = "12: input: string, max_length: 256" if "C1" in fixed else "12: input: string"
+    config_line = '8: api_key: "${API_KEY}"' if "C2" in fixed else '8: api_key: "sk-demo-plaintext"'
+    permission_line = "3-5: roles: reader, writer, admin" if "C3" in fixed else "3-5: roles: admin"
+    dependency_line = "requirements.txt: fastapi==0.111.0" if "C4" in fixed else "requirements.txt: fastapi>=0.111"
+    return "\n".join(
+        [
+            "# API 模块技术方案",
+            "",
+            "## api_schema.yaml",
+            api_line,
+            "",
+            "## config.yaml",
+            config_line,
+            "",
+            "## permissions.py",
+            permission_line,
+            "",
+            "## dependencies",
+            dependency_line,
+        ]
+    )
+
+
+def build_review_response(criteria: list[CheckItem], artifact: str) -> ReviewResponse:
+    checks: list[CheckResult] = []
+    issues: list[Issue] = []
+    for item in criteria:
+        result = check_item(item, artifact)
+        checks.append(result)
+        if not result.passed:
+            issues.append(
+                Issue(
+                    id=item.id,
+                    description=issue_description(item.id),
+                    location=issue_location(item.id),
+                    severity=item.severity,
+                    suggestion=result.suggestion or "按审查项补齐缺失约束",
+                )
+            )
+    return ReviewResponse(verdict="approved" if not issues else "rejected", checks=checks, issues=issues)
+
+
+def check_item(item: CheckItem, artifact: str) -> CheckResult:
+    if item.id == "C1":
+        passed = "max_length: 256" in artifact
+        return CheckResult(item.id, passed, "api_schema.yaml:12 包含 max_length" if passed else "api_schema.yaml:12 缺少 max_length", None if passed else "为 input 参数增加 max_length: 256")
+    if item.id == "C2":
+        passed = "${API_KEY}" in artifact and "sk-demo-plaintext" not in artifact
+        return CheckResult(item.id, passed, "config.yaml:8 使用环境变量" if passed else "config.yaml:8 出现明文 api_key", None if passed else "改用 ${API_KEY} 环境变量")
+    if item.id == "C3":
+        passed = "reader, writer, admin" in artifact
+        return CheckResult(item.id, passed, "permissions.py:3-5 区分 reader/writer/admin" if passed else "permissions.py:3-5 只有 admin 角色", None if passed else "拆分 reader 和 writer 角色")
+    if item.id == "C4":
+        passed = "fastapi==0.111.0" in artifact
+        return CheckResult(item.id, passed, "requirements.txt 使用 == 锁定版本" if passed else "requirements.txt 使用 >=，版本未锁定", None if passed else "使用 == 锁定依赖版本")
+    return CheckResult(item.id, False, "not_found", "补充可验证证据")
+
+
+def issue_description(check_id: str) -> str:
+    return {
+        "C1": "/api/data 缺少输入长度限制",
+        "C2": "API key 明文存储",
+        "C3": "权限模型缺少读写分离",
+        "C4": "第三方依赖未锁定版本",
+    }.get(check_id, "未知审查项未通过")
+
+
+def issue_location(check_id: str) -> str:
+    return {
+        "C1": "api_schema.yaml:12",
+        "C2": "config.yaml:8",
+        "C3": "permissions.py:3-5",
+        "C4": "requirements.txt",
+    }.get(check_id, "unknown")
 
 
 def default_criteria() -> list[CheckItem]:
