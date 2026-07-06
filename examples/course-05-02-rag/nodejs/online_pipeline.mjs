@@ -15,27 +15,22 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createInterface } from "node:readline";
-import { pipeline } from "@huggingface/transformers";
+import {
+  DEFAULT_RETRIEVER,
+  SimpleBM25,
+  dotProduct,
+  pseudoEmbed,
+  tokenize,
+} from "./retrieval_core.mjs";
 
 // ---------- 配置 ----------
 
-const EMBEDDING_MODEL = "Xenova/all-MiniLM-L6-v2";
 const DEFAULT_TOP_K = 5;
 const VECTOR_WEIGHT = 0.6;
 const BM25_WEIGHT = 0.4;
 const MAX_CONTEXT_CHARS = 3000;
 
 // ---------- 工具函数 ----------
-
-function tokenize(text) {
-  return text.toLowerCase().match(/\w+/g) || [];
-}
-
-function dotProduct(a, b) {
-  let s = 0;
-  for (let i = 0; i < a.length; i++) s += a[i] * b[i];
-  return s;
-}
 
 function argsortDesc(arr) {
   return arr
@@ -77,47 +72,18 @@ async function loadIndex(indexDir) {
   const bm25Data = JSON.parse(bm25Raw);
   console.log(`[加载] bm25_index.json — ${Object.keys(bm25Data.idf).length} 个词条`);
 
-  // 重建 BM25 实例
-  const bm25 = new SimpleBM25FromJSON(bm25Data);
-
-  // Embedding 模型
   const metaRaw = await readFile(join(indexDir, "index_meta.json"), "utf-8");
   const meta = JSON.parse(metaRaw);
-  const modelName = meta.embedding_model || EMBEDDING_MODEL;
-  console.log(`[加载] Embedding 模型: ${modelName}`);
-  const extractor = await pipeline("feature-extraction", modelName);
 
-  return { chunks, embeddings, bm25, extractor };
-}
+  // 重建 BM25 实例
+  const bm25 = SimpleBM25.fromJSON(bm25Data);
+  console.log(`[加载] 伪 embedding: hashing TF-IDF (${meta.pseudo_embedding_dim || embeddings[0]?.length || 0} 维)`);
+  const vectorizer = {
+    type: DEFAULT_RETRIEVER,
+    embed: async (text) => pseudoEmbed(text, meta.pseudo_embedding_idf || {}),
+  };
 
-// BM25 重建（复用 offline_pipeline 的 SimpleBM25 逻辑）
-class SimpleBM25FromJSON {
-  constructor(data) {
-    this.k1 = data.k1;
-    this.b = data.b;
-    this.docCount = data.docCount;
-    this.avgdl = data.avgdl;
-    this.idf = data.idf;
-    this.docs = data.docs;
-  }
-
-  getScores(queryTokens) {
-    return this.docs.map((doc) => {
-      let score = 0;
-      const tf = {};
-      for (const t of doc) tf[t] = (tf[t] || 0) + 1;
-
-      for (const term of queryTokens) {
-        if (!this.idf[term] || !tf[term]) continue;
-        const numerator = tf[term] * (this.k1 + 1);
-        const denominator =
-          tf[term] +
-          this.k1 * (1 - this.b + (this.b * doc.length) / this.avgdl);
-        score += this.idf[term] * (numerator / denominator);
-      }
-      return score;
-    });
-  }
+  return { chunks, embeddings, bm25, vectorizer };
 }
 
 // ================================================================
@@ -155,10 +121,8 @@ function understandQuery(query) {
 // 阶段三：召回（§2.4.6）
 // ================================================================
 
-async function denseRetrieve(query, extractor, embeddings, chunks, topK = 20) {
-  const output = await extractor(query, { pooling: "mean", normalize: true });
-  const queryVec = Array.from(output.data);
-
+async function denseRetrieve(query, vectorizer, embeddings, chunks, topK = 20) {
+  const queryVec = await vectorizer.embed(query);
   const scores = embeddings.map((emb) => dotProduct(emb, queryVec));
   const indices = argsortDesc(scores).slice(0, topK);
 
@@ -221,22 +185,14 @@ function rrfFusion(denseResults, sparseResults, k = 60) {
 // 阶段四：重排序（§2.4.6）
 // ================================================================
 
-async function rerank(query, candidates, extractor, topK = DEFAULT_TOP_K) {
+async function rerank(query, candidates, vectorizer, topK = DEFAULT_TOP_K) {
   if (candidates.length <= topK) return candidates;
 
   // 用更精细的相似度重算
-  const queryOutput = await extractor(query, {
-    pooling: "mean",
-    normalize: true,
-  });
-  const queryVec = Array.from(queryOutput.data);
+  const queryVec = await vectorizer.embed(query);
 
   for (const c of candidates) {
-    const chunkOutput = await extractor(c.chunk.content, {
-      pooling: "mean",
-      normalize: true,
-    });
-    const chunkVec = Array.from(chunkOutput.data);
+    const chunkVec = await vectorizer.embed(c.chunk.content);
     const simScore = dotProduct(queryVec, chunkVec);
     c.rerank_score = 0.7 * simScore + 0.3 * c.fused_score;
   }
@@ -343,7 +299,7 @@ async function runOnlinePipeline(query, indexDir = "index", topK = DEFAULT_TOP_K
 
   // ── Step 1: 加载索引 ──
   console.log();
-  const { chunks, embeddings, bm25, extractor } = await loadIndex(indexDir);
+  const { chunks, embeddings, bm25, vectorizer } = await loadIndex(indexDir);
 
   // ── Step 2: 查询理解 ──
   console.log(`\n── 查询理解 (§2.4.5) ──`);
@@ -360,7 +316,7 @@ async function runOnlinePipeline(query, indexDir = "index", topK = DEFAULT_TOP_K
   // ── Step 3: 多路召回 ──
   console.log(`\n── 多路召回 (§2.4.6) ──`);
   process.stdout.write(`  向量召回 top-20 ... `);
-  const denseResults = await denseRetrieve(searchQuery, extractor, embeddings, chunks, 20);
+  const denseResults = await denseRetrieve(searchQuery, vectorizer, embeddings, chunks, 20);
   console.log(`命中 ${denseResults.length}`);
 
   process.stdout.write(`  BM25 召回 top-20 ... `);
@@ -386,7 +342,7 @@ async function runOnlinePipeline(query, indexDir = "index", topK = DEFAULT_TOP_K
 
   // ── Step 4: 重排序 ──
   console.log(`\n── 重排序 (§2.4.6) ──`);
-  const ranked = await rerank(searchQuery, fused, extractor, topK);
+  const ranked = await rerank(searchQuery, fused, vectorizer, topK);
   console.log(`  Rerank → top-${ranked.length}`);
 
   console.log(`\n  最终选中的 chunk:`);
@@ -429,7 +385,7 @@ async function interactiveMode(indexDir, topK, debug) {
   console.log("  输入问题进行检索，输入 /quit 退出，/debug 切换详情");
   console.log("=".repeat(60));
 
-  const { chunks, embeddings, bm25, extractor } = await loadIndex(indexDir);
+  const { chunks, embeddings, bm25, vectorizer } = await loadIndex(indexDir);
 
   const rl = createInterface({
     input: process.stdin,
@@ -464,7 +420,7 @@ async function interactiveMode(indexDir, topK, debug) {
     }
 
     console.log(`  向量召回 top-20 ...`);
-    const denseResults = await denseRetrieve(searchQuery, extractor, embeddings, chunks, 20);
+    const denseResults = await denseRetrieve(searchQuery, vectorizer, embeddings, chunks, 20);
     console.log(`  命中 ${denseResults.length}`);
 
     const sparseResults = sparseRetrieve(searchQuery, bm25, chunks, 20);
@@ -476,7 +432,7 @@ async function interactiveMode(indexDir, topK, debug) {
     );
     console.log(`  RRF 融合 → ${fused.length} 个候选`);
 
-    const ranked = await rerank(searchQuery, fused, extractor, topK);
+    const ranked = await rerank(searchQuery, fused, vectorizer, topK);
     console.log(`  Rerank → top-${ranked.length}`);
 
     console.log(`\n  最终选中的 chunk:`);

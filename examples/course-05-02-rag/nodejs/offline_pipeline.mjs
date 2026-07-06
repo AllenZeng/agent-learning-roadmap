@@ -13,23 +13,28 @@
 
 import { readdir, readFile, mkdir, writeFile, stat } from "node:fs/promises";
 import { join, extname } from "node:path";
-import { fileURLToPath } from "node:url";
-import { pipeline } from "@huggingface/transformers";
+import {
+  DEFAULT_RETRIEVER,
+  PSEUDO_EMBEDDING_DIM,
+  SimpleBM25,
+  buildIdf,
+  buildPseudoEmbeddings,
+  tokenize,
+} from "./retrieval_core.mjs";
 
 // ---------- 配置 ----------
 
-const EMBEDDING_MODEL = "Xenova/all-MiniLM-L6-v2";
 const MIN_CHUNK_CHARS = 100;
 
 // ---------- 工具函数 ----------
 
-function tokenize(text) {
-  return text.toLowerCase().match(/\w+/g) || [];
-}
-
 function parseArgs() {
   const args = process.argv.slice(2);
-  const opts = { notesDir: "notes", indexDir: "output" };
+  const opts = {
+    notesDir: "notes",
+    indexDir: "output",
+    retriever: DEFAULT_RETRIEVER,
+  };
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--notes-dir" && args[i + 1]) opts.notesDir = args[++i];
     if (args[i] === "--index-dir" && args[i + 1]) opts.indexDir = args[++i];
@@ -212,93 +217,6 @@ function annotateChunk(chunk, sourceFile, frontmatter, idx) {
 // 阶段四：Embedding + BM25 索引（§2.4.4）
 // ================================================================
 
-async function buildEmbeddings(chunks, extractor) {
-  console.log(`[Embedding] 正在为 ${chunks.length} 个 chunk 生成向量...`);
-  const texts = chunks.map((c) => c.content);
-  const embeddings = [];
-
-  // 批量提取（ transformers.js 内部已批处理优化）
-  for (let i = 0; i < texts.length; i++) {
-    const output = await extractor(texts[i], {
-      pooling: "mean",
-      normalize: true,
-    });
-    embeddings.push(Array.from(output.data));
-    if ((i + 1) % 10 === 0 || i === texts.length - 1) {
-      process.stdout.write(`\r  进度: ${i + 1}/${texts.length}`);
-    }
-  }
-  console.log(
-    `\n[Embedding] 完成，向量维度: ${embeddings[0]?.length || "?"}`
-  );
-  return embeddings;
-}
-
-/**
- * 简易 BM25 实现（避免额外依赖）
- *
- * BM25(q, d) = Σ IDF(qi) * (tf(qi, d) * (k1 + 1)) / (tf(qi, d) + k1 * (1 - b + b * |d|/avgdl))
- */
-class SimpleBM25 {
-  constructor(docs, k1 = 1.5, b = 0.75) {
-    this.k1 = k1;
-    this.b = b;
-    this.docs = docs.map((d) => tokenize(d));
-    this.docCount = docs.length;
-    this.avgdl = this.docs.reduce((s, d) => s + d.length, 0) / this.docCount;
-
-    // 计算 IDF
-    const df = {};
-    for (const doc of this.docs) {
-      const seen = new Set(doc);
-      for (const term of seen) {
-        df[term] = (df[term] || 0) + 1;
-      }
-    }
-    this.idf = {};
-    for (const [term, count] of Object.entries(df)) {
-      this.idf[term] = Math.log(
-        (this.docCount - count + 0.5) / (count + 0.5) + 1
-      );
-    }
-  }
-
-  getScores(queryTokens) {
-    return this.docs.map((doc, docIdx) => {
-      let score = 0;
-      const tf = {};
-      for (const t of doc) tf[t] = (tf[t] || 0) + 1;
-
-      for (const term of queryTokens) {
-        if (!this.idf[term] || !tf[term]) continue;
-        const numerator = tf[term] * (this.k1 + 1);
-        const denominator =
-          tf[term] +
-          this.k1 * (1 - this.b + (this.b * doc.length) / this.avgdl);
-        score += this.idf[term] * (numerator / denominator);
-      }
-      return score;
-    });
-  }
-
-  toJSON() {
-    return {
-      k1: this.k1,
-      b: this.b,
-      docCount: this.docCount,
-      avgdl: this.avgdl,
-      idf: this.idf,
-    };
-  }
-
-  static fromJSON(data) {
-    const bm25 = Object.create(SimpleBM25.prototype);
-    Object.assign(bm25, data);
-    bm25.docs = []; // 检索时需要重新设置
-    return bm25;
-  }
-}
-
 function buildBM25Index(chunks) {
   console.log(`[BM25] 正在构建关键词索引...`);
   const docs = chunks.map((c) => c.content);
@@ -311,7 +229,7 @@ function buildBM25Index(chunks) {
 // 保存索引
 // ================================================================
 
-async function saveIndex(indexDir, chunks, embeddings, bm25Index) {
+async function saveIndex(indexDir, chunks, embeddings, bm25Index, indexMeta) {
   await mkdir(indexDir, { recursive: true });
 
   // 1. Chunks 元数据 + 内容 → JSON
@@ -340,7 +258,10 @@ async function saveIndex(indexDir, chunks, embeddings, bm25Index) {
   const meta = {
     total_chunks: chunks.length,
     embedding_dim: embeddings[0]?.length || 0,
-    embedding_model: EMBEDDING_MODEL,
+    retriever: indexMeta.retriever,
+    embedding_model: indexMeta.embeddingModel,
+    pseudo_embedding_dim: indexMeta.pseudoEmbeddingDim,
+    pseudo_embedding_idf: indexMeta.pseudoEmbeddingIdf,
     total_chars: chunks.reduce((s, c) => s + c.char_count, 0),
     sources: [...new Set(chunks.map((c) => c.source))],
     built_at: new Date().toISOString(),
@@ -354,7 +275,8 @@ async function saveIndex(indexDir, chunks, embeddings, bm25Index) {
 // 主流程
 // ================================================================
 
-async function runOfflinePipeline(notesDir = "notes", indexDir = "index") {
+async function runOfflinePipeline(opts) {
+  const { notesDir, indexDir, retriever } = opts;
   console.log("=".repeat(60));
   console.log("  离线建库 Pipeline");
   console.log("  原始笔记 → 解析清洗 → Chunking → Embedding → 索引入库");
@@ -411,19 +333,24 @@ async function runOfflinePipeline(notesDir = "notes", indexDir = "index") {
     );
   }
 
-  // ── Step 7: 加载 Embedding 模型 ──
-  console.log(`\n[模型] 加载 Embedding 模型: ${EMBEDDING_MODEL}`);
-  const extractor = await pipeline("feature-extraction", EMBEDDING_MODEL);
-
-  // ── Step 8: Embedding ──
-  const embeddings = await buildEmbeddings(published, extractor);
+  // ── Step 7: Embedding ──
+  console.log(`\n[Embedding] 使用伪 embedding（hashing TF-IDF, ${PSEUDO_EMBEDDING_DIM} 维）`);
+  const docs = published.map((c) => c.content);
+  const pseudoEmbeddingIdf = buildIdf(docs);
+  const embeddings = buildPseudoEmbeddings(docs, pseudoEmbeddingIdf);
+  console.log(`[Embedding] 完成，向量维度: ${embeddings[0]?.length || "?"}`);
 
   // ── Step 9: BM25 索引 ──
   const bm25Index = buildBM25Index(published);
 
   // ── Step 10: 保存 ──
   console.log(`\n── 保存索引到 ${indexDir}/ ──`);
-  await saveIndex(indexDir, published, embeddings, bm25Index);
+  await saveIndex(indexDir, published, embeddings, bm25Index, {
+    retriever,
+    embeddingModel: "pseudo-hashing-tfidf",
+    pseudoEmbeddingDim: PSEUDO_EMBEDDING_DIM,
+    pseudoEmbeddingIdf,
+  });
 
   console.log(`\n${"=".repeat(60)}`);
   console.log(`  离线建库完成！`);
@@ -438,7 +365,7 @@ async function runOfflinePipeline(notesDir = "notes", indexDir = "index") {
 
 // 运行
 const opts = parseArgs();
-runOfflinePipeline(opts.notesDir, opts.indexDir).catch((err) => {
+runOfflinePipeline(opts).catch((err) => {
   console.error("Pipeline 失败:", err);
   process.exit(1);
 });

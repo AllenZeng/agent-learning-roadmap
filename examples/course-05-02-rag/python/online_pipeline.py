@@ -15,33 +15,25 @@
 import argparse
 import json
 import os
-import pickle
 import re
 import sys
 from pathlib import Path
 
-import numpy as np
-from rank_bm25 import BM25Okapi
-from sentence_transformers import SentenceTransformer
+from retrieval_core import SimpleBM25, dot_product, pseudo_embed, tokenize
 
 # ---------- 配置 ----------
 
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 DEFAULT_TOP_K = 5
 VECTOR_WEIGHT = 0.6  # 向量召回在 RRF 融合中的权重
 BM25_WEIGHT = 0.4     # BM25 在 RRF 融合中的权重
 MAX_CONTEXT_CHARS = 3000
 
 
-def tokenize(text: str) -> list[str]:
-    return re.findall(r"\w+", text.lower())
-
-
 # ================================================================
 # 阶段一：加载索引
 # ================================================================
 
-def load_index(index_dir: str) -> tuple[list[dict], np.ndarray, BM25Okapi, SentenceTransformer]:
+def load_index(index_dir: str) -> tuple[list[dict], list[list[float]], SimpleBM25, dict]:
     """加载所有索引文件"""
     base = Path(index_dir)
 
@@ -51,22 +43,21 @@ def load_index(index_dir: str) -> tuple[list[dict], np.ndarray, BM25Okapi, Sente
     print(f"[加载] chunks.json — {len(chunks)} 个 chunk")
 
     # 向量嵌入
-    embeddings = np.load(base / "embeddings.npy")
-    print(f"[加载] embeddings.npy — shape {embeddings.shape}")
+    with open(base / "embeddings.json", encoding="utf-8") as f:
+        embeddings = json.load(f)
+    embedding_dim = len(embeddings[0]) if embeddings else 0
+    print(f"[加载] embeddings.json — {len(embeddings)} × {embedding_dim}")
 
     # BM25 索引
-    with open(base / "bm25_index.pkl", "rb") as f:
-        bm25_index = pickle.load(f)
-    print(f"[加载] bm25_index.pkl — {len(bm25_index.idf)} 个词条")
+    with open(base / "bm25_index.json", encoding="utf-8") as f:
+        bm25_index = SimpleBM25.from_dict(json.load(f))
+    print(f"[加载] bm25_index.json — {len(bm25_index.idf)} 个词条")
 
-    # Embedding 模型
     with open(base / "index_meta.json") as f:
         meta = json.load(f)
-    model_name = meta.get("embedding_model", EMBEDDING_MODEL)
-    print(f"[加载] Embedding 模型: {model_name}")
-    model = SentenceTransformer(model_name)
+    print(f"[加载] 伪 embedding: hashing TF-IDF ({meta.get('pseudo_embedding_dim', embedding_dim)} 维)")
 
-    return chunks, embeddings, bm25_index, model
+    return chunks, embeddings, bm25_index, meta
 
 
 # ================================================================
@@ -108,16 +99,19 @@ def understand_query(query: str) -> dict:
 # ================================================================
 
 def dense_retrieve(
-    query: str, model: SentenceTransformer, embeddings: np.ndarray, chunks: list[dict], top_k: int = 20
+    query: str,
+    meta: dict,
+    embeddings: list[list[float]],
+    chunks: list[dict],
+    top_k: int = 20,
 ) -> list[dict]:
     """
-    向量语义召回：embed query → cosine similarity → top-k。
-    向量擅长语义泛化，但可能误命中不直接回答问题的内容。
+    伪向量召回：hashing TF-IDF embed query → cosine similarity → top-k。
+    它保留 dense retrieval 的教学结构，但不依赖外部模型。
     """
-    query_vec = model.encode([query], normalize_embeddings=True)[0]
-    # cosine similarity（向量已归一化，点积即相似度）
-    scores = np.dot(embeddings, query_vec)
-    top_indices = np.argsort(scores)[::-1][:top_k]
+    query_vec = pseudo_embed(query, meta.get("pseudo_embedding_idf", {}))
+    scores = [dot_product(emb, query_vec) for emb in embeddings]
+    top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k]
 
     results = []
     for idx in top_indices:
@@ -132,7 +126,7 @@ def dense_retrieve(
     return results
 
 
-def sparse_retrieve(query: str, bm25_index: BM25Okapi, chunks: list[dict], top_k: int = 20) -> list[dict]:
+def sparse_retrieve(query: str, bm25_index: SimpleBM25, chunks: list[dict], top_k: int = 20) -> list[dict]:
     """
     BM25 关键词召回：精确匹配专有名词和术语。
     擅长精确匹配，但不懂语义变体（'Tool Use' vs '工具调用'）。
@@ -140,10 +134,10 @@ def sparse_retrieve(query: str, bm25_index: BM25Okapi, chunks: list[dict], top_k
     tokenized = tokenize(query)
     scores = bm25_index.get_scores(tokenized)
     # BM25 分数归一化到 [0, 1]
-    max_score = scores.max() if scores.max() > 0 else 1
-    scores = scores / max_score
+    max_score = max(scores) if scores and max(scores) > 0 else 1
+    scores = [s / max_score for s in scores]
 
-    top_indices = np.argsort(scores)[::-1][:top_k]
+    top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k]
 
     results = []
     for idx in top_indices:
@@ -208,7 +202,7 @@ def rrf_fusion(dense_results: list[dict], sparse_results: list[dict], k: int = 6
 # ================================================================
 
 def rerank(
-    query: str, candidates: list[dict], model: SentenceTransformer, top_k: int = DEFAULT_TOP_K
+    query: str, candidates: list[dict], meta: dict, top_k: int = DEFAULT_TOP_K
 ) -> list[dict]:
     """
     重排序：对候选 chunk 做精细排序。
@@ -221,15 +215,13 @@ def rerank(
     if len(candidates) <= top_k:
         return candidates
 
-    # 用更精细的相似度重算分数
-    chunk_texts = [c["chunk"]["content"] for c in candidates]
-    query_vec = model.encode([query], normalize_embeddings=True)[0]
-    chunk_vecs = model.encode(chunk_texts, normalize_embeddings=True)
-    sim_scores = np.dot(chunk_vecs, query_vec)
+    query_vec = pseudo_embed(query, meta.get("pseudo_embedding_idf", {}))
 
     # 与融合分数加权结合
-    for i, c in enumerate(candidates):
-        c["rerank_score"] = 0.7 * float(sim_scores[i]) + 0.3 * c["fused_score"]
+    for c in candidates:
+        chunk_vec = pseudo_embed(c["chunk"]["content"], meta.get("pseudo_embedding_idf", {}))
+        sim_score = dot_product(chunk_vec, query_vec)
+        c["rerank_score"] = 0.7 * float(sim_score) + 0.3 * c["fused_score"]
 
     # 排序
     ranked = sorted(candidates, key=lambda x: x["rerank_score"], reverse=True)
@@ -336,7 +328,7 @@ def run_online_pipeline(
 
     # ── Step 1: 加载索引 ──
     print()
-    chunks, embeddings, bm25_index, model = load_index(index_dir)
+    chunks, embeddings, bm25_index, meta = load_index(index_dir)
 
     # ── Step 2: 查询理解 ──
     print(f"\n── 查询理解 (§2.4.5) ──")
@@ -352,7 +344,7 @@ def run_online_pipeline(
     # ── Step 3: 多路召回 ──
     print(f"\n── 多路召回 (§2.4.6) ──")
     print(f"  向量召回 top-20 ...", end=" ")
-    dense_results = dense_retrieve(search_query, model, embeddings, chunks, top_k=20)
+    dense_results = dense_retrieve(search_query, meta, embeddings, chunks, top_k=20)
     print(f"命中 {len(dense_results)}")
 
     print(f"  BM25 召回 top-20 ...", end=" ")
@@ -376,7 +368,7 @@ def run_online_pipeline(
 
     # ── Step 4: 重排序 ──
     print(f"\n── 重排序 (§2.4.6) ──")
-    ranked = rerank(search_query, fused, model, top_k=top_k)
+    ranked = rerank(search_query, fused, meta, top_k=top_k)
     print(f"  Rerank → top-{len(ranked)}")
 
     print(f"\n  最终选中的 chunk:")
@@ -415,7 +407,7 @@ def interactive_mode(index_dir: str, top_k: int, debug: bool):
     print("=" * 60)
 
     # 预加载索引
-    chunks, embeddings, bm25_index, model = load_index(index_dir)
+    chunks, embeddings, bm25_index, meta = load_index(index_dir)
 
     while True:
         try:

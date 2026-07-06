@@ -14,28 +14,24 @@
 import argparse
 import json
 import os
-import pickle
 import re
 import sys
 import time
 from pathlib import Path
 
-import numpy as np
-from rank_bm25 import BM25Okapi
-from sentence_transformers import SentenceTransformer
+from retrieval_core import (
+    DEFAULT_RETRIEVER,
+    PSEUDO_EMBEDDING_DIM,
+    SimpleBM25,
+    build_idf,
+    build_pseudo_embeddings,
+    tokenize,
+)
 
 # ---------- 配置 ----------
 
-# 嵌入模型（首次运行自动下载，约 80MB，缓存到 ~/.cache/）
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-
 # 最小 chunk 字符数（太短的合并到上一个 chunk）
 MIN_CHUNK_CHARS = 100
-
-# 分词函数（BM25 需要）
-def tokenize(text: str) -> list[str]:
-    """简单分词：按非字母数字字符切分 + 小写"""
-    return re.findall(r"\w+", text.lower())
 
 
 # ================================================================
@@ -195,23 +191,14 @@ def annotate_chunk(chunk: dict, source_file: str, frontmatter: dict, idx: int) -
 
 
 # ================================================================
-# 阶段四：Embedding + 索引（§2.4.4）
+# 阶段四：伪 Embedding + 索引（§2.4.4）
 # ================================================================
-
-def build_embeddings(chunks: list[dict], model: SentenceTransformer) -> np.ndarray:
-    """为所有 chunk 生成向量嵌入"""
-    print(f"[Embedding] 正在为 {len(chunks)} 个 chunk 生成向量...")
-    texts = [c["content"] for c in chunks]
-    embeddings = model.encode(texts, show_progress_bar=True, normalize_embeddings=True)
-    print(f"[Embedding] 完成，向量维度: {embeddings.shape[1]}")
-    return embeddings
-
 
 def build_bm25_index(chunks: list[dict]):
     """构建 BM25 稀疏检索索引"""
     print(f"[BM25] 正在构建关键词索引...")
-    tokenized = [tokenize(c["content"]) for c in chunks]
-    index = BM25Okapi(tokenized)
+    docs = [c["content"] for c in chunks]
+    index = SimpleBM25(docs)
     print(f"[BM25] 完成，词汇量: {len(index.idf)}")
     return index
 
@@ -223,8 +210,9 @@ def build_bm25_index(chunks: list[dict]):
 def save_index(
     index_dir: str,
     chunks: list[dict],
-    embeddings: np.ndarray,
-    bm25_index: BM25Okapi,
+    embeddings: list[list[float]],
+    bm25_index: SimpleBM25,
+    pseudo_embedding_idf: dict[str, float],
 ):
     """保存所有索引文件到 index/ 目录"""
     os.makedirs(index_dir, exist_ok=True)
@@ -235,22 +223,27 @@ def save_index(
         json.dump(chunks, f, ensure_ascii=False, indent=2)
     print(f"[保存] chunks.json  ({len(chunks)} 条记录)")
 
-    # 2. 向量嵌入 → .npy
-    emb_path = os.path.join(index_dir, "embeddings.npy")
-    np.save(emb_path, embeddings)
-    print(f"[保存] embeddings.npy  (shape: {embeddings.shape})")
+    # 2. 向量嵌入 → JSON
+    emb_path = os.path.join(index_dir, "embeddings.json")
+    with open(emb_path, "w", encoding="utf-8") as f:
+        json.dump(embeddings, f)
+    embedding_dim = len(embeddings[0]) if embeddings else 0
+    print(f"[保存] embeddings.json  ({len(embeddings)} × {embedding_dim})")
 
-    # 3. BM25 索引 → .pkl
-    bm25_path = os.path.join(index_dir, "bm25_index.pkl")
-    with open(bm25_path, "wb") as f:
-        pickle.dump(bm25_index, f)
-    print(f"[保存] bm25_index.pkl")
+    # 3. BM25 索引 → JSON
+    bm25_path = os.path.join(index_dir, "bm25_index.json")
+    with open(bm25_path, "w", encoding="utf-8") as f:
+        json.dump(bm25_index.to_dict(), f, ensure_ascii=False)
+    print(f"[保存] bm25_index.json")
 
     # 4. 索引元信息
     meta = {
         "total_chunks": len(chunks),
-        "embedding_dim": embeddings.shape[1],
-        "embedding_model": EMBEDDING_MODEL,
+        "embedding_dim": embedding_dim,
+        "retriever": DEFAULT_RETRIEVER,
+        "embedding_model": "pseudo-hashing-tfidf",
+        "pseudo_embedding_dim": PSEUDO_EMBEDDING_DIM,
+        "pseudo_embedding_idf": pseudo_embedding_idf,
         "total_chars": sum(c["char_count"] for c in chunks),
         "sources": list(set(c["source"] for c in chunks)),
         "built_at": time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -313,19 +306,20 @@ def run_offline_pipeline(notes_dir: str = "notes", index_dir: str = "output"):
         print(f"\n[过滤] 排除 {len(all_chunks) - len(published)} 个草稿 chunk，"
               f"保留 {len(published)} 个已发布 chunk")
 
-    # ── Step 7: 加载 Embedding 模型 ──
-    print(f"\n[模型] 加载 Embedding 模型: {EMBEDDING_MODEL}")
-    model = SentenceTransformer(EMBEDDING_MODEL)
-
-    # ── Step 8: Embedding ──
-    embeddings = build_embeddings(published, model)
+    # ── Step 7: Embedding ──
+    print(f"\n[Embedding] 使用伪 embedding（hashing TF-IDF, {PSEUDO_EMBEDDING_DIM} 维）")
+    docs = [c["content"] for c in published]
+    pseudo_embedding_idf = build_idf(docs)
+    embeddings = build_pseudo_embeddings(docs, pseudo_embedding_idf)
+    embedding_dim = len(embeddings[0]) if embeddings else 0
+    print(f"[Embedding] 完成，向量维度: {embedding_dim}")
 
     # ── Step 9: BM25 索引 ──
     bm25_index = build_bm25_index(published)
 
     # ── Step 10: 保存 ──
     print(f"\n── 保存索引到 {index_dir}/ ──")
-    save_index(index_dir, published, embeddings, bm25_index)
+    save_index(index_dir, published, embeddings, bm25_index, pseudo_embedding_idf)
 
     print(f"\n{'=' * 60}")
     print(f"  离线建库完成！")

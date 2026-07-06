@@ -6,10 +6,7 @@
   "scripts": {
     "offline": "node offline_pipeline.mjs",
     "online": "node online_pipeline.mjs",
-    "query": "node online_pipeline.mjs"
-  },
-  "dependencies": {
-    "@huggingface/transformers": "^3.0.0",
-    "onnxruntime-web": "^1.20.0"
+    "query": "node online_pipeline.mjs",
+    "test": "node --test"
   }
 }
