@@ -87,7 +87,7 @@
     <rect x="0" y="0" width="372" height="166" rx="24" fill="#FFFFFF" stroke="#FED7AA" stroke-width="2" filter="url(#cardShadow)"/>
     <rect x="24" y="22" width="108" height="30" rx="15" fill="#EA580C"/>
     <text x="78" y="43" text-anchor="middle" class="cardNo">Lesson 05</text>
-    <text x="24" y="86" class="cardTitle">Scenario Capabilities</text>
+    <text x="24" y="86" class="cardTitle">Scenario Enhancement</text>
     <text x="24" y="116" class="cardFocus">
       <tspan x="24" dy="0">Choose RAG, Memory, Planning,</tspan>
       <tspan x="24" dy="24">Reflection, and more by scenario</tspan>
@@ -106,7 +106,7 @@
     <rect x="0" y="0" width="340" height="136" rx="24" fill="#FFFFFF" stroke="#E9D5FF" stroke-width="2" filter="url(#cardShadow)"/>
     <rect x="24" y="22" width="108" height="30" rx="15" fill="#7C3AED"/>
     <text x="78" y="43" text-anchor="middle" class="cardNo">Lesson 07</text>
-    <text x="24" y="86" class="cardTitle">Productization</text>
+    <text x="24" y="86" class="cardTitle">Agent Productization</text>
     <text x="24" y="116" class="cardFocus">Handle product issues before launch</text>
   </g>
 

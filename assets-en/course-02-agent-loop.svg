@@ -27,7 +27,7 @@
   <rect width="1200" height="610" fill="url(#al-bg)"/>
 
   <!-- Title -->
-  <text x="600" y="54" text-anchor="middle" class="al-title">The Basic Agent Loop: Perceive, Reason, Act, Learn</text>
+  <text x="600" y="54" text-anchor="middle" class="al-title">The Basic Agent Loop: Perceive, Assess, Act, Feedback</text>
   <text x="600" y="82" text-anchor="middle" class="al-sub">This loop stays stable from traditional Agents to LLM Agents; what changes is who performs each step.</text>
 
   <!-- ===== Top Row: Steps 1 → 2 → 3 ===== -->
