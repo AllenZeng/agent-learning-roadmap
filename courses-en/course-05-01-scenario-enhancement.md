@@ -1,189 +1,210 @@
-# Course V: Site empowerment
+# Course V: Scenario-Driven Agent Enhancement
 
-## Introduction to the curriculum
+## Course Introduction
 
-After course 3 and course 4, you have a running Agent-LLM decision-making + Tool Call + State Management + Cycle Control. It deals with simple tasks that are stable: reading documents, making summaries and searching for replacements.
+After Course III and Course IV, you already have a working Agent: LLM decision-making, tool calls, state management, and loop control. It can handle simple tasks reliably: reading files, summarizing content, searching, and replacing text.
 
-But once you put it in the real scene for weeks, you hit two different kinds of problems:
+But once you run that Agent in real scenarios for a few weeks, two very different kinds of problems start to appear.
 
-**Category I: Context — Information on which Agent's decision-making depends, where and how?** Private knowledge is not in the model parameters and external data cannot come in; user preferences and task status evaporates over one session; and when external knowledge and historical status are connected, multiple sources of information are injected into the context, from carefully designed inputs to expanding information piles. Such problems are addressed by **context enhancement**: RAG (access to external data), Memory (continuing historical status), Context Engineering (organizational multi-source information).
+**The first kind is a context problem: where does the information behind the Agent's decisions come from, and how is it managed?** Private knowledge is not stored in the model's parameters. External data does not enter the decision process by itself. User preferences and task progress disappear once the session ends. After you connect external knowledge and historical state, another problem appears: many sources start pouring information into the same context window, and the context changes from a carefully designed input into an expanding pile of mixed signals. This kind of problem is handled through **context enhancement**: RAG for retrieving external data, Memory for carrying state across time, and Context Engineering for organizing multiple information sources.
 
-**Category II: behaviour issues — how can Agent organize implementation, collaboration, response feedback when faced with complex tasks?** Naked Rect Cycle has no mandate structure and multi-step tasks are prone to drift; classification, processing and discontinuation mechanisms are lacking following unusual feedback from the implementation process; high-risk operations lack decision-making authority boundaries; and single players cannot look at their work from multiple perspectives. Such problems are addressed by the enhanced behaviour patterns: Planning (missions decomposition and organization), Reflection (results-based decision-making closed loop), Human-in-the-loop (decision-making boundaries), Multi-Agent (multi-role division of labour collaboration).
+**The second kind is a behavior problem: when the task becomes complex, how should the Agent organize execution, collaborate, and respond to feedback?** A bare ReAct loop has no task structure, so multi-step work can drift. When tool calls fail or intermediate results look wrong, the Agent needs a way to classify the feedback, decide what to do next, and know when to stop. High-risk actions need clear decision boundaries. A single role is often not enough to review its own work from multiple perspectives. This kind of problem is handled through **behavior-pattern enhancement**: Planning for task decomposition and orchestration, Reflection for feedback-driven decision loops, Human-in-the-loop for decision boundaries, and Multi-Agent for role-based collaboration.
 
-These two sets of capabilities answer two fundamental questions. But they have one thing in common: **none of the mandatory core modules of Agent** — a minimum closed circle does not need them to run. They are selective introduction of empowerment by scene.
+These two groups of capabilities answer two fundamental questions. They also share one important property: **none of them is required for a minimal Agent loop to run**. They are scenario-driven enhancements. You introduce them only when the problem in front of you justifies the extra complexity.
 
-This course does not start with conceptual terms but begins with problems. Each chapter follows the same path:
+This course does not start from a list of concepts. It starts from the problems that force those concepts to exist. Each chapter follows the same path:
 
 ```text
-It's a problem. → Technical background. → Thinking.
- → Programme (core links + Code skeleton) → iterative path (from minimum version to production level) → Judge the boundary (when not)
+Problem in context -> Technical background -> Design reasoning
+-> Solution path (core flow + code skeleton)
+-> Iteration path (from minimal version to production-ready version)
+-> Boundary check (when not to use it)
 ```
 
-After school, you don't have to do all seven types of abilities, but you should be able to judge when you face a new scene:
+By the end of this course, you do not need to master all seven enhancement capabilities in equal depth. What matters is that, when you face a new scenario, you can judge:
 
-- Is the current scenario a context or a behavioural issue?
-- Does the question really require some kind of empowerment?
-- What is the added complexity of the project after its introduction?
-- If so, which minimum version should begin?
-- Under what circumstances should it be expressly excluded?
+- Is this mainly a context problem or a behavior problem?
+- Does this scenario really need an enhancement capability?
+- What engineering complexity will the capability introduce?
+- If you decide to introduce it, what is the smallest useful version?
+- Under what conditions should you explicitly avoid introducing it?
 
 ---
 
-## Learning objectives
+## Learning Objectives
 
-After this lesson, you will be able to:
+After this course, you will be able to:
 
-1. **Scene-based empowerment**: instead of using RAG, Memory, Context Engineering, Planning, Reflecting, Human-in-the-loop, Multi-Agent as a fixed module list, the corresponding enhancements are selected according to the actual problem model
-2. **Distinguishing between two types of enablement**: the question is "Where does the information on which decision-making depends come from, how do you manage it?" (better context) or "How do you organize, collaborate, recover from complex tasks"? (better behaviour patterns)
-3. **Scenario judgement for each type of capability**: know when RAG, Memoory, what should be remembered, how context is stratified, which organizational model for complex tasks, Reflection must have external feedback signals, what operations must be identified by humans, Multi-Agent is introduced only when roles conflict or need to be parallel
-4. **From the smallest version**: each capability has a path from V0 to the production level, without a one-time stacking structure
-5. **Develop a capability introduction note**: explain why a capacity is introduced or not introduced with "problems, formulas, costs, trajectories, boundaries"
+1. **Choose enhancements from scenario problems**: treat RAG, Memory, Context Engineering, Planning, Reflection, Human-in-the-loop, and Multi-Agent as problem-driven options rather than a fixed checklist of modules.
+2. **Distinguish the two major enhancement categories**: decide whether the problem is about "where decision-relevant information comes from and how it is managed" (context enhancement) or "how complex work is organized, coordinated, and recovered" (behavior-pattern enhancement).
+3. **Make scenario-level judgments for each capability**: know when RAG is needed, what Memory should and should not store, how context should be layered, which organization pattern fits a complex task, why Reflection needs external feedback, which operations require human confirmation, and why Multi-Agent should be introduced only when role conflict or parallel work justifies it.
+4. **Start from the smallest viable version**: understand the path from V0 to production for each capability, instead of stacking a full architecture from the beginning.
+5. **Write a capability-introduction note**: explain why you are introducing, or not introducing, a capability using the structure "problem, solution, cost, iteration path, boundary."
 
 ---
 
 ## Contents
 
-- [Introduction to the curriculum](#introduction-to-the-curriculum)
-- [Learning objectives](#learning-objectives)
-- [Chapter I: Why learn from scenes for empowerment](#chapter-i-why-learn-from-scenes-for-empowerment)
-  - [1.1 Two types of ceiling for the smallest Agent](#11-two-types-of-ceiling-for-the-smallest-agent)
-  - [1.2 Two types of enhancements: context vs behaviour patterns](#12-two-types-of-enhancements-context-vs-behaviour-patterns)
-  - [1.3 Common diagnostic processes introduced by capacity](#13-common-diagnostic-processes-introduced-by-capacity)
-- [Follow-up chapter](#follow-up-chapter)
-  - [Part I: Context enhancement](#part-i-context-enhancement)
-  - [Part II: Enhancement of behaviour patterns](#part-ii-enhancement-of-behaviour-patterns)
-  - [Final chapter: Portfolio of capacities and sequence of introduction](#final-chapter-portfolio-of-capacities-and-sequence-of-introduction)
+- [Course Introduction](#course-introduction)
+- [Learning Objectives](#learning-objectives)
+- [Chapter 1: Why Enhancement Should Start From Scenario Problems](#chapter-1-why-enhancement-should-start-from-scenario-problems)
+  - [1.1 The Two Ceilings of a Minimal Agent](#11-the-two-ceilings-of-a-minimal-agent)
+  - [1.2 Two Enhancement Categories: Context vs Behavior Patterns](#12-two-enhancement-categories-context-vs-behavior-patterns)
+  - [1.3 A General Decision Process for Introducing Enhancements](#13-a-general-decision-process-for-introducing-enhancements)
+- [Follow-up Chapters](#follow-up-chapters)
+  - [Part I: Context Enhancement](#part-i-context-enhancement)
+  - [Part II: Behavior-Pattern Enhancement](#part-ii-behavior-pattern-enhancement)
+  - [Final Chapter: Capability Composition and Introduction Order](#final-chapter-capability-composition-and-introduction-order)
 - [References](#references)
-- [Next class connect.](#next-class-connect)
+- [Connection to the Next Course](#connection-to-the-next-course)
 
 ---
 
-## Chapter I: Why learn from scenes for empowerment
+## Chapter 1: Why Enhancement Should Start From Scenario Problems
 
-### 1.1 Two types of ceiling for the smallest Agent
+### 1.1 The Two Ceilings of a Minimal Agent
 
-You spent two weeks doing a personal knowledge assistant, Agent. It runs on the smallest closed ring of course three - LLM Decision + Tool Call + State Management + Cycle Control. The first month went smoothly, but the second began with problems coming up one after another.
+Imagine you spent two weeks building a personal knowledge assistant Agent. It runs on the minimal loop from Course III: LLM decision-making, tool calls, state management, and loop control. During the first month, it feels smooth. In the second month, problems start showing up one after another.
 
-These questions appear to be varied, but look closely at them and hit two different ceilings. 
+At first, those problems look unrelated. But if you look closely, they hit two different ceilings.
 
-**First ceiling: context. Where does it come from and how does it work?**
+**The first ceiling is context. Where does the information behind the Agent's decisions come from, and how is it managed?**
 
-The least closed circle 'the context' is the System Prompt+User Message + Tool returns. All the information is in the current session, and the session is closed. This means three things:
+In a minimal loop, "context" usually means the system prompt, the user message, and tool results. Everything lives inside the current session. When the session ends, the information disappears. That creates three concrete problems:
 
-- Private knowledge, real-time data other than model training data cannot be obtained by Agent. It can only remember "guess" by parameters.
-- User preferences, project engagements, progress of the last mission are evaporated through one session. It has to start from scratch every time.
-- When you access both the external knowledge (RAG) and the historical state (Memory), the new problem follows: multiple sources of information are simultaneously injected into the context, system hints, retrieval clips, memory recall, tool outputs, history messages are mixed — the context has changed from "detailed input" to "extended information piles". The model begins to ignore key constraints and fights between information.
+- Private knowledge and real-time data outside the model's training data are unavailable. The Agent can only guess from parameter memory.
+- User preferences, project conventions, and progress from the previous task do not survive across sessions. The user has to explain the same things again.
+- After you connect external knowledge through RAG and historical state through Memory, a new problem appears: system prompts, retrieved snippets, recalled memories, tool outputs, and chat history all enter the same context. What used to be a designed input becomes an expanding information pile. The model starts ignoring key constraints, and different pieces of information conflict with each other.
 
-These three levels - **access to external data, continuity of history, organization multi-source information** - jointly determine the quality of information for Agent decision-making. Corresponding enhancements were RAG (chap. II), Momory (chap. III) and Context Engineering (chap. IV).
+These three layers -- **retrieving external data, preserving historical state, and organizing multiple information sources** -- determine the quality of the information available for Agent decisions. The corresponding enhancement capabilities are RAG (Chapter 2), Memory (Chapter 3), and Context Engineering (Chapter 4).
 
-**Second ceiling: behavior. How does Agent organize implementation, collaboration and recovery in the face of complex tasks?**
+**The second ceiling is behavior. When the task becomes complex, how does the Agent organize execution, collaborate, and recover?**
 
-The minimum closed circle has only one naked rect loop: each step determines what to do next according to the current context. This model, "Check out what X" is okay, but it's not enough when it comes to more complex mission patterns:
+A minimal loop usually has only a bare ReAct pattern: at each step, the Agent decides what to do next based on the current context. That works for tasks like "look up what X means." It is not enough for more complex work:
 
-- The task itself is multi-step, dependent — not "what to do next," but "how to break it down, how to do it in sequence, how to do it."
-- There are errors in the implementation process — tools failed to call, returns abnormally and intermediate outputs did not match expectations. In the absence of a correction mechanism, errors are carried silently into subsequent steps.
-- Some operations have irreversible effects — deleting files, sending messages, executing payments. Agent is technically capable of implementation, but judging whether it should or not requires human operational knowledge and risk awareness.
-- Some tasks require multiple perspectives — creators and reviewers share the same context and consider themselves as naturally blind.
+- The task has multiple steps and dependencies. The real question is not just "what is the next action?" but "how should the whole task be decomposed, ordered, and verified?"
+- Execution can fail. Tool calls may fail, results may be abnormal, and intermediate outputs may not meet expectations. Without a recovery mechanism, errors silently travel into later steps.
+- Some actions are irreversible or high impact: deleting files, sending messages, making payments. The Agent may be technically able to execute them, but deciding whether it should execute them requires human business judgment and risk awareness.
+- Some tasks need multiple viewpoints. When the same Agent plays creator and reviewer at the same time, self-review has natural blind spots.
 
-These four levels — **task break-up and organization, feedback-driven decision-making on the next steps, decision-making boundaries, multi-role division of labour** — together determine Agent's ability to handle complex tasks. Corresponding enabling capacities are Planning (chapter V), Reflecting (chapter VI), Human-in-the-loop (chapter VII), Multi-Agent (chapter VIII).
+These four layers -- **task decomposition and orchestration, feedback-driven next-step decisions, decision-boundary control, and role-based collaboration** -- determine whether an Agent can handle complex work. The corresponding enhancement capabilities are Planning (Chapter 5), Reflection (Chapter 6), Human-in-the-loop (Chapter 7), and Multi-Agent (Chapter 8).
 
----
+These two ceilings answer the two core questions of Agent enhancement: **where does decision-relevant information come from and how is it managed? How is complex execution organized, coordinated, and recovered?** Course III and Course IV gave you a working skeleton. Course V explains where to strengthen that skeleton when real scenarios become messy.
 
-These two ceilings answered two fundamental questions about Agent's enhancement: where is the information on which decision-making depends? How can complex missions be organized, coordinated and restored? Course 3 and course 4 give you a run-away skeleton, and course 5 solves the problem of strengthening the skeleton in which direction when it encounters the complexity of the real scene.
+### 1.2 Two Enhancement Categories: Context vs Behavior Patterns
 
-### 1.2 Two types of enhancements: context vs behaviour patterns
-
-The seven categories of capacity corresponding to the above seven issues are naturally divided into two groups. Their differences are not just "whatever," but the fundamental questions answered are different:
+The seven capabilities above naturally form two groups. The difference is not just what they manage; the deeper difference is the question they answer.
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│                    Context enhancement (information dimension)│
-│  Question: What's in Agent's Vision??                             │
+│              Context Enhancement (Information)              │
+│  Core question: What is inside the Agent's field of view?    │
 │                                                             │
-│  RAG → What? How does external knowledge get in the context?│
-│  Memory → Remember what? How does it last?│
-│  Context Eng → How does it work? How does multiple information sources fit into the context?│
+│  RAG          -> What should it retrieve?                    │
+│                  How does external knowledge enter context?  │
+│  Memory       -> What should it remember?                    │
+│                  How does state continue across sessions?    │
+│  Context Eng  -> How should context be managed?              │
+│                  How do multiple sources become usable input?│
 │                                                             │
-│  Three relationships: RAG and Memoory are information producers, Context Engineering│
-│  Is an information organizer. Without organizers, the more producers, the more the context becomes.│
+│  Relationship: RAG and Memory produce information.           │
+│  Context Engineering organizes information. Without an       │
+│  organizer, more producers usually create more confusion.    │
 └─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────┐
-│                   Behavioural enhancement (action dimension)│
-│  Question: Agent how to "work"?                                  │
+│           Behavior-Pattern Enhancement (Action)             │
+│  Core question: How does the Agent get work done?            │
 │                                                             │
-│  Planning → How to break it down: how to break up a complex mission.│
-│  Reflection → How? Should we try again, process it or stop it next time the feedback comes out?│
-│  HITL → How? When should we decide?│
-│  Multi-Agent → How? How do you work when a single player is not enough?│
+│  Planning     -> How should the task be decomposed?          │
+│  Reflection   -> After feedback appears, should it retry,    │
+│                  repair, escalate, or stop?                  │
+│  HITL         -> When should the Agent not decide alone?     │
+│  Multi-Agent  -> When one role is not enough, how should     │
+│                  work be divided and coordinated?            │
 │                                                             │
-│  Four relationships: Planning Action, Reflecting Action Based on Feedback, HITL│
-│  Binding action (border), Multi-Agent extension (scale).│
+│  Relationship: Planning structures action. Reflection adjusts│
+│  action based on feedback. HITL constrains action boundaries.│
+│  Multi-Agent expands action capacity and perspective.        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-Why do you make this distinction? Two reasons:
+Why make this distinction? There are two practical reasons.
 
-**First, introduction order.** In real projects, you usually solve problems of information and then behavior. A person who doesn't even have a clear vision, and you've given it a complicated Planning model for nothing. It did the right task on the wrong message, and the result was wrong. The error clips that RAG retrieves, the outdated preferences recalled by Memory, the unorganized confusion context - the problem of these information dimensions will be magnified by the complex layout of Planning and Multi-Agent.
+**First, introduction order.** In real projects, you usually solve information problems before behavior problems. If an Agent cannot see the right information, adding a sophisticated Planning pattern will not help much. It will simply make a well-structured plan on top of bad inputs. Wrong RAG snippets, outdated memories, and disorganized context are information-layer problems; Planning and Multi-Agent orchestration can amplify those problems instead of fixing them.
 
-**Second, positioning issues.** When Agent behaves badly, it is a question of information or behaviour. The model answers are inaccurate — are the results of the search not correct (information questions) or are the tasks broken down wrong (behaviour questions)? Agent deletes the document that should not be deleted -- is it without HITL confirmation, or is it the wrong file classification in Memoory? Bringing the problem to the right dimensions will lead to the right direction.
+**Second, problem diagnosis.** When an Agent behaves badly, first decide whether the failure is mainly about information or behavior. If the answer is inaccurate, is the retrieval result wrong, or is the task decomposition wrong? If the Agent deletes a file it should not delete, is the missing piece Human-in-the-loop confirmation, or did Memory store an incorrect classification for that file? Putting the failure in the right category points you toward the right enhancement.
 
-The following table shows the coordinates of the next chapter — which does not require all of the lessons to be done — and turns to the corresponding section whenever the problem arises:
+The table below is the navigation map for later chapters. You do not need to finish the whole course before applying it. When a problem appears, jump to the matching capability.
 
-| Dimensions | Problem scene | Gene. | Empowerment | Add complexity after introduction |
+| Dimension | Problem Scenario | Root Cause | Enhancement | Added Complexity |
 |---|---|---|---|---|
-| **Context enhancement** | External knowledge doesn't fit. | No answers in model parameters | RAG (Ch2) | Index maintenance, delayed retrieval, reference verification |
-| **Context enhancement** | I'm losing my memory when I close my sessions. | Status evaporates with session | Memory (Ch3) | Writing strategy, privacy, memory pollution |
-| **Context enhancement** | Information source 1 context to dump | Multi-Info Unordered Injection | Context Engineering (Ch4) | Layer design, budget transfer, overcompression |
-| **Behavioural mode enhancement** | Multistep task drifting step | Naked. | Planning (Ch5) | Plan enforceability, reprogramming costs |
-| **Behavioural mode enhancement** | I saw the feedback and I kept going. | Lack of decision-making closed loop | Reflection (Ch6) | Multi-wheel cost, condition to stop |
-| **Behavioural mode enhancement** | It's up to you. | Models don't know what to do and what to do. | Human-in-the-loop (Ch7) | Block delay, confirm fatigue. |
-| **Behavioural mode enhancement** | You'll see. | Single Agent Role Overload | Multi-Agent (Ch8) | Coordinated expenses, costs 2-5 times |
+| **Context enhancement** | External knowledge cannot enter the answer | The answer is not in model parameters | RAG (Ch2) | Index maintenance, retrieval latency, citation verification |
+| **Context enhancement** | The Agent forgets once the session closes | State evaporates with the session | Memory (Ch3) | Write policy, privacy, memory pollution |
+| **Context enhancement** | More information sources turn context into a junk drawer | Multiple sources are injected without structure | Context Engineering (Ch4) | Layer design, token-budget tuning, over-compression |
+| **Behavior-pattern enhancement** | Multi-step tasks drift or miss steps | Bare ReAct has no task structure | Planning (Ch5) | Plan executability, replanning cost |
+| **Behavior-pattern enhancement** | The Agent sees feedback but keeps going down the same path | Missing decision loop | Reflection (Ch6) | Extra rounds, clear stop conditions |
+| **Behavior-pattern enhancement** | The Agent decides things it should not decide alone | The model cannot distinguish "can do" from "should do" | Human-in-the-loop (Ch7) | Blocking latency, confirmation fatigue |
+| **Behavior-pattern enhancement** | The Agent reviews its own work and misses obvious issues | One Agent is carrying too many roles | Multi-Agent (Ch8) | Coordination overhead, 2-5x cost increase |
 
-### 1.3 Common diagnostic processes introduced by capacity
+### 1.3 A General Decision Process for Introducing Enhancements
 
-Each time you want to introduce an empowerment, you ask five questions:
+Before you introduce any enhancement capability, ask five questions.
 
-1. **What is the current problem?** Is it a lack of knowledge, a fractured state, a confused context, a dysfunctional mission, a lack of correction, a lack of autonomy, or an overload of roles?
-2. **Is there a simpler solution?** For example, is it sufficient for users to provide context directly, to use fixed processes, to add tools to verify, to optimize the hint, and to add a confirmation step?
-3. **What complexity would introduce this capability?** For example, RAG will introduce indexing and citation questions, Memoory will introduce privacy and pollution issues, Context Engineering will increase information layering costs, HITL will increase delay and interactive design complexity, Multi-Agent will introduce communication and debugging issues.
-4. **How to make the smallest version?** First, a minimum assessable enhancement, rather than an initial complete architecture.
-5. **How does it really get better?** There must be task sets, comparative indicators or manual acceptance criteria.
+1. **What is the current problem?**
+
+   Is the problem missing knowledge, broken state continuity, messy context, poor task organization, lack of recovery, unsafe autonomy, or role overload?
+
+2. **Is there a simpler solution?**
+
+   Would it be enough for the user to provide context directly, for the system to use a fixed workflow, for a tool to add validation, for the prompt to become clearer, or for one confirmation step to be added?
+
+3. **What complexity does this capability introduce?**
+
+   RAG introduces index maintenance and citation problems. Memory introduces privacy and contamination problems. Context Engineering adds information-layering work. Human-in-the-loop adds latency and interaction-design complexity. Multi-Agent adds communication and debugging overhead.
+
+4. **What is the smallest useful version?**
+
+   Build a minimal enhancement that can be evaluated. Do not start by implementing the full architecture.
+
+5. **How will you know it actually improved the system?**
+
+   You need a task set, comparison metric, or human acceptance standard. Without evaluation, an enhancement is only architectural decoration.
 
 ---
 
-## Follow-up chapter
+## Follow-up Chapters
 
-Starting with chapter II, each chapter is split into separate documents to facilitate separate reading, maintenance and subsequent expansion. Chapters are organized in the order of "information, behavior after behaviour":
+Starting from Chapter 2, each chapter is split into a separate file so it can be read, maintained, and expanded independently. The course is organized in the order "information first, behavior second."
 
-### Part I: Context enhancement
+### Part I: Context Enhancement
 
-| Chapter | Documentation | Theme |
+| Chapter | File | Topic |
 |---|---|---|
-| Chapter 2: RAG / External knowledge access | [course-05-02-rag.md](./course-05-02-rag.md) | External knowledge access links, RAGs and borders |
-| Chapter III: Memory: Status sustainability | [course-05-03-memory.md](./course-05-03-memory.md) | Session status, long-term memory, writing and recall strategy |
-| Chapter 4: Context Engineering / Context Project | [course-05-04-context-engineering.md](./course-05-04-context-engineering.md) | Context layer, Token budget, priority, compression and structure |
+| Chapter 2: RAG / External Knowledge Access | [course-05-02-rag.md](./course-05-02-rag.md) | External knowledge access flow, RAG iteration path, and boundaries |
+| Chapter 3: Memory: State Continuity | [course-05-03-memory.md](./course-05-03-memory.md) | Session state, long-term memory, write and recall strategies |
+| Chapter 4: Context Engineering | [course-05-04-context-engineering.md](./course-05-04-context-engineering.md) | Context layers, token budgets, priority, compression, and structure |
 
-### Part II: Enhancement of behaviour patterns
+### Part II: Behavior-Pattern Enhancement
 
-| Chapter | Documentation | Theme |
+| Chapter | File | Topic |
 |---|---|---|
-| Chapter 5: Planning / Workflow Pattersons | [course-05-05-planning.md](./course-05-05-planning.md) | Chain、Router、ReAct、Plan-Execute、Graph |
-| Chapter 6: Reflection: A closed loop for feedback-based decision-making | [course-05-06-reflection.md](./course-05-06-reflection.md) | Feedback signal, processing strategy, cessation conditions |
-| Chapter 7: Human-in-the-loop - When Agent should not decide for himself | [course-05-07-human-in-the-loop.md](./course-05-07-human-in-the-loop.md) | Identification/ clarification/takeover model, frequency control, feedback learning |
-| Chapter 8: Multi-Agent/ Multi-Intelligence Collaboration | [course-05-08-multi-agent.md](./course-05-08-multi-agent.md) | Independent context, structured communications, division of labour decisions, cost boundaries |
+| Chapter 5: Planning / Workflow Patterns | [course-05-05-planning.md](./course-05-05-planning.md) | Chain, Router, ReAct, Plan-Execute, and Graph patterns |
+| Chapter 6: Reflection: A Feedback-Driven Decision Loop | [course-05-06-reflection.md](./course-05-06-reflection.md) | Feedback signals, handling strategies, and stop conditions |
+| Chapter 7: Human-in-the-loop -- When an Agent Should Not Decide Alone | [course-05-07-human-in-the-loop.md](./course-05-07-human-in-the-loop.md) | Confirmation, clarification, takeover modes, frequency control, and feedback learning |
+| Chapter 8: Multi-Agent Collaboration | [course-05-08-multi-agent.md](./course-05-08-multi-agent.md) | Independent context, structured communication, role division, arbitration, and cost boundaries |
 
-### Final chapter: Portfolio of capacities and sequence of introduction
+### Final Chapter: Capability Composition and Introduction Order
 
-| Chapter | Documentation | Theme |
+| Chapter | File | Topic |
 |---|---|---|
-| Chapter IX: Portfolio of capacities and sequence of introduction | [course-05-09-composition.md](./course-05-09-composition.md) | Capacity portfolio cases, introduction of decision sheets, competency description templates |
+| Chapter 9: Capability Composition and Introduction Order | [course-05-09-composition.md](./course-05-09-composition.md) | Composition cases, introduction decision table, and capability-introduction template |
 
 ---
 
 ## References
 
-### Recommended reading
+### Recommended Reading
 
 - Lewis et al., Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks: https://arxiv.org/abs/2005.11401
 - Shinn et al., Reflexion: Language Agents with Verbal Reinforcement Learning: https://arxiv.org/abs/2303.11366
@@ -192,22 +213,22 @@ Starting with chapter II, each chapter is split into separate documents to facil
 - Anthropic, Building Effective Agents: https://www.anthropic.com/engineering/building-effective-agents
 - OpenAI, A Practical Guide to Building Agents: https://cdn.openai.com/building-agents/practical-guide-to-building-agents.pdf
 
-### Quick check on terminology
+### Terminology Quick Reference
 
-| Terminology | Brief explanation | This class is located. |
+| Term | Brief Explanation | Role in This Course |
 |---|---|---|
-| RAG | Retrieval enhanced generation | Context enhancement: one of the means of external knowledge access |
-| External knowledge access | Access to decision-making context for external information on models | Context Enhancement |
-| Memory | Cross-cycle, cross-session or cross-mission continuity | Context Enhancement |
-| Context Engineering | Project principles for hierarchical, budgetary, priority and structured management of the types of information in the context | Context enhancement: information organization layer |
-| Planning | Dismantling and plan implementation | Improved behaviour patterns: complex mission organization |
-| Workflow Pattern | Reusable Task Organizing Mode | Behavioural enhancement: Chain, Router, Graph, etc. |
-| Reflection | Feedback-based decision-making closed loops: testing feedback for classification decision-making validation or discontinuation | Behavioural enhancement: Runtme Engineering Mechanism, not Natural Model Capacity |
-| Human-in-the-loop | Introduction of human judgment at the critical nodes of the Agent decision-making chain | Improved behaviour patterns: decision-making boundaries |
-| Multi-Agent | MultiAgent Division, Parallel, Mutual Review | Behavioural enhancement: high complexity enhancement |
+| RAG | Retrieval-Augmented Generation | Context enhancement: one way to bring external knowledge into the Agent |
+| External knowledge access | Bringing information outside the model into the decision context | Context enhancement |
+| Memory | Preserving state across turns, sessions, or tasks | Context enhancement |
+| Context Engineering | Engineering principles for layering, budgeting, prioritizing, and structuring context | Context enhancement: the information-organization layer |
+| Planning | Task decomposition and plan execution | Behavior-pattern enhancement: complex task organization |
+| Workflow Pattern | A reusable task-organization pattern | Behavior-pattern enhancement: Chain, Router, Graph, and related patterns |
+| Reflection | A feedback-driven decision loop: detect feedback, classify it, decide, handle, verify, or stop | Behavior-pattern enhancement: a runtime mechanism, not a natural model ability |
+| Human-in-the-loop | Adding human judgment at key points in the Agent decision chain | Behavior-pattern enhancement: decision-boundary control |
+| Multi-Agent | Multiple Agents dividing work, working in parallel, or reviewing each other | Behavior-pattern enhancement: a high-complexity capability |
 
 ---
 
-## Next class connect.
+## Connection to the Next Course
 
-Course six will enter the Harness running time structure. Course 5 addresses the issue of "When to introduce what enhances" and course 6 addresses the engineering question of "How to stabilize the carrying of these capabilities when they are introduced" — including the realization of the Context Pipeline project, the operational time control of Orchestra, the re-establishment of the Checkpoint, the Evaluation evaluation system, the Guardrails security protection and the Observancy observation debugging.
+Course VI will go deeper into Harness runtime architecture. Course V answers "when should we introduce which enhancement capability?" Course VI answers the engineering question that follows: "after these capabilities are introduced, how does the runtime carry them reliably?" That includes Context Pipeline implementation, Orchestration runtime control, Checkpoint recovery, Evaluation, Guardrails, and Observability.
