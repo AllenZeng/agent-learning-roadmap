@@ -87,7 +87,7 @@ Complex tasks usually take several forms:
 | The mission can be dismantled. | Release preparation, research reports, code migration | Plan-Execute |
 | State and branch complex | Worksheet processing, approval stream, multi-stage tasks | Graph |
 
-But looking at the tables alone is not intuitive. We use the release of the assistant scene for a different pattern of the same mission**:
+But looking at the tables alone is not intuitive. We use the release of the assistant scene for a different pattern of the same mission:
 
 ```text
 任务："准备 v1.2.0 版本发布"
@@ -547,7 +547,9 @@ Graph             92%     90%         中        1.1           0             暂
 
 The quick check sheet tells you "what may be the problem," but there are often layers between symptoms and root causes when actually debugging. The following is a display of how symptoms can be traced to the root causes and repaired by the failure of the three release assistant scenarios.
 
---- **Debug story one: Plan-Execute reprogrammed into a dead cycle**```text
+--- **Debug story one: Plan-Execute reprogrammed into a dead cycle**
+
+```text
 症状：
 用户说"帮我做发布准备"。Agent 生成计划，执行到"整理 changelog"时失败
 （错误：GitError: 不在 git 仓库中）。重规划生成的新步骤中又有"整理 changelog"，
@@ -572,7 +574,9 @@ The quick check sheet tells you "what may be the problem," but there are often l
    产生有效替代方案，应该终止而不是继续
 ```
 
----**Debug Story II: The wrong branch of Graph was never tested**```text
+---**Debug Story II: The wrong branch of Graph was never tested**
+
+```text
 症状：
 "修复 README"节点在生产环境中第一次被触发时，
 执行了 30 秒后 crash——它尝试写入一个不存在的目录。
@@ -596,7 +600,9 @@ The quick check sheet tells you "what may be the problem," but there are often l
 3. 每个错误分支节点单独做单元测试
 ```
 
---- **Debug story three: After user confirmation, Agent changed the plan without permission**```text
+--- **Debug story three: After user confirmation, Agent changed the plan without permission**
+
+```text
 症状：
 用户确认了 Agent 生成的 4 步发布计划。执行到第 3 步（"整理 changelog"）时，
 Agent 发现 git log 中有一些未提交的改动，它自行插入了一个
@@ -623,11 +629,13 @@ Agent 发现 git log 中有一些未提交的改动，它自行插入了一个
    前者自动处理，后者必须确认
 ```
 
----**The three stories in common**:
+---
 
--**Reprogramming is not silver**— it needs to be accompanied by an erroneous classification (recoverable vs non-recoverable) and exit conditions (maximum planning times).
--**The wrong path deserves to be as serious as the main path***********************************************************************************************************************************************************************************************************************************************
--**Plan should be locked as soon as it is confirmed.**The user confirms that the 4-step plan cannot be implemented in 5 steps. Any deviation would need to be reconfirmed.
+**The three stories in common**:
+
+- **Reprogramming is not silver** — it needs to be accompanied by an erroneous classification (recoverable vs non-recoverable) and exit conditions (maximum planning times).
+- **The wrong path deserves to be as serious as the main path.**
+- **Plan should be locked as soon as it is confirmed.** The user confirms that the 4-step plan cannot be implemented in 5 steps. Any deviation would need to be reconfirmed.
 
 ## 5.7 Not every multistep is worth Planning.
 

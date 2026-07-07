@@ -16,7 +16,7 @@ Both judgements are inaccurate.
 
 The first problem is that the LLM is essentially a "next Token predictor". It can do amazing reasoning in linguistic space, but it can't check its own databases, run its own codes, judge for itself, "I've done a few steps, what to do next." The equivalent of Agent to a stronger LLM is the equivalent of a more intelligent brain -- a brain that is the core, but without hands, without eyes, without memory, without a mechanism to judge when to stop.
 
-The second problem is that those capabilities are really important, but they are not the premise that Agent exists**, but rather the expansion of Agent** in a particular direction. **It's like a man doesn't have to be an athlete to walk, and an Agent doesn't need access to RAG and Multi-Agent to work.
+The second problem is that those capabilities are really important, but they are not the premise that Agent exists, but rather the expansion of Agent in a particular direction. It's like a man doesn't have to be an athlete to walk, and an Agent doesn't need access to RAG and Multi-Agent to work.
 
 The core points of this course are:
 
@@ -34,8 +34,8 @@ The formula is not to define the full capacity of all Agent products, but to cap
 
 After this lesson, you will be able to:
 
-1. **Explain why the smallest Agent can't only understand the essence of LLM, including that it doesn't know that it's an Agent
-2. **Draws the smallest Agent running links** **Quite clear`Prompt → User Goal → Context Assembly → LLM Decision → Interaction → Observation → State Update → Continue or Stop`
+1. **Explain why the smallest Agent can't only understand the essence of LLM**, including that it doesn't know that it's an Agent
+2. **Draws the smallest Agent running links** — Quite clear `Prompt → User Goal → Context Assembly → LLM Decision → Interaction → Observation → State Update → Continue or Stop`
 3. **Understands the role of Prompt in Agent** - Knows why Prompt is the "source code" of Agent, which defines the behaviour, format and boundaries of Agent
 4. **Distinguishing core modules from connect points** — understand why Context Assembly, Observation is a link-to-non-core module
 5. **Understands the role of state (state) management** - Know what information needs to be stored independently of LLM and why context windows cannot be used as the only state store
@@ -150,7 +150,7 @@ So Agent can't just rely on the LLM's judgment to manage his operational boundar
 
 ### 1.5 LLM is a universal engine but doesn't know it's Agent.
 
-The first three limitations — which cannot be done, cannot be recorded, cannot be controlled — are the limits of the capacity of LLM**. But there is a more fundamental question: the LLM's** identity boundary**.
+The first three limitations — which cannot be done, cannot be recorded, cannot be controlled — are the limits of the capacity of LLM. But there is a more fundamental question: the LLM's **identity boundary**.
 
 LLM is a universal text generator when it leaves the plant. It's trained to "renew the text," not "exercise multi-step." If you go straight to a naked LLM and say, "Look at today's weather and what to wear according to weather advice," it doesn't automatically call the weather API, analyze the results, and then give advice -- it only generates a text that looks like a recommendation.
 
@@ -330,7 +330,7 @@ Let's change it. I'll give you a panorama -- draw the entire chain and indicate 
 
 This picture has five meanings:
 - **Prompt at the top (defined layer)**: Prompt is the "source code" of Agent, which exists before the cycle starts. It's not in the loop link -- it's not involved in every step of the update -- but it's used as a template for every round of Text Assembly to fill in dynamic data. Sections 3.2 and 3.3 will go deep into the structure design of Prompt.
-- **Closed link (first half)**: User Goal →Context Assembly →LLLM Regulation →Tool Exchange **Observation →State Update or Stop — this is the path for data flow in each cycle.
+- **Closed link (first half)**: User Goal →Context Assembly →LLLM Regulation →Tool Exchange → Observation →State Update or Stop — this is the path for data flow in each cycle.
 - **Runtime Load (Box)**: The whole link runs over Runtime. The tool is not directly executed by LLM, it is executed by Runtme; the cycle is not stopped by model reasoning, it is judged by Runtme; State is not forgotten by LLM, it is managed by Runtme. 1.3 The division of labour between LLM and Runtme referred to in the section - "Model for decision, Runtme for execution and boundary" - is its visualization.
 - **State Reading and Writing (Left Bottom Box)**: Context Assembly Read from State, State Update Write to State. State is not on the main chain road - it is not a step in the business process, but an infrastructure maintained by Runtme.
 - **Feedback closed loop (right loop)**: Each round of Observation will influence the next round of decision-making through State Update -- That's the core idea of Rect: reasoning and action feed each other in a cycle.
@@ -353,7 +353,7 @@ Prompt（行为定义：静态模板，定义 Agent 的身份和协议）
 
 Of the eight links, five are core components (Prompt, LLM decision-making, tool interaction, State management, circular control), two are operational connection points (Context Assembly, Operation / Feedback) and one is user input anchor (User Goal). 3.12 The distinction between core modules and connect points is explained in detail in the section.
 
-Prompt is at the top of the chain not because it's "most important" but because it's **which defines all the rules of conduct that follow.* *--LLM decides according to the protocol defined in Prompt, the tool list informs the model through Prompt, and the output format is bound by Prompt. No Prompt, the chain behind is just empty.
+Prompt is at the top of the chain not because it's "most important" but because it defines all the rules of conduct that follow -- LLM decides according to the protocol defined in Prompt, the tool list informs the model through Prompt, and the output format is bound by Prompt. No Prompt, the chain behind is just empty.
 
 We're moving on one step at a time.
 
@@ -572,7 +572,7 @@ Implementation will include:
 - Capture anomalies (files do not exist, network overtime, inadequate access, return formats are abnormal).
 - Normalize return results (formulate original results into structured Observation).
 
-One practical experience: the original results after the tool has been called should not be plugged back into the model without processing**. Especially when it's a long time -- like reading a 5,000 line file -- it's just stuffing the whole text into the context and stuffing other important information. The smallest Agent should at least have a simple cut-off or summary.
+One practical experience: the original results after the tool has been called should not be plugged back into the model without processing. Especially when it's a long time -- like reading a 5,000 line file -- it's just stuffing the whole text into the context and stuffing other important information. The smallest Agent should at least have a simple cut-off or summary.
 
 ### 3.8 Operation / Feedback: Returning results to loop
 

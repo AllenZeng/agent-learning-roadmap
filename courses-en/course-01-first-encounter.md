@@ -107,7 +107,9 @@ Throughout the process, LLM is involved in steps 1 and 3, but it has no decision
 
 #### Agent: Decide on the next step based on the development of objectives, status and feedback
 
-The fundamental difference between Agent and the preceding is that: **The next step is not for the user to decide, not for the default rules, but for the model to determine according to current objectives, mission status and environmental feedback dynamics.** **Core feature**: the next step is "model dynamics".
+The fundamental difference between Agent and the preceding is that: **The next step is not for the user to decide, not for the default rules, but for the model to determine according to current objectives, mission status and environmental feedback dynamics.**
+
+**Core feature**: the next step is "model dynamics".
 
 Typical Agent example: Claude Code. "Help me find all the bugs of this project and fix it."
 - It decides which files to read first.

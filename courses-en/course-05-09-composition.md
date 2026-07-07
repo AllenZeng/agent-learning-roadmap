@@ -109,7 +109,7 @@ That is why the introduction of capabilities requires restraint — the waiting 
 
 ### 9.1.3 Levels of capacity complexity
 
-Instead of using capability as a binary switch, let's see how complicated they are. The following figure is not the route of upgrading that all Agent must follow, but is an incremental reference**: the higher the system, the higher the delay, debugging, state consistency and evaluation costs.
+Instead of using capability as a binary switch, let's see how complicated they are. The following figure is not the route of upgrading that all Agent must follow, but is an incremental reference: the higher the system, the higher the delay, debugging, state consistency and evaluation costs.
 
 ```text
                         ┌─────────────────────────┐
@@ -218,7 +218,9 @@ Before we talk about the power mix, we need to figure out what the "minimal clos
 - Call tool to get information/ execute operations
 - Results-based decision-making for the next steps
 - Loop until the job is finished
-- Return final result **Minimum closed circle boundary:**```text
+- Return final result **Minimum closed circle boundary:**
+
+```text
 ✅ 属于最小闭环：
   - "帮我搜索这个文件夹里的所有 .md 文件"
   - "把这段代码里的 foo 替换成 bar"
@@ -233,11 +235,11 @@ Before we talk about the power mix, we need to figure out what the "minimal clos
   - "这个操作太重要，不能让它自己决定" → 需要 Human-in-the-loop
   - "找人审查你的方案" → 需要 Multi-Agent
 ```
-**Importance of the minimum closed ring as a baseline:**Answer these questions with a minimum closed loop before introducing any enhancements:
+**Importance of the minimum closed ring as a baseline:** Answer these questions with a minimum closed loop before introducing any enhancements:
 
-1.**Can this task be done with a minimum closed ring?**→ If so, why do we have to do it?
-2.**Where's the card when it's done? This is the only legitimate reason for introducing new capabilities.
-3.**How much better is the new capability compared to the minimum closed ring?**→ This is the baseline for evaluation
+1. **Can this task be done with a minimum closed ring?** → If so, why do we have to do it?
+2. **Where's the card when it's done?** This is the only legitimate reason for introducing new capabilities.
+3. **How much better is the new capability compared to the minimum closed ring?** → This is the baseline for evaluation
 
 ---
 
@@ -246,7 +248,9 @@ Before we talk about the power mix, we need to figure out what the "minimal clos
 The following six cases cover the most common Agent scene. Each case starts with a "start-up problem" and introduces capacity sequentially, with a clear indication that "not for the time being" — the latter is as important as the former.
 
 #### Case I: Personal Knowledge Assistant**Scene description:**Users have a large number of local notes (Markdown, PDF, Web Clip) and hope that Agent will be able to answer questions based on this information and give sources of reference.**Start question:**- User information is extensive and the model does not know what the information is.
-- User needs to cite the source.**Priority capacity:**-**RAG / External knowledge access**. That's core competence -- without it, Agent can only give a generic answer, and it can't meet the core requirement of "my notes."**Minimal version achieved:**```text
+- User needs to cite the source.**Priority capacity:**-**RAG / External knowledge access**. That's core competence -- without it, Agent can only give a generic answer, and it can't meet the core requirement of "my notes."**Minimal version achieved:**
+
+```text
 文档目录 → 文档解析（Markdown/PDF → 纯文本）
          → 文本切分（按段落/标题，每块 500-1000 tokens）
          → 向量化（embedding model）
@@ -261,7 +265,9 @@ The following six cases cover the most common Agent scene. Each case starts with
 - Quoting correctness: whether the reference mark points to the correct source
 - Refusal rate: When the information is not relevant, Agent honestly indicates that he does not know **Follow-up questions:** - Users would like to remember the current research theme and the next dialogue could continue.
 - Multicycle queries need to be followed by context.
-- There is a lack of correlation between the multiple questions and answers on the same subject. **Reintroduced:** - **Summaries of sessions and lightweight Memoory**. Note that this is not the introduction of a complete long-term memory system, but a light solution to the specific issue of "Remembering the current research theme". **Memory Minimum:**```text
+- There is a lack of correlation between the multiple questions and answers on the same subject. **Reintroduced:** - **Summaries of sessions and lightweight Memoory**. Note that this is not the introduction of a complete long-term memory system, but a light solution to the specific issue of "Remembering the current research theme". **Memory Minimum:**
+
+```text
 每次会话结束：
   → 用 LLM 生成会话摘要（研究主题、关键发现、待解决问题）
   → 持久化存储（JSON 文件或轻量数据库）
@@ -273,7 +279,9 @@ The following six cases cover the most common Agent scene. Each case starts with
 ```
 **Not introduced:**-**Multi-Agent**unless there is a clear need for parallel research or review. If the user is just a person, single Agent is totally enough.
 -**Reflection**, unless there are clear systemic problems with the quality of search results. RAG's search quality issues should be addressed as a matter of priority by optimizing the segmenting strategy and adjusting the search parameters, rather than introducing Reflection so that it "checks itself".
--**Planning**unless the user's assignment becomes clearly multi-step (e.g. "Help me cross-check between the three sources").**Introduction of path overview:**```text
+-**Planning**unless the user's assignment becomes clearly multi-step (e.g. "Help me cross-check between the three sources").**Introduction of path overview:**
+
+```text
 最小闭环
   → RAG
     → 检索质量迭代
@@ -287,7 +295,9 @@ The following six cases cover the most common Agent scene. Each case starts with
 #### Case II: Code Review **Scene description:**Team needs an Agent to review Pull Request, not only on the surface of diff, but also to understand the context of the code and perform test validation judgement. **Start question:** - Agent, read diff only and output general recommendations (e.g., "Consider adding notes", "check empty pointers").
 - I can't verify my judgment -- I can say, "there may be a performance problem," but I can't actually verify it.
 - The absence of context is suggested - there is no understanding of the caller or caller for this function. **Priority capacity:** - **Tool calls: reading files, searching codes, running tests**. It's the key to moving from "prisal censorship" to "in-depth censorship".
-- **Reflection: modified judgement after test failure**. Agent needs to correct its own conclusions when the tool calls results that contradict the initial judgement. **Minimal version achieved:**```text
+- **Reflection: modified judgement after test failure**. Agent needs to correct its own conclusions when the tool calls results that contradict the initial judgement. **Minimal version achieved:**
+
+```text
 接收到 PR diff
   → 分析 diff 中的变更
   → 对每个可疑点，调用工具：
@@ -301,10 +311,20 @@ The following six cases cover the most common Agent scene. Each case starts with
       - 修正审查意见
   → 输出最终审查报告
 ```
-**Key design decisions: why first introduce Reflect rather than Multi-Agent?**For the code review scene, the first response is "introducing Multi-Agent, writing one review." But if you examine Agent without the tools to call, the other Agent just says, "Read it again and diff give general advice" -- two blind people can't see it together.
+**Key design decisions: why first introduce Reflect rather than Multi-Agent?** For the code review scene, the first response is "introducing Multi-Agent, writing one review." But if you examine Agent without the tools to call, the other Agent just says, "Read it again and diff give general advice" -- two blind people can't see it together.
 
-The correct sequence is:**Let individual Agent call "see" through the tool, then "Correct" through the Reflection, and finally consider Multi-Agent's division of labour.****Follow-up questions:**- After the review has reached a certain stage, Agent will need to conduct a second review of the revised code (to examine whether the revised code introduces new issues).
-- There is a conflict between the role of a single Agent, who also plays the role of "reviewer" and "reviser" -- it may be too tolerant of its own proposals.**Reintroduced:**-**Multi-Agent**: One Agent reviews and makes recommendations and the other Agent reviews the revised code. Note that this is not a complete Multi-Agent system, but the "Reviewer Model" -- two Agent serial work, not complex coordination.**Multi-Agent Minimum:**```text
+The correct sequence is: **Let individual Agent call "see" through the tool, then "Correct" through the Reflection, and finally consider Multi-Agent's division of labour.**
+
+**Follow-up questions:**
+- After the review has reached a certain stage, Agent will need to conduct a second review of the revised code (to examine whether the revised code introduces new issues).
+- There is a conflict between the role of a single Agent, who also plays the role of "reviewer" and "reviser" -- it may be too tolerant of its own proposals.
+
+**Reintroduced:**
+- **Multi-Agent**: One Agent reviews and makes recommendations and the other Agent reviews the revised code. Note that this is not a complete Multi-Agent system, but the "Reviewer Model" -- two Agent serial work, not complex coordination.
+
+**Multi-Agent Minimum:**
+
+```text
 Reviewer Agent（审查者）：
   输入：PR diff
   输出：审查意见列表
@@ -322,7 +342,9 @@ Verifier Agent（验证者）：
   - 禁止两个 Agent 互相调用形成循环
 ```
 **Not introduced:**-**Long-term memory**unless it is necessary to remember project engagements, test habits or user preferences. If project specifications and testing strategies have been defined in the project document, the marginal benefits of Memoory are low.
-- **Planning**, unless the review mission becomes clearly multi-step (e.g. "Censorship safety first, performance later, readability last"). **Introduction of path overview:**```text
+- **Planning**, unless the review mission becomes clearly multi-step (e.g. "Censorship safety first, performance later, readability last"). **Introduction of path overview:**
+
+```text
 最小闭环
   → Tool Use（有工具才能深入分析）
     → Reflection（有外部信号才能修正）
@@ -336,7 +358,9 @@ Verifier Agent（验证者）：
 #### Case III: Individual assignments**Scene description:**User hopes that Agent can help with complex multi-step tasks (e.g., "Appointing CI/CD for this open-source project"), to continue after the critical nodes have been suspended and support has been interrupted.**Start question:**- The task is multi-step and easy to miss.
 - The user wishes to confirm the key node (e.g. before creating GitHub Security).
 - Manual tracking of the mission is cumbersome.**Priority capacity:**-**Planning / Worklow Pattersons**. Multi-step missions naturally require structured organizations.
--**Human-in-the-loop**. Critical operations require manual validation, which is a safety requirement rather than an experiential optimization.**Minimal version achieved:**```text
+-**Human-in-the-loop**. Critical operations require manual validation, which is a safety requirement rather than an experiential optimization.**Minimal version achieved:**
+
+```text
 用户任务："为仓库配置 CI/CD"
   → Planning Agent 拆解：
       Step 1: 分析项目结构，确定 CI/CD 方案
@@ -349,7 +373,9 @@ Verifier Agent（验证者）：
   → 每个步骤执行完后更新状态
   → 用户可随时查看进度
 ```
-**Human-in-the-loop design elements:**```text
+**Human-in-the-loop design elements:**
+
+```text
 ✅ 好的 HITL 设计：
   - 在不可逆操作前暂停（删除、发布、权限变更）
   - 暂停时给出明确的选项："确认执行 / 跳过 / 修改参数"
@@ -361,7 +387,9 @@ Verifier Agent（验证者）：
   - 超时后自动执行高危操作
 ```
 **Follow-up questions:**- This will continue after a long break.
-- The history of mandate implementation requires traceability.**Reintroduced:**-**Task status and Checkpoint**, part of which will go into six courses. The core idea is to perpetuate the mandate and support recovery from the point of interruption.**Checkpoint Minimum:**```text
+- The history of mandate implementation requires traceability.**Reintroduced:**-**Task status and Checkpoint**, part of which will go into six courses. The core idea is to perpetuate the mandate and support recovery from the point of interruption.**Checkpoint Minimum:**
+
+```text
 任务状态结构：
 {
   "task_id": "xxx",
@@ -383,9 +411,12 @@ Verifier Agent（验证者）：
 恢复流程：
   用户重新连接 → 检测未完成任务 → 加载 Checkpoint → 从断点继续
 ```
-**Not introduced:**-**Automatically long term, unless the user clearly requires a cross-mission preference. Independence between mandates is a feature rather than a flaw.
+**Not introduced:**
+- Automatically long term, unless the user clearly requires a cross-mission preference. Independence between mandates is a feature rather than a flaw.
 - **RAG**, unless task execution requires frequent access to external documents.
-- **Multi-Agent** does not need parallels in a single user scenario. **Introduction of path overview:**```text
+- **Multi-Agent** does not need parallels in a single user scenario. **Introduction of path overview:**
+
+```text
 最小闭环
   → Planning + HITL（任务结构化和安全需求）
     → Checkpoint（中断恢复需求）
@@ -405,7 +436,9 @@ Verifier Agent（验证者）：
 - Unable to query purchase order without Tool Use
 - There's no HITL. There's a financial risk of refund.
 
-This is "the scenario itself requires multiple capabilities to produce the least available product". But even so, step-by-step verification is recommended - make sure the RAG is retrieved correctly, then access Tool Use, and finally add HITL.**Minimal version achieved:**```text
+This is "the scenario itself requires multiple capabilities to produce the least available product". But even so, step-by-step verification is recommended - make sure the RAG is retrieved correctly, then access Tool Use, and finally add HITL.**Minimal version achieved:**
+
+```text
 用户消息
   → 意图分类（产品咨询 / 订单查询 / 售后处理 / 闲聊）
   → 路由到对应处理流程：
@@ -428,7 +461,9 @@ This is "the scenario itself requires multiple capabilities to produce the least
 ```
 **Follow-up questions:**- Users contact the client ' s service several times and are rejustified each time.
 - Returners ' preferences and historical issues need to be remembered.
-- When complex issues are transferred manually, artificial passenger service needs to see the context of the dialogue. **Reintroduced:** - **Session Memory**: Remember the context of the current session and the recent history of contact. Attention is given to "talk-level" rather than "user-level long-term archives" — the former addressing the problem of repetitive statements, the latter involving privacy compliance. **Memory Design (Customs Special):**```text
+- When complex issues are transferred manually, artificial passenger service needs to see the context of the dialogue. **Reintroduced:** - **Session Memory**: Remember the context of the current session and the recent history of contact. Attention is given to "talk-level" rather than "user-level long-term archives" — the former addressing the problem of repetitive statements, the latter involving privacy compliance. **Memory Design (Customs Special):**
+
+```text
 会话级记忆（7 天有效）：
   - 本次会话的对话历史
   - 本次会话涉及的产品/订单
@@ -446,7 +481,9 @@ This is "the scenario itself requires multiple capabilities to produce the least
 ```
 **Not introduced:**-**Planning**: client dialogue is usually linear (if-else route) and does not require dynamic planning
 -**Reflection**: feedback from the guest scene is from user satisfaction rating instead of Agent self-correction
--**Multi-Agent**: Unless two different roles, pre-sale and post-sale, need to be addressed simultaneously, but usually by route**Introduction of path overview:**```text
+-**Multi-Agent**: Unless two different roles, pre-sale and post-sale, need to be addressed simultaneously, but usually by route**Introduction of path overview:**
+
+```text
 最小闭环
   → RAG + Tool Use + HITL（场景硬需求，但分步验证）
     → Memory（减少重复说明，注意隐私边界）
@@ -459,11 +496,15 @@ This is "the scenario itself requires multiple capabilities to produce the least
 #### Case V: Data Analysis Assistant **Scene description:**Data analyst needs Agent to help write SQL, analyze data, and generate visualized reports. The task is usually multi-step: understand the need to write a query → validates the results → explains the finding → produces a chart. **Start question:** - Users describe needs in natural languages, and Agent needs to be translated into SQL.
 - After SQL execution, Agent needs to check whether the results match expectations.
 - If the result is not correct, Agent needs to fix the query itself. **Priority capacity:** - **Tool Use**: Implementation of SQL, reading table structure, query data dictionary.
-- **Reflection**: SQL automatically check and amends when performance fails or results are abnormal. **Why first?
+- **Reflection**: SQL automatically check and amends when performance fails or results are abnormal.
+
+**Why first?**
 
 For single-form queries and one-time indicators to calculate such tasks, the user ' s natural language has given the main analytical objectives - "Look at sales trends last month, split by region, and find the three fastest growing categories." The first thing to do at this point is not "will it plan" but "can it read Schema correctly, generate SQLs, perform queries and fix them when the wrong information appears."
 
-But it's not that data analysis doesn't need Planning. Planning is of clear value only when the task is upgraded to cross-table exploration, staged validation assumptions, first checking A, then results-based B, and final consolidation visualization. The sequence should be to stabilize the implementation and validation loops and then introduce a multi-step analysis of needs into Planning. **Minimal version achieved:**```text
+But it's not that data analysis doesn't need Planning. Planning is of clear value only when the task is upgraded to cross-table exploration, staged validation assumptions, first checking A, then results-based B, and final consolidation visualization. The sequence should be to stabilize the implementation and validation loops and then introduce a multi-step analysis of needs into Planning. **Minimal version achieved:**
+
+```text
 用户需求 → Agent 分析：
   1. 读取数据库 Schema，了解表结构和字段
   2. 生成 SQL 查询
@@ -475,7 +516,9 @@ But it's not that data analysis doesn't need Planning. Planning is of clear valu
   5. 解释发现
   6. 可选：生成可视化代码（matplotlib / eCharts）
 ```
-**Reflection for specific applications in the data analysis scene:**```text
+**Reflection for specific applications in the data analysis scene:**
+
+```text
 Reflection 触发条件：
   ✅ SQL 语法错误 → 读取错误信息，修正语法
   ✅ 结果集为空 → 检查 WHERE 条件是否过于严格
@@ -491,7 +534,9 @@ Reflection 停止条件：
 - User wants Agent to remember the usual analytical templates and preferences.
 - The analysis across multiple data sources requires structured steps. **Reintroduced:** - **Planning**: introduced when analytical tasks are upgraded from "one query" to "multi-step analysis process".
 - **Memory**: Remember user analytical habits (commonly used indicators, preferred chart type, naming norm). **Not introduced:** - **RAG**: unless analysis requires frequent reference to external methods for documentation or industry standards
-- **Multi-Agent**: Single-person analysis scenario, no role conflicts **Introduction of path overview:**```text
+- **Multi-Agent**: Single-person analysis scenario, no role conflicts **Introduction of path overview:**
+
+```text
 最小闭环
   → Tool Use + Reflection（翻译+修正，分析场景核心）
     → Planning（多步骤分析需求明确后）
@@ -508,7 +553,9 @@ Reflection 停止条件：
 - RAG solves "What to write" - providing accurate technical content.
 - Memoory solves "How to write" -- consistent style and terminology.
 
-They are independent of each other but cannot be separated. There's no RAG inaccuracies, there's no memory incoherence.**Minimal version achieved:**```text
+They are independent of each other but cannot be separated. There's no RAG inaccuracies, there's no memory incoherence.**Minimal version achieved:**
+
+```text
 写作协作流程：
   1. 用户提出写作主题
   2. Agent 检索参考资料（RAG）
@@ -548,7 +595,9 @@ Memory 存储结构（写作场景）：
 ```
 **Follow-up questions:**- After changing multiple rounds, Agent needs to verify the quality of articles based on a clear check (not relying on user-by-user identification).
 - The long articles are complex in structure and require section management. **Reintroduced:** - **Reflection**: Quality check only for external feedback signals — can references be found in the original text, can code examples run, whether user changes are article-by-article covered, and if terms are consistent with the established style list.
-- **Planning**: Structural planning and outline management. **Reflection in the design of the writing scene:**```text
+- **Planning**: Structural planning and outline management. **Reflection in the design of the writing scene:**
+
+```text
 触发信号：
   1. 引用校验失败：生成内容中的来源无法在 RAG 原文中找到
   2. 代码检查失败：代码示例无法运行、类型检查失败或输出不符合预期
@@ -562,7 +611,9 @@ Memory 存储结构（写作场景）：
   - 纯主观表达质量（"够不够好看"、"语气是否高级"）交给用户或 Reviewer 清单，不用模型自评冒充 Reflection
 ```
 **Not introduced:**-**Multi-Agent**: Writing is creative work, and an Agent co-reads enough. The introduction of the Multi-Agent "A Writing One Review" could lead to a lack of consistency in style.
--**Human-in-the-loop**enhanced version: Writing collaboration is naturally a HITL mode (HITL for each user review) and no additional system-level HITL mechanism is required.**Introduction of path overview:**```text
+-**Human-in-the-loop**enhanced version: Writing collaboration is naturally a HITL mode (HITL for each user review) and no additional system-level HITL mechanism is required.**Introduction of path overview:**
+
+```text
 最小闭环
   → RAG + Memory（内容准确 + 风格一致）
     → Reflection（基于外部信号做质量检查）
@@ -576,7 +627,9 @@ Memory 存储结构（写作场景）：
 
 I said, "Do what." This subsection says, "Don't do it."
 
-#### Counter-model I: Capability Hoarding **Symptoms:**```text
+#### Counter-model I: Capability Hoarding **Symptoms:**
+
+```text
 "我们的 Agent 用了 RAG + Memory + Planning + Reflection + Multi-Agent，
   还有 Tool Use、Guardrails、Human-in-the-loop..."
 ```
@@ -586,14 +639,18 @@ I said, "Do what." This subsection says, "Don't do it."
 
 ---
 
-#### Counter-model two: "Online when it's perfect."**Symptoms:**```text
+#### Counter-model two: "Online when it's perfect."**Symptoms:**
+
+```text
 "RAG 的召回率才 78%，等优化到 90% 再上线"
 "Memory 的遗忘策略还没调好，先不上"
 "Planning 有时候会漂移，等我们解决了再发布"
 ```
 **Diagnosis of the problem:**Waiting for a perfect minimum is equal to never being published. Users prefer a flawed Assistant to wait for a non-existent Assistant. Furthermore, real use feedback is not available without publication and no real optimization without feedback.**The antidote:**- Define "good enough" threshold, not "perfect".
 - The ability below the threshold can be online but labelled as "experimental function".
-- Set up a user feedback channel for real use driver optimization **Criteria for judgement:**```text
+- Set up a user feedback channel for real use driver optimization **Criteria for judgement:**
+
+```text
 能上线的最低标准：
 ☐ 核心功能是否可用？（不能有阻塞性 bug）
 ☐ 安全问题是否处理？（不能泄露数据、执行危险操作）
@@ -608,14 +665,18 @@ I said, "Do what." This subsection says, "Don't do it."
 
 ---
 
-#### Anti-model three: blind and wind.**Symptoms:**```text
+#### Anti-model three: blind and wind.**Symptoms:**
+
+```text
 "Hacker News 上那篇文章说了，Multi-Agent 是 2024 年最重要的趋势"
 "大家都在用 LangGraph 做 Agent 工作流，我们也应该用"
 "XXX 公司的技术博客说他们的 Agent 用了 Reflection，效果很好"
 ```
 **Problem diagnosis:**The scene, data, constraints, users are different from you. The solutions that suit them don't necessarily suit you. The replacement of community hot spots with their own problem analysis is the fastest way to introduce unnecessary complexity.**The antidote:**- When reading other people's programs, you focus on "what's wrong with them," not "what's the technology they use?"
 - If you can't spell it out in one sentence, you can't introduce it.
-- Think of community articles as "menu of options" instead of "list of necessity." **Conversion exercise:**```text
+- Think of community articles as "menu of options" instead of "list of necessity." **Conversion exercise:**
+
+```text
 读到："我们用 Multi-Agent 提升了代码审查质量"
 不要想："我也应该加 Multi-Agent"
 应该想："他们的代码审查遇到了什么问题？这个问题我也有吗？
@@ -625,14 +686,18 @@ I said, "Do what." This subsection says, "Don't do it."
 
 ---
 
-#### Counter-module IV: No assessment, no overlap after introduction**Symptoms:**```text
+#### Counter-module IV: No assessment, no overlap after introduction**Symptoms:**
+
+```text
 "我们两周前加了 RAG，用户说好像好了一点...其实我也不确定"
 "Memory 加上去了，没看效果，反正应该有用"
 "Planning 的步骤有时候不太对，但大部分时候还行吧"
 ```
 **Diagnosis of the problem:**Introduction capacity is only the beginning, not the end. The introduction of non-assessed capabilities is tantamount to adding "no impact" variables to the system. Over time, you don't know whether the quality of the system is rising or falling.**The antidote:**- Each capability must be predefined when introduced
 - Weekly/monthly access to assessment indicators to confirm no degradation
-- Re-engineer all available capabilities when new capabilities are introduced and check if they affect each other **Evaluation of rhythm recommendations:**```text
+- Re-engineer all available capabilities when new capabilities are introduced and check if they affect each other **Evaluation of rhythm recommendations:**
+
+```text
 引入前：建立基线评测（当前系统在这些指标上的表现）
 引入后第 1 周：每日评测（快速确认方向是否正确）
 引入后第 2-4 周：每周评测（观察使用模式稳定后的表现）
@@ -641,7 +706,9 @@ I said, "Do what." This subsection says, "Don't do it."
 
 ---
 
-#### Counter-model V: Lack of coordination between capacities**Symptoms:**```text
+#### Counter-model V: Lack of coordination between capacities**Symptoms:**
+
+```text
 RAG 检索到的内容，Memory 也记了一份（重复存储）
 Planning 生成了 5 步计划，但 Reflection 认为第 2 步已经完成（信息不一致）
 Multi-Agent 中的 Agent A 修改了文件，Agent B 不知道（状态不同步）
@@ -649,7 +716,9 @@ Multi-Agent 中的 Agent A 修改了文件，Agent B 不知道（状态不同步
 **Problem diagnosis:**Capabilities are not stand-alone plugins that share status and influence each other ' s behaviour. System behaviour is unpredictable when multiple capacities have different understandings of the same data.**The antidote:**- Defining the boundaries of competence: who is responsible for what data
 - Unified state management: all capabilities read through the same State layer Write
 - Clear compacts (schema/format) for transmission of information between competencies
-- Consistency between periodic checks **CAPACITY COORDINATION LIST:**```text
+- Consistency between periodic checks **CAPACITY COORDINATION LIST:**
+
+```text
 ☐ RAG 检索结果是否进入了 Memory 系统？如果是，是否需要？
 ☐ Memory 中的信息是否影响了 Planning 的步骤生成？
 ☐ Reflection 的修正是否更新了 Planning 的状态？
@@ -736,7 +805,9 @@ Most of the classes only say "how" and don't say "how." But mature system design
 
 #### How to safely downgrade or remove
 
-Removal capacity needs to be more cautious than introducing capacity, as users may already have relied on certain behaviours.**Downgrade removal process:**```text
+Removal capacity needs to be more cautious than introducing capacity, as users may already have relied on certain behaviours.**Downgrade removal process:**
+
+```text
 第一步：确认影响范围
   - 统计该能力的使用频率
   - 列出依赖该能力的用户场景
@@ -815,7 +886,9 @@ Here are three new scenarios. For each scene:
 - **human-in-the-loop**: final decision on legal review must be confirmed by a human lawyer, which is a hard demand **Not introduced:** - **Memory**: each contract is independent and cross-contract memory may lead to confusion of information
 - **Planning**: contract review is structured (article-by-article) and a fixed review list is sufficient without dynamic planning
 - **Reflection**: Agent self-inspects contracts of less quality than human lawyers and self-checks for external signals of lack of legal judgement
-- **Multi-Agent**: Single-person review of scenes, an Agent + human lawyer confirmed sufficient **Introduction path:**```text
+- **Multi-Agent**: Single-person review of scenes, an Agent + human lawyer confirmed sufficient **Introduction path:**
+
+```text
 最小闭环（LLM + 合同读取工具）
   → RAG（检索知识库，对比合同条款）
     → HITL（人工确认节点）
@@ -838,7 +911,9 @@ Here are three new scenarios. For each scene:
 -**Human-in-the-load**: confirmation to users when scene triggers (security requirements)**Not introduced:**-**RAG**: Smart home control does not depend on external knowledge
 -**Planning**: scenes are usually predefined ("Sleep" + Lights + Curtains + Temperature) without dynamic planning
 -**Reflection**: Device control results can be confirmed by sensor feedback (lights turned off), no Agent reflection is required
--**Multi-Agent**: single-user service, no parallel**Introduction path:**```text
+-**Multi-Agent**: single-user service, no parallel**Introduction path:**
+
+```text
 最小闭环 + Tool Use（设备控制）
   → Memory（记住用户偏好）
     → HITL（场景确认）
@@ -860,7 +935,11 @@ Here are three new scenarios. For each scene:
 - **Reflection**: Compare code and document consistency after document generation (e.g. check for API parameter names)
 - **Planning**: complex changes may affect multiple documents and require structured processing **Not introduced:** - **RAG**: document content is derived from the code itself and does not require external knowledge Library
 - **Memory**: no cross-session status required for independent processing of each document update
-- **Multi-Agent**: Single Agent can complete the full process of reading changes → updating documents **verifying consistency'. PR Approval is done by human defenders, no need for Agent Reviewer** Introduction path:**```text
+- **Multi-Agent**: Single Agent can complete the full process of reading changes → updating documents → verifying consistency. PR Approval is done by human defenders, no need for Agent Reviewer.
+
+Introduction path:
+
+```text
 最小闭环 + Tool Use（读代码、搜文档、创 PR）
   → Reflection（验证文档-代码一致性）
     → Planning（多文件变更的文档更新编排）

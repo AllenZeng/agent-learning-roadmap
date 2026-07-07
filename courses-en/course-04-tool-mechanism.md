@@ -25,7 +25,7 @@ LLM Decision → Tool Selection → Parameter Generation
     → Observation / Feedback → State Update
 ```
 
-Each step of the chain is likely to fail, and each step requires a corresponding mechanism. The goal of course IV is not to give you "access to more tools" but to understand how to use them as an optional, implementable, manageable, reusable, auditable **system mechanism.
+Each step of the chain is likely to fail, and each step requires a corresponding mechanism. The goal of course IV is not to give you "access to more tools" but to understand how to use them as an optional, implementable, manageable, reusable, auditable **system mechanism**.
 
 ---
 
@@ -39,7 +39,7 @@ After this lesson, you will be able to:
 4. **Accomplishment tool execution and backfilling** — basic code mode for proofing, timeout, retrying, misstructured and summary of results
 5. **Design Tool Permissions Policy** - Control of high-risk actions using risk classification, Deny-first, minimum privileges, audit logs
 6. **Designed Human-in-the-loop control points**  Clarify which tool actions must be identified, modified or taken over
-7. **Distinguishing the positions of Function Calling, MCP, Tool and Skill** **Clarifying which part of the tool chain they address separately
+7. **Distinguishing the positions of Function Calling, MCP, Tool and Skill** - Clarifying which part of the tool chain they address separately
 8. **Relaying duplicate tool combinations into Skill** - Understanding mission experience, default processes, failed processing and reuse borders
 
 ---
@@ -257,7 +257,7 @@ class ToolResult:
         )
 ```
 
-Core value of structured return: **as seen in model`error.code == "file_not_found"`and`suggested_action`So you can just give the next step of a targeted decision, instead of getting a vague "failed" and start guessing.
+Core value of structured return: as seen in model `error.code == "file_not_found"` and `suggested_action`, so you can just give the next step of a targeted decision, instead of getting a vague "failed" and start guessing.
 
 ### 2.4 Tool particle size: atoms vs combination
 
@@ -323,7 +323,11 @@ In practice, hybrid routes are the most common production option: **systems are 
 
 ### 3.3 Candidate management: Do not hand over all tools to models
 
-What tools should models see at this stage? **In some scenarios, a model should not determine whether to call a tool:**The scene of the tool should be mandatory**: the user needs to search for real-time data, the user needs to read documents, the user needs to accurately calculate and the user needs to verify the external environment. If tools are not adapted, the model is expected to generate a reasonable but unverifiable answer in memory or language mode.** The use of the tool should be prohibited**: the user is just chatting or conceptual interpretation, the user requests ultra vires action, the current task has been completed and the high-risk action has not been confirmed. If tools are transferred at this time, resources are wasted or there are security risks.
+What tools should models see at this stage? **In some scenarios, a model should not determine whether to call a tool:**
+
+**The scene of the tool should be mandatory**: the user needs to search for real-time data, the user needs to read documents, the user needs to accurately calculate and the user needs to verify the external environment. If tools are not adapted, the model is expected to generate a reasonable but unverifiable answer in memory or language mode.
+
+**The use of the tool should be prohibited**: the user is just chatting or conceptual interpretation, the user requests ultra vires action, the current task has been completed and the high-risk action has not been confirmed. If tools are transferred at this time, resources are wasted or there are security risks.
 
 Most of the cases, except for mandatory and prohibited ones, should go into candidate screening rather than handing over all tools to models.
 
@@ -506,11 +510,15 @@ The four previous sections described how the tools were implemented and how the 
 
 Let's start with a specific comparison. Let's assume the model is switched.`read_file("notes.md")`, file does not exist.
 
-Observation:**```text
+Observation:
+
+```text
 Error: failed
 ```
 
-The model gets this, and it doesn't know if the file doesn't exist, it doesn't have enough privileges, the disk is full or the network is broken. It can only guess. Wrong guess, wrong next move, wrong user sees Agent in gibberish.**Observation:**```json
+The model gets this, and it doesn't know if the file doesn't exist, it doesn't have enough privileges, the disk is full or the network is broken. It can only guess. Wrong guess, wrong next move, wrong user sees Agent in gibberish.**Observation:**
+
+```json
 {
   "status": "error",
   "error": {
@@ -533,7 +541,14 @@ Action: ask_user("没有找到 notes.md，但发现了 notes.txt。您是指这�
 
 This contrast illustrates the central design principle of Observation: **Observation is not reporting on what happened, but is providing the basis for the next round of decision-making.** It should allow models to judge what to do next without speculation.
 
-#### 4.5.2 Four dimensions of the Observation design **Dimension I: Information integrity.** **Dimension II: Structural consistency.** **Dimension Three: Context Perceptions.** **Dimension IV: Modelability.**![Four dimensions of the Observation design](../assets/course-04-observation-four-dimensions.svg)
+#### 4.5.2 Four dimensions of the Observation design
+
+- **Dimension I: Information integrity.**
+- **Dimension II: Structural consistency.**
+- **Dimension Three: Context Perceptions.**
+- **Dimension IV: Modelability.**
+
+![Four dimensions of the Observation design](../assets/course-04-observation-four-dimensions.svg)
 
 
 #### 4.5.3 Common Observation design errors
@@ -806,12 +821,12 @@ provider.connect_stdio("file_manager", "python", ["mcp_server.py"])
 provider.connect_http("weather", "http://tools.internal:8090/sse")
 
 # 所有工具合并为统一 Function Calling Schema → 模型看到的是统一列表
-all_tools = {**provider.tools, **local_tools}
+all_tools = {provider.tools, local_tools}
 ```
 
 This Clit example shows the complete way MCP works in Agent: **Two modes of transmission:** - `connect_stdio`: Start local sub-processes and output communications through standard input. Suitable to develop debug-zero network configuration.
 - `connect_http`: Connect remote HTTP Server (passed)`/sse`End creates the Server-Sent Events Channel. Fit to a production environment - Server can be deployed independently, shared by multiple Agents, and scaled up independently. **Two forms of registration:** - **Dynamic finding** (`_discover_and_register`: Contact Server after call`list_tools()`Automatically obtains a list of tools. Clint does not need to change the code after Server adds the tool. The disadvantage is to connect to Server to know what tools there are.
-- **Static declaration**`register_static`: When you register, you clearly state "what tools this Server provides", and the model immediately sees Schema, the actual MCP connection is delayed until the first call. Fits to a tool list stable, or to a view that Server may temporarily not be available - Agent does not have to wait for all Servers to be ready at startup. **Common bottom principle:**Regardless of the mode of transmission or registration, the model will always see a uniform Faction Calling format. MCP's role is to standardize "access", not to change the interactive models of models and tools.
+- **Static declaration**`register_static`: When you register, you clearly state "what tools this Server provides", and the model immediately sees Schema, the actual MCP connection is delayed until the first call. Fits to a tool list stable, or to a view that Server may temporarily not be available - Agent does not have to wait for all Servers to be ready at startup. **Common bottom principle:** Regardless of the mode of transmission or registration, the model will always see a uniform Faction Calling format. MCP's role is to standardize "access", not to change the interactive models of models and tools.
 
 ### 7.4 When MCP was introduced
 

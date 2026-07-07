@@ -125,7 +125,7 @@ Nope. As these three types of ceiling are structural problems**, not capacity pr
 - **Context squeezing** is not the size of the context window of the model - it is the information structure. The larger window simply plugs in more noise and does not address the structural flaws of the "intermediate reasoning of pollution final judgment".
 - **Serial bottlenecks** are more unrelated to modelling capabilities — one-way is one-way.
 
-This is the rationale behind the existence of Multi-Agent: when the single Agent's **structure (rather than capacity) becomes a bottleneck, these structural limitations need to be broken with more than** examples, context, tool sets**.
+This is the rationale behind the existence of Multi-Agent: when the single Agent's **structure (rather than capacity)** becomes a bottleneck, these structural limitations need to be broken with more than examples, context, tool sets.
 
 ---
 
@@ -312,7 +312,7 @@ class ReviewerPattern:
 
 ### 8.3.2 Why independent context is more effective than changing role Prompt
 
-The most critical mechanism of the Reviewer model is the independent context**. It's not "let the model think in a different angle" -- it's a different angle in the same context, and the first message is still there. The context of independence is the middle reasoning of Reviewer** not physically visible **Executor.
+The most critical mechanism of the Reviewer model is the **independent context**. It's not "let the model think in a different angle" -- it's a different angle in the same context, and the first message is still there. The context of independence is the middle reasoning of Reviewer not physically visible to Executor.
 
 Specifically, Reviewer can't see these things:
 
@@ -423,7 +423,11 @@ The Reviewer model works, but it works only under certain conditions. Here are i
    3. 是否存在非 admin 的角色定义？验证方法：检查权限模块中定义的角色列表。
    4. 第三方依赖是否锁定了版本号？验证方法：检查 requirements.txt 中的版本声明格式。"
 ```
-**Boundary II: Reviewer lapses when no independent authentication tool is available.**If the Reviewer can only read the text of the scheme and then judge it is not different from the individual Agent self-examination. Reviewer must have a validation tool independent of Executor: read the original profile (rather than read the excurator's description in the program), run linter, retrieve the original security code. Core principle:**Reviewer validates "real things", not Executor "proclaimed things."****Boundaries III: Reviewer is too harsh to be locked.**If every recommendation of review is "must be modified," when Excelctor finishes the round, Reviewer finds a new problem... - Look, it's a new problem, not a problem that hasn't been fixed -- and then Execuator changes it, Reviewer discovers a new problem and never appears. Method of amendment: Distinguishing between "must modify" and "recommended to optimize"; must not exceed 5 and the recommendation does not block adoption.**Boundaries IV: Execuator learned the "prejudice" review list.**This is the most hidden pattern of failure. After a number of times, Execuator learned to proactively add to the program the description "Looks like a security measure" - "This module follows the best practice of safety" - "All inputs have been fully verified" - but these descriptions do not correspond to actual realization. After seeing these statements, Reviewer marked "Save security measures mentioned" in the check list. In practice, however, security measures have not been implemented. Method of amendment: To review the list from "Whether or not to mention" to "Whether or not to implement" - do not check that "the program discusses key management" but check that "the key in the program is actually stored in the environment variable (grep authentication). "
+**Boundary II: Reviewer lapses when no independent authentication tool is available.** If the Reviewer can only read the text of the scheme and then judge it is not different from the individual Agent self-examination. Reviewer must have a validation tool independent of Executor: read the original profile (rather than read the excurator's description in the program), run linter, retrieve the original security code. Core principle: **Reviewer validates "real things", not Executor "proclaimed things."**
+
+**Boundaries III: Reviewer is too harsh to be locked.** If every recommendation of review is "must be modified," when Excelctor finishes the round, Reviewer finds a new problem... - Look, it's a new problem, not a problem that hasn't been fixed -- and then Execuator changes it, Reviewer discovers a new problem and never appears. Method of amendment: Distinguishing between "must modify" and "recommended to optimize"; must not exceed 5 and the recommendation does not block adoption.
+
+**Boundaries IV: Execuator learned the "prejudice" review list.** This is the most hidden pattern of failure. After a number of times, Execuator learned to proactively add to the program the description "Looks like a security measure" - "This module follows the best practice of safety" - "All inputs have been fully verified" - but these descriptions do not correspond to actual realization. After seeing these statements, Reviewer marked "Save security measures mentioned" in the check list. In practice, however, security measures have not been implemented. Method of amendment: To review the list from "Whether or not to mention" to "Whether or not to implement" - do not check that "the program discusses key management" but check that "the key in the program is actually stored in the environment variable (grep authentication). "
 
 ---
 
@@ -506,7 +510,7 @@ class SupervisorPattern:
 
 ### 8.4.2 Dismantling quality determines the value of the whole model
 
-The most easily underestimated step of the Supervisor model is the dismantling**. A lot of it has been done to simplify dismantling to "let LLM divide tasks into several" -- and then it's discovered that the worker output is highly overlapping, inconsistent in format and unable to merge.
+The most easily underestimated step of the Supervisor model is the dismantling. A lot of it has been done to simplify dismantling to "let LLM divide tasks into several" -- and then it's discovered that the worker output is highly overlapping, inconsistent in format and unable to merge.
 
 Good dismantling takes four things: **1. Clear borders (include)** Not only "your research A, your research B," but also to say, "Don't touch anything."
 
@@ -963,7 +967,9 @@ The same model, different parameter configurations allow the same model to prese
 
 ### 8.6.7 Configuration management - from scattered locations to "configuration or code"
 
-Three Agents managed manually okay. At five Agents, Systems Prompt, White List of Tools, Model Selection, Parameters are scattered in multiple files. Modifys the review criteria for Reviewer, forgetting that the summary logic of Supervisor is being updated simultaneously - the system is beginning to show subtle inconsistencies. **Recommended practice: Agent configuration centralized, Systems Prompt external documentation.**```python
+Three Agents managed manually okay. At five Agents, Systems Prompt, White List of Tools, Model Selection, Parameters are scattered in multiple files. Modifys the review criteria for Reviewer, forgetting that the summary logic of Supervisor is being updated simultaneously - the system is beginning to show subtle inconsistencies. **Recommended practice: Agent configuration centralized, Systems Prompt external documentation.**
+
+```python
 # agent_configs.py — 所有 Agent 配置的单一事实来源
 # 修改任何一个 Agent 的配置，只需改这一个文件。
 # 新增一个 Agent 时，在一个地方声明它的全部配置。

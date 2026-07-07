@@ -72,7 +72,7 @@ The essence of HITL is that **when Agent's ability covers an operation, but the 
 - `.env.backup`Is that a log file? Not by naming rules, but it is under /tmp/logs directory. Agent didn't judge it.
 - Is the full refund appropriate? Depending on your refund policy, user history, value of orders... it's not a few lines if-else can cover.
 
-The HITL is not an adequate security mechanism and cannot be a substitute for permission verification, input filtering, tool isolation, audit logs and Guardrails. It is more like an enhanced decision-making mechanism in the line of defence**— the introduction of human judgement as an enhancement when Agent's autonomous judgement does not cover the risks.
+The HITL is not an adequate security mechanism and cannot be a substitute for permission verification, input filtering, tool isolation, audit logs and Guardrails. It is more like an enhanced decision-making mechanism in the line of defence — the introduction of human judgement as an enhancement when Agent's autonomous judgement does not cover the risks.
 
 ## 7.3 Five modes of HITL
 
@@ -88,7 +88,9 @@ Agent："我将删除以下 12 个文件：
   [确认执行] [取消] [修改范围]"
 ```
 
-Identification of the three design elements of the model: **1. Presentation of "effects" instead of "operations"**```text
+Identification of the three design elements of the model: **1. Presentation of "effects" instead of "operations"**
+
+```text
 ❌ 差："确认调用 delete_file？"
    人类不知道要删什么、删多少、有什么影响。
 
@@ -96,7 +98,9 @@ Identification of the three design elements of the model: **1. Presentation of "
    注意：/tmp/logs 目录下还有 3 个非日志文件（.env.backup, config.json, README），
    它们不会被删除。"
 ```
-**2. Provide intermediate options, more than "Yes/No"**```text
+**2. Provide intermediate options, more than "Yes/No"**
+
+```text
 [确认全部] [只删 .log 文件] [让我逐个确认] [取消]
 ```
 
@@ -188,7 +192,7 @@ Pedagogical feedback does not overzealate "self-learning". V0 is enough for imme
 |**Confirmed** | Licenser | Executor | Before execution | Delete Files, Send Mail, Git Push |
 |**Clarification** | Definer | Executor | After understanding | Fuzzy demand, multi-dimensional command |
 |**Took over** | Executor | Supporters | On implementation | Database migration, production deployment |
-| Audit**| Reviewer | Creator | After output | Code review, programme review |
+| **Audit** | Reviewer | Creator | After output | Code review, programme review |
 |**Teaching feedback** | Coach. | Learner | After error | Output does not match expectations, preference changes |
 
 ## 7.4 Design decision-making: what to ask, how often and how to present
@@ -214,7 +218,9 @@ The risk classification should therefore not be based solely on the name of the 
 
 The hardest thing about HITL design is not "what to ask," but "how often." **Too often**: Human beings become "confirming robots". Each step points to confirmation that the user will soon develop a muscle memory — a "yes" without looking. HITL is nothing. **Too thin an effect**: Humans lose their sense of what Agent is doing. And when the problem was discovered, Agent had done ten irreversible operations.
 
-Several strategies for frequency control: **Strategy I: batch confirmation**```text
+Several strategies for frequency control: **Strategy I: batch confirmation**
+
+```text
 ❌ 单个确认：
   "确认删除 access_20260501.log？" [确认]
   "确认删除 error_20260515.log？" [确认]
@@ -237,7 +243,7 @@ Several strategies for frequency control: **Strategy I: batch confirmation**```t
 
 When humans make HITL decisions, they also face a lack of information. You play a confirmation box: "Agent's gonna do a refund operation, confirm?" -- in that case, what do humans think?
 
-OK. HITL design gives a simplified but complete decision-making context**when requesting human decision-making:
+OK. HITL design gives a simplified but complete decision-making context when requesting human decision-making:
 
 ```text
 Agent 请求执行退款操作：
@@ -280,7 +286,7 @@ HITL 数据分析（过去 30 天）：
 - send_email 确认：30 次，通过率 97%  → 可降低为中风险操作
 ```
 
-This analysis should not be implemented automatically — human beings should review and decide whether to adjust their strategies. The value of HITL data is that**makes policy adjustments sound, rather than the system itself.
+This analysis should not be implemented automatically — human beings should review and decide whether to adjust their strategies. The value of HITL data is that it makes policy adjustments sound, rather than the system itself.
 
 ## 7.6 Evolution course: from "all confirmed" to "precision intervention."
 
@@ -294,7 +300,9 @@ This analysis should not be implemented automatically — human beings should re
 
 Most projects start with V1. V0 is too conservative (Agent can't do anything useful), V4 needs to have enough user volume and use data to make sense.
 
-## 7.7 HITL 's five reverse modes**Counter-model I: confirmed every step**Click the confirmation box before all tools are called. Result: User clicked 15 times in 30 seconds, and didn't look. HITL is nothing.**Correct practice**: intervention is limited to high-risk and critical operations. A low-risk operation allows it to be implemented automatically.**Anti-model II: insufficient information on confirmation boxes**```text
+## 7.7 HITL 's five reverse modes**Counter-model I: confirmed every step**Click the confirmation box before all tools are called. Result: User clicked 15 times in 30 seconds, and didn't look. HITL is nothing.**Correct practice**: intervention is limited to high-risk and critical operations. A low-risk operation allows it to be implemented automatically.**Anti-model II: insufficient information on confirmation boxes**
+
+```text
 "Agent 要执行 write_file，确认？"
 ```
 

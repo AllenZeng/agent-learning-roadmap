@@ -50,7 +50,7 @@ The next day you open a new session: "Do me a technical article on Agent Memoory
 
 This is Agent Memoory's missing first set of questions: **session forgotten**. Every new session is a piece of paper -- user preferences, agreements, habits are all zero, and users are forced to "educate" Argentina repeatedly.
 
-The second category concerns the interruption of long missions**. You got Agent to sort out a catalogue of 50 documents and half of it turned off the computer. Next time you open it, Agent doesn't know which documents he's read, which documents he's sorted, where the drafts are, which structures you've identified -- it starts from scratch and doubles the first half.
+The second category concerns the interruption of long missions. You got Agent to sort out a catalogue of 50 documents and half of it turned off the computer. Next time you open it, Agent doesn't know which documents he's read, which documents he's sorted, where the drafts are, which structures you've identified -- it starts from scratch and doubles the first half.
 
 The third category is more subtle: **personalization is missing.** No Memoory's Agent's always "first time seeing you". It doesn't know you're used to Python, not TypeScript.`/api/v1/`I didn't know it took you two hours to make a structured decision. Every interaction is isolated, Agent always understanding you from scratch.
 
@@ -746,7 +746,9 @@ result = memory.write({
 # result: {"status": "written", "id": "mem_def456"}
 # 旧 TS 偏好的 status 变为 "superseded"，不再被 recall 返回
 ```
-**Scene II: Expired clean-up**```python
+**Scene II: Expired clean-up**
+
+```python
 # 每周执行一次的衰减任务
 stats = memory.decay()
 # stats: {
@@ -952,9 +954,13 @@ SESSION 3：周三 14:00-14:30  ← 偏好变更！
 | Storage structure (3.4.4) | Accurate key-value vs semantic vector vs mix, can user manage | Prefer language recall is less accurate than exact matching; users cannot view/edit memories |
 | Recall (3.4.5) | Level one filter, status filter, quantity cut, confidence mark by task type | Old preferences often overwhelm new preferences; Okay. |
 | Update and Forgetment (3.4.6) | Conflict Replace vs Add, Soft Forget vs Hard Forget, Decline Policy | User correction preferences are considered new; expired memories are never cleaned |
-| Memory consolidation (3.4.7) | Whether multiple events should converge into stabilization preferences and whether the chain of evidence should remain | The system summarizes the event as a long-term preference; no evidence is available for consolidating results |**Three main lines through the entire link:**1.**The guard chain cannot be sidelined**: the recall status filter from 3.4.2 sensitive tests →3.4.3 should remember hardguard**3.4.5 can lead to false memory being stored for long periods and influence subsequent decision-making. The audit log is the last line of defence to discover the bypass - but the log itself needs to be dissensitized.
-2.**User Visibility Decision Trust**: The Memory system will decline from personalization to opacity if it does not allow users to visualize "what the system remembers me." From the storage structure of 3.4.4 (user-edited key-value) to the oblivion mechanism of 3.4.6 (silent deletion is taboo) to the recall of 3.4.5 (notification of what memory is currently used by users), visibility is a requirement that runs through the entire chain.
-3.**Classification is a prerequisite for all**: four categories of information**: 3.3; a multi-dimensional classification framework of 3.3.3; 3.4.2 candidate type (prevention/temporary/sensive); 3.4.3 status (action/ping candidate/rejected/supersed); 3.4.4 storage options (key-value vs. vectors) - all decisions depend on "what type of information is this?" The classification was wrong once, and all follow-up mechanisms operated on an erroneous basis.
+| Memory consolidation (3.4.7) | Whether multiple events should converge into stabilization preferences and whether the chain of evidence should remain | The system summarizes the event as a long-term preference; no evidence is available for consolidating results |
+
+**Three main lines through the entire link:**
+
+1. **The guard chain cannot be sidelined**: the recall status filter from 3.4.2 sensitive tests →3.4.3 should remember hardguard →3.4.5 can lead to false memory being stored for long periods and influence subsequent decision-making. The audit log is the last line of defence to discover the bypass - but the log itself needs to be dissensitized.
+2. **User Visibility Decision Trust**: The Memory system will decline from personalization to opacity if it does not allow users to visualize "what the system remembers me." From the storage structure of 3.4.4 (user-edited key-value) to the oblivion mechanism of 3.4.6 (silent deletion is taboo) to the recall of 3.4.5 (notification of what memory is currently used by users), visibility is a requirement that runs through the entire chain.
+3. **Classification is a prerequisite for all**: four categories of information: 3.3; a multi-dimensional classification framework of 3.3.3; 3.4.2 candidate type (prevention/temporary/sensive); 3.4.3 status (action/ping candidate/rejected/supersed); 3.4.4 storage options (key-value vs. vectors) - all decisions depend on "what type of information is this?" The classification was wrong once, and all follow-up mechanisms operated on an erroneous basis.
 
 Back to the question at the beginning of this chapter - Agent always forgets, repeats or brings the wrong history. Take the example of a knowledge assistant: user spent 20 minutes on Monday telling Agent to "preliminary, direct" writing, and when he opened a new session on Tuesday he should not start from scratch. The essence of Memory is to store independently information (preferences, facts, experience) that really needs to be kept over time after the session has been closed and the context has been emptied, to be recalled in the new session as needed, while ensuring that erroneous information, outdated preferences and sensitive content do not contaminate future decision-making.
 
@@ -1052,7 +1058,7 @@ Defense strategy:
 2.**Recall with indication of source and confidence**. If one of memory's sources is`inferred`Not`user_explicit`Agent should significantly reduce his behavior.
 3.**Sensitive operations do not depend on Memoory decision-making**. Operations involving vouchers, payments, changes of privileges should rely on the certainty system configuration, not the bias stored in Memoory Okay.
 4.**Write Content Audit**: Automark is manual if a newly written memory contains URLs, toolnames, system command keywords (e.g., "override" "prior" "overlooking") Review Nuclear
-5.**Mamory permissions: explicitly label memory as "user archive/history reference" and prohibit it from covering system/developer commands, security strategies and new requirements for current users
+5. **Mamory permissions**: explicitly label memory as "user archive/history reference" and prohibit it from covering system/developer commands, security strategies and new requirements for current users
 
 ### 3.6.3 Not all memories are equally credible
 
@@ -1096,7 +1102,7 @@ The security governance of Memoory ultimately depends on the premise that**users
 |---|---|---|
 |**View**| All active memories displayed in the list of natural languages | "What do you remember about me?" - It's the first point of confidence-building. |
 |**Editor**| Directly modify the memory content, the old version is kept in the audit track | "This one's not right. |
-| Delete**| Delete individual articles or in bulk by type/scope | "Forget all the preferences about code style." |
+| **Delete** | Delete individual articles or in bulk by type/scope | "Forget all the preferences about code style." |
 |**Export**| Readable Formats (JSON/Markdown) Export All Memoory | Support migration to other systems and users have their own data |
 |**Pause**| "Don't use any memory for a while" -- don't delete the data, but stop recalling. | Temporary closure is more practical than deletion (e.g., when demonstrating, sharing screens) |
 
@@ -1139,7 +1145,7 @@ Before the Memoory system goes online, check each item against this list:
 
 When the system went online, the team asked you, "How's it going? "You can't answer "I feel good" -- evaluation needs numbers, and you need correct numbers.
 
-The particular difficulty with the Memoory assessment is that its effects are indirect**. You're not going to see "recall 90%" -- what you're seeing is Agent is taking the initiative without a user repeating it. The assessment therefore needs to be conducted at two levels:
+The particular difficulty with the Memoory assessment is that its effects are indirect. You're not going to see "recall 90%" -- what you're seeing is Agent is taking the initiative without a user repeating it. The assessment therefore needs to be conducted at two levels:
 
 -**System level**: accuracy of the Memoory mechanism itself — writing, recall, conflict management, privacy protection
 -**Mandate level**: there is Memoory more than there is no Memoory, and whether end-to-end job completion quality is enhanced
@@ -1227,7 +1233,9 @@ Note, however, that the results of the A/B test and the system indicators of 1-6
 
 ### 3.7.3 When indicators appear normal: two assessment cases
 
-Consistency indicators may mask the problem. Here are two real cases of failure to show how to dig off the surface of "indicator normal". These cases come from the debugging stories mentioned in section 3.4, but are re-examined here from the perspective of the assessment.**Case I: recall indicators are normal, but old preferences prevail over new preferences**```text
+Consistency indicators may mask the problem. Here are two real cases of failure to show how to dig off the surface of "indicator normal". These cases come from the debugging stories mentioned in section 3.4, but are re-examined here from the perspective of the assessment.**Case I: recall indicators are normal, but old preferences prevail over new preferences**
+
+```text
 评测面板显示：
 - 召回精度：0.85 ✅
 - 召回覆盖：0.92 ✅
@@ -1256,7 +1264,9 @@ Agent 看到两条矛盾偏好，选了排在前面的那条。
 - 冲突遗留率：存在两条以上同 category 的 active 记忆的比例 → 目标：0
 - 新旧偏好排序正确率：当存在新旧矛盾偏好时，新偏好是否排在前面 → 目标：1.0
 ```
-**Case II: Inclusion of normal indicators but temporary containment of long-term behaviour**```text
+**Case II: Inclusion of normal indicators but temporary containment of long-term behaviour**
+
+```text
 评测面板显示：
 - 写入精度：0.93 ✅
 - 误写率：0.03/会话 ✅
@@ -1318,7 +1328,7 @@ A practical judgment:
 如果系统只需要完成当前任务，优先保存任务状态。
 如果系统需要跨任务理解用户或项目，才考虑长期 Memory。
 ```
-**There is also an easy-to-neglected dimension of judgement**: user experience cost of Memoory. If the user doesn't know what the system remembers, why Agent answers like this, how to correct the wrong memory -- then Memoory may be more confusing than it is. Before introducing Memoory, ask yourself:**Can users visualize, understand and manage these memories? Is the system safely handling sensitive information, power segregation and risk prevention? Do you have any way to assess whether memory's helping or causing trouble?
+**There is also an easy-to-neglected dimension of judgement**: user experience cost of Memoory. If the user doesn't know what the system remembers, why Agent answers like this, how to correct the wrong memory -- then Memoory may be more confusing than it is. Before introducing Memoory, ask yourself: Can users visualize, understand and manage these memories? Is the system safely handling sensitive information, power segregation and risk prevention? Do you have any way to assess whether memory's helping or causing trouble?
 
 >**The story is not over.**Memoory reminds Agent of user preferences, but a new problem has emerged: the user gave a complex task of more than one step - "Presentation: Check README, run tests, organize changelogs, generate checklist." Agent starts drifting after step 4 away from the original target. Memoory solves what "remember" but it doesn't matter how the mission is organized. That's what the next chapter is about.
 

@@ -49,7 +49,9 @@ Even in June 2026, LLM faced several core knowledge-related dilemmas - not "the 
 
 In 2020, the research team of Meta AI (also known as Facebook AI) published the paper Retrieval-Augmented General for Knowledge-Intensive NLP Tasks. The paper presented a simple idea:
 
-> **Rather than stuffing all knowledge into model parameters, it would be better to check if needed.**```
+> **Rather than stuffing all knowledge into model parameters, it would be better to check if needed.**
+
+```
 传统 LLM 回答问题的流程:
 ┌──────┐     ┌─────────────┐     ┌──────────┐
 │ User │────>│  LLM (参数)  │────>│  Answer  │
@@ -293,7 +295,11 @@ The type of document varies, as does the size of the naturally appropriate parti
 - Academic dissertation: Division by Section, not fixed size. 500-3000 tokens per saving.
 - Record of the dialogue: Question-and-answer pairs are maintained by "turn" instead of "token".
 
-Understands why Chunking and the small and the large each means, and then how to cut.**Chunking treatment strategy****Policy I: Fixed-size Chunking**The simplest method — to be divided by the number of tokens — is usually to avoid border breaks by adding an overlapping area (overlap).
+Understands why Chunking and the small and the large each means, and then how to cut.
+
+**Chunking treatment strategy**
+
+**Policy I: Fixed-size Chunking** The simplest method — to be divided by the number of tokens — is usually to avoid border breaks by adding an overlapping area (overlap).
 
 ```python
 # 直观示意
@@ -418,7 +424,21 @@ sim("Tool Use 和 Memory 的设计哲学区别", "工具调用的单一职责原
 sim("Tool Use 和 Memory 的设计哲学区别", "RAG Chunking 最佳实践") = 0.12  ← 不同主题，低相似
 ```
 
-In high-dimensional vector space, semantic relations are expressed in geometry: issues of proximity and documents are located in the nearest region, and the content of different topics naturally rises apart. Early word vectors often explain analogies; but in RAG scenes, more importantly, **queryes and documents are relevant**, rather than word level analogies.**Development of Embeding Model**:**First generation: Word2Vec (2013).**Mikolov et al. have enabled models to learn the distributional expression of words through training objectives for "predicting context" (Skip-gram) or "predicting central word" (CBOW). Word2Vec, however, is**static**- each word has only a fixed vector and cannot deal with multiple meanings ( "apples" as fruit and brand should be different vectors).**Second generation: BERT (2018).**The biggest breakthrough of BERT is the expression of**context-related**. The same apple, the "I ate an apple" and the "Apple released a new phone" will have different vectors. BERT has learned deep language understanding through pre-training in two missions: Masked Language Model and Next Science Protection.**Third generation: Setence-BERT (2019).**BERT can generate vectors for each token, but simple average pool does not work well to get a full sentence. Setence-BERT uses twin network structures and specialized training models to generate meaningful**sentence level* * Vectors - The vectors of two similar sentences are brought closer and not similar pushed away.**After 2022: Generic text optimization model for search missions.**Text-embeding-ada-002, text-embeding-3 models are directly oriented towards job optimization such as text similarities, retrieval and clustering, supporting longer text, multilingual and dimension configurations. Multilingual models such as BGE-M3 and Multilingual-e5 emphasize cross-linguistic alignment, allowing text with similar synonyms in different languages to be mapped to a similar vector area. The BGE-M3 model also places the capabilities of dense, sparse, multi-vector in the same model community, suggesting that embedding is not just a "one text, one vector".**Research policy: dense vs thin vs mixed****Dense Retrievation**: both queries and documents are mapped in dense vectors using the Embeding model and retrieved through vector similarities.
+In high-dimensional vector space, semantic relations are expressed in geometry: issues of proximity and documents are located in the nearest region, and the content of different topics naturally rises apart. Early word vectors often explain analogies; but in RAG scenes, more importantly, **queryes and documents are relevant**, rather than word level analogies.
+
+**Development of Embeding Model**:
+
+**First generation: Word2Vec (2013).** Mikolov et al. have enabled models to learn the distributional expression of words through training objectives for "predicting context" (Skip-gram) or "predicting central word" (CBOW). Word2Vec, however, is **static** - each word has only a fixed vector and cannot deal with multiple meanings ( "apples" as fruit and brand should be different vectors).
+
+**Second generation: BERT (2018).** The biggest breakthrough of BERT is the expression of **context-related**. The same apple, the "I ate an apple" and the "Apple released a new phone" will have different vectors. BERT has learned deep language understanding through pre-training in two missions: Masked Language Model and Next Science Protection.
+
+**Third generation: Setence-BERT (2019).** BERT can generate vectors for each token, but simple average pool does not work well to get a full sentence. Setence-BERT uses twin network structures and specialized training models to generate meaningful sentence level vectors - The vectors of two similar sentences are brought closer and not similar pushed away.
+
+**After 2022: Generic text optimization model for search missions.** Text-embeding-ada-002, text-embeding-3 models are directly oriented towards job optimization such as text similarities, retrieval and clustering, supporting longer text, multilingual and dimension configurations. Multilingual models such as BGE-M3 and Multilingual-e5 emphasize cross-linguistic alignment, allowing text with similar synonyms in different languages to be mapped to a similar vector area. The BGE-M3 model also places the capabilities of dense, sparse, multi-vector in the same model community, suggesting that embedding is not just a "one text, one vector".
+
+**Research policy: dense vs thin vs mixed**
+
+**Dense Retrievation**: both queries and documents are mapped in dense vectors using the Embeding model and retrieved through vector similarities.
 
 Advantages: capture semantic similarities. Disadvantages: Insensitive to proprietary terms, precise matching (the "AK-47" and "M16" vectors may be close, but they are different guns).**Sparse Retrieval / BM25**: Keyword matching based on word frequency and reverse document frequency (TF-IDF).
 
