@@ -1,303 +1,311 @@
-# Lesson III: Minimal Agent closed loop
+# Lesson 3: The Minimal Agent Loop
 
-## Introduction to the curriculum
+## Introduction
 
-Course one shows you the true shape of the Agent product, course two explains why the Agent paradigm evolved today. In course three, the focus of learning goes from "understanding the concept" to "manage the structure".
+Lesson 1 showed what real Agent products look like. Lesson 2 explained why the Agent paradigm has evolved to where it is today. In Lesson 3, the focus shifts from understanding the concept to understanding the structure.
 
-This class answers a very specific question:
-
-```text
-What exactly makes up a minimal but complete Agent?
-```
-
-Many learners fall into two error zones. The first error was to think of Agent as "a stronger LLM" -- thinking that if the model was strong enough, Agent would be automatically reliable. The second area of error is the reverse -- thinking that it is necessary to add all RAG, Memory, Planning, MCP, Multi-Agent.
-
-Both judgements are inaccurate.
-
-The first problem is that the LLM is essentially a "next Token predictor". It can do amazing reasoning in linguistic space, but it can't check its own databases, run its own codes, judge for itself, "I've done a few steps, what to do next." The equivalent of Agent to a stronger LLM is the equivalent of a more intelligent brain -- a brain that is the core, but without hands, without eyes, without memory, without a mechanism to judge when to stop.
-
-The second problem is that those capabilities are really important, but they are not the premise that Agent exists, but rather the expansion of Agent in a particular direction. It's like a man doesn't have to be an athlete to walk, and an Agent doesn't need access to RAG and Multi-Agent to work.
-
-The core points of this course are:
+This lesson answers one concrete question:
 
 ```text
-Agent = Prompt (behavior definition) + LLM decision-making + tool/environment interaction + State (state management) + loop control
+What is the smallest complete Agent made of?
 ```
 
-This formula has five, which can be seen in two layers: **Prompt is the defined layer** -- And it decided before the cycle started, "What's this Agent, how does it think, how does it output?" And the last four are **Runtime Layer** -- they make Agent really work in the cycle.
+Learners often fall into two traps.
 
-The formula is not to define the full capacity of all Agent products, but to capture the smallest closed circle -- the simplest structure that can run, do multi-step missions, be controlled to stop. The tool mechanisms in the follow-up course, RG / Memoory, Planning / Workflow Pattersons, Harness, Evaluation, Guardrails, are all continuing to expand around this closed circle.
+The first trap is treating an Agent as simply "a stronger LLM." In this view, once the model becomes powerful enough, the Agent will automatically become reliable.
+
+The second trap goes in the opposite direction: assuming that something only counts as an Agent after you add RAG, Memory, Planning, MCP, and Multi-Agent orchestration.
+
+Both views are wrong.
+
+The problem with the first view is that an LLM is, at its core, a next-token predictor. It can reason impressively inside language, but it cannot query a database by itself, run code by itself, or reliably decide, "I have already taken several steps; what should I do next?" Equating an Agent with a stronger LLM is like equating a person with a smarter brain. The brain matters, but without hands, eyes, memory, and a mechanism for knowing when to stop, the person cannot complete much in the real world.
+
+The problem with the second view is that RAG, Memory, Planning, MCP, and Multi-Agent systems are important, but they are not prerequisites for an Agent to exist. They are extensions in specific directions. A person does not need to become an athlete before they can walk. An Agent does not need RAG and Multi-Agent orchestration before it can work.
+
+The core idea of this lesson is:
+
+```text
+Agent = Prompt (behavior definition) + LLM decision-making + tool/environment interaction + State management + loop control
+```
+
+These five parts can be understood in two layers. The **Prompt is the definition layer**: before the loop starts, it defines what kind of Agent this is, how it should think, and how it should output. The other four parts are the **runtime layer**: they make the Agent actually operate inside a loop.
+
+This formula is not meant to describe every capability in every Agent product. It captures the minimal loop: the simplest structure that can run, complete multi-step tasks, and stop under control. Later lessons on tools, RAG / Memory, Planning / Workflow Patterns, Harness, Evaluation, and Guardrails all extend this loop.
 
 ---
 
-## Learning objectives
+## Learning Objectives
 
 After this lesson, you will be able to:
 
-1. **Explain why the smallest Agent can't only understand the essence of LLM**, including that it doesn't know that it's an Agent
-2. **Draws the smallest Agent running links** — Quite clear `Prompt → User Goal → Context Assembly → LLM Decision → Interaction → Observation → State Update → Continue or Stop`
-3. **Understands the role of Prompt in Agent** -- Knows why Prompt is the "source code" of Agent, which defines the behaviour, format and boundaries of Agent
-4. **Distinguishing core modules from connect points** — understand why Context Assembly, Observation is a link-to-non-core module
-5. **Understands the role of state (state) management** -- Know what information needs to be stored independently of LLM and why context windows cannot be used as the only state store
-6. **Design of circulatory control rules** — including cessation conditions, maximum steps, overtime, repeat detection and failure to exit
-7. **Plan for the minimum RealAgent realization** -- defines Prompt, Tools, Status, Trade, Error Processing and Testing Tasks
+1. **Explain why a minimal Agent cannot be just an LLM** — understand the LLM's core limitations, including the fact that it does not know it is an Agent.
+2. **Draw the minimal Agent execution path** — explain `Prompt -> User Goal -> Context Assembly -> LLM Decision -> Interaction -> Observation -> State Update -> Continue or Stop`.
+3. **Understand the role of Prompt in an Agent** — know why the Prompt is the Agent's "source code," defining its behavior, format, and boundaries.
+4. **Distinguish core modules from connection points** — understand why Context Assembly and Observation are connection points rather than core modules.
+5. **Understand State management** — know what information must be stored outside the LLM, and why the context window cannot be the only State store.
+6. **Design loop control rules** — including stop conditions, max steps, timeouts, repeat detection, and failure exits.
+7. **Plan the implementation of a minimal ReAct Agent** — define Prompt, tools, State, Trace, error handling, and test tasks.
 
 ---
 
 ## Contents
 
-- [Introduction to the curriculum](#introduction-to-the-curriculum)
-- [Learning objectives](#learning-objectives)
-- [Chapter One: Why is the smallest Agent?](#chapter-one-why-is-the-smallest-agent)
-  - [1.1 Nature of LLM: An extremely strong "Next Token Predictor"](#11-nature-of-llm-an-extremely-strong-next-token-predictor)
-  - [1.2 LLM will say, but will not do](#12-llm-will-say-but-will-not-do)
-  - [1.3 LLM will judge, but will not remember.](#13-llm-will-judge-but-will-not-remember)
-  - [1.4 LLM can reason but cannot control its own borders](#14-llm-can-reason-but-cannot-control-its-own-borders)
-  - [1.5 LLM is a universal engine but doesn't know it's Agent.](#15-llm-is-a-universal-engine-but-doesnt-know-its-agent)
-- [Chapter II: Minimum Agent Composition](#chapter-ii-minimum-agent-composition)
-  - [2.1 Core formula](#21-core-formula)
-  - [2.2 Prompt: Definition of conduct](#22-prompt-definition-of-conduct)
-  - [2.3 LLM Decision-making](#23-llm-decision-making)
-  - [2.4 Tools/environment interface](#24-toolsenvironment-interface)
-  - [2.5 Status management](#25-status-management)
-  - [2.6 Cycle control](#26-cycle-control)
-- [Chapter III: Minimum operating links](#chapter-iii-minimum-operating-links)
-  - [3.1 Minimum closed ring map](#31-minimum-closed-ring-map)
-  - [3.2 Summary of links: a chain of five components](#32-summary-of-links-a-chain-of-five-components)
-  - [3.3 Prompt Engineering: Agent's Source Code](#33-prompt-engineering-agents-source-code)
-  - [3.4 User Goal: from vague intent to actionable target](#34-user-goal-from-vague-intent-to-actionable-target)
-  - [3.5 Context Assembly: What models should see](#35-context-assembly-what-models-should-see)
-  - [3.6 LLM Decision: What next](#36-llm-decision-what-next)
-  - [3.7 Interaction & Exchange: Really do](#37-interaction-exchange-really-do)
-  - [3.8 Operation / Feedback: Returning results to loop](#38-operation-feedback-returning-results-to-loop)
-  - [3.9 State Update: Write about what happened in this round into State](#39-state-update-write-about-what-happened-in-this-round-into-state)
-  - [3.10 Continue or Stop: Know when to stop](#310-continue-or-stop-know-when-to-stop)
-  - [3.11 Correct location for State storage](#311-correct-location-for-state-storage)
-  - [3.12 Distinction between core modules and connecting points](#312-distinction-between-core-modules-and-connecting-points)
-  - [3.13 Engineering principles behind the minimum closed ring](#313-engineering-principles-behind-the-minimum-closed-ring)
-- [Chapter 4: Realization of the smallest RectAgent](#chapter-4-realization-of-the-smallest-rectagent)
-  - [4.1 Why the first no-recommended framework is achieved](#41-why-the-first-no-recommended-framework-is-achieved)
-  - [4.2 Fake code structure](#42-fake-code-structure)
-  - [4.3 Tool design](#43-tool-design)
-  - [4.4 Trace Record](#44-trace-record)
-  - [4.5 Base error management](#45-base-error-management)
-  - [4.6 Test mission design](#46-test-mission-design)
-- [After-school exercises](#after-school-exercises)
-- [Acceptance and inspection standards](#acceptance-and-inspection-standards)
+- [Introduction](#introduction)
+- [Learning Objectives](#learning-objectives)
+- [Chapter 1: Why a Minimal Agent Cannot Be Just an LLM](#chapter-1-why-a-minimal-agent-cannot-be-just-an-llm)
+  - [1.1 The Nature of an LLM: A Very Strong Next-Token Predictor](#11-the-nature-of-an-llm-a-very-strong-next-token-predictor)
+  - [1.2 An LLM Can Talk, but It Cannot Act](#12-an-llm-can-talk-but-it-cannot-act)
+  - [1.3 An LLM Can Judge, but It Cannot Remember](#13-an-llm-can-judge-but-it-cannot-remember)
+  - [1.4 An LLM Can Reason, but It Cannot Control Its Own Boundaries](#14-an-llm-can-reason-but-it-cannot-control-its-own-boundaries)
+  - [1.5 An LLM Is a General Engine, but It Does Not Know It Is an Agent](#15-an-llm-is-a-general-engine-but-it-does-not-know-it-is-an-agent)
+- [Chapter 2: The Components of a Minimal Agent](#chapter-2-the-components-of-a-minimal-agent)
+  - [2.1 The Core Formula](#21-the-core-formula)
+  - [2.2 Prompt: Behavior Definition](#22-prompt-behavior-definition)
+  - [2.3 LLM Decision-Making](#23-llm-decision-making)
+  - [2.4 Tool / Environment Interaction](#24-tool--environment-interaction)
+  - [2.5 State Management](#25-state-management)
+  - [2.6 Loop Control](#26-loop-control)
+- [Chapter 3: The Minimal Execution Path](#chapter-3-the-minimal-execution-path)
+  - [3.1 The Minimal Loop Diagram](#31-the-minimal-loop-diagram)
+  - [3.2 Path Overview: One Chain Connecting Five Components](#32-path-overview-one-chain-connecting-five-components)
+  - [3.3 Prompt Engineering: The Agent's Source Code](#33-prompt-engineering-the-agents-source-code)
+  - [3.4 User Goal: From Vague Intent to Actionable Target](#34-user-goal-from-vague-intent-to-actionable-target)
+  - [3.5 Context Assembly: What the Model Should See](#35-context-assembly-what-the-model-should-see)
+  - [3.6 LLM Decision: What to Do Next](#36-llm-decision-what-to-do-next)
+  - [3.7 Interaction & Execution: Actually Doing the Work](#37-interaction--execution-actually-doing-the-work)
+  - [3.8 Observation / Feedback: Bringing Results Back Into the Loop](#38-observation--feedback-bringing-results-back-into-the-loop)
+  - [3.9 State Update: Writing This Round Back Into State](#39-state-update-writing-this-round-back-into-state)
+  - [3.10 Continue or Stop: Knowing When to Stop](#310-continue-or-stop-knowing-when-to-stop)
+  - [3.11 Where State Storage Belongs](#311-where-state-storage-belongs)
+  - [3.12 Core Modules vs. Connection Points](#312-core-modules-vs-connection-points)
+  - [3.13 The Engineering Principle Behind the Minimal Loop](#313-the-engineering-principle-behind-the-minimal-loop)
+- [Chapter 4: How to Implement a Minimal ReAct Agent](#chapter-4-how-to-implement-a-minimal-react-agent)
+  - [4.1 Why You Should Not Start With a Framework](#41-why-you-should-not-start-with-a-framework)
+  - [4.2 Pseudocode Structure](#42-pseudocode-structure)
+  - [4.3 Tool Design](#43-tool-design)
+  - [4.4 Trace Logging](#44-trace-logging)
+  - [4.5 Basic Error Handling](#45-basic-error-handling)
+  - [4.6 Test Task Design](#46-test-task-design)
+- [Exercises](#exercises)
+- [Runnable Example](#runnable-example)
+- [Acceptance Criteria](#acceptance-criteria)
 - [References](#references)
 
 ---
 
-## Chapter One: Why is the smallest Agent?
+## Chapter 1: Why a Minimal Agent Cannot Be Just an LLM
 
-In course two, we said that LLM is the core of Agent's decision-making, but not the full Agent system. This chapter pulls this conclusion closer to the point where you can see: **If only LLM, a system that looks like Agent would be stuck.**
+In Lesson 2, we said that the LLM is the decision-making core of an Agent, but it is not the whole Agent system. This chapter brings that point closer to the ground: if a system only has an LLM, where exactly will it get stuck?
 
-The key to understanding this problem is not to devalue the capacity of LLM, but to accurately understand the essence of LLM. The essence of it determines what it is good at, what it is not good at -- and the Agent system is putting "prosthesis" on LLM in a direction that is not good at.
+The point is not to undervalue LLMs. The point is to understand what they are. Their nature determines what they are naturally good at and what they are naturally bad at. An Agent system exists to add the missing parts around the LLM.
 
-### 1.1 Nature of LLM: An extremely strong "Next Token Predictor"
+### 1.1 The Nature of an LLM: A Very Strong Next-Token Predictor
 
-LLM, regardless of its size and reasoning, has not changed its basic working mechanism: based on the previous text, it predicts the next most likely to be Token.
+No matter how large or capable an LLM becomes, its basic mechanism is still the same: given preceding text, predict the next most likely token.
 
-This mechanism has created an amazing ability — to understand complex instructions, to write beautiful articles, and to step by step on mathematical questions. However, it also delineates the natural boundary to be used by the model: **The model itself will not perform external actions.** It can generate text or a structured tool to call intent, but true access to files, query databases, running codes, writing results is still out of the model for Runtime and tool layers. The model can be relied upon in a single call, but only in the context of this request.
+This mechanism produces remarkable abilities. The model can understand complex instructions, write polished prose, and reason through math problems step by step. But it also defines the natural boundary of a model call: **the model itself does not perform external actions.**
 
-In the language of course two: LLM ' s internal reasoning is strong, but it lacks internal feedback from the system. And it's exactly what Agent needs to interact with the outside world on a continuous basis — getting new information, implementing actions, observing results, adjusting strategies. It's not possible to create the next text.
+It can generate text. It can also generate a structured intent to call a tool. But the actual work of reading files, querying databases, running code, and writing results still belongs to the runtime and tool layer outside the model. In a single call, the model can only rely on the context passed into that call.
 
-### 1.2 LLM will say, but will not do
+Using the language from Lesson 2: an LLM has strong internal reasoning, but it lacks external feedback from the system. An Agent needs continuous interaction with the outside world: gather new information, take action, observe results, and adjust strategy. Generating the next piece of text is not enough to do that.
 
-Suppose you say to a pure LLM system:
+### 1.2 An LLM Can Talk, but It Cannot Act
+
+Suppose you ask a pure LLM system:
 
 ```text
-Help me check why this project failed.
+Help me figure out why the tests in this project are failing.
 ```
 
 It may answer:
 
 ```text
-You can run the test command, check the error log, and then locate the relevant files.
+You can first run the test command, inspect the error logs, and then locate the related files.
 ```
 
-The answer may be entirely correct, but it is only recommendation **, not action**. The model does not really run the tests, does not read the log, does not check the code. It's like a man trapped in a room who can tell you how the outside world works, but cannot reach out to touch anything.
+That answer may be completely correct, but it is still advice, not action. The model did not run the tests. It did not read the logs. It did not inspect the code. It is like a person locked in a room who can explain how the outside world should work but cannot touch anything outside the room.
 
-If you want to be Agent, at least the system can:
+To become an Agent, the system must at least be able to:
 
-- Reads the project document.
-- Execute the test order.
+- Read project files.
+- Execute test commands.
 - Receive test results.
-- Determines the next step based on erroneous information.
-- If necessary, the user is stopped or requested to intervene.
+- Decide the next step based on error messages.
+- Stop or ask the user for help when needed.
 
-Each requires a mechanism other than the "generated text" — someone to actually carry out the action and get the results back.
+Every item on that list requires something beyond text generation. Something must actually execute actions and bring the results back.
 
-### 1.3 LLM will judge, but will not remember.
+### 1.3 An LLM Can Judge, but It Cannot Remember
 
-LLM's memory depends entirely on the context of this request. It does not itself have a durable mission state of application of automatic succession — the next call of the model cannot reliably know what happened in the last time if Runtime does not re-invent goals, history, tool results.
+An LLM's "memory" depends entirely on the context in the current request. It does not automatically inherit persistent task state from the application. If the runtime does not re-inject the goal, history, and tool results into the next model call, the model cannot reliably know what happened before.
 
-This is hard for multi-step missions. Assuming that a mission takes 5 steps to complete, the return of the tool for each step is long. By step 4, the context window may have been plugged in by the first three steps. Even worse, the study has found that LLM's attention to information in the middle of the context is significantly lower than at the beginning and end -- the "lost in the Middle" phenomenon. The user at the beginning of the mission said, "Don't move the production environment." If it happens in the middle of the context, Agent might forget it at step 5.
+This becomes a hard limitation for multi-step tasks. Imagine a task that takes five steps, and each tool result is long. By step four, the context window may already be crowded with results from the first three steps. Worse, research has shown that LLMs pay less attention to information in the middle of a long context than to information near the beginning or the end. This is the "Lost in the Middle" phenomenon. If the user said "do not touch production" at the beginning of the task, and that instruction ends up buried in the middle of the context, the Agent may forget it by step five.
 
-So Agent can't manage the state just by "throwing history into context." It requires a state storage independent of LLM, managed by Runtme — the reservation, the compression, the injection. That's what state management does.
+So an Agent cannot manage State by simply stuffing all history into the context. It needs a State store outside the LLM, managed by the runtime. The runtime decides what to keep, what to summarize, and what to inject into the next call. That is the job of State management.
 
-> If you read this, you might ask-- **Runtme what is it?** It has been mentioned repeatedly earlier: the state of the tube, the tools to implement it, the cycle is controlled by it. You can interpret Runtme as Agent's **operating system**. It's like operating systems managing CPU, memory, disk, process scheduling -- it doesn't write documents, make tables; Runtme management storage, tool execution, loop control, permission verification, Trade records -- it doesn't do semantic reasoning, it doesn't generate text. <br>
-More precisely: **Agent structure, all parts of the "certainty duty" fall within Runtme.** The LLM output is uncertain (the same prompt two calls may have different results), but whether the tool is implemented, whether the parameters are valid and whether the number of steps is excessive — these judgments must be definitive and auditable. Runtme is the level of infrastructure that carries out these definitive duties. You will see it again and again in each follow-up course - in Course 4 it is the registration and competence centre for tools, in Course 5 it is the reader for Memoory, in Course 6 it is the Harness/observable skeleton, and in Course 7 it is the point of implementation of the failure recovery and safety strategy.
+> You may be asking: **what exactly is the runtime?** We have already mentioned it several times: it manages State, executes tools, and controls the loop. You can think of the runtime as the Agent's operating system. An operating system manages CPU, memory, disk, and process scheduling, but it does not write your documents or build your spreadsheets. Similarly, the runtime manages State storage, tool execution, loop control, permission checks, and Trace logging, but it does not perform semantic reasoning or generate text.<br/>
+More precisely: **in an Agent architecture, everything that has deterministic responsibility belongs to the runtime.** LLM output is nondeterministic: the same prompt may produce different outputs on different calls. But whether a tool exists, whether arguments are valid, whether the step limit has been exceeded, and whether an operation is allowed must be deterministic and auditable. The runtime is the infrastructure layer that carries those deterministic responsibilities. You will see it throughout the rest of the course: in Lesson 4 it is the tool registry and permission center; in Lesson 5 it is the read/write entry point for Memory; in Lesson 6 it is the backbone of Harness and observability; in Lesson 7 it enforces recovery and safety policies.
 
-### 1.4 LLM can reason but cannot control its own borders
+### 1.4 An LLM Can Reason, but It Cannot Control Its Own Boundaries
 
-LLM naturally tends to "continue to produce". It does not know when to stop, when to ask for help and when its actions have become a cycle of death.
+An LLM naturally tends to keep generating. It does not inherently know when to stop, when to ask for help, or when its behavior has become a loop.
 
-If you let a pure LLM system work in a loop, it may:
+If you put a pure LLM system inside a loop, it may:
 
-- The same tool has been repeatedly called because it makes similar decisions every time it sees a similar context.
-- It's a reasonable choice to try again indefinitely after a mistake, because it doesn't know that "release" is also.
-- After the mission has been completed, it continues to operate redundantly because it does not have the concept of "finished" — it just generates the next Token.
-- High-risk actions are still carried out in cases of uncertainty because it does not have the capacity to "risk judgement" — it sees a probability distribution, not a consequence.
+- Keep calling the same tool because similar contexts produce similar decisions.
+- Retry forever after an error because it does not know that giving up can be the right choice.
+- Continue unnecessary actions after the task is already complete because it has no built-in concept of completion.
+- Take risky actions under uncertainty because it sees a probability distribution, not real-world consequences.
 
-So Agent can't just rely on the LLM's judgment to manage his operational boundaries. Cycle control must be left to Runte — Runte sets hard limits (maximum step, time over time, double detection) and LLM makes decisions within the bounds. This is not a model of mistrust, but rather a role of "decision" and "exercise border" that is best suited to them.
+An Agent therefore cannot rely only on the LLM's judgment to manage runtime boundaries. Loop control must be handled by the runtime. The runtime sets hard constraints such as maximum steps, timeouts, and repeat detection. The LLM makes decisions inside those constraints. This is not about distrusting the model. It is about assigning "decision" and "execution boundary" to the parts of the system best suited for them.
 
-### 1.5 LLM is a universal engine but doesn't know it's Agent.
+### 1.5 An LLM Is a General Engine, but It Does Not Know It Is an Agent
 
-The first three limitations — which cannot be done, cannot be recorded, cannot be controlled — are the limits of the capacity of LLM. But there is a more fundamental question: the LLM's **identity boundary**.
+The first three limitations — cannot act, cannot remember, cannot control its boundaries — are capability boundaries. But there is an even more fundamental issue: an LLM has an identity boundary.
 
-LLM is a universal text generator when it leaves the plant. It's trained to "renew the text," not "exercise multi-step." If you go straight to a naked LLM and say, "Look at today's weather and what to wear according to weather advice," it doesn't automatically call the weather API, analyze the results, and then give advice -- it only generates a text that looks like a recommendation.
+Out of the box, an LLM is a general text generator. It is trained to continue text, not to complete multi-step tasks. If you ask a bare LLM, "Check today's weather and suggest what I should wear," it will not automatically call a weather API, analyze the result, and then provide advice. It will generate text that looks like advice.
 
-The authors of the Rect paper have done a key experiment to prove this: the same frozen PLM-540B model, **the general question-and-answer tip and the react style few-shot trajectories, showing a difference**. It's not the model getting stronger -- it's Prompt telling the model how it should be done.
+The ReAct paper demonstrated this with an important experiment. The same frozen PaLM-540B model behaved very differently under a normal question-answer prompt versus a ReAct-style few-shot trajectory prompt. The model did not become stronger. The Prompt told the model how to behave.
 
 ```text
-Regular question and answer reminder: LLM → Generate a text (may be recommendations, may be answers, may be fabrications)
-ReAct Style tip: LLM → Learn to press → Action → Observation Orbital advance.
+Normal Q&A prompt: LLM -> generate text (advice, answer, or possibly fabrication)
+ReAct-style prompt: LLM -> follow a Thought -> Action -> Observation trajectory
 ```
 
-Prompt solves the problem: **Turns the universal engine into a specific type of Agent.** It defines three things:
+This is the problem the Prompt solves: **it turns a general engine into a specific type of Agent.** It defines three things:
 
-- **Role**: Who are you and what are your goals?
-- **Behavior protocol**: how do you think?
-- **Output format**: what every step of your output should look like so that Runtme can be reliably analyzed
+- **Role**: who you are and what your goal is.
+- **Behavior protocol**: how you think, how you act, and how you process results.
+- **Output format**: what each step should look like so the runtime can parse it reliably.
 
-In other words, the first three limitations are the question of "LLM's lack of capacity," and this limitation is the question of "LLM doesn't know what its role is." Together, four questions point to the five components of the smallest Agent -- Prompt defines "what to do "Agent," the latter four components actually make it work.
+In other words, the first three limitations are about what the LLM lacks. This fourth limitation is about the LLM not knowing what role it is supposed to play. Together, these four problems point to the five components of a minimal Agent: Prompt defines what kind of Agent this is, and the other four components make it actually run.
 
 ---
 
-## Chapter II: Minimum Agent Composition
+## Chapter 2: The Components of a Minimal Agent
 
-In the last chapter, the LLM four "no" -- can't do it, can't remember, can't control it, don't know they're Agent. This chapter corresponds each "not" to a specific system component. These five components together are the smallest Agent skeleton.
+The previous chapter described four things an LLM cannot do on its own: it cannot act, cannot remember, cannot control its boundaries, and does not know it is an Agent. This chapter maps each limitation to a concrete system component. Together, these five components form the skeleton of a minimal Agent.
 
-### 2.1 Core formula
+### 2.1 The Core Formula
 
 ```text
-Agent = Prompt (behavior definition) + LLM decision-making + tool/environment interaction + State (state management) + loop control
+Agent = Prompt (behavior definition) + LLM decision-making + tool/environment interaction + State management + loop control
 ```
 
-Five parts are not necessary. This formula says not that all Agent can have these five parts, but that: **If not even these five, it cannot be a minimum integrity.** | Composition | Address which limitations of LLM | What if it's missing? |
+All five parts are necessary. This formula does not mean every Agent can only have these five parts. It means that **without these five, the system is not a minimal complete Agent.**
 
+| Component | Which LLM limitation it solves | What happens if it is missing |
 |---|---|---|
-| Prompt | "I didn't know I was Agent." | LLM doesn't know what role to play and what agreement to follow. |
-| LLM Decision-making | - This is an enhanced object. | The system doesn't understand open targets. |
-| Tools/environment interface | "I'll say no." | The system can only say no. |
-| State Management | ♪ Will judge not to remember ♪ | The system can't work continuously, forget what it's done. |
-| Cycle control | "I can reason not to control the boundary." | The system is easily out of control, dead or unable to complete multiple steps. |
+| Prompt (behavior definition) | "It does not know it is an Agent" | The LLM does not know what role to play or what protocol to follow |
+| LLM decision-making | The thing being augmented | The system cannot understand open-ended goals |
+| Tool / environment interaction | "It can talk but cannot act" | The system can only produce suggestions, not perform work |
+| State management | "It can judge but cannot remember" | The system cannot continue across steps and forgets what happened |
+| Loop control | "It can reason but cannot control boundaries" | The system may loop, lose control, or fail to complete multi-step tasks |
 
-These five components are not separate blocks. They are connected by the running link, forming a closed ring. Before turning to the operational link (chap. III), we understand what each component is responsible for.
+These are not five isolated blocks. They connect through an execution path and form a loop. Before describing that path in Chapter 3, we will first define what each component is responsible for.
 
-### 2.2 Prompt: Definition of conduct
+### 2.2 Prompt: Behavior Definition
 
-> **Terminology: Prompt** in the Agent context is not "just a hint". It is a structured **behavioural definition document** — defining Agent's identity, reasoning protocols, tools available, output formats and boundary behaviour. In the follow-up course, each Agent (course V) has its own Prompt, and Prompt's version management and evaluation (course VI) also revolves around this "source code". **Please establish an accurate understanding of Prompt in this section: it's Agent's "Procedure", not "Remark".**
+> **Terminology: Prompt.** In an Agent context, a Prompt is not just a casual instruction. It is a structured **behavior definition document**. It defines the Agent's identity, reasoning protocol, available tools, output format, and boundary behavior. In later lessons, each Agent in a Multi-Agent system has its own Prompt, and Prompt versioning and evaluation also revolve around this "source code." In this section, establish the right mental model: the Prompt is the Agent's program, not a note.
 
-The central problem that Prompt solved was that **LLM was a universal engine, not knowing that it was Agent.** You have to tell it clearly — who you are, how you think, what tools you can use, what your output must look like.
+The Prompt solves the central problem that an LLM is a general engine and does not know it is an Agent. You must explicitly tell it who it is, how it should think, what tools it can use, and what its output must look like.
 
-In the smallest Agent, Prompt usually contains the following levels (section 3.3 will be spread out one by one):
+In a minimal Agent, the Prompt usually contains five layers:
 
-| Level | Contents | Questions answered |
+| Layer | Content | Question answered |
 |------|------|-----------|
-| Identity Level | System programme: role description, overall objective | "Who am I?" |
-| Protocol Layer | Thought/Action/Observation Cycle Format | "How do I think and act?" |
-| Tool Layer | Name, use, parameters, call format of available tools | "What can I use?" |
-| Constraint Layer | Output format requirements, cessation conditions, secure borders | "What's my limit?" |
-| Example Layer | Few-shot example, church model boundary behaviour | "What about this?" |
+| Identity | System prompt: role description and overall goal | "Who am I?" |
+| Protocol | Thought / Action / Observation loop format | "How do I think and act?" |
+| Tools | Available tool names, purposes, parameters, and call format | "What can I use?" |
+| Constraints | Output format, stop conditions, safety boundaries | "What limits do I have?" |
+| Examples | Few-shot examples showing boundary behavior | "What should I do in this situation?" |
 
-A key engineering judgment: **Prompt is not "write and forget."** It is the only source of definition of the act of Agent. When Agent's performance did not match expectations, the first thing to check was Prompt -- isn't the role definition vague? Did the tool description confuse the model? Is there a lack of examples of a border situation? Okay, Prompt is an iterative, not a one-time right.
+One important engineering judgment: **a Prompt is not something you write once and forget.** It is the single source of truth for the Agent's behavior. When the Agent behaves unexpectedly, the Prompt is the first place to inspect. Is the role definition vague? Did the tool description create ambiguity? Is an edge-case example missing? Good Prompts are iterated, not guessed correctly on the first try.
 
-Prompt and what is to be said later is the upstream/downstream relationship: **Prompt is the static template (framework), and Context Assembly is dynamic fill (data).** In each cycle, Context Assembly fills the current State (target, history, tool results) in the Prompt template to generate the full context that LLM actually sees.
+Prompt and Context Assembly are upstream and downstream of each other. **The Prompt is the static template; Context Assembly is the dynamic filling process.** In each loop, Context Assembly fills the Prompt template with current State such as the goal, history, and tool results, producing the full context the LLM actually sees.
 
-### 2.3 LLM Decision-making
+### 2.3 LLM Decision-Making
 
-LLM decision is Agent's brain. Its duty is to answer a question that every cycle has to face:
+LLM decision-making is the Agent's brain. Its job is to answer one question on every loop:
 
 ```text
-What should be done next based on the current context and state?
+Given the current context and State, what should happen next?
 ```
 
-Specifically, the model requires judgement:
+Specifically, the model needs to decide:
 
-- What is the target of the user?
-- What do you know? What's missing?
-- The next step is to call the tool, give the answer, ask the user for a supplement, or acknowledge the failure?
-- If so, which tool? What parameters?
-- Has the current task been completed?
+- What is the user's real goal?
+- What is already known, and what is still missing?
+- Should the next step call a tool, provide an answer, ask the user for more information, or admit failure?
+- If it calls a tool, which tool and with what arguments?
+- Is the task already complete?
 
-In the smallest Agent, LLM decision-making should usually output structured results rather than any natural language. For example:
+In a minimal Agent, the model should usually output structured decisions rather than arbitrary natural language. For example:
 
 ```text
 decision_type: call_tool
 tool_name: read_file
 arguments:
   path: notes.md
-reason: Read user-specified documents to complete wrap-up tasks
+reason: I need to read the user-specified document before I can summarize it.
 ```
 
-Why the emphasis on structure? Because Runtme needs to know exactly what the model wants to do to decide whether to allow it. If the model is produced in the natural language, "I think we should read the file," Runtme is hard to decipher in a reliable way -- each person's expression is different, and the same model may be different at different times. The structured output removed this ambiguity.
+Why emphasize structure? Because the runtime needs to know exactly what the model wants to do before it can decide whether to allow execution. If the model outputs a sentence such as "I think I should read that file," the runtime has to guess the intent from natural language. Different people phrase things differently, and the same model may phrase things differently across calls. Structured output removes that ambiguity.
 
-Here is an important engineering principle that runs through the entire course:
+One engineering principle will appear throughout the course:
 
 ```text
-The model is responsible for proposing the next step, Runtime is responsible for judging whether it can be implemented.
+The model proposes the next step; the runtime decides whether it may be executed.
 ```
 
-Models are good at understanding semantics and making decisions, but they should not have final enforcement powers. The enforcement authority remains in Runte, which can verify whether the instrument exists, whether the parameters are legal and whether the operation is within a secure border. It's not a model of mistrust -- it's a separation between "decision" and "authorization".
+The model is good at semantic understanding and decision-making, but it should not have final execution authority. That authority stays with the runtime, which checks whether the tool exists, whether arguments are valid, and whether the operation stays inside safety boundaries. This is not distrust of the model. It is separation between decision and authorization.
 
-### 2.4 Tools/environment interface
+### 2.4 Tool / Environment Interaction
 
-Tools/environment interactions are Agent's hands and eyes.
+Tool and environment interaction gives the Agent its hands and eyes.
 
-Tools allow Agent to: read documents, write them, search API, execute codes, search information, search databases, access business systems.
+Tools let the Agent read files, write files, query APIs, run code, search information, query databases, and access business systems.
 
-Environmental feedback allowed Agent to know whether the tool had been successful, what results had been returned, whether errors had been made and whether the next step needed to be adjusted.
+Environment feedback tells the Agent whether a tool succeeded, what it returned, whether an error occurred, and whether the next step should change.
 
-In the smallest Agent, tools can be very simple. You don't need to start accessing complex tool platforms. Example of minimum tool:
+In a minimal Agent, tools can be very simple. You do not need to start with a complex tool platform.
 
-| Tools | Use | Risk level |
+| Tool | Purpose | Risk level |
 |---|---|---|
-| `read_file` | Read local text files | Low |
-| `write_file` | Writing local files | Medium |
-| `search_text` | Search for keywords in a set of texts | Low |
+| `read_file` | Read a local text file | Low |
+| `write_file` | Write a local file | Medium |
+| `search_text` | Search for keywords inside a set of texts | Low |
 | `calculate` | Perform simple calculations | Low |
-| `fetch_api` | Call an open API | Medium |
+| `fetch_api` | Call a public API | Medium |
 
-A key design detail: **The return result of the tool should be structured and not just an original string.** If the tool only returns "failed", the model cannot judge whether it should be replaced by a tool, adjusted parameters or changed strategy. If the tool returns the complete error code and cause, the model may make a smarter next decision.
+One important design detail: **tool results should be structured, not just raw strings.** If a tool only returns "failed," the model cannot tell whether it should try a different tool, adjust the arguments, or change strategy. If the tool returns a specific error code and reason, the model can make a better next decision.
 
-Course IV will discuss in depth the definition, selection, implementation, authority and security of tools. This lesson only requires understanding: the tool is an external interactive point in the closed circle - It's the only way for models to enter the real world from "language space."
+Lesson 4 will go deeper into tool definition, selection, execution, permissions, and safety. For this lesson, the key point is simple: tools are the external interaction points in the loop. They are how the model moves from language space into the real world.
 
-### 2.5 Status management
+### 2.5 State Management
 
-> **Terminology: State (state)** is a core concept that cuts across the follow-up course. Runtime maintained in each cycle `state ` The object recorded Agent, "What has been done, where is it now, what more needs to be done." The results of the implementation of the tools for course four, the completion of course five, the continuation of course five, the recovery of Harness Trace for course six, and the breakdown of course seven, all around.` state` Expand. **Please establish an accurate understanding of State in this section.**
+> **Terminology: State.** State is a core concept across the rest of the course. In each loop, the runtime maintains a `state` object that records what the Agent has done, where it currently is, and what may still be needed. Tool execution results in Lesson 4, persistent Memory in Lesson 5, Harness Trace in Lesson 6, and failure recovery in Lesson 7 all revolve around `state`. Build a precise understanding of State here.
 
-Status Management made Agent move from "one-round questions and answers" to "multi-step assignments." The central problem it addresses is that the context window of **LLM cannot and should not be the only State storage.**
+State management moves an Agent from single-turn Q&A to multi-step task execution. It solves this problem: **the LLM context window cannot and should not be the only State store.**
 
-A minimum Age field to maintain at least:
+A minimal Agent should maintain at least these State fields:
 
-- User target.
-- Current number of steps.
-- Historical messages (or compressed summaries).
-- Tools mobilized and their results.
-- Intermediate findings and findings.
-- information sources
-- Reason for discontinuation (if any).
+- User goal.
+- Current step count.
+- Message history, or a compressed summary of it.
+- Tools already called and their results.
+- Intermediate conclusions and findings.
+- Error information.
+- Stop reason, if the Agent has stopped.
 
-There is an important conceptual distinction here: **State (state) is not equal to long-term memory.** In this course, State primarily refers to information that needs to be saved while the current task is running - Its life cycle is this task. The long-term Memoory is a cross-task, cross-conference information accumulation (user preference, historical experience) that is part of the fifth course and is not a mandatory option for the minimum closed circle.
+There is an important distinction here: **State is not long-term Memory.** In this lesson, State means the information needed while the current task is running. Its lifecycle is the lifecycle of this task. Long-term Memory accumulates across tasks and sessions, such as user preferences and historical experience. That belongs to Lesson 5 and is not required for the minimal loop.
 
-The smallest State object can be long:
+A minimal State object might look like this:
 
 ```text
-# State Example: A structured run-time status object
+# State example: a structured runtime state object
 task:
-  goal: "Read notes.md and summarize it as five points."
+  goal: "Read notes.md and summarize it into 5 bullet points"
   step_count: 2
   max_steps: 8
   history:
@@ -307,450 +315,446 @@ task:
   tool_results:
     - tool: read_file
       status: success
-      summary: "Read 1200 word Markdown content"
+      summary: "Read 1200 words of Markdown content"
   errors: []
   stop_reason: null
 ```
 
-The key to State's management is not "too much." It's "whatever the next decision needs." This is a trade-off - the model lacks a basis for decision-making; there is more, the context window expands and the model is distracted. Okay, state management is a balance between "full information" and "simplified information".
+The key to State management is not storing as much as possible. It is storing what the next decision needs. This is a tradeoff. Store too little, and the model lacks decision context. Store too much, and the context window bloats while the model's attention is diluted. Good State management balances enough information with concise information.
 
-### 2.6 Cycle control
+### 2.6 Loop Control
 
-Cycle control determines whether Agent continues and when to stop. It's Agent's "self-discipline" -- without it, Agent is like a man who doesn't know when to stop.
+Loop control decides whether the Agent continues and when it stops. It is the Agent's self-discipline. Without it, the Agent is like someone who does not know when to stop working.
 
-Minimum circulation controls include at least:
+A minimal loop control layer should include at least:
 
-- **Maximum step**: hard ceiling to prevent unlimited cycle.
-- **Timeout per step**: a single tool cannot wait indefinitely.
-- **Maximum number of tool failures**: successive failures may not be an occasional problem.
-- **Repeated action detection**: consecutive calls to the same tool, no new developments, should stop or request intervention.
-- **Successful completion of judgement**: after model statement final answer, Runtime confirms can be terminated.
-- **Failed to exit judgement**: decisive cessation in case of irrecoverable error.
-- **Ask the user, if necessary,** to stop and ask if an uncertain action requires additional information.
+- **Maximum steps**: a hard ceiling to prevent infinite loops.
+- **Timeout per step**: one tool call cannot wait forever.
+- **Tool failure limit**: repeated failures suggest the issue is not accidental.
+- **Repeated action detection**: if the same tool is called repeatedly with no progress, stop or ask for intervention.
+- **Successful completion check**: when the model declares `final_answer`, the runtime confirms that the loop can end.
+- **Failure exit check**: stop decisively on unrecoverable errors.
+- **Ask the user when needed**: pause for clarification or confirmation when information is missing or an action is uncertain.
 
-Cyclical control has an easy-to-neglected design philosophy: **"Can stop" and "Can continue" are the ability of a pair that must be addressed simultaneously.** Agent will get out of control, an Agent too easy to stop can't finish the mission. Good circulation controls find a balance between "not easy to give up" and "time out."
+Loop control has an easily missed design philosophy: **"can stop" and "can continue" must be solved together.** An Agent that only continues will lose control. An Agent that stops too easily will not finish tasks. Good loop control balances persistence with timely loss-cutting.
 
 ---
 
-## Chapter III: Minimum operating links
+## Chapter 3: The Minimal Execution Path
 
-Chapter II describes the five components - Prompt, LLM decision-making, tool/environment interface, State management, and circulation control. This chapter answers how they form a closed circle.
+Chapter 2 described the five components: Prompt, LLM decision-making, tool / environment interaction, State management, and loop control. This chapter explains how they connect into a closed loop.
 
-Let's change it. I'll give you a panorama -- draw the entire chain and indicate the position of Prompt, the boundaries of Runtme, the position of State, the direction of data flows. After you set up the coordinates of "where and who" and then went into each of them.
+We will start with a full map: where the Prompt sits, where the runtime boundary is, where State lives, and how data flows. Once you have coordinates for "where each part is" and "who manages what," we can zoom into each link.
 
-### 3.1 Minimum closed ring map
+### 3.1 The Minimal Loop Diagram
 
-![Lesson III: Minimum Agent Run Chain Road](../assets/course-03-minimal-agent-loop.svg)
+![Lesson 3: Minimal Agent execution path](../assets/course-03-minimal-agent-loop.svg)
 
-This picture has five meanings:
+This diagram carries five meanings:
 
-- **Prompt at the top (defined layer)**: Prompt is the "source code" of Agent, which exists before the cycle starts. It's not in the loop link -- it's not involved in every step of the update -- but it's used as a template for every round of Text Assembly to fill in dynamic data. Sections 3.2 and 3.3 will go deep into the structure design of Prompt.
-- **Closed link (first half)**: User Goal → Context Assembly → LLLM Regulation → Tool Exchange → Observation → State Update or Stop — this is the path for data flow in each cycle.
-- **Runtime Load (Box)**: The whole link runs over Runtime. The tool is not directly executed by LLM, it is executed by Runtme; the cycle is not stopped by model reasoning, it is judged by Runtme; State is not forgotten by LLM, it is managed by Runtme. 1.3 The division of labour between LLM and Runtme referred to in the section - "Model for decision, Runtme for execution and boundary" - is its visualization.
-- **State Reading and Writing (Left Bottom Box)**: Context Assembly Read from State, State Update Write to State. State is not on the main chain road - it is not a step in the business process, but an infrastructure maintained by Runtme.
-- **Feedback closed loop (right loop)**: Each round of Observation will influence the next round of decision-making through State Update -- That's the core idea of Rect: reasoning and action feed each other in a cycle.
+- **Prompt at the top, in the definition layer**: the Prompt is the Agent's source code. It exists before the loop starts. It is not itself updated on every step, but each Context Assembly uses it as a template and fills it with dynamic data. Sections 3.2 and 3.3 go deeper into Prompt structure.
+- **The closed path in the upper half**: User Goal -> Context Assembly -> LLM Decision -> Tool Execution -> Observation -> State Update -> Continue or Stop. This is the data flow in each loop.
+- **Runtime as the enclosing carrier**: the whole path runs on the runtime. Tools are executed by the runtime, not directly by the LLM. The loop is stopped by runtime judgment, not by model reasoning alone. State is managed by the runtime, not remembered by the LLM. The division from Section 1.3 — "the model decides, the runtime executes and controls boundaries" — is visualized here.
+- **State read/write in the lower-left box**: Context Assembly reads from State. State Update writes to State. State is not on the main business path. It is infrastructure maintained by the runtime.
+- **The feedback loop on the right**: every Observation influences the next decision through State Update. This is the core idea of ReAct: reasoning and action feed each other in a loop.
 
-### 3.2 Summary of links: a chain of five components
+### 3.2 Path Overview: One Chain Connecting Five Components
 
-With the panorama, the following links are spread by text:
+With the diagram in mind, the path can be written as:
 
 ```text
-Prompt(Definition of behaviour: static template, definition of Agent identity and protocol)
- → User Goal(User input anchor)
- → Context Assembly(Connect point: Prompt template+ State → LLM )
- → LLM Decision(Core module: decision-making brain)
- → Tool / Environment Interaction → Execution(Core modules: hands and eyes)
- → Observation / Feedback(Connect points: the outside world → State The Bridge)
- → State Update(Write back to State)
- → Continue or Stop(Core module: circulatory self-regulation)
- → If you continue, go back to Context Assembly
+Prompt (behavior definition: static template defining Agent identity and protocol)
+    -> User Goal (user input anchor)
+    -> Context Assembly (connection point: Prompt template + State -> full LLM context)
+    -> LLM Decision (core module: decision-making brain)
+    -> Tool / Environment Interaction -> Execution (core module: hands and eyes)
+    -> Observation / Feedback (connection point: external world -> State)
+    -> State Update (write back to State)
+    -> Continue or Stop (core module: loop discipline)
+    -> if continuing, return to Context Assembly
 ```
 
-Of the eight links, five are core components (Prompt, LLM decision-making, tool interaction, State management, circular control), two are operational connection points (Context Assembly, Operation / Feedback) and one is user input anchor (User Goal). 3.12 The distinction between core modules and connect points is explained in detail in the section.
+Among these eight links, five are core components: Prompt, LLM decision-making, tool interaction, State management, and loop control. Two are runtime connection points: Context Assembly and Observation / Feedback. One is the user input anchor: User Goal. Section 3.12 explains the distinction in detail.
 
-Prompt is at the top of the chain not because it's "most important" but because it defines all the rules of conduct that follow -- LLM decides according to the protocol defined in Prompt, the tool list informs the model through Prompt, and the output format is bound by Prompt. No Prompt, the chain behind is just empty.
+Prompt appears at the front of the path not because it is "more important" than everything else, but because it defines the behavior contract for every later link. The LLM decides according to the protocol in the Prompt. The tool list is exposed to the model through the Prompt. The output format is constrained by the Prompt. Without the Prompt, the rest of the chain spins without a behavior definition.
 
-We're moving on one step at a time.
+Now we will unpack each link.
 
-### 3.3 Prompt Engineering: Agent's Source Code
+### 3.3 Prompt Engineering: The Agent's Source Code
 
-In the second chapter, we define Prompt as a component. This section goes into the internal structure of Prompt -- what it looks like, what it solves, how it works.
+Chapter 2 treated Prompt as a component. This section goes inside the Prompt: what it looks like, what each layer solves, and how to make it effective.
 
-#### 3.3.1 Why is Prompt Agent 'source code'?
+#### 3.3.1 Why the Prompt Is the Agent's Source Code
 
-Return to rect paper. The core contribution of the paper is not a new model structure, not a new training method, but a **Prompt design**. Using frozen PLM-540B (parameters are completely frozen, without fine-tuning), the author allowed the model to present the Agent behaviour of "adjection-action-observation" through carefully designed few-shot trajectories.
+Return to the ReAct paper. Its core contribution was not a new model architecture or a new training method. It was a **Prompt design**. The authors used a frozen PaLM-540B model with no fine-tuning and, through carefully designed few-shot trajectories, made the model display reasoning-action-observation Agent behavior.
 
-What does that mean? **The same model, another Prompt, went from "text generator" to "Agent."** That's why Prompt is called Agent's "source code" -- it defines the whole logic of the program. LLM is the common engine for this program.
+What does that mean? **With the same model, changing the Prompt turns a text generator into an Agent.** That is why the Prompt is called the Agent's source code. It defines the logic of the program. The LLM is the general engine that executes that program.
 
 An intuitive analogy:
 
-| Concept | Similarity |
+| Concept | Analogy |
 |------|------|
-| LLM | CPU. |
-| Prompt | Program source code (defining what to do, what to do, when to stop) |
-| Runtime | Operating systems (management of memory/state, movement control tools/IO, control of enforcement borders) |
-| Agent | An instance of a running application |
+| LLM | CPU: a general computation engine that can run many programs |
+| Prompt | Program source code: defines what to do, how to do it, and when to stop |
+| Runtime | Operating system: manages memory / State, schedules tools / I/O, controls execution boundaries |
+| Agent | A running program instance |
 
-**Prompt is not a note you wrote to LLM by hand -- it's a program you wrote in natural language.** Like other procedures, it needs to be designed, tested and iterative.
+**The Prompt is not a note casually written to the LLM. It is a program written in natural language.** Like any other program, it needs design, testing, and iteration.
 
-#### 3.3.2 Agent Prompt 's five-layer structure
+#### 3.3.2 The Five-Layer Structure of an Agent Prompt
 
-A complete Agent Prompt usually has five levels. Not every Prompt must be complete on five floors, but understanding these five floors will help you build a system of coordinates designed by Prompt.
-
-```
-┌─────────────────────────────────────────────┐
-│ First level: Identity│
-│ "You're the one.……,Your goal is...……"                    │
-├─────────────────────────────────────────────┤
-│ Second level: Protocol level (Protocol)│
-│ "You have to follow. → Action → Observation  │
-│  It's a format for thinking and acting."│
-├─────────────────────────────────────────────┤
-│ Third level: Tool layer (Tools)│
-│ "You can use the following tools:│
-│  - read_file(path): Read File Contents│
-│  - search_text(keyword): Search Text│
-│  - finish(answer): Output final answer."│
-├─────────────────────────────────────────────┤
-│ Level 4: Constraints│
-│ "Every step of the output must be legal, JSON."│
-│ "You must call after the mission.│
-│ "If you're not sure, ask the user to confirm. Don't guess."│
-├─────────────────────────────────────────────┤
-│ Fifth Layer: Example Layer│
-│ "Here are some examples of how you should work:│
-│  [few-shot Example 1]                           │
-│  [few-shot Example 2]"                          │
-└─────────────────────────────────────────────┘
-```
-
-Gradually:
-
-**First floor: Identity**
-
-Defines the roles, professional areas and overall objectives of Agent. This is Prompt's portal -- it tells the model who to play in the next conversation.
+A complete Agent Prompt usually contains five layers. Not every Prompt must include all five, but understanding them gives you a coordinate system for Prompt design.
 
 ```text
-You're a professional research assistant. Your goal is to carry out information retrieval and summary tasks accurately and efficiently, based on information provided by users.
++------------------------------------------------+
+| Layer 1: Identity                              |
+| "You are ..., and your goal is ..."            |
++------------------------------------------------+
+| Layer 2: Protocol                              |
+| "You must think and act using                   |
+|  Thought -> Action -> Observation."             |
++------------------------------------------------+
+| Layer 3: Tools                                 |
+| "You may use the following tools:               |
+|  - read_file(path): read file content           |
+|  - search_text(keyword): search text            |
+|  - finish(answer): output the final answer"     |
++------------------------------------------------+
+| Layer 4: Constraints                            |
+| "Every step must output valid JSON."            |
+| "After completing the task, call finish."       |
+| "If uncertain, ask the user. Do not guess."     |
++------------------------------------------------+
+| Layer 5: Examples                               |
+| "Here are examples showing how to work:         |
+|  [few-shot example 1]                           |
+|  [few-shot example 2]"                          |
++------------------------------------------------+
 ```
 
-The identity level seems simple, but far-reaching. If you write "you're a programming assistant" "vs" you're a code reviewer, the model gives a completely different style and focus of response to the same questions. Identity levels provide the tone for all subsequent actions.
+**Layer 1: Identity**
 
-**Second floor: protocol**
-
-Definition of Agent's **Behavior Agreement** - How it thinks, how it acts, how it handles feedback. This is the most critical layer of Prompt because it directly determines whether Agent will be "circle."
-
-Example of definition of prompt protocol for Rect mode:
+The identity layer defines the Agent's role, domain, and overall goal. It tells the model who it should be during the conversation.
 
 ```text
-You have to think and act in the following format:
-
-Thought: To analyse the current situation, to determine what more information is needed and to decide what to do next.
-Action: Perform a specific operation. Formats as tool names.
-Observation: The result of the operation (provided by the system, you do not need to generate this line).
-
-Repeat → Action → Observation Until the mission is completed.
-Finish the task, output Final Answer.
+You are a professional research assistant. Your goal is to retrieve and summarize information accurately and efficiently based on the user's input.
 ```
 
-The protocol level answers three questions:
+This layer looks simple, but it has a large effect. "You are a programming assistant" and "You are a code reviewer" will produce very different behavior on the same user request. The identity layer sets the tone for everything that follows.
 
-- **Think about when it happened?** Before every move. (Or is it just the key nodes? It's a matter of whether it's a matter of making a decision.
-- **How does the action express?** Toolname + Parameters are placed in a specific format to facilitate the analysis of Runtime.
-- **When does it end?** Call finish/ output Final Answer.
+**Layer 2: Protocol**
 
-Once the protocol level is set, the back tools design, circulation control, State management will be around it. The protocol layer is the "interface definition" of the Agent architecture.
+The protocol layer defines the Agent's behavior protocol: how it thinks, how it acts, and how it handles feedback. This is the most important layer because it directly determines whether the Agent can operate in a loop.
 
-**Third floor: Tool layer (Tools)**
-
-Tell the model what tools it can use, the use of each tool, parameters and attention.
+A ReAct-style protocol might look like this:
 
 ```text
-You can use the following tools:
+You must alternate between thinking and acting in this format:
 
-1. read_file(path: str) — Reads the file contents of the specified path. Path must be a valid file path.
-2. search_text(keyword: str, text: str) — Searches for keywords in text, and returns a matching sentence.
-3. finish(answer: str) — Call when the task is completed, output the final answer. The dialogue ended when this tool was called.
+Thought: Analyze the current situation, identify what information is still needed, and decide the next step.
+Action: Execute one concrete operation. Use the format tool_name(arguments).
+Observation: The result of the operation. This will be provided by the system; you do not generate this line.
+
+Repeat Thought -> Action -> Observation until the task is complete.
+When the task is complete, output Final Answer.
 ```
 
-The tool layer is not just "list a functional signature". A good tool description should:
+The protocol layer answers three questions:
 
-- Write clearly **when this tool should be used** (purpose statement)
-- Write clearly **parameters** (type + meaning + example better)
-- Write clearly **possible failures** (does not exist, network timeout, etc.) to prepare the model
+- **When does thinking happen?** Before every action, or only at key moments? This determines dense reasoning versus sparse reasoning.
+- **How is action expressed?** Tool name plus arguments in a format the runtime can parse.
+- **When does the loop end?** By calling `finish` or outputting `Final Answer`.
 
-The tool layer is the only way for LLM to know what it can do. If the description of the tool is ambiguous, the model may be wrong -- it's not smart enough, it's your "document" not clear.
+Once the protocol is defined, tool design, loop control, and State management must align with it. The protocol layer is the interface definition of the Agent architecture.
 
-**Fourth floor: Constraints**
+**Layer 3: Tools**
 
-Defines the behavioral boundary of Agent - output format, cessation conditions, security constraints.
+This layer tells the model which tools exist, what each tool is for, what arguments it expects, and what to watch out for.
 
 ```text
-Binding:
-- The output of each step must be in a valid JSON format that contains the decision type and reason fields.
-- If the same tool is called twice in a row and the result is no new information, the strategy must be changed or user help requested.
-- Documents should never be deleted unless explicitly requested by the user.
-- In an uncertain situation, call ask user to request confirmation, do not guess.
+You may use the following tools:
+
+1. read_file(path: str) - Read the content of the file at the specified path. The path must be valid.
+2. search_text(keyword: str, text: str) - Search for a keyword in text and return matching sentences.
+3. finish(answer: str) - Call this when the task is complete. The conversation ends after this tool is called.
 ```
 
-The binding layer reflects the division of labour between Runteme and LLM: **Runte is responsible for the execution of hard restraints (checking parameters, blocking hazardous operations) and Prompt is responsible for the communication of soft restraints (showing models which actions are not permitted and making them self-obligated in decision-making).** Two layers of protection are more reliable than one layer alone.
+The tool layer is more than a list of function signatures. A good tool description should explain:
 
-**Fifth floor: Example Layer**
+- **When to use the tool**.
+- **How to fill the arguments**, including type, meaning, and ideally examples.
+- **How the tool may fail**, such as file not found or network timeout.
 
-How it should be done through the few-shot example church model. This is one of the most critical findings of the Rect paper.
+The tool layer is the model's only source of truth about what it can do. If the tool description is ambiguous, the model may use the wrong tool. That is not necessarily a model intelligence problem. It may be a documentation problem.
+
+**Layer 4: Constraints**
+
+The constraints layer defines behavior boundaries: output format, stop conditions, and safety rules.
 
 ```text
-Here are some examples of the right work:
+Constraints:
+- Every step must be valid JSON with decision_type and reason fields.
+- If you call the same tool twice in a row and receive no new information, change strategy or ask the user for help.
+- Never delete files unless the user explicitly asks you to.
+- When uncertain, call ask_user for confirmation instead of guessing.
+```
+
+This layer reflects the division of labor between runtime and LLM. **The runtime enforces hard constraints**, such as validating arguments and blocking dangerous operations. **The Prompt communicates soft constraints**, telling the model what behavior is not allowed so it can consider those limits during decision-making. Two layers of protection are more reliable than one.
+
+**Layer 5: Examples**
+
+Few-shot examples teach the model how to behave. This was one of the key findings in the ReAct paper.
+
+```text
+Here are examples of correct behavior:
 
 Example 1:
-User Target: Read notes.md and summarize it as 3 points
-Thought 1: I need to read the content of notes.md and then get a summary based on it.
+User goal: Read notes.md and summarize it into 3 bullet points.
+Thought 1: I need to read notes.md before I can summarize it.
 Action 1: read_file("notes.md")
-Observation 1: [Document content is "Agent" as an AI system capable of autonomous multi-step tasks……"]
-Thought 2: I've got the document. Now we can sum up three points.
-Action 2: finish("1. Agent LLM decision-making is at its core.+ Tool Interactive…… 2. Status Management…… 3. Cycle control……")
+Observation 1: [The file content is "An Agent is an AI system that can autonomously execute multi-step tasks..."]
+Thought 2: I have the file content. I can now summarize it into 3 points.
+Action 2: finish("1. An Agent combines LLM decision-making with tool interaction. 2. State management keeps the task continuous. 3. Loop control prevents runaway execution.")
 ```
 
-The illustrative layer addresses boundary behaviour that is not described in the protocol layer — for example, how to try again in case of errors, how to change keywords when results cannot be found, and how to request users in case of uncertainty. These boundary acts are ludicrous in natural language, while one example is very intuitive.
+Examples cover boundary behavior that is awkward to specify purely in rules: how to recover from an error, how to change search keywords when no result is found, and how to ask the user when uncertain. One well-chosen example can be clearer than a long paragraph of instructions.
 
-The examples are not as good as the others. 2-3 high-quality examples (covering normal paths + an error recovery scenario) are usually more effective than 10 simple examples.
+More examples are not always better. Two or three high-quality examples covering the normal path and one recovery path are usually more useful than ten simple examples.
 
-#### 3.3.3 Five-level collaboration
+#### 3.3.3 How the Five Layers Work Together
 
-Five layers are not five isolated words. When they work together, they have the effect of "whole is greater than the sum of the parts":
+The five layers are not isolated pieces of text. They work together:
 
-| scene | The working layer |
+| Situation | Active layers |
 |------|-----------|
-| User questions, Agent start thinking | Identity level + protocol level: know who you are and what to think about. |
-| Agent judge needs to read_files | Tool Layer: Knowing that read_file exists and knowing what parameters it accepts |
-| Agent Output First Decision | Constraint + Protocol Layer: Output valid JSON, meeting Thought/Action format |
-| File does not exist, Agent received error | Example Layer: few-shot displays similar error recovery |
-| Agent requests user fixes path | Constraint: "Call user confirmation when uncertain." |
+| The user asks a question and the Agent begins | Identity + Protocol: know who it is and how to proceed |
+| The Agent decides it needs to read a file | Tools: know that `read_file` exists and what arguments it accepts |
+| The Agent outputs the first decision | Constraints + Protocol: output valid JSON in the expected Thought / Action format |
+| The file does not exist | Examples: show a similar recovery path |
+| The Agent asks the user to fix the path | Constraints: ask for confirmation when uncertain |
 
-A good Prompt won't let a certain layer take all responsibility. The layer of identity defines "who," the layer of protocol defines "how," the layer of tools defines "what to do," the layer of restraint defines "what to do," and the layer of example defines "what to do in case of a border."
+A good Prompt does not force one layer to do all the work. Identity defines who. Protocol defines how. Tools define what can be used. Constraints define what must not happen. Examples define what to do at the edges.
 
-#### 3.3.4 Relationship between Prompt and Context Assembly
+#### 3.3.4 Prompt and Context Assembly
 
-You may note that Prompt's reference to "target" and "history" changes in every cycle. This leads to a division of labour between Prompt and Context Assembly:
-
-```text
-Prompt(Static Template)
-─────────────────────          ─────────────────────────
-Identity level: "You're a research assistant." → It's the same. Every round.
-Protocol Layer: "Thought → Action → …" → It's the same. Every round.
-Tool Layer: Tool List and Description → No change (unless tools are added or reduced when running)
-Constraint: Output format and security rules → It's the same. Every round.
-Example Layer: few-shot Example → It's the same. Every round.
-                                +
-                                ← User Goal(Read from State)
-                                ← Number of current steps (read from State)
-                                ← Recent N Step History (read from State)
-                                ← Previous tool result (read from State)
-                                ← Error information (read from State)
-```
-
-In summary: **Prompt is the framework, Context Assembly is the filler.** Prompt defines "It's a Rect Act", and Context Assembly tells it "You've made step 3 now, read_file just failed, the file doesn't exist."
-
----
-
-### 3.4 User Goal: from vague intent to actionable target
-
-The user target is the starting point for Agent. It may be clear ( "Read notes.md, summed up as five points") or it may be vague ( "Clean this directory for me."
-
-The quality of the target directly affects the performance of the entire closed circle. A goal that is too vague (e.g. "Help me optimize this project"), LLM does not have enough information to judge what "optimise" means in its first decision-making. Code structure? Readability? It may require multiple rounds of testing to figure out what the users really want and may even go in the wrong direction. An overly ambitious goal (e.g., "Reconstructing the entire code library") would go beyond the capability limit of the smallest closed loop -- a task that requires Planning to break down, Memoory to inter-conference tracking, and better access controls.
-
-Now **For the first time in learning the smallest agent closed ring, the variable is controlled** — with a clear goal, you can focus on whether the link itself works, rather than on "Agent's actions are caused by the vagueness of the target or by the bug of the link."
-
-On the other hand, the role of User Goal in the closed ring is **anchor** — every subsequent decision is informed by this: is the current move moving forward? Is the current outcome closer to the target? Does the final answer cover all the requirements of the goal? If this anchor is blurred, the whole cycle will drift in uncertainty.
-
-### 3.5 Context Assembly: What models should see
-
-Contact Assembly decides which information enters the context of the model. It's not a simple "suck everything in" operation -- it's a key **information filter and organizer**.
-
-It usually consists of:
-
-- User target.
-- Systemic constraints (roles, rules, secure borders).
-- Current status of the mission (to which point, what is known).
-- Historical decision-making (recent rounds of thought → Action → Observation).
-- Recent tool results (or a compressed summary).
-- List of available tools (toolnames, uses, parameters).
-
-Here is an important engineering judgement: **Not all historical information should be in the context.** The context window is limited and the model has a lower level of attention to information in the middle position. Contact Assembly needs to make trade-offs — what information is critical to the next decision, what can be summarized, and what can be omitted temporarily.
-
-The smallest Agent uses simple policy first:
+You may have noticed that the "goal" and "history" referenced by the Prompt change on every loop. This is where Prompt and Context Assembly divide responsibilities:
 
 ```text
-System Command+ User Targets+ Recent N Step Original+ List of available tools+ Summary of the current status
+Prompt (static template)              Context Assembly (dynamic filling)
+------------------------              ----------------------------------
+Identity: "You are a research assistant"  -> unchanged each round
+Protocol: "Thought -> Action -> ..."      -> unchanged each round
+Tools: tool list and descriptions         -> unchanged unless runtime changes tools
+Constraints: output and safety rules      -> unchanged each round
+Examples: few-shot examples               -> unchanged each round
+                                      +
+                                      <- User Goal (read from State)
+                                      <- Current step count (read from State)
+                                      <- Recent N steps of history (read from State)
+                                      <- Last tool result (read from State)
+                                      <- Error information (read from State)
 ```
 
-Lesson 6 will go further, subject Engineering. This class only requires understanding the position of Context Assembly in the closed circle: it's a bridge between "state storage" and "model decision-making."
+In one sentence: **the Prompt is the frame; Context Assembly fills the frame.** The Prompt defines "this is a ReAct Agent." Context Assembly tells it "you are on step 3, `read_file` just failed, and the file does not exist."
 
-### 3.6 LLM Decision: What next
+### 3.4 User Goal: From Vague Intent to Actionable Target
 
-LLM Decision is the core of every cycle. The model produces a structured "next decision" based on the assembled context.
+The user goal is the Agent's starting point. It may be precise, such as "Read notes.md and summarize it into 5 bullet points." It may also be vague, such as "Help me organize this directory."
 
-In the smallest Agent, the following types of decision-making are common:
+The quality of the goal directly affects the whole loop. If the goal is too vague, such as "optimize this project," the LLM lacks enough information in the first decision: optimize what? Performance? Code structure? Readability? It may need several rounds just to discover the user's intent, or it may execute in the wrong direction. If the goal is too large, such as "refactor the entire codebase," it exceeds the capability boundary of the minimal loop. That kind of task needs Planning, cross-session Memory, and stronger permission control.
 
-| Type of decision-making | Meaning | Runtme Behaviour |
+When learning the minimal Agent loop for the first time, **control the variables**. Use a clear goal so you can focus on whether the loop itself works, instead of wondering whether odd Agent behavior came from a vague goal or a bug in the loop.
+
+The User Goal also acts as the anchor for the loop. Every later decision should be judged against it: does this action move toward the goal? Does this observation bring the Agent closer? Does the final answer satisfy every requirement? If the anchor is vague, the whole loop drifts.
+
+### 3.5 Context Assembly: What the Model Should See
+
+Context Assembly decides what information enters the model context. It is not a simple "put everything in" step. It is an information filtering and sequencing step.
+
+It usually includes:
+
+- User goal.
+- System constraints, including role, rules, and safety boundaries.
+- Current task State: current step and known facts.
+- Recent decision history: recent Thought -> Action -> Observation cycles.
+- Recent tool results, or summaries of them.
+- Available tool list, including tool names, purposes, and arguments.
+
+One important engineering judgment: **not all history should enter the context.** The context window is limited, and the model pays less attention to the middle of long contexts. Context Assembly must choose what matters for the next decision, what can be summarized, and what can be left out for now.
+
+A minimal Agent can start with a simple strategy:
+
+```text
+System instruction + user goal + raw text from recent N steps + available tools + current State summary
+```
+
+Lesson 6 will go deeper into Context Engineering. For this lesson, you only need to understand where Context Assembly sits in the loop: it is the bridge between State storage and model decision-making.
+
+### 3.6 LLM Decision: What to Do Next
+
+LLM Decision is the core of each loop. Given the assembled context, the model outputs a structured next decision.
+
+In a minimal Agent, common decision types include:
+
+| Decision type | Meaning | Runtime behavior |
 |---|---|---|
-| `call_tool` | Call Tool | Validation of results |
-| `final_answer` | Mission accomplished. Output final. | Record complete Query Back answer Case |
-| `ask_user` | Additional user information or confirmation required | Suspend cycle poach waiting for user |
-| `fail` | Can't go on, admit failure. | Record the cause of the failure |
+| `call_tool` | Call a tool | Validate -> execute -> collect result |
+| `final_answer` | Task complete; return final result | Record completion -> return answer |
+| `ask_user` | Need more information or confirmation | Pause loop -> wait for user |
+| `fail` | Cannot continue | Record failure reason -> stop |
 
-Model decisions are not final. Runtime still needs to verify whether the tool exists, whether the parameters are valid, whether the permission is exceeded, whether the step is exceeded and whether the user should be asked for confirmation.
+The model's decision is not the final execution. The runtime still checks whether the tool exists, whether arguments are valid, whether permissions allow the action, whether step limits have been exceeded, and whether user confirmation is required.
 
-### 3.7 Interaction & Exchange: Really do
+### 3.7 Interaction & Execution: Actually Doing the Work
 
-Runtime takes over execution when the model decides to call the tool.
+When the model decides to call a tool, the runtime takes over execution.
 
-Implementation will include:
+Execution includes:
 
-- Verify Tool Name (Does this tool exist?)
-- Validation parameters (types correct? all required entries? values within legal range?)
-- Execute tools (real read_files, transfer API, run codes).
-- Capture anomalies (files do not exist, network overtime, inadequate access, return formats are abnormal).
-- Normalize return results (formulate original results into structured Observation).
+- Validate the tool name: does this tool exist?
+- Validate arguments: correct types, required fields present, values in valid range.
+- Execute the tool: actually read the file, call the API, or run code.
+- Capture exceptions: file missing, network timeout, permission denied, malformed response.
+- Normalize the result into a structured Observation.
 
-One practical experience: the original results after the tool has been called should not be plugged back into the model without processing. Especially when it's a long time -- like reading a 5,000 line file -- it's just stuffing the whole text into the context and stuffing other important information. The smallest Agent should at least have a simple cut-off or summary.
+One practical lesson: **raw tool output should not be pasted back into the model without processing.** If a tool reads a 5,000-line file, putting the entire file into context will crowd out other important information. A minimal Agent should at least truncate or summarize long results.
 
-### 3.8 Operation / Feedback: Returning results to loop
+### 3.8 Observation / Feedback: Bringing Results Back Into the Loop
 
-Observation is the result of the implementation of the tool... It may be the content of the document, the search results, the API response, the error information, the denial of permission, or the user confirmation.
+Observation is the result of tool execution. It may be file content, search results, an API response, an error, a permission denial, or user confirmation.
 
-The role of Observation is only one, but crucial: **to influence the next round of decision-making.** If Agent reads a file but finds that it does not exist, the next round should request the user to fix the path instead of continuing to pretend that the file exists. Observation is the information channel between the outside world and model reasoning -- without it, models are blind guessing.
+Observation has one critical job: **influence the next decision.** If the Agent tries to read a file and the file does not exist, the next decision should ask the user to correct the path, not continue as if the file exists. Observation is the information channel between the external world and model reasoning. Without it, the model is guessing.
 
-A real example:
+Example:
 
 ```text
 Action: read_file("notes.md")
-Observation: status=error, code=file_not_found, message="Not Found
-Next Decision: ask_user("No notes.md, please confirm whether the file path is correct")
+Observation: status=error, code=file_not_found, message="notes.md was not found"
+Next Decision: ask_user("I could not find notes.md. Please confirm the file path.")
 ```
 
-That is the meaning of the closed circle: the outcome of each step changes the way forward.
+This is the meaning of the loop: each step's result changes the direction of the next step.
 
-### 3.9 State Update: Write about what happened in this round into State
+### 3.9 State Update: Writing This Round Back Into State
 
-> **State Update is in closed circle `state ` Object writing operations** - Runtime will take the decision-making and observation of this round after each cycle has ended Write Back ` state` For the next round of subject Assembly.
+> **State Update is the write operation on the `state` object inside the loop.** After each loop, the runtime writes this round's decision and observation back into `state`, so the next Context Assembly can read it.
 
-State Update records what happened in this round to State. It needs to record:
+State Update records what happened in the current round. It needs to record:
 
-- Models do make decisions.
-- Whether the tool is implemented and what the results are.
-- There was no mistake.
-- Is the current mandate closer to completion?
-- Need to stop or request user intervention.
+- What decision the model made.
+- Whether a tool executed and what it returned.
+- Whether an error occurred.
+- Whether the current task moved closer to completion.
+- Whether the Agent needs to stop or ask the user for help.
 
-State Update aims not to "archive" but to support three key needs:
+The purpose of State Update is not archiving. It supports three practical needs:
 
-1. **Context Assembly**: The next round needs to know what happened in the current round (read from State).
-2. **Failed debugging**: State history is the sole basis for mapping problems when a mission fails.
-3. **Mandate resumes**: If the mission is interrupted, State can be used for restoration.
+1. **Next-round Context Assembly**: the next round must know what happened in this round.
+2. **Failure debugging**: when a task fails, State history is the main evidence for debugging.
+3. **Task recovery**: if a task is interrupted, State can be used to resume.
 
-The smallest Agent should at least be able to record every step of Trace. Trace does not need to be complex — a structured record containing step numbers, decision-making elements, tool results, and cessation of judgement is sufficient.
+A minimal Agent should at least record a Trace for every step. The Trace does not need to be complicated: a structured record with step number, decision, tool result, and stop judgment is enough.
 
-### 3.10 Continue or Stop: Know when to stop
+### 3.10 Continue or Stop: Knowing When to Stop
 
-After each round is over, Runtme must judge: continue or stop?
+After each round, the runtime must decide: continue or stop?
 
-The basis for the determination is:
+The decision depends on questions such as:
 
-- Does the model give Final answer?
-- Is the maximum number of steps reached?
-- Are the same tools repeatedly called and no new developments?
-- Have there been unrecoverable errors?
-- Is user confirmation or additional information required?
-- Is there a hit risk rule?
+- Did the model provide `final_answer`?
+- Has the Agent reached the maximum number of steps?
+- Is it repeatedly calling the same tool without progress?
+- Did it hit an unrecoverable error?
+- Does it need user confirmation or more information?
+- Did it trigger a risk rule?
 
-If you continue, re-enter the Context Assembly — assemble the new context in an updated state and start the next cycle. If it stops, the final answer or cause of failure is given.
+If the Agent continues, it returns to Context Assembly and builds a new context from the updated State. If it stops, it returns the final answer or failure reason.
 
-After the last eight steps, you have a complete understanding of the closed circle of "data flow". The following three sections (3.11-3.13) do not introduce new links, but do a deeper analysis of three of the most misunderstandings in the closed circle: why is State next to the chart rather than in the chain? Prompt and Context Assembly why does a core component count a connection point? What are the uniform engineering principles behind the whole chain?
+At this point, you have the complete data flow of the loop. The next three sections do not add new links. Instead, they examine three common misunderstandings: why State sits beside the loop rather than inside the main path, why Prompt is a core component while Context Assembly is a connection point, and what engineering principle unifies the whole structure.
 
-### 3.11 Correct location for State storage
+### 3.11 Where State Storage Belongs
 
-It's in the graph. `State Store` Not on the main chain road, but next to it. It was deliberately designed.
+In the diagram, `State Store` sits beside the main path rather than inside it. This is intentional.
 
-State storage is not an "independent step" -- Agent won't say "now I'm going to operate State" at one step. State read and write in two stages:
+State storage is not an independent action step. The Agent does not say, "now I will operate on State." State is read and written by two parts of the loop:
 
-- **Context Assembly** read **information from State** (current progress, historical decisions, tool results).
-- **State Update**, add new information **to** State (just what happened, just what happened).
+- **Context Assembly** reads from State: current progress, historical decisions, and tool results.
+- **State Update** writes new information into State: what just happened and what was just observed.
 
-The State was placed next to the main link and not in it to emphasize that it was an infrastructure, not a step in business processes.
+Putting State beside the main path emphasizes that State is infrastructure, not a business process step.
 
-In the smallest Agent, State can be a memory object or a JSON file. No database is needed, no vector storage is required. Memoory here is not the long-term memoory-- It starts with the running time of the current task, State.
+In a minimal Agent, State can be a plain in-memory object or a JSON file. It does not need a database or vector store. Memory here is not the long-term Memory covered in Lesson 5. It starts as runtime State for the current task.
 
-### 3.12 Distinction between core modules and connecting points
+### 3.12 Core Modules vs. Connection Points
 
-You may have noticed that several links in the running link do not appear in the core formula: Context Assembly, Observation / Feedback. And Prompt appears in the core formula, but its nature is different from the four other running-time modules.
+You may have noticed that some links in the execution path are not in the core formula: Context Assembly and Observation / Feedback. You may also have noticed that Prompt appears in the formula even though it is different from the other four runtime modules.
 
-Look first at the five components of the core formula:
+First, consider the five components in the formula:
 
-| Component | Type | Annotations |
+| Component | Type | Explanation |
 |------|------|------|
-| **Prompt** | Define Layer Core | Static template: Defines the identity, protocols, tools, constraints of Agent. Not updated in cycle but consumed per round |
-| **LLM decision-making** | Runtime Core | Dynamic: each round will judge what to do next according to context |
-| **Tool/environment interface** | Runtime Core | Dynamics: Tool call to implement model decisions |
-| **State Management** | Runtime Core | Dynamic: Recording and querying the status of the task while running |
-| **Circle control** | Runtime Core | Dynamic: continue or stop after each round |
+| **Prompt** | Definition-layer core | Static template defining the Agent's identity, protocol, tools, and constraints. It is not updated in the loop, but each Context Assembly consumes it |
+| **LLM decision-making** | Runtime core | Dynamic: decides what to do next in each loop |
+| **Tool / environment interaction** | Runtime core | Dynamic: executes tool calls selected by the model |
+| **State management** | Runtime core | Dynamic: records and queries runtime task state |
+| **Loop control** | Runtime core | Dynamic: decides whether to continue or stop after each loop |
 
-Prompt's specialty is that it's **static** -- it's not updated in the cycle, unlike State, and not like LLM decisions. However, it remains the core component because it defines the behaviour of all running time modules. No Prompt, LLM doesn't know it's Agent, Runtme doesn't know what format the model output should be.
+Prompt is special because it is **static**. It is not updated on each loop like State, and it does not change each round like LLM decisions. But it is still a core component because it defines the behavior contract for every runtime module. Without the Prompt, the LLM does not know it is an Agent, and the runtime does not know what format the model output should follow.
 
-Look at the connection point:
+Now look at the connection points.
 
-Context Assembly is the link between Prompt templates, State management and LLM decision-making:
-
-```text
-Prompt Templates+ State dynamic data in → Organise as Full Context → Models are used to make decisions.
-```
-
-Operation / Feedback is the link point between tool interaction and State management:
+Context Assembly connects the Prompt template, State management, and LLM decision-making:
 
 ```text
-Tool implementation results → Information to be understood in a model → Write back to State → Enter next round context
+Prompt template + dynamic data from State -> assembled full context -> model decision
 ```
 
-This distinction is not a bit of a word. Its engineering meaning is that these connections will change significantly as the complexity of the system increases (the context management strategy changes, the type and source of feedback signals changes), but the functional boundaries of the five core components are relatively stable. The separation of the connect points and the core components will give you a clear idea of what I'm changing when expanding the system — whether it's reconnecting logic or core competencies.
-
-### 3.13 Engineering principles behind the minimum closed ring
-
-There is a consistent engineering principle behind the minimum closure ring. It's passed down from course two, and it's going to follow up on every course:
+Observation / Feedback connects tool interaction and State management:
 
 ```text
-Models are responsible for understanding objectives and making the next judgement.;
-A defined infrastructure is responsible for the implementation of tools, competencies, safety, status, recovery and observation.
+Tool execution result -> information the model can understand -> write back to State -> enter the next context
 ```
 
-Don't give everything to the model. For example:
+This distinction is not wordplay. It has an engineering consequence: connection points often change significantly as a system becomes more complex. Context management strategies evolve. Feedback signals gain new types and sources. But the responsibility boundaries of the five core components remain relatively stable. Separating connection points from core components helps you know what you are changing when the system grows: connection logic or core capability.
 
-- The verification of the parameter type should be done by code and should not rely on the model to "write right".
-- The maximum number of steps should be controlled by Runtme and should not depend on the model "I know it should stop."
-- The existence of the tool should be judged by the tool registry and should not be based on the model "check-in".
-- Whether or not the document is allowed to be written should be judged by the permission system and should not rely on the model for "satisfactoryness".
-- Misrecords and Traces should be kept by the system and should not rely on models to "remember what happened."
+### 3.13 The Engineering Principle Behind the Minimal Loop
 
-The stronger the model, the more important it is. A strong model can raise the upper limit on the quality of decision-making, but establishes the lower limits of a guaranteed infrastructure system. An Agent with a weaker model but well designed by Runte may be more reliable than an Agent with the strongest model but without border control.
+One engineering principle runs through the minimal loop. It comes from Lesson 2 and will continue throughout the course:
+
+```text
+The model understands the goal and proposes the next step.
+Deterministic infrastructure handles tool execution, permissions, safety, State, recovery, and observability.
+```
+
+Do not hand everything to the model. For example:
+
+- Parameter type validation should be done by code, not by trusting the model to write valid arguments.
+- Maximum steps should be controlled by the runtime, not by trusting the model to know when to stop.
+- Tool existence should be checked by a tool registry, not by trusting the model to choose correctly.
+- Whether a file can be written should be decided by a permission system, not by trusting the model to be cautious.
+- Error logs and Trace should be stored by the system, not by trusting the model to remember what happened.
+
+The stronger the model becomes, the more important this principle becomes. A strong model raises the ceiling of decision quality, but deterministic infrastructure protects the floor of system reliability. An Agent with a weaker model and a well-designed runtime may be more reliable than an Agent with the strongest model and weak boundary control.
 
 ---
 
-## Chapter 4: Realization of the smallest RectAgent
+## Chapter 4: How to Implement a Minimal ReAct Agent
 
-The first three chapters say "what" and "why". This chapter says "how" - gives a minimum RealAgent realization without binding any particular language or framework.
+The first three chapters explained what the minimal Agent loop is and why it exists. This chapter explains how to build one. The design is not tied to any specific language or framework.
 
-### 4.1 Why the first no-recommended framework is achieved
+### 4.1 Why You Should Not Start With a Framework
 
-A lot of Agent frames (LangGraph, CrewAI, AutoGen, etc.) can help you quickly build an Agent that looks great. But the framework hides too many key details for the minimum closed circle of first learning.
+Many Agent frameworks, such as LangGraph, CrewAI, and AutoGen, can help you quickly build something that looks powerful. But when you are learning the minimal loop for the first time, a framework hides too many important details.
 
-You might see that the frame has automatically made you a tool to call back the next round of decision-making, but you don't know how the middle group is going to do it, where the State Update happened, or what the basis of the decision is. When Agent behaves abnormally, you can only guess whether it's a framework bug or whether it's a model problem -- because you don't walk the whole chain.
+You may see the framework automatically perform "tool call -> result injection -> next model decision," but you may not know how Context Assembly works, where State Update happens, or what conditions decide Continue or Stop. When the Agent behaves strangely, you are left guessing: is it a framework bug, a model issue, or something wrong in your own logic?
 
-**Minimum achieved for the first time, suggests hand-written loop + direct call to LLM API.** The tool is performed with a local function and the status is written to the console or local file with memory objects or JSON files, Trade. So when you see Agent making a strange decision at step 3, you can go back to Context, Decision, Observation, State Update and know exactly what's wrong.
+**For your first minimal Agent, use a hand-written loop and call the LLM API directly.** Implement tools as local functions. Store State in memory or a JSON file. Write Trace to the console or a local file. Then, when the Agent makes a strange decision at step 3, you can inspect every Context, Decision, Observation, and State Update to locate the exact problem.
 
-The framework is a tool for efficiency after you understand the principle, not a substitute for when you don't understand the principle.
+A framework is a tool for efficiency after you understand the underlying structure. It is not a substitute for understanding the structure.
 
-### 4.2 Fake code structure
+### 4.2 Pseudocode Structure
 
-Here's the smallest Python skeleton of Agent Loop. It is not complete, but only the core structure of the closed ring:
+The following is a minimal Python skeleton for an Agent loop. It is not a full implementation. It keeps only the core structure of the loop:
 
 ```python
 from dataclasses import dataclass, field
@@ -763,6 +767,7 @@ class AgentState:
     history: list[dict] = field(default_factory=list)
     stop_reason: str | None = None
 
+
 def run_agent(
     user_goal: str,
     system_prompt: str,
@@ -773,13 +778,13 @@ def run_agent(
     state = AgentState(user_goal=user_goal, max_steps=max_steps)
 
     while not state.stop_reason:
-        # 1. Context Assembly:Combining Prompt, user goals, historical status and tool lists into models.
+        # 1. Context Assembly: combine Prompt, user goal, history, and tools.
         context = assemble_context(system_prompt, state, tools)
 
-        # 2. LLM Decision:The model only outputs the next decision and does not directly execute the action.
+        # 2. LLM Decision: the model only proposes the next step.
         decision = llm_call(context)
 
-        # 3. Continue or Stop:Termination of type decision-making directly ends the cycle.
+        # 3. Continue or Stop: terminal decisions end the loop immediately.
         if decision["type"] == "final_answer":
             return {"status": "success", "answer": decision["answer"], "state": state}
 
@@ -789,10 +794,10 @@ def run_agent(
         if decision["type"] == "fail":
             return {"status": "failed", "reason": decision["reason"], "state": state}
 
-        # 4. Interaction / Execution:Runtime Verify and execute tools.
+        # 4. Interaction / Execution: the runtime validates and executes tools.
         observation = execute_tool(decision, tools)
 
-        # 5. State Update:Write this round of decision-making back to status.
+        # 5. State Update: write this round's decision and Observation into State.
         state.history.append({
             "step": state.step_count,
             "decision": decision,
@@ -800,7 +805,7 @@ def run_agent(
         })
         state.step_count += 1
 
-        # 6. Stop Check:The hard constraint is judged by Runtime, not by the model's self-consciousness.
+        # 6. Stop Check: hard constraints are enforced by the runtime.
         state.stop_reason = check_stop(state)
 
     return {"status": "stopped", "reason": state.stop_reason, "state": state}
@@ -808,68 +813,66 @@ def run_agent(
 
 This code reflects several key design decisions:
 
-- **Context Assembly** `state`, reassemble the context of the model.
-- **LLM decision**: The model only suggests the next step, such as calling tools, giving final answers, requesting user supplements or failing to exit.
-- **Interaction / Exchange**: Tools verified and executed by Runtime, not directly by models.
-- **State Update**: decision-making and Observation return round `state` For the next round.
-- **Stop Check**: The maximum number of steps, repeat actions, successive errors, etc. are determined by Runtime
+- **Context Assembly**: each round reads from `state` and assembles the model context again.
+- **LLM Decision**: the model proposes the next step, such as calling a tool, giving the final answer, asking the user, or failing.
+- **Interaction / Execution**: tools are validated and executed by the runtime, not directly by the model.
+- **State Update**: each round writes the decision and Observation back into `state`.
+- **Stop Check**: max steps, repeated actions, and consecutive errors are runtime checks.
 
-`assemble_context() ` 、 ` execute_tool() ` and ` check_stop()` This is deliberately written as a placeholder function because this section is about to show a closed ring structure. Details of tool parameters validation, error packaging, repeat action detection, Trace records, etc. will be expanded in subsequent tool design, Trace and error handling subsections.
+`assemble_context()`, `execute_tool()`, and `check_stop()` are intentionally placeholders here. This section is showing the loop structure. Details such as argument validation, error wrapping, repeated action detection, and Trace logging are covered in the next sections and later lessons.
 
-### 4.3 Tool design
+### 4.3 Tool Design
 
-Minimum Agent suggests starting with 3 tools.
+Start a minimal Agent with three tools.
 
-Example group:
-
-| Tools | Input | Output | Use |
+| Tool | Input | Output | Purpose |
 |---|---|---|---|
-| `read_file` | File Path | File content or error | Read user-assigned information |
-| `write_file` | File path, content | Writing success or error | Generate delivery |
-| `search_text` | Keywords, collection of texts | Match Snippet | Find information in information |
+| `read_file` | File path | File content or error | Read user-specified material |
+| `write_file` | File path, content | Success or error | Generate a deliverable |
+| `search_text` | Keyword, text collection | Matching snippets | Find information in source material |
 
-**Tool returns must be structured**. This follows from the philosophy of Design Calling:
+**Tool results must be structured.** This continues the design philosophy from Function Calling in Lesson 2.
 
-When successful:
+On success:
 
 ```json
 {
   "status": "success",
-  "summary": "Read 1,200 words of Markdown content.",
-  "content": "...Optional, possibly longer...",
+  "summary": "Read 1200 words of Markdown content",
+  "content": "...optional, possibly long...",
   "error": null
 }
 ```
 
-Other Organiser
+On failure:
 
 ```json
 {
   "status": "error",
-  "summary": "The file does not exist.",
+  "summary": "File does not exist",
   "content": null,
   "error": {
     "code": "file_not_found",
-    "message": "Notes.md not found, check file path"
+    "message": "notes.md was not found. Please check the file path."
   }
 }
 ```
 
-The advantage of structured return is that the model clearly knows what happened, rather than speculating from a free text. The model is more likely to propose effective amendments when the return contains specific error codes and reasons.
+Structured returns help the model understand what happened without guessing from free-form text. When the result includes a specific error code and reason, the model is more likely to propose a useful recovery step.
 
-### 4.4 Trace Record
+### 4.4 Trace Logging
 
-Trace is the debugging basis for the smallest Agent. Agent without Trace is like a black box -- you only know where it ends, you don't know which step it starts to turn.
+Trace is the debugging foundation of a minimal Agent. An Agent without Trace is a black box: you know the task failed, but you do not know where it started drifting.
 
-At least every step is recorded:
+Each step should record at least:
 
-- step number.
-- Context submary.
+- Step number.
+- Context summary, because the full context may be long.
 - Model decision.
-- Tool call (recording tool names and parameters if tools are transferred).
-- Observation.
+- Tool call, including tool name and arguments if a tool was called.
+- Observation, including returned content or error information.
 - State update.
-- Stop check result.
+- Stop check result: continue or stop, and why.
 
 Example:
 
@@ -885,11 +888,11 @@ Example:
   },
   "observation": {
     "status": "error",
-    "summary": "The file does not exist.",
+    "summary": "File does not exist",
     "content": null,
     "error": {
       "code": "file_not_found",
-      "message": "Notes.md not found, check file path"
+      "message": "notes.md was not found. Please check the file path."
     }
   },
   "state_update": {
@@ -897,131 +900,120 @@ Example:
   },
   "stop_check": {
     "continue": true,
-    "reason": "You can ask the user to fix the path."
+    "reason": "The Agent can ask the user to correct the path."
   }
 }
 ```
 
-This Trace allows you to play back step by step when debugging -- see what the models see in each round (context), decide what they decide, get what, state update.
+This Trace lets you replay the task step by step: what the model saw, what it decided, what it observed, and how State changed.
 
-### 4.5 Base error management
+### 4.5 Basic Error Handling
 
-At least address these errors:
+A minimal Agent should handle at least these errors:
 
-| Error | Treatment |
+| Error | Handling |
 |---|---|
-| Tools do not exist | Returns a structured error, does not execute, so that the model knows the tool is not available |
-| Parameter Invalid | Returns the error details of the parameter so that the model is modified or the user is requested to provide the correct parameter |
-| Tool execution failed | Record error, allow limited retry (e.g. 2 times) and stop after |
-| Environment not available | Stop or downgrade, and don't let Agent force himself in an unreliable environment. |
-| Model output cannot be parsed | Request the model to be re-exported (up to 1), or exit if it fails |
-| More than maximum steps | Stop and explain the reason, let the user know, "I'm not done, but I can't go on." |
-| Repeating no progress. | Stop or request user intervention and do not let Agent spin in the dead cycle |
+| Tool does not exist | Return a structured error and do not execute; let the model know the tool is unavailable |
+| Invalid arguments | Return argument error details so the model can correct them or ask the user |
+| Tool execution failed | Record the error and allow limited retry, such as 2 attempts; then stop |
+| Environment unavailable | Stop or degrade gracefully; do not force the Agent to continue on an unreliable environment |
+| Model output cannot be parsed | Ask the model to re-output once; if it still fails, exit |
+| Maximum steps exceeded | Stop and explain that the task was not completed but cannot continue safely |
+| Repeated action with no progress | Stop or ask for user intervention; do not let the Agent spin in a loop |
 
-Mishandling is not part of "follow up." If the smallest closed ring is not wrong, a slightly more complex test mission is out of control -- tools fail, models go wild, models go wild, models go wronger, tools go round and explode. When experienced people achieve Agent, the amount of error-processing code is often the same as the quantity of the main cycle code.
+Error handling is not "later work." Without error handling, even a slightly complex task can lose control: a tool fails, the model guesses, the model calls a worse tool, and the loop spirals. In real Agent implementations, error-handling code is often comparable in size to the main loop.
 
-### 4.6 Test mission design
+### 4.6 Test Task Design
 
-Test minimum Agent with 10 jobs. The following types are suggested to be covered:
+Use 10 tasks to test the minimal Agent. Cover these categories:
 
-| Type | Example: | Test what? |
+| Type | Example | What it tests |
 |---|---|---|
-| Successful Path | Read a document and summarize it | It's basically closed. |
-| Multistep tasks | Read files, extract points, write new documents | The state is delivered correctly in multiple steps |
-| Parameter Error | User gives the missing file path | Errors capture and feed back to models |
-| Tool Failed | Simulate API return error | Limited retry, infinity cycle |
-| Clarification required | User targets incomplete | Agent can request additional information. |
-| Cycle control | When tools fail repeatedly | Entry into force of hard binding |
-| Results validation | Output must contain specified fields | Final answer format correct |
-| Status Extension | Step two uses the first step tool results. | The state is transmitted correctly between steps. |
-| Writing Operations | Writing local outcome documents | Write operation normal execution |
-| Secure borders | Reject when trying to execute an impermissible action | Runtme Valid |
+| Success path | Read a file and summarize it | The basic loop runs end to end |
+| Multi-step task | Read a file, extract key points, write a new file | State passes correctly across steps |
+| Argument error | User provides a nonexistent file path | Errors are captured and fed back to the model |
+| Tool failure | Simulate an API error | Limited retry, no infinite loop |
+| Clarification needed | User goal is incomplete | Agent can ask for missing information |
+| Loop control | Tool repeatedly fails | Hard constraints take effect |
+| Result validation | Output must include specified fields | Final answer format is correct |
+| State continuity | Step 2 needs the result from step 1 | State carries information across steps |
+| Write operation | Write a result file locally | Write path executes correctly |
+| Safety boundary | Attempt an unauthorized action | Runtime validation blocks it |
 
-A success rate of more than 70% is an initial goal -- considering that the error management of the smallest Agent is still fundamental, some failures can be expected. And more importantly, if you fail, you have to know why. If you can only see "task failed" but don't know where and why, Trace is not good enough.
-
----
-
-## After-school exercises
-
-### Practice One: Design a minimum Agent Prompt
-
-Design a complete Prompt for an Agent who reads the file and produces the summary. Your Prompt must contain the following five layers:
-
-1. **Identity layer**: defining the role and overall objective of Agent
-2. **Protocol Layer**: Definition
-3. **Tool Layer**: Description of at least 3 available tools (name, purpose, parameters, attention)
-4. **Constraint**: output format requirements, cessation conditions, secure boundaries
-5. **Example Layer**: at least 1 new-shot example showing complete TAO tracks
-
-Additional question: Deliberately remove the "output format requirements" in the binding layer, run the same thing once, and observe LLM behavioral changes. Record your discovery.
-
-### Practice II: Design a minimum Agent status object
-
-Designs a minimum status object for the task of "reading files and generating abstracts". Include at least: user objectives, number of current steps, maximum number of steps, historical decision-making, tool results, error lists, reasons for discontinuation.
-
-Additional question: Think of a scene that explains why "pushing the whole history into the context" is better than "maintaining the status of independence + selective injection."
-
-### Practice III: Design 3 tools
-
-Design 3 tools for your smallest Agent. Each tool is clear: a tool name, utility, input parameters, output structure (in both successful and failed formats), possible failure, risk level.
-
-### Practice Four: Write Minimum Cycle Control Rules
-
-Write at least five loop control rules for your Agent. Each rule is clear: what the trigger is, what action is taken (continuing/stopping/requesting the user), why it is needed.
-
-### Practice 5: 10 test mission designs completed
-
-Design your 10 test missions according to the type of task in chapter 4. Each task is clear: user input, expected tool call chain, success criteria, possible failure points and why it fails.
+A success rate above 70% is a reasonable first target. Because the minimal Agent's error handling is still basic, some failures are expected. The more important requirement is this: **when it fails, you must be able to tell why from the Trace.** If all you know is "the task failed," Trace is not yet good enough.
 
 ---
 
-## Runable Example
+## Exercises
 
-After completing this course of practice, you can compare the minimum Agent example of running course three with:
+### Exercise 1: Design a Minimal Agent Prompt
 
-- [Lesson 3xAgent](../examples/course-03-minimal-agent/README.md)
+Design a complete Prompt for an Agent that reads a file and generates a summary. Your Prompt must include these five layers:
 
-The example consists of two versions, Python and Node.js, showing how Prompt, LLM Decision Boundaries, local tools, Runtme's main cycle, State, Trade and cessation conditions form a minimum closed loop that can be run.
+1. **Identity layer**: define the Agent's role and overall goal.
+2. **Protocol layer**: define the Thought / Action / Observation format.
+3. **Tool layer**: describe at least 3 available tools, including name, purpose, arguments, and notes.
+4. **Constraint layer**: define output format, stop conditions, and safety boundaries.
+5. **Example layer**: provide at least 1 few-shot example showing a complete TAO trajectory.
+
+Bonus: intentionally remove the output format requirement from the constraint layer, run the same task again, and observe how the LLM's behavior changes. Record what you find.
+
+### Exercise 2: Design a Minimal Agent State Object
+
+For the task "read a file and generate a summary," design a minimal State object. It must include at least: user goal, current step count, maximum step count, decision history, tool results, error list, and stop reason.
+
+Bonus: describe a scenario that shows why "putting all raw history into context" is worse than "maintaining an independent State object and selectively injecting information."
+
+### Exercise 3: Design 3 Tools
+
+Design 3 tools for your minimal Agent. For each tool, specify: tool name, purpose, input arguments, output structure for success and failure, possible failure cases, and risk level.
+
+### Exercise 4: Write Minimal Loop Control Rules
+
+Write at least 5 loop control rules for your Agent. For each rule, specify: trigger condition, action taken (continue, stop, or ask user), and why the rule is needed.
+
+### Exercise 5: Design 10 Test Tasks
+
+Following the categories in Chapter 4, design 10 test tasks. For each task, specify: user input, expected tool-call chain, success criteria, possible failure points, and why those failures may occur.
 
 ---
 
-## Acceptance and inspection standards
+## Runnable Example
 
-After this course, use the following criteria for self-examination:
+After completing the exercises, compare your work with the runnable minimal Agent example for Lesson 3:
 
-- [ ] I can say in one sentence the five components of the smallest Agent: Prompt, LLM decision-making, tool/environment interface, State management and circulation control.
-- [ ] I can draw a minimum running link and mark the position of Context Assembly, Observation, State Update and Continue or Stop.
-- [ ] I can explain the division of "model decision-making, Runtime execution" and give an example of what Runtime needs to be verified at least.
-- [ ] I can distinguish between Prompt, Context Assembly, State and long-term memory.
-- [ ] I can design Prompt, State, 3 tools and ground stop rules for a mission "to read documents and generate abstracts".
-- [ ] I can design 10 test missions and write success criteria and possible failure points for each.
+- [Lesson 3 minimal Agent loop example](../examples/course-03-minimal-agent/README.md)
+
+The example includes both Python and Node.js versions. It shows how Prompt, LLM decision boundaries, local tools, the runtime main loop, State, Trace, and stop conditions form a runnable minimal loop.
+
+---
+
+## Acceptance Criteria
+
+After finishing this lesson, use the following checklist:
+
+- [ ] I can explain the five components of a minimal Agent in one sentence: Prompt, LLM decision-making, tool / environment interaction, State management, and loop control.
+- [ ] I can draw the minimal execution path and mark where Context Assembly, Observation, State Update, and Continue or Stop belong.
+- [ ] I can explain the division of labor: "the model decides, the runtime executes," and give examples of what the runtime must validate.
+- [ ] I can distinguish Prompt, Context Assembly, State, and long-term Memory.
+- [ ] I can design a Prompt, State object, 3 tools, and basic stop rules for a "read a file and summarize it" task.
+- [ ] I can design 10 test tasks and write success criteria and possible failure points for each.
 
 ---
 
 ## References
 
-### Recommended reading
+### Recommended Reading
 
 - ReAct: Synergizing Reasoning and Acting in Language Models
-
-<https://arxiv.org/abs/2210.03629>
-
+  <https://arxiv.org/abs/2210.03629>
 - OpenAI Function Calling
-
-<https://platform.openai.com/docs/guides/function-calling>
-
+  <https://platform.openai.com/docs/guides/function-calling>
 - Anthropic Tool Use
-
-<https://docs.anthropic.com/en/docs/agents-and-tools/tool-use>
-
+  <https://docs.anthropic.com/en/docs/agents-and-tools/tool-use>
 - Anthropic Building Effective Agents
-
-<https://www.anthropic.com/engineering/building-effective-agents>
-
+  <https://www.anthropic.com/engineering/building-effective-agents>
 - Lost in the Middle: How Language Models Use Long Contexts
-
-<https://arxiv.org/abs/2307.03172>
-
-- LangGraph Document
-
-<https://langchain-ai.github.io/langgraph/>
+  <https://arxiv.org/abs/2307.03172>
+- LangGraph Documentation
+  <https://langchain-ai.github.io/langgraph/>
