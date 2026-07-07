@@ -53,7 +53,7 @@
 
 ## 8.1 Three types of hard ceiling for single Agent
 
-Before discussing how Multi-Agent designed it, we need to figure out a more fundamental question: **Where exactly is Agent's card?** If you don't understand the question, then you introduce Multi-Agent probably is "structure for architecture."
+Before discussing how Multi-Agent designed it, we need to figure out a more fundamental question: **Where exactly is Agent's broken?** If you don't understand the question, then you introduce Multi-Agent probably is "structure for architecture."
 
 The single Agent capacity bottleneck is not "not smart enough" but structural. There are three types of hard ceilings that correspond to three different patterns of failure.
 
@@ -63,13 +63,15 @@ Back to the scene at the beginning of this chapter. After the knowledge assistan
 
 This is not an issue of attitude, but of mechanisms. The same Agent created a lot of middle reasoning under the "Creative Mode" - – "In order to facilitate local development, let's simplify the power model first with an explicit key, then refine it later" – these reasonings are a reasonable trade-off at the time of creation, but they remain in the context. And when you switch it to "review mode," these reasonings become preconceived "explains": seeing the explicit key, it's thinking, "This is for the convenience of development," not "This is a security loophole."
 
-For example, it took you two hours to complete a 300-word technical program, and you were immediately asked to "check the program from a safety perspective." Even if you're a person with security experience, you'll defend your design unconsciously. The same brain, preconceived, is not about attitude, is about cognitive mechanisms. Same thing with Agent -- except that its "preliminary" expression is those tokens that already exist in the context. **The structural causes of role conflicts**: The creator's goal is to complete the programme and the examiner's goal is to identify the problem. These two objectives are naturally contradictory. Let the same context and the same target function serve both conflicting objectives - – The result is a compromise between objectives, and the review becomes an exercise.
+For example, it took you two hours to complete a 300-word technical program, and you were immediately asked to "check the program from a safety perspective." Even if you're a person with security experience, you'll defend your design unconsciously. The same brain, preconceived, is not about attitude, is about cognitive mechanisms. Same thing with Agent -- except that its "preliminary" expression is those tokens that already exist in the context.
+
+**The structural causes of role conflicts**: The creator's goal is to complete the programme and the examiner's goal is to identify the problem. These two objectives are naturally contradictory. Let the same context and the same target function serve both conflicting objectives - – The result is a compromise between objectives, and the review becomes an exercise.
 
 ### 8.1.2 Context squeezing: Too much middle reasoning has become noise
 
 When single Agent handles complex tasks, a large number of intermediates are piled up in context windows: drafts of the first edition, track of failed attempts, results of exploratory searches, provisional records of all kinds "to be written down and used later".
 
-These things were valuable at the moment they were produced. But when Agent needed to judge on the basis of the final output, these intermediate reasoning became **noise** — they took up context space, distracted attention and introduced outdated assumptions.
+These things were valuable at the moment they were produced. But when Agent needed to judge on the basis of the final output, these intermediate reasoning became **noise** -— they took up context space, distracted attention and introduced outdated assumptions.
 
 This is typical of the crowding:
 
@@ -114,13 +116,15 @@ Timeline (string execution):
 Total time taken: about 7 minutes
 ```
 
-But look closely at these four research missions — they are not dependent on each other. The study Memory does not have to wait for the results of Tool Use. They can be carried out simultaneously. **The structural causes of the serial bottlenecks**: single Agent has only one execution thread. Even if there is no dependency between mandates, there can be only one. This is not a question of the speed of the model — the speed of the model's reasoning, and the total time of queuing four tasks is the sum of four tasks.
+But look closely at these four research missions — they are not dependent on each other. The study Memory does not have to wait for the results of Tool Use. They can be carried out simultaneously.
+
+**The structural causes of the serial bottlenecks**: single Agent has only one execution thread. Even if there is no dependency between mandates, there can be only one. This is not a question of the speed of the model — the speed of the model's reasoning, and the total time of queuing four tasks is the sum of four tasks.
 
 ### 8.1.4 "More models" why not the answer?
 
 A natural idea is: will these problems be solved automatically when a stronger model comes out?
 
-Nope. As these three types of ceiling are structural problems **, not capacity problems**.
+Nope. As these three types of ceiling are **structural problems, not capacity problems**.
 
 - **Role conflict** is not a model that is not smart enough to read it — it is a conflicting goal in the same context. A stronger model might be better transposed between the two objectives, but a pre-emptive "interpretation" would soften the review criteria as long as creation and review shared the same context.
 - **Context squeezing** is not the size of the context window of the model - it is the information structure. The larger window simply plugs in more noise and does not address the structural flaws of the "intermediate reasoning of pollution final judgment".
@@ -417,7 +421,9 @@ Mode 2: Reviewer Mode
 
 ### 8.3.4 Obsolete boundary of Reviewer
 
-The Reviewer model works, but it works only under certain conditions. Here are its four failed borders: **Boundary I: Expiry when the list is vague.** If the review criterion is "Check if the program is safe" (one sentence), Reviewer's output will be the same as the single Agent self-censorship - "no obvious problem". The review list must be specific, article-by-article, with a clear verify methodology.
+The Reviewer model works, but it works only under certain conditions. Here are its four failed borders:
+
+**Boundary I: Expiry when the list is vague.** If the review criterion is "Check if the program is safe" (one sentence), Reviewer's output will be the same as the single Agent self-censorship - "no obvious problem". The review list must be specific, article-by-article, with a clear verify methodology.
 
 ```text
 Fuzzy review criteria:
@@ -432,7 +438,9 @@ Specific review criteria:
 
 **Boundary II: Reviewer lapses when no independent authentication tool is available.** If the Reviewer can only read the text of the scheme and then judge it is not different from the individual Agent self-examination. Reviewer must have a validation tool independent of Executor: read the original profile (rather than read the excurator's description in the program), run linter, retrieve the original security code. Core principle: **Reviewer validates "real things", not Executor "proclaimed things."**
 
-**Boundaries III: Reviewer is too harsh to be locked.** If every recommendation of review is "must be modified," when Excelctor finishes the round, Reviewer finds a new problem... - Look, it's a new problem, not a problem that hasn't been fixed -- and then Execuator changes it, Reviewer discovers a new problem and never appears. Method of amendment: Distinguishing between "must modify" and "recommended to optimize"; must not exceed 5 and the recommendation does not block adoption. **Boundaries IV: Execuator learned the "prejudice" review list.** This is the most hidden pattern of failure. After a number of times, Execuator learned to proactively add to the program the description "Looks like a security measure" - "This module follows the best practice of safety" - "All inputs have been fully verified" - but these descriptions do not correspond to actual realization. After seeing these statements, Reviewer marked "Save security measures mentioned" in the check list. In practice, however, security measures have not been implemented. Method of amendment: To review the list from "Whether or not to mention" to "Whether or not to implement" - do not check that "the program discusses key management" but check that "the key in the program is actually stored in the environment variable (grep authentication). "
+**Boundaries III: Reviewer is too harsh to be locked.** If every recommendation of review is "must be modified," when Excelctor finishes the round, Reviewer finds a new problem... - Look, it's a new problem, not a problem that hasn't been fixed -- and then Execuator changes it, Reviewer discovers a new problem and never appears. Method of amendment: Distinguishing between "must modify" and "recommended to optimize"; must not exceed 5 and the recommendation does not block adoption.
+
+**Boundaries IV: Execuator learned the "prejudice" review list.** This is the most hidden pattern of failure. After a number of times, Execuator learned to proactively add to the program the description "Looks like a security measure" - "This module follows the best practice of safety" - "All inputs have been fully verified" - but these descriptions do not correspond to actual realization. After seeing these statements, Reviewer marked "Save security measures mentioned" in the check list. In practice, however, security measures have not been implemented. Method of amendment: To review the list from "Whether or not to mention" to "Whether or not to implement" - do not check that "the program discusses key management" but check that "the key in the program is actually stored in the environment variable (grep authentication). "
 
 ---
 
@@ -517,7 +525,11 @@ class SupervisorPattern:
 
 The most easily underestimated step of the Supervisor model is the dismantling. A lot of it has been done to simplify dismantling to "let LLM divide tasks into several" -- and then it's discovered that the worker output is highly overlapping, inconsistent in format and unable to merge.
 
-Good dismantling takes four things: **1. Clear borders (include)** Not only "your research A, your research B," but also to say, "Don't touch anything."
+Good dismantling takes four things:
+
+**1. Clear borders (include)**
+
+Not only "your research A, your research B," but also to say, "Don't touch anything."
 
 ```text
 Bad dismantling:
@@ -533,7 +545,9 @@ Good disassembly:
             exclude: Tool Use mechanism that does not involve individual Agent (covered by Worker 1)
 ```
 
-**2. Unified output template** Each Worker must output with the same structure, otherwise Supervisor cannot merge automatically.
+**2. Unified output template**
+
+Each Worker must output with the same structure, otherwise Supervisor cannot merge automatically.
 
 ```text
 Output template (all Worker shared):
@@ -549,7 +563,13 @@ Output template (all Worker shared):
 - [Source 1](Link or Note Path)
 ```
 
-**3. Worker Capability Match** Not all Walkers should be the same model. Research-type Worker may require a strong search capability (networked search, context) and analytical-type Worker may require a strong reasoning capability. assigns the right task to the right workker.**.4. Control of the particle size of dismantling** It was too detailed (10 subtasks) and the cost of communication and aggregation exceeded the implementation benefits. It's too coarse (2 subtasks) and insufficiently parallel. An empirical rule: **Number of sub-tasks = Min (number of separate dimensions that can be used in parallel, number of workr, 5)**. Marginal gains over 5 sub-tasks are generally insufficient to cover coordination costs.
+**3. Worker Capability Match**
+
+Not all Walkers should be the same model. Research-type Worker may require a strong search capability (networked search, context) and analytical-type Worker may require a strong reasoning capability. assigns the right task to the right workker.
+
+**.4. Control of the particle size of dismantling**
+
+It was too detailed (10 subtasks) and the cost of communication and aggregation exceeded the implementation benefits. It's too coarse (2 subtasks) and insufficiently parallel. An empirical rule: **Number of sub-tasks = Min (number of separate dimensions that can be used in parallel, number of workr, 5)**. Marginal gains over 5 sub-tasks are generally insufficient to cover coordination costs.
 
 ### 8.4.3 Costs of consolidation - "Three Walkers ran out, Supervisor took longer to merge."
 
@@ -703,7 +723,9 @@ class ParallelSpecialists:
 
 The most dangerous moment for Parallel Specialists is integration. When two experts make conflicting judgements, the easiest mistake is to allow LLM to choose automatically -- for example, "take a majority" or "let Supervisor decide."
 
-But this auto-dissociation will mask the real problem. If one expert says "safe" and the other says "a loophole," that means at least one expert has a problem with analysis -- Maybe one of them's focus definition is not clear enough, maybe one of them lacks the key context. Automatically choosing "majority" just covered up the problem. **Consolidation rules**:
+But this auto-dissociation will mask the real problem. If one expert says "safe" and the other says "a loophole," that means at least one expert has a problem with analysis -- Maybe one of them's focus definition is not clear enough, maybe one of them lacks the key context. Automatically choosing "majority" just covered up the problem.
+
+**Consolidation rules**:
 
 1. **The same finding automatically removes weight**: two experts identified the same problem (the same location + the same type of problem) and merged it into one article, marked from two dimensions.
 2. **Contradictory judgement does not automatically abate**: labeled as "Different analysis of security dimensions requires manual review" with the specific basis of two experts.
@@ -800,7 +822,9 @@ The most common spelling is:
 "You're a security examiner, please review the security of this technical program."
 ```
 
-These two Prompt differences are only character names and verbs. They have no definition: what the Reviewer is specifically concerned with, what criteria to judge, what the output must contain, and what to do when it is uncertain. The result is that Reviewer is no different from the individual Agent -- it only knows its name as "censor," but it doesn't know what the censor should do. **Effective Systems Prompt must define five elements.** The following is an example:
+These two Prompt differences are only character names and verbs. They have no definition: what the Reviewer is specifically concerned with, what criteria to judge, what the output must contain, and what to do when it is uncertain. The result is that Reviewer is no different from the individual Agent -- it only knows its name as "censor," but it doesn't know what the censor should do.
+
+**Effective Systems Prompt must define five elements.** The following is an example:
 
 ```text
 # Reviewer Agent — System Prompt Structure
@@ -892,7 +916,9 @@ It's better than putting it wrongly as true."
 
 The most common error in the distribution of tools in Multi-Agent is the registration of the full volume set for each Agent, and then the System Prompt says, "Please use only the tools you need."
 
-It's equivalent to giving every employee access to all lock cards, and then a note says, "Please just go into your room." System Prompt is a suggestion, tool registration is hard. The proposal can be ignored by the model (especially when the model considers that "a better task can be accomplished with this tool"), and not by hard restraints. **Correct practice: white list.** Every Agent only registers the tools it needs, and the tools that are not on the white list don't exist for it -- Runtme directly rejects the tools at the level of their call, and the models don't even know the tools exist.
+It's equivalent to giving every employee access to all lock cards, and then a note says, "Please just go into your room." System Prompt is a suggestion, tool registration is hard. The proposal can be ignored by the model (especially when the model considers that "a better task can be accomplished with this tool"), and not by hard restraints.
+
+**Correct practice: white list.** Every Agent only registers the tools it needs, and the tools that are not on the white list don't exist for it -- Runtme directly rejects the tools at the level of their call, and the models don't even know the tools exist.
 
 ```python
 # Tool registration: white list
@@ -960,7 +986,11 @@ Dismantling by capacity type makes model selection clearer:
 | **Low delay/low cost model** | Batch classification | Final adjudicators, complex planners | Fits to multiple, low-risk single task; error can be driven by a subsequent strong model or rule Stay. |
 | **Multimodular Model** | UI Reviewer, Chart Parsing Worker, Screenshot QA Agent | Plain Text Protocol Merge | Value only when input contains screenshots, PDF pages, drafts; should not be used by default for all Agents |
 
-Here is a practical judgement: **put the strongest model in the worst position of error, not all.** Supervisor debugging the task, leaving all workr running in vain; Reviewer missing the high-risk problem, making the user believe "passed"; and the final merger fabricated the conclusion, contaminating the final delivery. These positions deserve stronger and more stable models. On the contrary, tasks such as batch extraction fields, template filling, format conversions, i.e. error using a cheap model, are usually captured by a schema check or lower Reviewer. **A common rollover scene**: All Agents have created a "creative" version of the edifice under the téperature of 0.7, with the same model + téperature → Reviewer, which appears to be PASS, but two of the ividences are fictional and the whole review is more dangerous than it is without review (because the user trusts the mark that has been reviewed). **Reviewer's specialty**: Reviewer is the most intriguable character in Multi-Agent -- its judgment is the system's "quality gate". The Reviewer model does not need to be "smart." What is needed is "temperature 0", structured output enforcement, and evidence field requires specific filenames: line numbers. There are one or two imperfect solutions that Execut wrote -- users can fix themselves. Reviewer missed a security check -- users trusted the pass mark, which could lead to an online accident.
+Here is a practical judgement: **put the strongest model in the worst position of error, not all.** Supervisor debugging the task, leaving all workr running in vain; Reviewer missing the high-risk problem, making the user believe "passed"; and the final merger fabricated the conclusion, contaminating the final delivery. These positions deserve stronger and more stable models. On the contrary, tasks such as batch extraction fields, template filling, format conversions, i.e. error using a cheap model, are usually captured by a schema check or lower Reviewer.
+
+**A common rollover scene**: All Agents have created a "creative" version of the edifice under the téperature of 0.7, with the same model + téperature → Reviewer, which appears to be PASS, but two of the ividences are fictional and the whole review is more dangerous than it is without review (because the user trusts the mark that has been reviewed).
+
+**Reviewer's specialty**: Reviewer is the most intriguable character in Multi-Agent -- its judgment is the system's "quality gate". The Reviewer model does not need to be "smart." What is needed is "temperature 0", structured output enforcement, and evidence field requires specific filenames: line numbers. There are one or two imperfect solutions that Execut wrote -- users can fix themselves. Reviewer missed a security check -- users trusted the pass mark, which could lead to an online accident.
 
 ### 8.6.6 Easing of parameters — different roles, different parameters
 
@@ -981,7 +1011,9 @@ The same model, different parameter configurations allow the same model to prese
 
 ### 8.6.7 Configuration management - from scattered locations to "configuration or code"
 
-Three Agents managed manually okay. At five Agents, Systems Prompt, White List of Tools, Model Selection, Parameters are scattered in multiple files. Modifys the review criteria for Reviewer, forgetting that the summary logic of Supervisor is being updated simultaneously - the system is beginning to show subtle inconsistencies. **Recommended practice: Agent configuration centralized, Systems Prompt external documentation.**
+Three Agents managed manually okay. At five Agents, Systems Prompt, White List of Tools, Model Selection, Parameters are scattered in multiple files. Modifys the review criteria for Reviewer, forgetting that the summary logic of Supervisor is being updated simultaneously - the system is beginning to show subtle inconsistencies.
+
+**Recommended practice: Agent configuration centralized, Systems Prompt external documentation.**
 
 ```python
 # agent_configs.py — Single fact source for all Agent configurations
@@ -1041,7 +1073,9 @@ We've talked about the structure of the three modes of collaboration and how eac
 
 The most intuitive means of communication is to allow Agent to speak freely — as human beings do, you talk to me. This is the Group Chat mode: multiple Agents speak freely in a shared conversation.
 
-However, in Multi-Agent, free dialogue is the most expensive, difficult to debug and the easiest to fail. There are three reasons: **1. Information decay.** The original message declines every time it passes between Agent. AgentA's discovery was repeated by AgentB, and then by AgentC's quote - when it came to Supervisor, the original specific judgment became a vague impression.
+However, in Multi-Agent, free dialogue is the most expensive, difficult to debug and the easiest to fail. There are three reasons:
+
+**1. Information decay.** The original message declines every time it passes between Agent. AgentA's discovery was repeated by AgentB, and then by AgentC's quote - when it came to Supervisor, the original specific judgment became a vague impression.
 
 ```text
 Original: "config.yaml 8th row api key field is clear, there is a risk of leakage"
@@ -1053,11 +1087,17 @@ Original: "config.yaml 8th row api key field is clear, there is a risk of leakag
 "The team discussed safety."← Original message completely lost
 ```
 
-**2. Intentional distortion.** One Agent says "recommended optimization", the other Agent understands "must optimization". The word "recommended" and "must" distinguish between human communication, and the word between Agent is easily lost.**3. Blur decision-making.** Free dialogue has no "decision point". Agent can keep talking about "consent" and "complement" and "advice" and "further consider" -- no one says "discussion is over, and the following is a decision." The final output was not a decision-making exercise, but a summary of the discussions.
+**2. Intentional distortion.** One Agent says "recommended optimization", the other Agent understands "must optimization". The word "recommended" and "must" distinguish between human communication, and the word between Agent is easily lost.
+
+**3. Blur decision-making.** Free dialogue has no "decision point". Agent can keep talking about "consent" and "complement" and "advice" and "further consider" -- no one says "discussion is over, and the following is a decision." The final output was not a decision-making exercise, but a summary of the discussions.
 
 ### 8.7.2 Design communication formats by collaborative mode
 
-Alternatives to free dialogue are **structured communications**. This is not the definition of a low-to-high protocol hierarchy, but rather the translation of three of the previously mentioned collaboration models into a specific message format: Reviewer needs to review worksheets, Supervisor needs task sheets and reports, and Paallel Specialists needs to show results with dimensions. **Reviewer mode: command-response** Reviewer should not have received a sentence "Look at this program for me," but rather a review sheet. It's clear in the worksheet: what to review, what criteria to review, how to give evidence after failure.
+Alternatives to free dialogue are **structured communications**. This is not the definition of a low-to-high protocol hierarchy, but rather the translation of three of the previously mentioned collaboration models into a specific message format: Reviewer needs to review worksheets, Supervisor needs task sheets and reports, and Paallel Specialists needs to show results with dimensions.
+
+**Reviewer mode: command-response**
+
+Reviewer should not have received a sentence "Look at this program for me," but rather a review sheet. It's clear in the worksheet: what to review, what criteria to review, how to give evidence after failure.
 
 ```json
 {
@@ -1116,7 +1156,11 @@ Reviewer's response will be equally rigid. Note that there is no "overview" fiel
 }
 ```
 
-This format is suitable for quality gates: security clearance, front-line inspection, programme acceptance, code review. It is characterised by the fact that **both input and output are binding** and Agent cannot circumvent judgement in natural languages. **Supervisor Mode: Template - Fill** When Supervisor dismantles the mission, don't just say, "You go to the research vector database." It should give Worker a filled list of tasks: what to do, what to do, what to deliver.
+This format is suitable for quality gates: security clearance, front-line inspection, programme acceptance, code review. It is characterised by the fact that **both input and output are binding** and Agent cannot circumvent judgement in natural languages.
+
+**Supervisor Mode: Template - Fill**
+
+When Supervisor dismantles the mission, don't just say, "You go to the research vector database." It should give Worker a filled list of tasks: what to do, what to do, what to deliver.
 
 ```json
 {
@@ -1160,7 +1204,11 @@ Worker, when you return, do not write a long, freely developed text, but complet
 }
 ```
 
-This format is suitable for parallel research and aggregation. It doesn't have the Reviewer so rigid, but it limits the output shape through templates to avoid three different reports from Walker. **Parallel Specialists Mode: Dimensions - Mark** The key to Parallel Specialists is not "talk to each other", but to each discovery with its source dimension. In this way, Supervisor is able to focus on the conflict, rather than drawing a vague summary of different perspectives.
+This format is suitable for parallel research and aggregation. It doesn't have the Reviewer so rigid, but it limits the output shape through templates to avoid three different reports from Walker.
+
+**Parallel Specialists Mode: Dimensions - Mark**
+
+The key to Parallel Specialists is not "talk to each other", but to each discovery with its source dimension. In this way, Supervisor is able to focus on the conflict, rather than drawing a vague summary of different perspectives.
 
 ```json
 {
@@ -1208,7 +1256,9 @@ The result of the merger would also be to retain the structure. If two dimension
 }
 ```
 
-This format is suitable for a multi-perspective review of the same product: correctness, safety, performance, cost, user experience. It does not focus on reaching agreement among multiple Agents, but rather on allowing different dimensions of judgement to be tracked, merged and adjudicated. **Core principles of structured communications**:
+This format is suitable for a multi-perspective review of the same product: correctness, safety, performance, cost, user experience. It does not focus on reaching agreement among multiple Agents, but rather on allowing different dimensions of judgement to be tracked, merged and adjudicated.
+
+**Core principles of structured communications**:
 
 - **Not accepted as "comprehensively all right"**: the results of the review must be specific, article-by-article and supported by evidence.
 - **Free text only appears at leaf node**: the description may be a natural language, but the "bones" of communication (state, type, location, severity) must be structured fields.

@@ -66,15 +66,21 @@ You looked over the track one time. In step 3, these things are inserted in the 
 - Step 2 tool call results — code library search results (2,500 tokens)
 - Historical Message 1800 tokens
 
-The total is about 18,000 tokens. When the model makes its decisions in such a long context, the probability that key information will be ignored increases markedly, especially when it is buried in the middle of a large number of tool results and historical news. The directive "Reaction in Chinese" is still in the context, but it does not necessarily gain sufficient weight in current decision-making. **It's not like the model suddenly gets stupid. Not the RAG problem. It's not about memory. It's not about tools.**
+The total is about 18,000 tokens. When the model makes its decisions in such a long context, the probability that key information will be ignored increases markedly, especially when it is buried in the middle of a large number of tool results and historical news. The directive "Reaction in Chinese" is still in the context, but it does not necessarily gain sufficient weight in current decision-making.
 
-**You turned Agent's context into a dump.** Every time you introduce a new capability -- RAG, Memoory, Tool -- you add something to the context. But no one has stopped thinking: is it reasonable to organize these things? How many signals and noises in the context?
+**It's not like the model suddenly gets stupid. Not the RAG problem. It's not about memory. It's not about tools.**
+
+**You turned Agent's context into a dump.**
+
+Every time you introduce a new capability -- RAG, Memoory, Tool -- you add something to the context. But no one has stopped thinking: is it reasonable to organize these things? How many signals and noises in the context?
 
 That's what Context Engineering is about to solve.
 
 ## 4.2 Context Engineering core: deciding what to see in the current step
 
-Take a step back and figure out a fundamental question: **What can the model see?** The model has no eyes. No ears. It can't see your code warehouse, it can't see your database, it can't see your file system. The only thing it can "see" every time it reasons is the pile of text you put in when you call API -- the context.
+Take a step back and figure out a fundamental question: **What can the model see?**
+
+The model has no eyes. No ears. It can't see your code warehouse, it can't see your database, it can't see your file system. The only thing it can "see" every time it reasons is the pile of text you put in when you call API -- the context.
 
 ```text
 The current phase of the model's direct vision.= The context you put in.
@@ -84,17 +90,27 @@ Models don't "remember" what you said last time.
 The model does not "take the initiative" for anything (unless it decides to call the tool, and the tool results are back in context).
 ```
 
-But there's a key distinction, and many beginners will ignore: **The current step of the model can only see the context directly, but the full view of the Agent system is much more than the context.** Agent can also expand its indirect vision by:
+But there's a key distinction, and many beginners will ignore:
+
+**The current step of the model can only see the context directly, but the full view of the Agent system is much more than the context.**
+
+Agent can also expand its indirect vision by:
 
 - Tools: Read files, search databases, search code libraries on demand - information is not in context but is readily available through tools
 - External status: scratchpad file, runtime state, database cursor - task progress and intermediate results outside context
 - Memoory store: Long-term memory is not in the context, but only when required Back
 - File system: large files, logs, configuration files are not context-specific, only index maintained
-- Agent: Take the big mission out, and Agent digs deep in his own context and returns to the enrichment. **Context Engineering's mission is not to "plug all horizons into models," but to decide "what to see at this stage."** More precisely:
+- sub Agent: Take the big mission out, and Agent digs deep in his own context and returns to the enrichment.
+
+**Context Engineering's mission is not to "plug all horizons into models," but to decide "what to see at this stage."**
+
+More precisely:
 
 > Context Engineering is not writing Prompt. It is an engineering system that dynamically manages "what information enters the model, which information remains external, which information is compressed, which information is sent to the subAgent for quarantine, which information can be cached and which information needs to be evaluated" before every step of Agent's decision.
 
-Prompt Engineering is concerned with "How to write the instructions clearly"; RAG is concerned with "What to look at from the knowledge base"; Memoory is concerned with "What to write across the wheel"; **Context Engineering is concerned with "What to see in models before every decision is made."** The four relationships are:
+Prompt Engineering is concerned with "How to write the instructions clearly"; RAG is concerned with "What to look at from the knowledge base"; Memoory is concerned with "What to write across the wheel"; **Context Engineering is concerned with "What to see in models before every decision is made."**
+
+The four relationships are:
 
 ```text
 RAG "Check what."── → Information producers
@@ -109,16 +125,16 @@ Without the organizers, the more the producers, the more messy they are. It's no
 As the capacity to introduce courses 2 to 4 grows, so does the context:
 
 ```text
-V0(Minimum closed circle:
+V0(Minimum closed circle):
   Context= System Prompt + User Message+ History+ Tool Results
 
-V1(Access RAG:
+V1(Access RAG):
   Context= System Prompt + RAG Snippet+ User Message+ History+ Tool Results
 
-V2(Access:
+V2(Access):
   Context= System Prompt + Memory Call back.+ RAG Snippet+ User Message+ History+ Tool Results
 
-V3(Access Planning:
+V3(Access Planning):
   Context= System Prompt + Implementation plan+ Memory Call back.+ RAG Snippet+ User Message+ History+ Tool Results
 
 Each step adds something to the context. If unorganized, V3 is not stronger Agent, but more messy Agent.
@@ -175,7 +191,7 @@ The core message of this picture is: **Context Engineering is not "how token" bu
 
 The structure of this chapter follows this landscape:
 
-- **.4 Three introductory packages**: starting with layering, budget, selection - a basic version of Context Engineering
+- **4.4 Three introductory packages**: starting with layering, budget, selection - a basic version of Context Engineering
 - **4.5 Production level five means**: write, select, compress, isolate, cache - complete production level toolbox
 - **4.6 Tool output**: single deep tool output, the most explosive source
 - **4.7 Assessment**: How to verify that your context strategy is working
@@ -188,7 +204,9 @@ But let me be clear: **These three are introductory versions, not complete metho
 
 ### 4.4.1 Layers: Why not mix RAG, Memory, tool results?
 
-Do not mix different types of information into models. To structure the context so that models can distinguish between "this is the rule," "this is the reference," "this is the state" and "this is history". **Bad practice:**
+Do not mix different types of information into models. To structure the context so that models can distinguish between "this is the rule," "this is the reference," "this is the state" and "this is history".
+
+**Bad practice:**
 
 ```text
 Scroll all information in message arrays:
@@ -300,7 +318,9 @@ The following are not inserted into the context and the model is accessible thro
 
 The core value of this tiered approach is **to reduce the probability that key information will be inundated by noise.** Research and practice have shown that intermediate information in the context is more likely to be overlooked, which is often referred to as the "lost in the Middle" effect. Placing behavioral restraints at the beginning, following the current task, at the end of the external index is not always the best formula, but rather a sound engineering inspiration: let the model see the rules and objectives first, and finally see the entry point where information can continue to be obtained.
 
-Key design decisions: **RAG and Memory to separate.** RAG is mission-related knowledge -- "What's the structure of this project?" Memory is user-related knowledge -- "What's this guy prefer to answer?" Combining makes it difficult to distinguish between "fact" and "preference". Tool Defenses and Tool Resources are also separated. **Tool definition tells the model what you can do, tool results tells the model what happened last time.** One is a capacity statement and the other is implementation feedback. When separated, the result of the historical tool can be trimmed when the context is overstretched without affecting the model ' s understanding of the tools available.
+Key design decisions: **RAG and Memory to separate.** RAG is mission-related knowledge -- "What's the structure of this project?" Memory is user-related knowledge -- "What's this guy prefer to answer?" Combining makes it difficult to distinguish between "fact" and "preference". Tool Defenses and Tool Resources are also separated.
+
+**Tool definition tells the model what you can do, tool results tells the model what happened last time.** One is a capacity statement and the other is implementation feedback. When separated, the result of the historical tool can be trimmed when the context is overstretched without affecting the model ' s understanding of the tools available.
 
 ### 4.4.2 Budget: Long context is not a free warehouse
 
@@ -335,13 +355,17 @@ Set the Token budget for each layer:
 | Personal Assistant | Memoory self-management is more important - the cost of false memories is far greater than the cost token |
 | Enterprise Knowledge Bank | Permission filter + Reference trace over token optimization |
 
-Core principles for budget allocation: **The model is given whatever is needed for decision-making in this round. Models may later be needed, not necessarily now, to be converted into external indices and then acquired through tools when needed.** This explains why context cannot directly replace RAG. The long context is suitable for reading a small number of high-level materials at once, and the RAG is suitable for screening evidence from a large, complex and continuously changing knowledge base. The production system is not usually one-size-fits-all, but a combination: first by searching, filtering and reranking, then by putting a small number of high-value segments into the context; and then by using tools to read them as needed, if the model so requires.
+Core principles for budget allocation: **The model is given whatever is needed for decision-making in this round. Models may later be needed, not necessarily now, to be converted into external indices and then acquired through tools when needed.**
+
+This explains why context cannot directly replace RAG. The long context is suitable for reading a small number of high-level materials at once, and the RAG is suitable for screening evidence from a large, complex and continuously changing knowledge base. The production system is not usually one-size-fits-all, but a combination: first by searching, filtering and reranking, then by putting a small number of high-value segments into the context; and then by using tools to read them as needed, if the model so requires.
 
 ### 4.4.3 Choice: Who should be left behind when the context is overstretched?
 
 The budget was set, but it was still running well. The tool returns a 10000 line log, RAG recalls 20 clips. A choice must be made.
 
-Core principles selected: **Sorted according to "Model decision-making dependency on this information" rather than "Is the information itself important?"** A memory may be important, but if it is not needed at this stage, it should not be at the expense of the budget.
+Core principles selected: **Sorted according to "Model decision-making dependency on this information" rather than "Is the information itself important."**
+
+A memory may be important, but if it is not needed at this stage, it should not be at the expense of the budget.
 
 ```text
 Crop priority (from first to later):
@@ -381,7 +405,9 @@ The three introductory packages (stratification, budget, selection) address the 
 
 ### 4.5.1 Writing context: not just reading, but taking notes
 
-Agent cannot rely only on chat history. The history of chat is a flow of books — each round of conversations is recorded, sequenced and not structured. When the task exceeds 10 paces, spans hours or even days, the flowbook history can get the model lost. **External status required:**
+Agent cannot rely only on chat history. The history of chat is a flow of books — each round of conversations is recorded, sequenced and not structured. When the task exceeds 10 paces, spans hours or even days, the flowbook history can get the model lost.
+
+**External status required:**
 
 - Dismantling current target and subtask
 - Completed steps and key outputs
@@ -392,7 +418,9 @@ Agent cannot rely only on chat history. The history of chat is a flow of books �
 - User clearly identified constraints and decision-making
 - Tool call result index (where is the complete result, what is the key finding)
 
-This information does not need to be fully contextualized in each round, but needs to be systematically retained and selectively injected when appropriate. **Bad practice:**
+This information does not need to be fully contextualized in each round, but needs to be systematically retained and selectively injected when appropriate.
+
+**Bad practice:**
 
 ```text
 The full historical tool results and messages are inserted back in each round:
@@ -410,6 +438,7 @@ The model starts to "forget" the user's release requirements, ignores the README
 ```
 
 **Better practice:**
+
 ```text
 Scratchpad / Runtime State:
 
@@ -445,19 +474,33 @@ Scratchpad can be written to a file by tool or saved by runningtime state scheme
 
 ### 4.5.2 Selection of context: Selected from mass information what the current steps need
 
-Select to use the most frequent operation in Context Engineering. Its core questions are: **pick out what is really needed in terms of RAG results, Memory recall, tool definition, historical news.** This is different from "crop" in Section 4.4.3. Cutting is passive — the context is too limited. The choice is proactive — screening before injecting context.
+Select to use the most frequent operation in Context Engineering. Its core questions are: **pick out what is really needed in terms of RAG results, Memory recall, tool definition, historical news.**
 
-Select the core strategy: **RAG Option** (see chapter II for further details):
+This is different from "crop" in Section 4.4.3. Cutting is passive — the context is too limited. The choice is proactive — screening before injecting context.
+
+Select the core strategy:
+
+**RAG Option** (see chapter II for further details):
 
 - Relevance score threshold filter
 - Heavy: Only one of the same contents is kept
-- Conflict detection: when two clips give contradictory information, the priority time stamp is updated or the source is more authoritative **Memory Option** (see chapter III for further details):
+- Conflict detection: when two clips give contradictory information, the priority time stamp is updated or the source is more authoritative
+
+**Memory Option** (see chapter III for further details):
+
 - Only recall memories related to the semantics of the current task
 - Time decay: the longer the memory, the higher the relevance score to be recalled
-- User clearly set memory ( "Remember, I prefer X") above automatically extrapolated memory **Tool selection**:
+- User clearly set memory ( "Remember, I prefer X") above automatically extrapolated memory
+
+**Tool selection**:
+
 - Not all tools are defined per round. The current step is probably not a tool that can't be used.
 - When there are too many tools, group them by category, first let the model select the category and then inject the specific tool under the category
-- When tools describe overlap, merge or remove redundancy tools - vague tool descriptions are themselves context noise **History Choice** - Last 3-5 rounds of original retention
+- When tools describe overlap, merge or remove redundancy tools - vague tool descriptions are themselves context noise
+
+**History Choice**
+
+- Last 3-5 rounds of original retention
 - Keep only summary earlier
 - A branch of history that has nothing to do with the current job can be cut.
 
@@ -474,6 +517,7 @@ Three compression types:
 | **Task compression** | Execute Track | Current plan, completed/to-do, blocking points, verified facts | Specific implementation process, retreat operation, resolved branch | Mission status drift - summary and actual inconsistent |
 
 **History compression example:**
+
 ```text
 Original history (1500 tokens, 5 rounds of dialogue):
 User: Check the paper on contact engineering
@@ -493,6 +537,7 @@ To be confirmed: continuation of discussion on the remaining two.
 ```
 
 **Example of tool compression:**
+
 ```text
 Original tool result (3,000 tokens, grep returns 120 lines matching):
 [120 Row grep output……]
@@ -511,7 +556,9 @@ Compression is not an LLM you imagine calling out. The compression itself makes 
 
 ### 4.5.4 Context of isolation: When should Agent see everything himself?
 
-This is a relatively new engineering practice. Core idea: **Don't let a master Agent eat all the context. The Jean-Agent digs locally in his own context and returns only the results of the compression to the main Agent.** Agent can consume a large amount of token to dig up a problem -- reading dozens of files, analyzing complete logs, retrieving a large number of documents -- but returns only the sum of 1000-2000 tokens to master Agent. The context of the main Agent remains light.
+This is a relatively new engineering practice. Core idea: **Don't let a master Agent eat all the context. The Jean-Agent digs locally in his own context and returns only the results of the compression to the main Agent.**
+
+Each sub Agent can consume a large amount of token to dig up a problem -- reading dozens of files, analyzing complete logs, retrieving a large number of documents -- but returns only the sum of 1000-2000 tokens to master Agent. The context of the main Agent remains light.
 
 | scene | Bad practice. | Better practices |
 |---|---|---|
@@ -525,7 +572,9 @@ The context isolation of subAgent is essentially part of Context Engineering -- 
 
 ### 4.5.5 Cache and Company: Long sessions are not just handwritten summaries
 
-Context management in the production environment also takes into account two issues that are easily overlooked by beginners: **cache** and **automatic compression**. **Cache concerns stabilization prefix.** Many model platforms will cache duplicate prompt prefixes to reduce delays and costs. The context must be assembled in such a way as to stabilize the stable content:
+Context management in the production environment also takes into account two issues that are easily overlooked by beginners: **cache** and **automatic compression**.
+
+**Cache concerns stabilization prefix.** Many model platforms will cache duplicate prompt prefixes to reduce delays and costs. The context must be assembled in such a way as to stabilize the stable content:
 
 ```text
 Fits to stabilize prefix:
@@ -558,8 +607,9 @@ The practical approach is not one: critical mission status is written in Scratch
 
 ### 4.6.1 Why tool output is the easiest to explode
 
-Tool output is the most destructive of all context sources of pollution. The reason is simple: **You can't completely control the size of the tool output.** - System Prompt was written by you, the length is controlled.
+Tool output is the most destructive of all context sources of pollution. The reason is simple: **You can't completely control the size of the tool output.**
 
+- System Prompt was written by you, the length is controlled.
 - RAG turns out you search, you can just take top-K.
 - Memoory recall is under your control and you can set a numerical ceiling.
 
@@ -571,7 +621,9 @@ Back to the 4.1 scene: After reading a technical detail in README, Agent deviate
 
 ### 4.6.2 Resulting in thinness
 
-Different tools require different thin tactics: **Strategy I: Cut + Mark (suitable for file reading, log view)**
+Different tools require different thin tactics:
+
+**Strategy I: Cut + Mark (suitable for file reading, log view)**
 
 ```text
 Original Output: 1500 Line Log
@@ -584,7 +636,9 @@ After processing:
 Total 1500 rows, showing 50 lines at the end. If you want to view the full log, specify the line range.
 ```
 
-Key: Interception must be marked with "what to cut" and "how to get what's left." Otherwise, the model may make an erroneous inference based on incomplete information. **Strategy II: Extract + Summary (suitable for code search, document retrieval)**
+Key: Interception must be marked with "what to cut" and "how to get what's left." Otherwise, the model may make an erroneous inference based on incomplete information.
+
+**Strategy II: Extract + Summary (suitable for code search, document retrieval)**
 
 ```text
 Original output: grep returns 120 matching results
@@ -604,7 +658,9 @@ Search for "content window" found 120 matches in 8 files. Group by document:
    Use "geep-n 'content window"<file>" View Specific Lines
 ```
 
-Key: Structure the search results so that the model can quickly locate the most relevant files, rather than get lost in the 120 line grep output. **Strategy III: Structure + Filter (suitable for API calls, database queries)**
+Key: Structure the search results so that the model can quickly locate the most relevant files, rather than get lost in the 120 line grep output.
+
+**Strategy III: Structure + Filter (suitable for API calls, database queries)**
 
 ```text
 Original output: API returns 200 user records (JSON, 20 fields per field)
@@ -627,7 +683,9 @@ Key: Don't let the model "remember" a lot of structured data. Keep summary and i
 
 ### 4.6.3 Tool return is not just short, but actionable.
 
-Skinnyness is the first step. But the good instrument output is not only short — it should directly serve the next decision. **Bad tool returns:**
+Skinnyness is the first step. But the good instrument output is not only short — it should directly serve the next decision.
+
+**Bad tool returns:**
 
 ```text
 Search for "rate lister" returns 120 line matches:
@@ -640,7 +698,9 @@ src/api/handlers.py:56:       if not limiter.check_limit(user_id):
 [115 more lines]
 ```
 
-The model needs to solve 120 lines, figure out the focus, decide which document to read next. Each step represents an additional cost of reasoning and opportunity for error. **Better tool returns:**
+The model needs to solve 120 lines, figure out the focus, decide which document to read next. Each step represents an additional cost of reasoning and opportunity for error.
+
+**Better tool returns:**
 
 ```json
 {
@@ -703,6 +763,7 @@ The following types of tools are suitable for clean-up rather than compression:
 ```
 
 **Clean vs compression option:**
+
 | Situation | Compression | Clean up. |
 |---|---|---|
 | Results may be cited in subsequent steps | ✅ | ❌ |
@@ -856,7 +917,9 @@ Key principles: **External information can provide facts that do not cover the r
 
 ## 4.7 How does the context strategy really work?
 
-Context Engineering can't just feel -- "I think the answer is better after the layering" is not engineering language. You need indicators and data to verify that the strategy is actually working. **Core assessment indicators:**
+Context Engineering can't just feel -- "I think the answer is better after the layering" is not engineering language. You need indicators and data to verify that the strategy is actually working.
+
+**Core assessment indicators:**
 
 | Indicators | Annotations | How? |
 |---|---|---|
@@ -872,7 +935,9 @@ Context Engineering can't just feel -- "I think the answer is better after the l
 | Injection Resistance | Whether to continue to comply with the rules of the system in the event of malicious instructions in the external context | Construct RAG/webpage/tool output injection sample |
 | Context Ablation Sensitivity | Whether the result after deleting a category of context is significantly degraded | Remove RAG, Memoory, Tool Digest, ScratchPad |
 
-**A simple A/B assessment design:** It does not need to be fully automated from the outset. Fixed 30 representative mission samples, hand-run four sets:
+**A simple A/B assessment design:**
+
+It does not need to be fully automated from the outset. Fixed 30 representative mission samples, hand-run four sets:
 
 ```text
 A Group: Full context (V0 baseline)
@@ -951,7 +1016,9 @@ Context Engineering is also following the "on demand" principle. A complex desig
 4. **Prototype validation phase**: still checking if "this direction works". V0 is completely acceptable. Context Engineering is a means of optimization, not a precondition.
 5. **Short life cycle Agent**: This Agent was abandoned only a few times — for example, one-time data migration script. It's not worth setting up a context line.
 
-A judgement signal: **When you find yourself beginning to write "Please follow Rule X" in System Prompt, indicate that the context is long enough to be bound by the model. This is the signal that introduced Context Engineering.** In turn, if your Agent is running well now — the restraints are being complied with, the tools are not being missed, the users are not complaining about the quality of the answer being reduced — then continue with the current context strategy. **Contex Engineering is a cure, not a healthcare. Don't eat when there's no problem.**
+A judgement signal: **When you find yourself beginning to write "Please follow Rule X" in System Prompt, indicate that the context is long enough to be bound by the model. This is the signal that introduced Context Engineering.**
+
+In turn, if your Agent is running well now — the restraints are being complied with, the tools are not being missed, the users are not complaining about the quality of the answer being reduced — then continue with the current context strategy. **Contex Engineering is a cure, not a healthcare. Don't eat when there's no problem.**
 
 ### Summary of this chapter
 
@@ -992,7 +1059,7 @@ npm start
 
 ---
 
-> **Chapter IV Review.** You now have four perspectives on Agent: RAG that allows it to access external knowledge, Memoory that allows it to remember user and task status, Context Engineering that allows multi-source information to be organized in the context rather than flood each other. These three together make up Agent's context-enhanced capacity-- It's a question of "where the information for decision-making comes from and how."
+> **Chapter Review.** You now have four perspectives on Agent: RAG that allows it to access external knowledge, Memoory that allows it to remember user and task status, Context Engineering that allows multi-source information to be organized in the context rather than flood each other. These three together make up Agent's context-enhanced capacity-- It's a question of "where the information for decision-making comes from and how."
 >
 > Agent, however, faced with a complex task, had another problem that remained unresolved: **information was available, but the sequence of implementation between multiple steps, dependency, failure to restore how to organize?** Naked Rect Cycle has no mission structure, multi-step tasks are easily driftable and do not know where to recover from.
 >

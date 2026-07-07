@@ -43,7 +43,15 @@ The commonality of such scenarios is that **the correct answer is not in the mod
 
 ### 2.2.1 LLM knowledge dilemma
 
-Even in June 2026, LLM faced several core knowledge-related dilemmas - not "the limits of the early version", but inherent problems at the level of the architecture of the larger language model: **Block one: knowledge cut-off date.** Each model has a training data collection deadline. Regardless of how new the model is, its parameter knowledge can only reflect information that is already in the data and training process at the time of training; and the changes in internal company policies, personal notes, APIs issued on the day, which are naturally not in model parameters. **Trouble II: hallucination.** LLM does not speak honestly about what it doesn't know, but prefers to make up a sound answer -- non-existent papers, fictional API parameters, empty data. The larger context window and the greater ability to reason reduced the hallucination rate, but did not eliminate it. **Scenario III: Insufficient knowledge density.** The knowledge in the training data is thin. With regard to the internal processes of a company and the best practices of a small technology warehouse, there may be only a few sections in the training data, and the model is difficult to remember accurately. **Task IV: The cost of updating knowledge.** To enable models to learn new knowledge, traditional practice is to retrain or fine-tune — costly, long-term, and potentially disastrously forgotten. Even RLHF and continuous pre-training can't do "policy change today, model today."
+Even in June 2026, LLM faced several core knowledge-related dilemmas - not "the limits of the early version", but inherent problems at the level of the architecture of the larger language model: 
+
+**Trouble one: knowledge cut-off date.** Each model has a training data collection deadline. Regardless of how new the model is, its parameter knowledge can only reflect information that is already in the data and training process at the time of training; and the changes in internal company policies, personal notes, APIs issued on the day, which are naturally not in model parameters.
+
+**Trouble II: hallucination.** LLM does not speak honestly about what it doesn't know, but prefers to make up a sound answer -- non-existent papers, fictional API parameters, empty data. The larger context window and the greater ability to reason reduced the hallucination rate, but did not eliminate it.
+
+**Trouble III: Insufficient knowledge density.** The knowledge in the training data is thin. With regard to the internal processes of a company and the best practices of a small technology warehouse, there may be only a few sections in the training data, and the model is difficult to remember accurately.
+
+**Trouble IV: The cost of updating knowledge.** To enable models to learn new knowledge, traditional practice is to retrain or fine-tune — costly, long-term, and potentially disastrously forgotten. Even RLHF and continuous pre-training can't do "policy change today, model today."
 
 ### 2.2.2 The birth of RAG
 
@@ -186,7 +194,9 @@ The task of data access and preprocessing is to consolidate these personal notes
 |---|---|---|
 | `~/notes/` Markdown file (possibly mixed with pure text, code clips, external links) | File scan, Markdown parsing, YaML frontmatter extraction, weight removal, timetamp extraction | Clean body, title path, source filename, creation/modification time, label |
 
-Knowledge access and pre-processing determine the upper limit of search quality. Garbage in, out of; if draft fragments in notes, repeat paragraphs, format noises are entered directly into the library, subsequent embedding, rerank, and prompt can only be remedied by the results of the contamination. **Intakes in the personal knowledge base**: For personal notes, data sources are relatively concentrated, but there are still different intake pathways:
+Knowledge access and pre-processing determine the upper limit of search quality. Garbage in, out of; if draft fragments in notes, repeat paragraphs, format noises are entered directly into the library, subsequent embedding, rerank, and prompt can only be remedied by the results of the contamination.
+
+**Intakes in the personal knowledge base**: For personal notes, data sources are relatively concentrated, but there are still different intake pathways:
 
 | Data Sources | Ingestion mode | Attention to the personal knowledge base landscape |
 |---|---|---|
@@ -196,7 +206,9 @@ Knowledge access and pre-processing determine the upper limit of search quality.
 | PDF/papers | Parser extract body | Double Column PDF requires layout testing; reference areas need to be singled out |
 | Record of the dialogue (historical dialogue with Agent) | Session Log Export | A large number of words, proxies, incomplete sentences that require a specific cleansing strategy |
 
-> **Expanded Perspectives**: In the business scene, data sources also include databases (JDBC/ODBC connectors, CDC Change Captures), operations API (REST/GraphQL Time Draw), web pages (Crawler+ Dynamic Rendering). This section is based on a personal knowledge base, but these pre-treatment principles — cleansing, metadata labelling, freshness management — are applicable to all sources. **Data cleansing and standardization**: using the user Markdown notes as an example, the original file may contain the following noise:
+> **Expanded Perspectives**: In the business scene, data sources also include databases (JDBC/ODBC connectors, CDC Change Captures), operations API (REST/GraphQL Time Draw), web pages (Crawler+ Dynamic Rendering). This section is based on a personal knowledge base, but these pre-treatment principles — cleansing, metadata labelling, freshness management — are applicable to all sources.
+
+**Data cleansing and standardization**: using the user Markdown notes as an example, the original file may contain the following noise:
 
 - YAML frontmatter( `---` The package's metadata block) needs to be extracted as a structured field during the resolution and not kept in the body.
 - The contents from the web page may contain navigational links, ads, comment areas.
@@ -239,7 +251,9 @@ This is usually the case for an available personal note record:
 }
 ```
 
-Note field selection for this record: none `page ` Fields (Markdown file does not have a page number concept), but instead uses ` section_path ` as primary coordinates for reference and navigation; no ` tenant_id ` and ` permission `(Personal knowledge base defaults to be visible only) ` tags ` and ` status` (Help filter by theme and completion). **Data freshness management**: A feature of personal notes is "continuous changes" — users may have written a note today and come back next week to add a few paragraphs. The knowledge base needs to keep pace with these changes:
+Note field selection for this record: none `page ` Fields (Markdown file does not have a page number concept), but instead uses ` section_path ` as primary coordinates for reference and navigation; no ` tenant_id ` and ` permission `(Personal knowledge base defaults to be visible only) ` tags ` and ` status` (Help filter by theme and completion).
+
+**Data freshness management**: A feature of personal notes is "continuous changes" — users may have written a note today and come back next week to add a few paragraphs. The knowledge base needs to keep pace with these changes:
 
 - **Additional update**: scan `~/notes/` When comparing files to mtime, only new or modified files are resolved, split, embedding, and the entire index is not recreated.
 - **Version test**: When the same note is saved several times as a different file name (e.g. `tool-use-v2.md ` 、 ` tool-use-final.md` ) Reverts the latest version by default on search.
@@ -263,11 +277,17 @@ After the data cleansing is completed, the document is a complete long text - th
 
 **Why does it need Chunging** The ultimate goal of RAG is to place external knowledge in the LLM context window so that the model can be informed. But the context window is limited -- whether 128K or 1M tokens, it is a hard ceiling. A technical manual may contain hundreds of thousands of words and a knowledge base may contain tens of thousands of documents. You can't put the entire knowledge base in a request.
 
-This raises an issue that must be addressed: **How can the information most relevant to the user question be placed in a limited window?** The answer is "retrieving" — search first, pick again, and end with only the most relevant parts. Retrieving, however, is possible provided that the knowledge base has been divided into modules that can be independently retrieved. If the document is still an entire manual, the search can only tell you "this whole manual is relevant to the user's problems", which is no different from not being retrieved.
+This raises an issue that must be addressed: **How can the information most relevant to the user question be placed in a limited window?**
+
+The answer is "retrieving" — search first, pick again, and end with only the most relevant parts. Retrieving, however, is possible provided that the knowledge base has been divided into modules that can be independently retrieved. If the document is still an entire manual, the search can only tell you "this whole manual is relevant to the user's problems", which is no different from not being retrieved.
 
 So the root cause of Chunking is not "document too long" but: **context window is limited to the most relevant information → needs to be retrieved to filter → index units that require reasonable particle size**. The cut is not intended to shorten the document, but rather to allow the search to find precisely those parts of the user question and place them in a limited window.
 
-But everything comes up. Part of the action involves both directions, which conflict with each other: **Direction I: Retrieving accuracy.** Severity is the drawing of the boundary, which determines which information will be bound together and which will be separated from it. In order for the search to be precise, with no trace of noise, the ideal state is that each chunk has only one theme, small and focused. But small chunk means that information is dispersed: a key condition and its scope of application can be cut into two blocks, only one of which can be retrieved, and the model gets incomplete information. **Direction II: Context integrity.** Whatever the search method, the final entry into the LLM context window is the complete chunk. To get LLM to understand the context of the answer, the ideal state is chunk big and self-sufficient, with a complete chain of argument. But big chunk means a block of themes -- when you search a hit, the noise and useful information go into the window and the precision goes down.
+But everything comes up. Part of the action involves both directions, which conflict with each other:
+
+**Direction I: Retrieving accuracy.** Severity is the drawing of the boundary, which determines which information will be bound together and which will be separated from it. In order for the search to be precise, with no trace of noise, the ideal state is that each chunk has only one theme, small and focused. But small chunk means that information is dispersed: a key condition and its scope of application can be cut into two blocks, only one of which can be retrieved, and the model gets incomplete information.
+
+**Direction II: Context integrity.** Whatever the search method, the final entry into the LLM context window is the complete chunk. To get LLM to understand the context of the answer, the ideal state is chunk big and self-sufficient, with a complete chain of argument. But big chunk means a block of themes -- when you search a hit, the noise and useful information go into the window and the precision goes down.
 
 Two directions are drawn: **small for precision, but small for context; large for completeness, but low for precision.** There is no "best size" to satisfy all scenes at the same time, so Chunging is essentially a trade-off between "retrieving precision" and "the integrity of context."
 
@@ -282,7 +302,9 @@ Documents:[============== 10Technical manual for all words==============]
     +-------+  +-------+  +-------+  +-------+  +-------+
 ```
 
-The trade-off is not abstract — it has concrete manifestations in every dimension. To understand these manifestations, you know what you choose to do when you choose a strategy. **Small vs Large Trade-off:**
+The trade-off is not abstract — it has concrete manifestations in every dimension. To understand these manifestations, you know what you choose to do when you choose a strategy.
+
+**Small vs Large Trade-off:**
 
 | Dimensions | Tiny  | Big  |
 |---|---|---|
@@ -293,7 +315,9 @@ The trade-off is not abstract — it has concrete manifestations in every dimens
 | Best scene | Factual questions and answers, FAQ | Explanatory questions and answers, tutorials, long document understanding |
 | Token consumption (one search) | Low | High |
 
-The type of document varies, as does the size of the naturally appropriate particles. The following is the point of reference for common scenes — not the rule of death, but the intuitive: **Reference chunk size for different scenarios:**
+The type of document varies, as does the size of the naturally appropriate particles. The following is the point of reference for common scenes — not the rule of death, but the intuitive:
+
+**Reference chunk size for different scenarios:**
 
 - FAQ/Customs: 256-512 tokens. Problems usually focus on a specific point.
 - Technical documentation: 512-1024 tokens. Function/API documentation is usually within this range.
@@ -305,7 +329,9 @@ Understands why Chunking and the small and the large each means, and then how to
 
 **Chunking treatment strategy**
 
-**Policy I: Fixed-size Chunking** The simplest method — to be divided by the number of tokens — is usually to avoid border breaks by adding an overlapping area (overlap).
+**Policy I: Fixed-size Chunking**
+
+The simplest method — to be divided by the number of tokens — is usually to avoid border breaks by adding an overlapping area (overlap).
 
 ```python
 # Intuitively
@@ -318,13 +344,25 @@ Understands why Chunking and the small and the large each means, and then how to
 
 Advantages: simple, quick calculation. Disadvantages: May cut between sentences and undermine semantic integrity.
 
-It's simple, but the gap between the sentences is not a small problem. – If the chunk of an API document is disconnected in the middle of the parameter name, it is difficult to strike a key or semantic match when you search. The root cause of this problem is: **the semantic boundary of fixed segments that do not sense the document**. This leads to strategy two. **Strategy II: Semantic Chunking** The boundary is divided by natural paragraphs and sentences, guaranteeing the semantic integrity of each block.
+It's simple, but the gap between the sentences is not a small problem. – If the chunk of an API document is disconnected in the middle of the parameter name, it is difficult to strike a key or semantic match when you search. The root cause of this problem is: **the semantic boundary of fixed segments that do not sense the document**. This leads to strategy two.
+
+**Strategy II: Semantic Chunking**
+
+The boundary is divided by natural paragraphs and sentences, guaranteeing the semantic integrity of each block.
 
 Advantages: Each semantic block is complete and the search results are readable. Disadvantages: The size of blocks is uneven and may result in too large or too small.
 
-"The size of the block is not evenly balanced" seems to be elegant and the practical question is more specific: Too big to go back to the opposite of strategy one — to pull in a lot of noise when searching; too small (e.g. a single word) loses context. The semantic section solved "where to cut" but not "how to cut out too big or too small." Strategy 3 adds this constraint. **Strategy III: Recursive Chunking** Try first with a larger separator (e.g. a paragraph) and then with a smaller separator (e.g. a sentence) to descend.
+"The size of the block is not evenly balanced" seems to be elegant and the practical question is more specific: Too big to go back to the opposite of strategy one — to pull in a lot of noise when searching; too small (e.g. a single word) loses context. The semantic section solved "where to cut" but not "how to cut out too big or too small." Strategy 3 adds this constraint.
 
-The subdivision is folded between semantic boundaries and size controls, but it relies on a common separator, as is strategy II. `\n\n ` 、 `.` 、 `.` ) does not know the structure of the document itself. In a technical document written in Marktown, he wrote: `##` and ` ### ` It's the logical boundary that the author labels: Strategy IV uses this information. **Policy IV: Document Structure Sensitization Section (Document History-Aware Chunging)** For documents with clearly structured marks (Markdown, HTML, Word with title styles), split by title level so that each chunk natural corresponds to a logical subsection. This is particularly effective for personal notes.` # `/` ## `/` ### ` Title level, each ` ##` The subsections are usually an independent knowledge module.
+**Strategy III: Recursive Chunking**
+
+Try first with a larger separator (e.g. a paragraph) and then with a smaller separator (e.g. a sentence) to descend.
+
+The subdivision is folded between semantic boundaries and size controls, but it relies on a common separator, as is strategy II. `\n\n ` 、 `.` 、 `.` ) does not know the structure of the document itself. In a technical document written in Marktown, he wrote: `##` and ` ### ` It's the logical boundary that the author labels: Strategy IV uses this information.
+
+**Strategy IV: Document Structure Sensitization Section (Document History-Aware Chunging)**
+
+For documents with clearly structured marks (Markdown, HTML, Word with title styles), split by title level so that each chunk natural corresponds to a logical subsection. This is particularly effective for personal notes.` # `/` ## `/` ### ` Title level, each ` ##` The subsections are usually an independent knowledge module.
 
 Back to the knowledge assistant. A user's note. `agent-tool-use-design.md` It's like this:
 
@@ -399,7 +437,17 @@ An easy error is the uniform use of all notes once a strategy has been selected.
 
 A more pragmatic approach: **depending on the type of document and actual data characteristics, different cut-off strategies for different sources may even be used overlay**(e.g. by maintaining the logical subsection with the document structure sensory partition, followed by a secondary split with the extruded fraction). Ultimately, the results will be judged, not the "high sense" of strategy.
 
-But the strategy is just "how to cut" and there's also a need to consider the search side of the project - progress techniques: **Small Retrieval + Large Return** Use `### ` Level-level sub-section blocks for vector retrieval (high accuracy) ` ## ` Returns to LLM either by the father or by an adjacent block. For example, to retrieve a single line of duty.` ### ` When you get back, put the whole tool design principle.` ## ` And the festival. Balance precision with integrity. **Abstract support search**. The LLM pre-generated a summary for each subsection of a note, the index is summarized, and the original chunk is returned. The summary is more focused and has less noise than the original. It's for a long, multi-topic picture of a note. **Hyde.** Let LLM generate a hypothetical answer to a user question before searching, and then use that hypothetical answer to search. The rationale is that user questions are often presented in the same way and notes are not in the same distribution -- users ask, "What's the difference between the design ideas of Tool Use and Memoory?" The notes say, "Tool Use is called outward, Memoory is looked inward," and the wording is very different. But the hypothetical answer would naturally say, "The fundamental difference in design philosophy between the two is that...", which is more similar to the original text of the notes and has a higher search rate of hits. **Multiparticle index**. In the same note an index of multiple particle sizes - sentence, paragraph,` ### ` Sub-level,` ## ` Section. Select the size of the particle according to the type of query: the short question of fact ( "What is the principle of a single duty for Tool Use") hits the sentence level or ` ### ` Level index, explanatory question ( "Tool Use and Memoory Design Philosophy Distinction") life Medium ` ##` Section index. **Designing the decision-making order for Chunging (as in the case of the personal knowledge base):**
+But the strategy is just "how to cut" and there's also a need to consider the search side of the project - progress techniques:
+
+**Small Retrieval + Large Return** Use `### ` Level-level sub-section blocks for vector retrieval (high accuracy) ` ## ` Returns to LLM either by the father or by an adjacent block. For example, to retrieve a single line of duty.` ### ` When you get back, put the whole tool design principle.` ## ` And the festival. Balance precision with integrity.
+
+**Abstract support search**. The LLM pre-generated a summary for each subsection of a note, the index is summarized, and the original chunk is returned. The summary is more focused and has less noise than the original. It's for a long, multi-topic picture of a note.
+
+**Hyde.** Let LLM generate a hypothetical answer to a user question before searching, and then use that hypothetical answer to search. The rationale is that user questions are often presented in the same way and notes are not in the same distribution -- users ask, "What's the difference between the design ideas of Tool Use and Memoory?" The notes say, "Tool Use is called outward, Memoory is looked inward," and the wording is very different. But the hypothetical answer would naturally say, "The fundamental difference in design philosophy between the two is that...", which is more similar to the original text of the notes and has a higher search rate of hits.
+
+**Multiparticle index**. In the same note an index of multiple particle sizes - sentence, paragraph,` ### ` Sub-level,` ## ` Section. Select the size of the particle according to the type of query: the short question of fact ( "What is the principle of a single duty for Tool Use") hits the sentence level or ` ### ` Level index, explanatory question ( "Tool Use and Memoory Design Philosophy Distinction") life Medium ` ##` Section index.
+
+**Designing the decision-making order for Chunging (as in the case of the personal knowledge base):**
 
 1. **See first the type of notes**: the Markdown notes that regulate the title level use a structural sensor segment; the wordinformatics or Agentic segments of the draft; and the penitentiaries are stacked with code sense partitions with a large number of codes. Do not use a single token number toggle.
 2. **Reset the target particle size**: if the users are mostly "the single duty principle of Tool Use" what is it? `###` Level; medium block if there are questions such as "explaining the philosophical difference between the design of Tool Use and Memory" that require a complete chain of argument. ` ##` Level).
@@ -419,7 +467,11 @@ Prior to the rise of vector search, the main method of information retrieval is 
 
 - Query "Tool Use" → Match notes containing "Tool Use" and "Design"
 - Query "tool call mode" doesn't match the notes above.
-- Ask "How to use this tool" still matches the notes above. **Semantic Gap** is an insurmountable obstacle to keyword retrieval. When you look at "Agent how to remember user preferences," a note entitled "Memoory Mechanism's Writing Strategy and Recall Design" might be perfect for your needs, but BM25 would give it a low score because it doesn't overlap. **Nature of Embedding**: Map text to high-dimensional vector space to bring text similar to semantics closer in space.
+- Ask "How to use this tool" still matches the notes above.
+
+**Semantic Gap** is an insurmountable obstacle to keyword retrieval. When you look at "Agent how to remember user preferences," a note entitled "Memoory Mechanism's Writing Strategy and Recall Design" might be perfect for your needs, but BM25 would give it a low score because it doesn't overlap.
+
+**Nature of Embedding**: Map text to high-dimensional vector space to bring text similar to semantics closer in space.
 
 ```
 "Tool Use Different from the design philosophy of memory." → [0.12, -0.34, 0.78, ..., 0.05]  (768Vector)
@@ -431,13 +483,29 @@ sim("Tool Use Distinguishing from Memoory's Design Philosophy, "Single Principle
 sim("Tool Use The difference between Memory's design philosophy, RAG Chunking Best Practices)= 0.12  ← Different themes, low-like
 ```
 
-In high-dimensional vector space, semantic relations are expressed in geometry: issues of proximity and documents are located in the nearest region, and the content of different topics naturally rises apart. Early word vectors often explain analogies; but in RAG scenes, more importantly, **queryes and documents are relevant**, rather than word level analogies. **Development of Embeding Model**: **First generation: Word2Vec (2013).** Mikolov et al. have enabled models to learn the distributional expression of words through training objectives for "predicting context" (Skip-gram) or "predicting central word" (CBOW). Word2Vec, however, is **static** - each word has only a fixed vector and cannot deal with multiple meanings ( "apples" as fruit and brand should be different vectors). **Second generation: BERT (2018).** The biggest breakthrough of BERT is the expression of **context-related**. The same apple, the "I ate an apple" and the "Apple released a new phone" will have different vectors. BERT has learned deep language understanding through pre-training in two missions: Masked Language Model and Next Science Protection. **Third generation: Setence-BERT (2019).** BERT can generate vectors for each token, but simple average pool does not work well to get a full sentence. Setence-BERT uses twin network structures and specialized training models to generate meaningful sentence level vectors - The vectors of two similar sentences are brought closer and not similar pushed away. **After 2022: Generic text optimization model for search missions.** Text-embeding-ada-002, text-embeding-3 models are directly oriented towards job optimization such as text similarities, retrieval and clustering, supporting longer text, multilingual and dimension configurations. Multilingual models such as BGE-M3 and Multilingual-e5 emphasize cross-linguistic alignment, allowing text with similar synonyms in different languages to be mapped to a similar vector area. The BGE-M3 model also places the capabilities of dense, sparse, multi-vector in the same model community, suggesting that embedding is not just a "one text, one vector". **Research policy: dense vs thin vs mixed**
+In high-dimensional vector space, semantic relations are expressed in geometry: issues of proximity and documents are located in the nearest region, and the content of different topics naturally rises apart. Early word vectors often explain analogies; but in RAG scenes, more importantly, **queryes and documents are relevant**, rather than word level analogies.
+
+**Development of Embeding Model**:
+
+**First generation: Word2Vec (2013).** Mikolov et al. have enabled models to learn the distributional expression of words through training objectives for "predicting context" (Skip-gram) or "predicting central word" (CBOW). Word2Vec, however, is **static** - each word has only a fixed vector and cannot deal with multiple meanings ( "apples" as fruit and brand should be different vectors).
+
+**Second generation: BERT (2018).** The biggest breakthrough of BERT is the expression of **context-related**. The same apple, the "I ate an apple" and the "Apple released a new phone" will have different vectors. BERT has learned deep language understanding through pre-training in two missions: Masked Language Model and Next Science Protection.
+
+**Third generation: Setence-BERT (2019).** BERT can generate vectors for each token, but simple average pool does not work well to get a full sentence. Setence-BERT uses twin network structures and specialized training models to generate meaningful sentence level vectors - The vectors of two similar sentences are brought closer and not similar pushed away.
+
+**After 2022: Generic text optimization model for search missions.** Text-embeding-ada-002, text-embeding-3 models are directly oriented towards job optimization such as text similarities, retrieval and clustering, supporting longer text, multilingual and dimension configurations. Multilingual models such as BGE-M3 and Multilingual-e5 emphasize cross-linguistic alignment, allowing text with similar synonyms in different languages to be mapped to a similar vector area. The BGE-M3 model also places the capabilities of dense, sparse, multi-vector in the same model community, suggesting that embedding is not just a "one text, one vector".
+
+**Research policy: dense vs thin vs mixed**
 
 **Dense Retrievation**: both queries and documents are mapped in dense vectors using the Embeding model and retrieved through vector similarities.
 
-Advantages: capture semantic similarities. Disadvantages: Insensitive to proprietary terms, precise matching (the "AK-47" and "M16" vectors may be close, but they are different guns). **Sparse Retrieval / BM25**: Keyword matching based on word frequency and reverse document frequency (TF-IDF).
+Advantages: capture semantic similarities. Disadvantages: Insensitive to proprietary terms, precise matching (the "AK-47" and "M16" vectors may be close, but they are different guns).
 
-Advantages: Accurate matching capability (searching for GDP growth does not return to economic growth). Disadvantage: Unable to handle semantic variants. **Hybrid Retrieval** — Almost standardised in the production environment:
+**Sparse Retrieval / BM25**: Keyword matching based on word frequency and reverse document frequency (TF-IDF).
+
+Advantages: Accurate matching capability (searching for GDP growth does not return to economic growth). Disadvantage: Unable to handle semantic variants.
+
+**Hybrid Retrieval** — Almost standardised in the production environment:
 
 ```python
 def hybrid_search(query: str, documents: List[str], top_k: int = 5, alpha: float = 0.5):
@@ -455,9 +523,19 @@ def hybrid_search(query: str, documents: List[str], top_k: int = 5, alpha: float
     return sorted(combined_scores.items(), key=lambda x: x[1], reverse=True)[:top_k]
 ```
 
-Dense / sparse / hybrid is the basic framework developed around 2023, which by 2025-2026 is still a valid engineering classification, but several new forces are blurring the boundaries of the retrieval strategy: **Dense and sparse border is disappearing.** A new generation of Embeding models (e.g. BGE-M3) originally supported the simultaneous output of dense vectors and sparse vectors without the need to deploy two separate stand-alone systems to collage. The other line is **learning-type thin search**(e.g. SPLADE) - it is not a simple TF-IDF word frequency count, but a neuronet learning the weight of each word for queries. Effect close to dense search, but retains precision and interpretability of key word matching. **Multi-Vector / Late International.** Dense search compresses the entire text into a vector (one-way), SPLADE uses a thin weight vector, while ColBERT models like this take a third route: preserve the independent vector of each token in the document, and search and document make a fine particle scale similar to that of the token level. Its accuracy and recall rates are better than pure dense and pure sparse, at the expense of greater storage and computing, as an option for "effective but cost threshold". **Agenda Retrieval / Iterative Retrieval.** The traditional search-reflow line is a fixed process: rewrite the query → recall rerank generation. A new paradigm now emerges: to involve LLM in search in an iterative manner - after seeing the results of the initial recall, to determine whether there is a need to change the search terms, to go into a sub-topic and to add a keyword search. Retrieving is no longer a one-way water line, but a cycle of "results, decide next steps". It has the advantage of dealing with complex, multi-jumping queries ( "What's the policy of Plan A and B?"), but delays and costs are much higher than traditional streaming lines. **Chart + vector integration.** Vector search is good at "everything about X", but weak in precise relationship queries ("what upstream services this module relies on". The idea is to include the structural relationship of the knowledge map in the search signal - first to find the entity in the vector, then to expand the upstream/downstream relationship along the edge of the map, so that the search results are both semantic and structural.
+Dense / sparse / hybrid is the basic framework developed around 2023, which by 2025-2026 is still a valid engineering classification, but several new forces are blurring the boundaries of the retrieval strategy:
 
-Dense / sparse / hybrid is the main line, the above is the direction of evolution that is taking place. When choosing the search architecture, three questions are asked: Are there a large number of terms and precise fields in the text (whether key words are needed or not)? Does the delayed budget allow multiple LLM calls to participate in the search loop? Is there a significant relationship of reliance or citation between knowledge (whether a chart is needed or not)? **Indexes are not as simple as saving vectors.** In the RAG system, the function of the index layer is to organize the chunks produced during the offline phase into a rapidly retrievable, filterable, traceable and updated search structure. It must answer at least four questions:
+**Dense and sparse border is disappearing.** A new generation of Embeding models (e.g. BGE-M3) originally supported the simultaneous output of dense vectors and sparse vectors without the need to deploy two separate stand-alone systems to collage. The other line is **learning-type thin search**(e.g. SPLADE) - it is not a simple TF-IDF word frequency count, but a neuronet learning the weight of each word for queries. Effect close to dense search, but retains precision and interpretability of key word matching.
+
+**Multi-Vector / Late International.** Dense search compresses the entire text into a vector (one-way), SPLADE uses a thin weight vector, while ColBERT models like this take a third route: preserve the independent vector of each token in the document, and search and document make a fine particle scale similar to that of the token level. Its accuracy and recall rates are better than pure dense and pure sparse, at the expense of greater storage and computing, as an option for "effective but cost threshold".
+
+**Agentic Retrieval / Iterative Retrieval.** The traditional search-reflow line is a fixed process: rewrite the query → recall rerank generation. A new paradigm now emerges: to involve LLM in search in an iterative manner - after seeing the results of the initial recall, to determine whether there is a need to change the search terms, to go into a sub-topic and to add a keyword search. Retrieving is no longer a one-way water line, but a cycle of "results, decide next steps". It has the advantage of dealing with complex, multi-jumping queries ( "What's the policy of Plan A and B?"), but delays and costs are much higher than traditional streaming lines.
+
+**Graph + vector integration.** Vector search is good at "everything about X", but weak in precise relationship queries ("what upstream services this module relies on". The idea is to include the structural relationship of the knowledge map in the search signal - first to find the entity in the vector, then to expand the upstream/downstream relationship along the edge of the map, so that the search results are both semantic and structural.
+
+Dense / sparse / hybrid is the main line, the above is the direction of evolution that is taking place. When choosing the search architecture, three questions are asked: Are there a large number of terms and precise fields in the text (whether key words are needed or not)? Does the delayed budget allow multiple LLM calls to participate in the search loop? Is there a significant relationship of reliance or citation between knowledge (whether a chart is needed or not)?
+
+**Indexes are not as simple as saving vectors.** In the RAG system, the function of the index layer is to organize the chunks produced during the offline phase into a rapidly retrievable, filterable, traceable and updated search structure. It must answer at least four questions:
 
 - Which chunk semantics are relevant when the user asks this question?
 - Do users have access to these chunk?
@@ -503,7 +581,9 @@ So a production-level index is usually not a single vector bank, but a combinati
 }
 ```
 
-These fields are not meant to look complete, but to follow up on the project: `section_path ` It's used for reference demonstrations and user viewing. ` tags ` and ` status ` It's for filtering (only public notes, only certain topics). ` updated_at ` It's used to sort old and new information. ` chunker_version ` and ` embedding_model ` It's for searching for quality changes. ` sparse_terms` A precise match for BM25 keyword search. **Why does the vector index need to be specifically designed?** If there are only thousands of chunks in the knowledge base, the cosine similarity of the query vector and each chunk can run. But when the index is hundreds of thousands, millions or even larger, it slows down. Vector databases usually use approximation-based Nearest Neighbor, ANN in exchange for speed:
+These fields are not meant to look complete, but to follow up on the project: `section_path ` It's used for reference demonstrations and user viewing. ` tags ` and ` status ` It's for filtering (only public notes, only certain topics). ` updated_at ` It's used to sort old and new information. ` chunker_version ` and ` embedding_model ` It's for searching for quality changes. ` sparse_terms` A precise match for BM25 keyword search.
+
+**Why does the vector index need to be specifically designed?** If there are only thousands of chunks in the knowledge base, the cosine similarity of the query vector and each chunk can run. But when the index is hundreds of thousands, millions or even larger, it slows down. Vector databases usually use approximation-based Nearest Neighbor, ANN in exchange for speed:
 
 | Methodology | Intuitive understanding. | It suits the scene. | Cost |
 |---|---|---|---|
@@ -511,7 +591,11 @@ These fields are not meant to look complete, but to follow up on the project: `s
 | IVF | Let's start with multiple drums and search only the most relevant barrels when searching. | Large-scale index, swallowing requirements High | Recall quality dependent on cluster quality |
 | PQ / Quantization | Compress vectors, reduce storage and calculate costs | It's a huge, cost-sensitive scene. | Precision may decline, need to be assessed and weighed. |
 
-The key here is not to remember algorithms, but to understand a engineering fact: **Vector index is a trade-off between recall quality, delay, memory, construction costs**. Index parameters are too radical to be retrieved quickly but missing the correct information; too conservatively, recall is more complete but delays and costs increase. **The metadata filter should be pre-empted as much as possible.** Conditions such as document status (draft/publicized), labels, time horizons should not be checked only at the generation stage. For example, in the case of knowledge assistants, users say, "Only the last six months' notes" or "Only the notes that have been released", and the more stable approach is:
+The key here is not to remember algorithms, but to understand a engineering fact: **Vector index is a trade-off between recall quality, delay, memory, construction costs**. Index parameters are too radical to be retrieved quickly but missing the correct information; too conservatively, recall is more complete but delays and costs increase. 
+
+**The metadata filter should be pre-empted as much as possible.**
+
+Conditions such as document status (draft/publicized), labels, time horizons should not be checked only at the generation stage. For example, in the case of knowledge assistants, users say, "Only the last six months' notes" or "Only the notes that have been released", and the more stable approach is:
 
 ```text
 User problems
@@ -535,7 +619,9 @@ There are several key decisions in index design:
 | Metadata Filter | Pre-filter, post-filter, pre-filter + post-check | Permission risk, filter complexity, recall stability |
 | Index Update | Full reconstruction, incremental updating, version coexistence | Frequency of data change, roll-back demand, online stability |
 
-**Index also has a life cycle.** Embeding is not a one-time off-line job, and indexing is not "do as long as it's done." As long as data, models or chunk strategies change, the index may need to be rebuilt or relocated. The production system usually stays. `embedding_model ` 、 ` chunker_version ` 、 ` index_version` These fields avoid the mixing of different versions of vectors resulting in an unexplained search quality.
+**Index also has a life cycle.**
+
+Embeding is not a one-time off-line job, and indexing is not "do as long as it's done." As long as data, models or chunk strategies change, the index may need to be rebuilt or relocated. The production system usually stays. `embedding_model ` 、 ` chunker_version ` 、 ` index_version` These fields avoid the mixing of different versions of vectors resulting in an unexplained search quality.
 
 Common life cycle operations include:
 
@@ -650,8 +736,8 @@ User questions (rewritten by 2.4.5):
 Index Library: 200+ Notes, about 2,000 chunks
   │
   ├─ Vector recall top 20:
-  │   Hit anent-tool-use-design.md associated cunks()§Principles of tool design,§The relationship with memory)
-  │   Hit ant-memoory-mechanism.md associated cunks§Design philosophy,§Writing Policy)
+  │   Hit anent-tool-use-design.md associated cunks(§Principles of tool design,§The relationship with memory)
+  │   Hit ant-memoory-mechanism.md associated cunks(§Design philosophy,§Writing Policy)
   │   Hit rag-retrieval-practical.md (Victoral Panoramic Error) Medium——It's about searching, but not memory philosophy.
   │
   ├─ Keyword Callback Top 20:
@@ -845,7 +931,7 @@ Attention:
 
 - Every key assertion carries a quote label. `[S1]` - `[S4]`, traceable to specific notes and subsections.
 - The model didn't make it up -- it didn't say, for example, "Tool Use is more important than Memoory" because it was not in the notes.
-- If there's a conflicting view in the notes, `agent-memory-mechanism.md` Unlike the other note, which assesses memory), prompt requests that the model identify the source of the conflict, rather than choose only the advantage.
+- If there's a conflicting view in the notes, (`agent-memory-mechanism.md` Unlike the other note, which assesses memory), prompt requests that the model identify the source of the conflict, rather than choose only the advantage.
 
 There is also a strategy for the presentation of evidence (in the case of the different types of problems of knowledge assistants):
 
@@ -906,7 +992,7 @@ Offline phase: build-up
 
 Online phase: queries
 
-User question: "What difference does it make to memory?"?"(This is Tool Use.
+User question: "What difference does it make to memory?"(This is Tool Use.)
   -> Query understanding and rewriting (2.4.5)
      Output: "It." → "Tool Use",Rephrase it as "Tool Use and Memoory are fundamentally different from design philosophy."
      keywords: ["Tool Use", "Memory", "Design philosophy, difference.]

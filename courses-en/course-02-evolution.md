@@ -122,7 +122,6 @@ The system should at least deal with:
 - Which flights are budget-compliant?
 - How far is the hotel from the conference?
 - What are the prices allowed in the company's reimbursement policy?
-
 ...
 
 In the absence of LLM, the system depends on the engineer writing the rules in advance:
@@ -221,10 +220,12 @@ Traditional Agent left an important question that was almost impossible to answe
 If the user's target is not fully regulated, what should be the core of Agent's decision-making??
 ```
 
-Before LLM emerged, engineers had only a few paths: either to continue writing more rules, or to train specialized models for specific areas, or to limit tasks to a very narrow range. Each path is avoiding the real problem — users want a decision maker **who has a common understanding of natural language objectives.** After LLM came along, things changed. It gives the system, for the first time, a strong ability to understand natural language, common sense reasoning and mandate interpretation. It's not that ILM is perfect -- it's got a lot of problems, and we'll discuss it in detail later. But its emergence made Agent's core issue from:
+Before LLM emerged, engineers had only a few paths: either to continue writing more rules, or to train specialized models for specific areas, or to limit tasks to a very narrow range. Each path is avoiding the real problem — users want a decision maker **who has a common understanding of natural language objectives.**
+
+After LLM came along, things changed. It gives the system, for the first time, a strong ability to understand natural language, common sense reasoning and mandate interpretation. It's not that ILM is perfect -- it's got a lot of problems, and we'll discuss it in detail later. But its emergence made Agent's core issue from:
 
 ```text
-How to write all the rules.?
+How to write all the rules?
 ```
 
 Turned into:
@@ -241,7 +242,9 @@ This shift sounds just different, but its engineering implications are fundament
 
 ### 2.1 The core of Agent ' s decision-making has changed
 
-LLM didn't make all Agent's problems disappear, but it changed Agent's most critical layer: **The decision core.** Chapter I already speaks of the fundamental points of traditional Agent: the goal of open language is difficult to write in advance. Chapter II goes on to answer a more specific question:
+LLM didn't make all Agent's problems disappear, but it changed Agent's most critical layer: **The decision core.**
+
+Chapter I already speaks of the fundamental points of traditional Agent: the goal of open language is difficult to write in advance. Chapter II goes on to answer a more specific question:
 
 ```text
 If the rules don't go through, can the system hand over "understanding the goal and judge the next step" to the model??
@@ -369,7 +372,9 @@ A good decision-making core is a necessary but far from sufficient condition. Ag
 
 ## Chapter 3: Tools call - when models say, but do not do
 
-Tool Call (Tool Use) is the first clearly engineered capability in Agent 's evolution. It appears in a very straightforward context: **the model is a good word, but nothing can be done.** That sounds like a simple question -- take a few APIs. But look at it carefully, the actual impact of the tools called is far more profound than "accelerating API". It involves the relationship between models and the outside world, the boundaries of decision-making and implementation, and how tools are found, described, mobilized and governed. We're going from research to product to engineering interface, and we're going through this line completely.
+Tool Call (Tool Use) is the first clearly engineered capability in Agent 's evolution. It appears in a very straightforward context: **the model is a good word, but nothing can be done.**
+
+That sounds like a simple question -- take a few APIs. But look at it carefully, the actual impact of the tools called is far more profound than "accelerating API". It involves the relationship between models and the outside world, the boundaries of decision-making and implementation, and how tools are found, described, mobilized and governed. We're going from research to product to engineering interface, and we're going through this line completely.
 
 ### 3.1 LLM will say, but won't do
 
@@ -555,7 +560,9 @@ The tool calls to solve the problem of "LLM unable to act", but the problem of "
 
 ## Chapter 4: Reform - When reasoning and action need to enter the same cycle
 
-If you want to select a paper that has a profound impact on the Agent field, many researchers point to React. Not because it introduces a complex theory, but because it brings together two routes that have often evolved in isolation: **The model is reasoned in the text and the judgement continues to be revised in environmental feedback.** REACT is the classic framework for understanding the Agent run cycle. Its core is not a specific API or a frame name, but a way to run:
+If you want to select a paper that has a profound impact on the Agent field, many researchers point to React. Not because it introduces a complex theory, but because it brings together two routes that have often evolved in isolation: **The model is reasoned in the text and the judgement continues to be revised in environmental feedback.**
+
+ReAct is the classic framework for understanding the Agent run cycle. Its core is not a specific API or a frame name, but a way to run:
 
 ```text
 Reasoning + Acting
@@ -679,7 +686,9 @@ Each step here depends on the outcome of the previous step. The reasoning determ
 
 The way in which humans solve complex problems is never simply "debate" or simply "action" — it is a combination of the two. You have a problem, think about it and then check the information; change your mind when you see new information; and take the next step. The reasoning and actions are input-outputs, creating a dynamic cycle.
 
-The key insight of Rect is to translate this human problem resolution rhythm into a text agreement that LLM can implement: **Let the judgement trigger the action, let the outcome go back to context and influence the next judgement.**![The line of reasoning and the line of action.](../assets/course-02-reasoning-acting-merge.svg)
+The key insight of Rect is to translate this human problem resolution rhythm into a text agreement that LLM can implement: **Let the judgement trigger the action, let the outcome go back to context and influence the next judgement.**
+
+![The line of reasoning and the line of action.](../assets/course-02-reasoning-acting-merge.svg)
 
 ### 4.3 React Put judgment and action in the same cycle
 
@@ -788,7 +797,11 @@ The strong internal reasoning of the model is no substitute for external validat
 
 ### 5.2 Two-tier capability: internal model reasoning and external system feedback
 
-A clear distinction between these two layers of capability is key to understanding Agent's reliability. This is also one of the most important conceptual frameworks of the course. **The model's internal reasoning** refers to its ability to better address complex issues, split steps, compare paths and detect local contradictions before generating answers or decisions. It occurs during model generation and is based on context and the model ' s own knowledge. It has the advantage of being fast, flexible and broad-based. Its limitations are that it may be self-conforming internally but that it is not — logically, but the premise is wrong. It's like a student who wrote a perfect reasoning process on the paper, but the subject is wrong. **The external feedback of the system** refers to the collection of signals from outside the model while running to determine whether the current results are actually available. It occurs in Argentina and is based on tool results, certifiers, compilers, test frames and user feedback. It has the advantage of being closer to the real world and not relying on models to feel right. Its limitations are the need for engineering design and cost inputs -- you need to build a test system, verify logic, monitor the chain.
+A clear distinction between these two layers of capability is key to understanding Agent's reliability. This is also one of the most important conceptual frameworks of the course.
+
+**The model's internal reasoning** refers to its ability to better address complex issues, split steps, compare paths and detect local contradictions before generating answers or decisions. It occurs during model generation and is based on context and the model ' s own knowledge. It has the advantage of being fast, flexible and broad-based. Its limitations are that it may be self-conforming internally but that it is not — logically, but the premise is wrong. It's like a student who wrote a perfect reasoning process on the paper, but the subject is wrong.
+
+**The external feedback of the system** refers to the collection of signals from outside the model while running to determine whether the current results are actually available. It occurs in Argentina and is based on tool results, certifiers, compilers, test frames and user feedback. It has the advantage of being closer to the real world and not relying on models to feel right. Its limitations are the need for engineering design and cost inputs -- you need to build a test system, verify logic, monitor the chain.
 
 The distinction can be summarized as follows:
 
@@ -804,7 +817,9 @@ A reliable Agent needs these two layers of capacity to match. The system is pron
 
 ### 5.3 How mistakes are spread and amplified in multi-step missions
 
-After understanding the difference between these two layers of capability, look at a more dangerous phenomenon in multi-step missions: mistakes do not just sit there and stay there, but spread and zoom in **along the mission chain.** Assuming Agent is writing a competition analysis:
+After understanding the difference between these two layers of capability, look at a more dangerous phenomenon in multi-step missions: mistakes do not just sit there and stay there, but spread and zoom in **along the mission chain.**
+
+Assuming Agent is writing a competition analysis:
 
 - First step, it confuses the information of Company A and Company B. It's not a big mistake in itself -- it's just Zhang Li.
 - Second, it is based on a functional comparison of confused information. The comparative analysis itself may be very detailed and of impeccable logic, but the basis of the comparison is wrong.
@@ -841,7 +856,11 @@ For code tasks, the test is more credible than a model interpretation; for busin
 
 ### 5.5 Self-Refine and Reflexion: Rethinking the capacity to become Agent's built-in
 
-The feedback mechanism answered "what signals are available". But the next question is: **How can we organize these signals into a systematic correct process that makes them an integral part of the Agent run cycle?** Self-Refine and Reflexion of 2023 answered the question on two scales. **Self-Refine** Focusing on improvements in single output: Mr. made a first draft, then the model pointed out the problem with the "reviewer" role, and finally rewritten on the basis of criticism. It's worth separating "creation" and "criticism" from a general "check your answer." The limitations are also clear: if the model is systematically blind, a different role for the same model may be invisible. **Reflexion** puts reflection in the Agent cycle:
+The feedback mechanism answered "what signals are available". But the next question is: **How can we organize these signals into a systematic correct process that makes them an integral part of the Agent run cycle?**
+
+Self-Refine and Reflexion of 2023 answered the question on two scales. **Self-Refine** Focusing on improvements in single output: Mr. made a first draft, then the model pointed out the problem with the "reviewer" role, and finally rewritten on the basis of criticism. It's worth separating "creation" and "criticism" from a general "check your answer." The limitations are also clear: if the model is systematically blind, a different role for the same model may be invisible. 
+
+**Reflexion** puts reflection in the Agent cycle:
 
 ```text
 Tasks → Arguments → Action → Observation → Reflection → Memory → Next round of reasoning.
@@ -950,7 +969,13 @@ The word "first" is all that matters. The cost of the plan is much lower than th
 
 ### 6.3 From COT, TOT to Plan-and-Execute
 
-The evolution of Planning can be seen in roughly three steps: let the model write intermediate reasoning, then let the model compare multiple reasoning paths, and finally dismantle the plan and execution into a running-time structure. Each step addresses the problems left behind by the previous step. **Chain of Thought** solves "Don't jump": let the model write the middle step and give the answer. It allows complex reasoning to have scaffolds, but still essentially follows a path; if the first step goes astray, the later the error becomes more complete. **Tree of Thoughts** solves more than one path: Multiple candidate steps are generated at key nodes, and after assessment, a more promising path is selected, retrospectively if necessary. It enhances the ability to explore complex issues, but at the expense of multiple calls for models, which are significantly more costly. **Plan-and-Execute** moves Planning from hint techniques to running time structure. Many systems introduce a critical division of labour:
+The evolution of Planning can be seen in roughly three steps: let the model write intermediate reasoning, then let the model compare multiple reasoning paths, and finally dismantle the plan and execution into a running-time structure. Each step addresses the problems left behind by the previous step. 
+
+**Chain of Thought** solves "Don't jump": let the model write the middle step and give the answer. It allows complex reasoning to have scaffolds, but still essentially follows a path; if the first step goes astray, the later the error becomes more complete.
+
+**Tree of Thoughts** solves more than one path: Multiple candidate steps are generated at key nodes, and after assessment, a more promising path is selected, retrospectively if necessary. It enhances the ability to explore complex issues, but at the expense of multiple calls for models, which are significantly more costly.
+
+**Plan-and-Execute** moves Planning from hint techniques to running time structure. Many systems introduce a critical division of labour:
 
 ```text
 Planner: Sir is part of the mission plan.
@@ -999,13 +1024,15 @@ Planned → Implementation → Inspection → Replanning → Continue
 
 This explains why follow-up courses involve different models such as Chain, Router, Rect Loop, Plan-Execute, and Graph. Different mandates require different organizational approaches and no model is suitable for all scenarios.
 
-Planning allows individual Agent to manage more complex mission structures. But it didn't solve another dimension bottleneck: **when an Agent was pushed into too many different characters -- – Both product managers and safety engineers, writing both codes and documents – the context, tools and evaluation criteria conflict internally.** This is not a problem of "failure plans", but a problem of "nothing matters." This leads to Multi-Agent.
+Planning allows individual Agent to manage more complex mission structures. But it didn't solve another dimension bottleneck: **when an Agent was pushed into too many different characters -- Both product managers and safety engineers, writing both codes and documents – the context, tools and evaluation criteria conflict internally.** This is not a problem of "failure plans", but a problem of "nothing matters." This leads to Multi-Agent.
 
 ---
 
 ## Chapter 7: Multi-Agent -- When it matters, it doesn't.
 
-The last chapter of Planning solves "the task is too complicated to drift." Multi-Agent solves another dimension of the same problem: **When an Agent is pushed into too many different character roles, context, tools and targets conflict internally.** Not Agent's not strong enough, but "do whatever" itself leads to "do nothing." This insight is compatible with the "segregation of focus" in the software project: to separate the different functions so that each implementation module deals only with its most relevant context, tools and evaluation criteria.
+The last chapter of Planning solves "the task is too complicated to drift." Multi-Agent solves another dimension of the same problem: **When an Agent is pushed into too many different character roles, context, tools and targets conflict internally.**
+
+Not Agent's not strong enough, but "do whatever" itself leads to "do nothing." This insight is compatible with the "segregation of focus" in the software project: to separate the different functions so that each implementation module deals only with its most relevant context, tools and evaluation criteria.
 
 ### 7.1 An Agent will soon become a giant system of everything.
 
@@ -1176,8 +1203,9 @@ At least these are the layers of the Agent system, and different technologies so
 
 #### Step 3: What new problems does it pose?
 
-Any increase in capacity poses new problems. **Seeing new issues means you really understand old solutions.** - The more tools, the harder the choice.
+Any increase in capacity poses new problems. **Seeing new issues means you really understand old solutions.**
 
+- The more tools, the harder the choice.
 - The more complex the plan is, the easier it is to be implemented.
 - The more reflection is, the more likely it is to fall into self-consolation or infinity.
 - The more Agent, the harder it is to coordinate.

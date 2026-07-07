@@ -39,7 +39,9 @@ Agent:"Okay. → Call → Start Delete
 
 You suddenly saw a file name flashing... `.env.backup` I don't know. That's the backup file you manually put in last week, not the log. You didn't have time to stop. The papers are gone.
 
-It's not Agent "gets bad." It's done according to your instructions. The problem is: **The task of cleaning up log files has some consequences you didn't say (env backup cannot be deleted), and Agent is not aware of these implied constraints.** Another scenario: you're testing a guest suit, Agent. The user said, "I want a refund."
+It's not Agent "gets bad." It's done according to your instructions. The problem is: **The task of cleaning up log files has some consequences you didn't say (env backup cannot be deleted), and Agent is not aware of these implied constraints.**
+
+Another scenario: you're testing a guest suit, Agent. The user said, "I want a refund."
 
 ```text
 User: "This product doesn't work. I want a refund."
@@ -67,7 +69,9 @@ Judgment: Is this a suitable operation for the moment?
   Example: Delete /tmp/logs/access 2026.log is appropriate. Delete /tmp/logs/.env.backup
 ```
 
-The essence of HITL is that **when Agent's ability covers an operation, but the system cannot afford to return judgment to humans when all the rules of judgement are exhausted at the code level.** Why not write the rules in the code? Because:
+The essence of HITL is that **when Agent's ability covers an operation, but the system cannot afford to return judgment to humans when all the rules of judgement are exhausted at the code level.**
+
+Why not write the rules in the code? Because:
 
 - `.env.backup` Is that a log file? Not by naming rules, but it is under /tmp/logs directory. Agent didn't judge it.
 - Is the full refund appropriate? Depending on your refund policy, user history, value of orders... it's not a few lines if-else can cover.
@@ -90,7 +94,9 @@ Agent:"I will delete the following 12 files:
   [Confirmation of implementation] [Cancel] [Modify Scope]"
 ```
 
-Identification of the three design elements of the model: **1. Presentation of "effects" instead of "operations"**
+Identification of the three design elements of the model:
+
+**1. Presentation of "effects" instead of "operations"**
 
 ```text
 ❌ W: "Record call confirmation?"
@@ -107,7 +113,11 @@ Identification of the three design elements of the model: **1. Presentation of "
 [Confirm All] [Delete only.log files] [Let me confirm one by one.] [Cancel]
 ```
 
-The second option is to give humans a preference for confirmation. The granting of intermediate options has improved the quality of decision-making. **3. Complete but not lengthy context of confirmation** Humans need to see what they want to do, why they think they should do it, what risks they have, what they don't.
+The second option is to give humans a preference for confirmation. The granting of intermediate options has improved the quality of decision-making.
+
+**3. Complete but not lengthy context of confirmation**
+
+Humans need to see what they want to do, why they think they should do it, what risks they have, what they don't.
 
 ### 7.3.2 Clarification model
 
@@ -174,7 +184,11 @@ The core of the audit model is to enable humans **to quickly position what needs
 - There are many reasonable options.
 - Where it advises, but needs human tablets.
 
-Humans should not be allowed to read the full text in order to judge. **Stating uncertainty as the most valuable output of the audit model.**### 7.3.5 Teaching feedback model (Teaching Feedback) **When did you use**: Agent did something wrong or not good enough, humans did it, Agent learned from it.
+Humans should not be allowed to read the full text in order to judge. **Stating uncertainty as the most valuable output of the audit model.**
+
+### 7.3.5 Teaching feedback model (Teaching Feedback) 
+
+**When did you use**: Agent did something wrong or not good enough, humans did it, Agent learned from it.
 
 ```text
 Agent:"I generated a release for you."
@@ -208,8 +222,9 @@ Pedagogical feedback does not overzealate "self-learning". V0 is enough for imme
 
 ### 7.4.1 Risk classification: which operations require human intervention
 
-Not all operations need HITL. The classification is based on: **The irreversibility of the operation and the severity of the consequences.** | Risk level | Operational characteristics | HITL Mode | Example: |
+Not all operations need HITL. The classification is based on: **The irreversibility of the operation and the severity of the consequences.**
 
+| Risk level | Operational characteristics | HITL Mode | Example: |
 |---|---|---|---|
 | **Low** | Read-only, no side effects, repeatable | No need to intervene. | Read files, search codes, generate text |
 | of the | Writing but rolling back with small impact | Confirmation (quantity available) | Create/edit files, send drafts |
@@ -227,9 +242,15 @@ The risk classification should therefore not be based solely on the name of the 
 
 ### 7.4.2 Frequency control: Don't be too upset or too comfortable
 
-The hardest thing about HITL design is not "what to ask," but "how often." **Too often**: Human beings become "confirming robots". Each step points to confirmation that the user will soon develop a muscle memory — a "yes" without looking. HITL is nothing. **Too thin an effect**: Humans lose their sense of what Agent is doing. And when the problem was discovered, Agent had done ten irreversible operations.
+The hardest thing about HITL design is not "what to ask," but "how often."
 
-Several strategies for frequency control: **Strategy I: batch confirmation**
+**Too often**: Human beings become "confirming robots". Each step points to confirmation that the user will soon develop a muscle memory — a "yes" without looking. HITL is nothing.
+
+**Too thin an effect**: Humans lose their sense of what Agent is doing. And when the problem was discovered, Agent had done ten irreversible operations.
+
+Several strategies for frequency control:
+
+**Strategy I: batch confirmation**
 
 ```text
 ❌ Individual confirmation:
@@ -243,14 +264,22 @@ Several strategies for frequency control: **Strategy I: batch confirmation**
    [Confirm All] [Delete only.log files] [Individual confirmation] [Cancel]"
 ```
 
-**Strategy II: Building trust** If the user confirms the same operation five times in a row, you can ask: "Do you trust me in the operation of the same file, and don't confirm it item by item?"**Strategy III: Summary retroactive confirmation** Not to confirm each step before implementation, but to provide a summary after implementation to allow users to confirm the overall direction:
+**Strategy II: Building trust**
+
+If the user confirms the same operation five times in a row, you can ask: "Do you trust me in the operation of the same file, and don't confirm it item by item?"
+
+**Strategy III: Summary retroactive confirmation**
+
+Not to confirm each step before implementation, but to provide a summary after implementation to allow users to confirm the overall direction:
 
 ```text
 "Previous phase completed: 8 relevant documents have been collected for a total of 32KB. Prepare for writing.
  [Go on.] [View List of Documents] [Reorientation]"
 ```
 
-**Strategy IV: Decline of trust based on session** In the same session, Agent's judgment of user preferences will be more accurate. But after the break-up, trust should be reset — because mandates may be different.
+**Strategy IV: Decline of trust based on session**
+
+In the same session, Agent's judgment of user preferences will be more accurate. But after the break-up, trust should be reset — because mandates may be different.
 
 ### 7.4.3 Context: To enable humans to make quick judgements
 
@@ -283,14 +312,24 @@ Key design principles:
 
 HITL every intervention is marked once. Humans say "yes" or "no" and these signals are wasted if they are used only for current decision-making.
 
-Three levels of learning: **Level 1: Immediate application (Always)** Human decisions affect the continuing direction of the current task. "No refunds" – Agent stopped the refund process and informed the user. **Level 2: Prefer Update (in collaboration with Memoory)** When humans repeatedly confirm or reject the same operation, it updates memory:
+Three levels of learning:
+
+**Level 1: Immediate application (Always)**
+
+Human decisions affect the continuing direction of the current task. "No refunds" – Agent stopped the refund process and informed the user.
+
+**Level 2: Prefer Update (in collaboration with Memoory)**
+
+When humans repeatedly confirm or reject the same operation, it updates memory:
 
 ```text
 "User preference update: The user has confirmed the same operation three times in a row for the file cleanup operation under /tmp/logs.
 Next time, the frequency of confirmation can be reduced. "
 ```
 
-**Level III: strategy adjustments (needs manual review)** Analyzing from HITL data: Which operations have too low pass rate (notation Agent)? Which operators are never rejected (may not need HITL)?
+**Level III: strategy adjustments (needs manual review)**
+
+Analyzing from HITL data: Which operations have too low pass rate (notation Agent)? Which operators are never rejected (may not need HITL)?
 
 ```text
 HITL Data analysis (last 30 days):
@@ -316,13 +355,37 @@ Most projects start with V1. V0 is too conservative (Agent can't do anything use
 
 ## 7.7 HITL 's five reverse modes
 
-**Counter-model I: confirmed every step** Click the confirmation box before all tools are called. Result: User clicked 15 times in 30 seconds, and didn't look. HITL is nothing. **Correct practice**: intervention is limited to high-risk and critical operations. A low-risk operation allows it to be implemented automatically. **Anti-model II: insufficient information on confirmation boxes**
+**Counter-model I: confirmed every step**
+
+Click the confirmation box before all tools are called. Result: User clicked 15 times in 30 seconds, and didn't look. HITL is nothing. 
+
+**Correct practice**: intervention is limited to high-risk and critical operations. A low-risk operation allows it to be implemented automatically.
+
+**Anti-model II: insufficient information on confirmation boxes**
 
 ```text
 "Agent To execute write file, confirm?"
 ```
 
-Users do not know what to write, where to write, why, and what to do. This confirmation box does not give the user any basis for judgement. **Correct practice**: A path to document, summary of changes, basis of judgement for Agent. **Counter-model III: HiTL as a security mechanism** Use the HITL to prevent Prompt Intervention or ultra vires operations. "Someone confirmed that no input verification was required."**Correct practice**: HITL is a decision-making enhancement, not a complete security option. Security requires authority, verification, isolation, audit and Guardrails to work together. Humans also make mistakes -- the attacker can design the context in which humans tend to "confirm". **Counter-module IV: no timeout** Agent waits for humans to confirm that humans are going to meet. Agent's been waiting. **Correct practice**: set timeout. Overtime behaviour depends on operational risk - low-risk operations can continue automatically and high-risk operations should be terminated safely. **Anti-Model V: All users treated equally** New and senior users see the same frequency of confirmation. **Correct practice**: allows users to adjust the HITL level. The Developer Model can reduce the frequency of confirmation, the Security Model increases the frequency of confirmation. Let users themselves control the degree of autonomy they are willing to assume.
+Users do not know what to write, where to write, why, and what to do. This confirmation box does not give the user any basis for judgement.
+
+**Correct practice**: A path to document, summary of changes, basis of judgement for Agent.
+
+**Counter-model III: HiTL as a security mechanism**
+
+Use the HITL to prevent Prompt Intervention or ultra vires operations. "Someone confirmed that no input verification was required."
+
+**Correct practice**: HITL is a decision-making enhancement, not a complete security option. Security requires authority, verification, isolation, audit and Guardrails to work together. Humans also make mistakes -- the attacker can design the context in which humans tend to "confirm".
+
+**Counter-module IV: no timeout**
+
+Agent waits for humans to confirm that humans are going to meet. Agent's been waiting.
+
+**Correct practice**: set timeout. Overtime behaviour depends on operational risk - low-risk operations can continue automatically and high-risk operations should be terminated safely.
+
+**Anti-Model V: All users treated equally** New and senior users see the same frequency of confirmation.
+
+**Correct practice**: allows users to adjust the HITL level. The Developer Model can reduce the frequency of confirmation, the Security Model increases the frequency of confirmation. Let users themselves control the degree of autonomy they are willing to assume.
 
 ## 7.8 When don't need HITL
 

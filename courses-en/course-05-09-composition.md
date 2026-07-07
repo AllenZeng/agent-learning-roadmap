@@ -234,7 +234,9 @@ Minimum Closed Ring= prompt + LLM Decision-making+ Tool Call+ Cycle control+ Sta
 - Call tool to get information/ execute operations
 - Results-based decision-making for the next steps
 - Loop until the job is finished
-- Return final result **Minimum closed circle boundary:**
+- Return final result
+
+**Minimum closed circle boundary:**
 
 ```text
 ✅ is the smallest closed ring:
@@ -269,8 +271,12 @@ The following six cases cover the most common Agent scene. Each case starts with
 **Scene description:** Users have a large number of local notes (Markdown, PDF, Web Clip) and hope that Agent will be able to answer questions based on this information and give sources of reference. **Start question:**
 
 - User information is extensive and the model does not know what the information is.
-- User needs to cite the source. **Priority capacity:**
-- **RAG / External knowledge access**. That's core competence -- without it, Agent can only give a generic answer, and it can't meet the core requirement of "my notes."**Minimal version achieved:**
+- User needs to cite the source.
+
+**Priority capacity:**
+- **RAG / External knowledge access**. That's core competence -- without it, Agent can only give a generic answer, and it can't meet the core requirement of "my notes."
+
+**Minimal version achieved:**
 
 ```text
 Document Directory → Document parsing (Markdown/PDF) → Plain Text)
@@ -288,11 +294,19 @@ User Ask → Query Quantification → Search Top-K (K)=5-10)
 - Recall rate: Retrieving relevant documents found Blocks
 - Accuracy of answer: Whether the resulting answers correctly use the information retrieved
 - Quoting correctness: whether the reference mark points to the correct source
-- Refusal rate: When the information is not relevant, Agent honestly indicates that he does not know **Follow-up questions:**
+- Refusal rate: When the information is not relevant, Agent honestly indicates that he does not know
+
+**Follow-up questions:**
+
 - Users would like to remember the current research theme and the next dialogue could continue.
 - Multicycle queries need to be followed by context.
-- There is a lack of correlation between the multiple questions and answers on the same subject. **Reintroduced:**
-- **Summaries of sessions and lightweight Memoory**. Note that this is not the introduction of a complete long-term memory system, but a light solution to the specific issue of "Remembering the current research theme". **Memory Minimum:**
+- There is a lack of correlation between the multiple questions and answers on the same subject.
+
+**Reintroduced:**
+
+- **Summaries of sessions and lightweight Memoory**. Note that this is not the introduction of a complete long-term memory system, but a light solution to the specific issue of "Remembering the current research theme".
+
+**Memory Minimum:**
 
 ```text
 End of each session:
@@ -324,13 +338,20 @@ Minimum Closed Ring
 
 #### Case II: Code Review
 
-**Scene description:** Team needs an Agent to review Pull Request, not only on the surface of diff, but also to understand the context of the code and perform test validation judgement. **Start question:**
+**Scene description:** Team needs an Agent to review Pull Request, not only on the surface of diff, but also to understand the context of the code and perform test validation judgement.
+
+**Start question:**
 
 - Agent, read diff only and output general recommendations (e.g., "Consider adding notes", "check empty pointers").
 - I can't verify my judgment -- I can say, "there may be a performance problem," but I can't actually verify it.
-- The absence of context is suggested - there is no understanding of the caller or caller for this function. **Priority capacity:**
+- The absence of context is suggested - there is no understanding of the caller or caller for this function.
+
+**Priority capacity:**
+
 - **Tool calls: reading files, searching codes, running tests**. It's the key to moving from "prisal censorship" to "in-depth censorship".
-- **Reflection: modified judgement after test failure**. Agent needs to correct its own conclusions when the tool calls results that contradict the initial judgement. **Minimal version achieved:**
+- **Reflection: modified judgement after test failure**. Agent needs to correct its own conclusions when the tool calls results that contradict the initial judgement.
+
+**Minimal version achieved:**
 
 ```text
 Received PR diff
@@ -347,24 +368,29 @@ Received PR diff
  → Final output review report
 ```
 
-**Key design decisions: why first introduce Reflect rather than Multi-Agent?** For the code review scene, the first response is "introducing Multi-Agent, writing one review." But if you examine Agent without the tools to call, the other Agent just says, "Read it again and diff give general advice" -- two blind people can't see it together.
+**Key design decisions: why first introduce Reflect rather than Multi-Agent?**
+
+For the code review scene, the first response is "introducing Multi-Agent, writing one review." But if you examine Agent without the tools to call, the other Agent just says, "Read it again and diff give general advice" -- two blind people can't see it together.
 
 The correct sequence is: **Let individual Agent call "see" through the tool, then "Correct" through the Reflection, and finally consider Multi-Agent's division of labour.**
 
 **Follow-up questions:**
+
 - After the review has reached a certain stage, Agent will need to conduct a second review of the revised code (to examine whether the revised code introduces new issues).
 - There is a conflict between the role of a single Agent, who also plays the role of "reviewer" and "reviser" -- it may be too tolerant of its own proposals.
 
 **Reintroduced:**
 
-- **Multi-Agent**: One Agent reviews and makes recommendations and the other Agent reviews the revised code. Note that this is not a complete Multi-Agent system, but the "Reviewer Model" -- two Agent serial work, not complex coordination. **Multi-Agent Minimum:**
+- **Multi-Agent**: One Agent reviews and makes recommendations and the other Agent reviews the revised code. Note that this is not a complete Multi-Agent system, but the "Reviewer Model" -- two Agent serial work, not complex coordination.
+
+**Multi-Agent Minimum:**
 ```text
-Reviewer Agent(Reviewer:
+Reviewer Agent(Reviewer):
   Input: PR diff
   Output: List of review comments
   Tools: Reading files, searching codes, running tests
 
-Verifier Agent(Authenticator:
+Verifier Agent(Authenticator):
   Enter: Modified Code+ Reviewer Reviews
   Output: Validation report
   Conduct: an article-by-article examination of whether Reviewer ' s recommendations are correctly implemented
@@ -379,7 +405,9 @@ Conflict resolution rules (simple version):
 **Not introduced:**
 
 - **Long-term memory** unless it is necessary to remember project engagements, test habits or user preferences. If project specifications and testing strategies have been defined in the project document, the marginal benefits of Memoory are low.
-- **Planning**, unless the review mission becomes clearly multi-step (e.g. "Censorship safety first, performance later, readability last"). **Introduction of path overview:**
+- **Planning**, unless the review mission becomes clearly multi-step (e.g. "Censorship safety first, performance later, readability last").
+
+**Introduction of path overview:**
 
 ```text
 Minimum Closed Ring
@@ -394,13 +422,20 @@ Minimum Closed Ring
 
 #### Case III: Individual assignments
 
-**Scene description:** User hopes that Agent can help with complex multi-step tasks (e.g., "Appointing CI/CD for this open-source project"), to continue after the critical nodes have been suspended and support has been interrupted. **Start question:**
+**Scene description:** User hopes that Agent can help with complex multi-step tasks (e.g., "Appointing CI/CD for this open-source project"), to continue after the critical nodes have been suspended and support has been interrupted.
+
+**Start question:**
 
 - The task is multi-step and easy to miss.
 - The user wishes to confirm the key node (e.g. before creating GitHub Security).
-- Manual tracking of the mission is cumbersome. **Priority capacity:**
+- Manual tracking of the mission is cumbersome.
+
+**Priority capacity:**
+
 - **Planning / Worklow Pattersons**. Multi-step missions naturally require structured organizations.
-- **Human-in-the-loop**. Critical operations require manual validation, which is a safety requirement rather than an experiential optimization. **Minimal version achieved:**
+- **Human-in-the-loop**. Critical operations require manual validation, which is a safety requirement rather than an experiential optimization.
+
+**Minimal version achieved:**
 
 ```text
 User task: "Setting repository CI/CD"
@@ -417,6 +452,7 @@ User task: "Setting repository CI/CD"
 ```
 
 **Human-in-the-loop design elements:**
+
 ```text
 ✅ HITL Design:
   - Pause pending irreversible operation (delete, publish, change of authority)
@@ -432,8 +468,13 @@ User task: "Setting repository CI/CD"
 **Follow-up questions:**
 
 - This will continue after a long break.
-- The history of mandate implementation requires traceability. **Reintroduced:**
-- **Task status and Checkpoint**, part of which will go into six courses. The core idea is to perpetuate the mandate and support recovery from the point of interruption. **Checkpoint Minimum:**
+- The history of mandate implementation requires traceability.
+
+**Reintroduced:**
+
+- **Task status and Checkpoint**, part of which will go into six courses. The core idea is to perpetuate the mandate and support recovery from the point of interruption.
+
+**Checkpoint Minimum:**
 
 ```text
 Task status structure:
@@ -459,9 +500,12 @@ Restore process:
 ```
 
 **Not introduced:**
+
 - Automatically long term, unless the user clearly requires a cross-mission preference. Independence between mandates is a feature rather than a flaw.
 - **RAG**, unless task execution requires frequent access to external documents.
-- **Multi-Agent** does not need parallels in a single user scenario. **Introduction of path overview:**
+- **Multi-Agent** does not need parallels in a single user scenario.
+
+**Introduction of path overview:**
 
 ```text
 Minimum Closed Ring
@@ -475,19 +519,30 @@ Minimum Closed Ring
 
 #### Case four: Smart customer service, Agent.
 
-**Scene description:** Smart customer service for the electrician platform, which needs to answer product questions, process refunds, query the order status. Some of the issues can be dealt with automatically, sensitive operations (e.g. refunds) need to be manually identified and complex issues need to be transferred to manual passenger service. **Start question:**
+**Scene description:** Smart customer service for the electrician platform, which needs to answer product questions, process refunds, query the order status. Some of the issues can be dealt with automatically, sensitive operations (e.g. refunds) need to be manually identified and complex issues need to be transferred to manual passenger service.
+
+**Start question:**
 
 - User consulting product information, Agent needs a product bank-based response.
 - User query order status, Agent needs access to order system.
-- Refund/exchange operations involve funds and inventories and cannot be implemented automatically. **Priority capacity:**
+- Refund/exchange operations involve funds and inventories and cannot be implemented automatically.
+
+**Priority capacity:**
+
 - **RAG / External knowledge access**: Product information, policy documents, FAQ etc. require real-time retrieval.
 - **Tool Use**: Call an internal system of order query API, Logistics query API etc.
-- **Human-in-the-loop**: sensitive operations such as refunds, exchange clearances require manual confirmation. **Why are these three capacities introduced simultaneously?** The special features of the guest scene are that RAG, Tool Use, HITL are not solving the "several deepening of the same problem" but are addressing the "three independent and simultaneous hard demands":
+- **Human-in-the-loop**: sensitive operations such as refunds, exchange clearances require manual confirmation.
+
+**Why are these three capacities introduced simultaneously?**
+
+The special features of the guest scene are that RAG, Tool Use, HITL are not solving the "several deepening of the same problem" but are addressing the "three independent and simultaneous hard demands":
 - No RAG → Product Information Unable to answer
 - Unable to query purchase order without Tool Use
 - There's no HITL. There's a financial risk of refund.
 
-This is "the scenario itself requires multiple capabilities to produce the least available product". But even so, step-by-step verification is recommended - make sure the RAG is retrieved correctly, then access Tool Use, and finally add HITL. **Minimal version achieved:**
+This is "the scenario itself requires multiple capabilities to produce the least available product". But even so, step-by-step verification is recommended - make sure the RAG is retrieved correctly, then access Tool Use, and finally add HITL.
+
+**Minimal version achieved:**
 
 ```text
 User Message
@@ -515,8 +570,13 @@ Post-sale process:
 
 - Users contact the client ' s service several times and are rejustified each time.
 - Returners ' preferences and historical issues need to be remembered.
-- When complex issues are transferred manually, artificial passenger service needs to see the context of the dialogue. **Reintroduced:**
-- **Session Memory**: Remember the context of the current session and the recent history of contact. Attention is given to "talk-level" rather than "user-level long-term archives" — the former addressing the problem of repetitive statements, the latter involving privacy compliance. **Memory Design (Customs Special):**
+- When complex issues are transferred manually, artificial passenger service needs to see the context of the dialogue.
+
+**Reintroduced:**
+
+- **Session Memory**: Remember the context of the current session and the recent history of contact. Attention is given to "talk-level" rather than "user-level long-term archives" — the former addressing the problem of repetitive statements, the latter involving privacy compliance.
+
+**Memory Design (Customs Special):**
 
 ```text
 Sessional memory (7 days valid):
@@ -539,7 +599,9 @@ Memory cleanup strategy:
 
 - **Planning**: client dialogue is usually linear (if-else route) and does not require dynamic planning
 - **Reflection**: feedback from the guest scene is from user satisfaction rating instead of Agent self-correction
-- **Multi-Agent**: Unless two different roles, pre-sale and post-sale, need to be addressed simultaneously, but usually by route **Introduction of path overview:**
+- **Multi-Agent**: Unless two different roles, pre-sale and post-sale, need to be addressed simultaneously, but usually by route
+
+**Introduction of path overview:**
 
 ```text
 Minimum Closed Ring
@@ -553,17 +615,23 @@ Minimum Closed Ring
 
 #### Case V: Data Analysis Assistant
 
-**Scene description:** Data analyst needs Agent to help write SQL, analyze data, and generate visualized reports. The task is usually multi-step: understand the need to write a query → validates the results → explains the finding → produces a chart. **Start question:**
+**Scene description:** Data analyst needs Agent to help write SQL, analyze data, and generate visualized reports. The task is usually multi-step: understand the need to write a query → validates the results → explains the finding → produces a chart.
+
+**Start question:**
 
 - Users describe needs in natural languages, and Agent needs to be translated into SQL.
 - After SQL execution, Agent needs to check whether the results match expectations.
 - If the result is not correct, Agent needs to fix the query itself. **Priority capacity:**
 - **Tool Use**: Implementation of SQL, reading table structure, query data dictionary.
-- **Reflection**: SQL automatically check and amends when performance fails or results are abnormal. **Why first?**
+- **Reflection**: SQL automatically check and amends when performance fails or results are abnormal.
+
+**Why first?**
 
 For single-form queries and one-time indicators to calculate such tasks, the user ' s natural language has given the main analytical objectives - "Look at sales trends last month, split by region, and find the three fastest growing categories." The first thing to do at this point is not "will it plan" but "can it read Schema correctly, generate SQLs, perform queries and fix them when the wrong information appears."
 
-But it's not that data analysis doesn't need Planning. Planning is of clear value only when the task is upgraded to cross-table exploration, staged validation assumptions, first checking A, then results-based B, and final consolidation visualization. The sequence should be to stabilize the implementation and validation loops and then introduce a multi-step analysis of needs into Planning. **Minimal version achieved:**
+But it's not that data analysis doesn't need Planning. Planning is of clear value only when the task is upgraded to cross-table exploration, staged validation assumptions, first checking A, then results-based B, and final consolidation visualization. The sequence should be to stabilize the implementation and validation loops and then introduce a multi-step analysis of needs into Planning.
+
+**Minimal version achieved:**
 
 ```text
 User Needs → Agent Analysis:
@@ -579,6 +647,7 @@ User Needs → Agent Analysis:
 ```
 
 **Reflection for specific applications in the data analysis scene:**
+
 ```text
 Reflection Trigger condition:
   ✅ SQL Syntax Error → Read error information, correct syntax
@@ -596,11 +665,19 @@ Reflection Conditions for discontinuation:
 
 - Complex analysis requires multiple steps (see table A, based on table B, combined analysis).
 - User wants Agent to remember the usual analytical templates and preferences.
-- The analysis across multiple data sources requires structured steps. **Reintroduced:**
+- The analysis across multiple data sources requires structured steps.
+
+**Reintroduced:**
+
 - **Planning**: introduced when analytical tasks are upgraded from "one query" to "multi-step analysis process".
-- **Memory**: Remember user analytical habits (commonly used indicators, preferred chart type, naming norm). **Not introduced:**
+- **Memory**: Remember user analytical habits (commonly used indicators, preferred chart type, naming norm).
+
+**Not introduced:**
+
 - **RAG**: unless analysis requires frequent reference to external methods for documentation or industry standards
-- **Multi-Agent**: Single-person analysis scenario, no role conflicts **Introduction of path overview:**
+- **Multi-Agent**: Single-person analysis scenario, no role conflicts
+
+**Introduction of path overview:**
 
 ```text
 Minimum Closed Ring
@@ -614,17 +691,28 @@ Minimum Closed Ring
 
 #### Case VI: Writing Collaboration
 
-**Scene description:** Users and Agent collaborate on technical blogs. Agent needs to understand the user style of writing, remember the points discussed earlier, retrieve references and perform quality checks based on external evidence after each change. **Start question:**
+**Scene description:** Users and Agent collaborate on technical blogs. Agent needs to understand the user style of writing, remember the points discussed earlier, retrieve references and perform quality checks based on external evidence after each change.
+
+**Start question:**
 
 - User wants Agent consistent writing style.
 - User needs Agent reference technology.
-- After Agent has finished a paragraph, the user hopes that it will be able to check the problem (retroactivity of the reference, operation of the code example, compliance of terms with the agreement and whether user feedback has been processed). **Priority capacity:**
+- After Agent has finished a paragraph, the user hopes that it will be able to check the problem (retroactivity of the reference, operation of the code example, compliance of terms with the agreement and whether user feedback has been processed).
+
+**Priority capacity:**
+
 - **RAG**: Retrieving technical references, related articles, API documents.
-- **Memory**: Remember user writing style preferences, terminology choices, structure habits. **Why is this scene being introduced at the same time by RAG+Memory?** In writing scenes, RAG and Memory solve different dimensions:
+- **Memory**: Remember user writing style preferences, terminology choices, structure habits.
+
+**Why is this scene being introduced at the same time by RAG+Memory?**
+
+In writing scenes, RAG and Memory solve different dimensions:
 - RAG solves "What to write" - providing accurate technical content.
 - Memoory solves "How to write" -- consistent style and terminology.
 
-They are independent of each other but cannot be separated. There's no RAG inaccuracies, there's no memory incoherence. **Minimal version achieved:**
+They are independent of each other but cannot be separated. There's no RAG inaccuracies, there's no memory incoherence.
+
+**Minimal version achieved:**
 
 ```text
 Collaborative writing process:
@@ -668,9 +756,14 @@ Memory Storage structure (writing scene):
 **Follow-up questions:**
 
 - After changing multiple rounds, Agent needs to verify the quality of articles based on a clear check (not relying on user-by-user identification).
-- The long articles are complex in structure and require section management. **Reintroduced:**
+- The long articles are complex in structure and require section management.
+
+**Reintroduced:**
+
 - **Reflection**: Quality check only for external feedback signals — can references be found in the original text, can code examples run, whether user changes are article-by-article covered, and if terms are consistent with the established style list.
-- **Planning**: Structural planning and outline management. **Reflection in the design of the writing scene:**
+- **Planning**: Structural planning and outline management.
+
+**Reflection in the design of the writing scene:**
 
 ```text
 Trigger signal:
@@ -689,7 +782,9 @@ Amendments:
 **Not introduced:**
 
 - **Multi-Agent**: Writing is creative work, and an Agent co-reads enough. The introduction of the Multi-Agent "A Writing One Review" could lead to a lack of consistency in style.
-- **Human-in-the-loop** enhanced version: Writing collaboration is naturally a HITL mode (HITL for each user review) and no additional system-level HITL mechanism is required. **Introduction of path overview:**
+- **Human-in-the-loop** enhanced version: Writing collaboration is naturally a HITL mode (HITL for each user review) and no additional system-level HITL mechanism is required.
+
+**Introduction of path overview:**
 
 ```text
 Minimum Closed Ring
@@ -714,7 +809,11 @@ I said, "Do what." This subsection says, "Don't do it."
   And Tool Use, Guardrails, Human-in-the-loop..."
 ```
 
-**Problem diagnosis:** Says "what" but says "why." Each ability is added to "if it works." As a result, the system was so complicated that no one could fully understand and no one could be held responsible for it. **The antidote:**
+**Problem diagnosis:**
+
+Says "what" but says "why." Each ability is added to "if it works." As a result, the system was so complicated that no one could fully understand and no one could be held responsible for it.
+
+**The antidote:**
 
 - Each ability must have a corresponding "issue/ticket" to record the reasons for its introduction.
 - Regular "Capacity Inventory": Is it still working? Still solve the problem?
@@ -732,11 +831,17 @@ I said, "Do what." This subsection says, "Don't do it."
 "Planning "Sometimes it'll drift until we're done."
 ```
 
-**Diagnosis of the problem:** Waiting for a perfect minimum is equal to never being published. Users prefer a flawed Assistant to wait for a non-existent Assistant. Furthermore, real use feedback is not available without publication and no real optimization without feedback. **The antidote:**
+**Diagnosis of the problem:** 
+
+Waiting for a perfect minimum is equal to never being published. Users prefer a flawed Assistant to wait for a non-existent Assistant. Furthermore, real use feedback is not available without publication and no real optimization without feedback.
+
+**The antidote:**
 
 - Define "good enough" threshold, not "perfect".
 - The ability below the threshold can be online but labelled as "experimental function".
-- Set up a user feedback channel for real use driver optimization **Criteria for judgement:**
+- Set up a user feedback channel for real use driver optimization
+
+**Criteria for judgement:**
 
 ```text
 Minimum standards for access:
@@ -763,11 +868,17 @@ No standards to wait:
 "XXX The company's technical blog says that Agent used Reflection. It worked well."
 ```
 
-**Problem diagnosis:** The scene, data, constraints, users are different from you. The solutions that suit them don't necessarily suit you. The replacement of community hot spots with their own problem analysis is the fastest way to introduce unnecessary complexity. **The antidote:**
+**Problem diagnosis:**
+
+The scene, data, constraints, users are different from you. The solutions that suit them don't necessarily suit you. The replacement of community hot spots with their own problem analysis is the fastest way to introduce unnecessary complexity.
+
+**The antidote:**
 
 - When reading other people's programs, you focus on "what's wrong with them," not "what's the technology they use?"
 - If you can't spell it out in one sentence, you can't introduce it.
-- Think of community articles as "menu of options" instead of "list of necessity." **Conversion exercise:**
+- Think of community articles as "menu of options" instead of "list of necessity."
+
+**Conversion exercise:**
 
 ```text
 Read: "We improved code review with Multi-Agent."
@@ -789,11 +900,17 @@ Think, "What's wrong with their code review?"?Do I have that too??
 "Planning Sometimes the steps aren't right, but most of them are okay."
 ```
 
-**Diagnosis of the problem:** Introduction capacity is only the beginning, not the end. The introduction of non-assessed capabilities is tantamount to adding "no impact" variables to the system. Over time, you don't know whether the quality of the system is rising or falling. **The antidote:**
+**Diagnosis of the problem:**
+
+Introduction capacity is only the beginning, not the end. The introduction of non-assessed capabilities is tantamount to adding "no impact" variables to the system. Over time, you don't know whether the quality of the system is rising or falling.
+
+**The antidote:**
 
 - Each capability must be predefined when introduced
 - Weekly/monthly access to assessment indicators to confirm no degradation
-- Re-engineer all available capabilities when new capabilities are introduced and check if they affect each other **Evaluation of rhythm recommendations:**
+- Re-engineer all available capabilities when new capabilities are introduced and check if they affect each other
+
+**Evaluation of rhythm recommendations:**
 
 ```text
 Pre-introduction: establishment of baseline assessments (current system performance on these indicators)
@@ -814,12 +931,18 @@ Planning Generated a 5-step plan, but Reflect considers step 2 completed (incons
 Multi-Agent In which Agent A modified the file, Agent B does not know (state is not synchronized)
 ```
 
-**Problem diagnosis:** Capabilities are not stand-alone plugins that share status and influence each other ' s behaviour. System behaviour is unpredictable when multiple capacities have different understandings of the same data. **The antidote:**
+**Problem diagnosis:**
+
+Capabilities are not stand-alone plugins that share status and influence each other ' s behaviour. System behaviour is unpredictable when multiple capacities have different understandings of the same data.
+
+**The antidote:**
 
 - Defining the boundaries of competence: who is responsible for what data
 - Unified state management: all capabilities read through the same State layer Write
 - Clear compacts (schema/format) for transmission of information between competencies
-- Consistency between periodic checks **CAPACITY COORDINATION LIST:**
+- Consistency between periodic checks
+
+**CAPACITY COORDINATION LIST:**
 
 ```text
 ☐ RAG Whether the search results are entered into the Memoory system?If so, is it necessary?
@@ -872,7 +995,9 @@ Pause signal:
 
 #### Three principles of rhythm control
 
-**Principle I: a new variable at a time** Only a new capability is introduced at any given time. If a capacity is not working well when it is introduced, you can only determine that it is. You never know which one works and which brings the problem.
+**Principle I: a new variable at a time**
+
+Only a new capability is introduced at any given time. If a capacity is not working well when it is introduced, you can only determine that it is. You never know which one works and which brings the problem.
 
 ```text
 ❌ Also introduce RAG+ Memory:
@@ -883,7 +1008,13 @@ Pause signal:
   "2 Introduction of memory after week, inter-session connection accuracy rate from 28% Raise to 80%(It's the effect of memory."
 ```
 
-**Principle II: Assessment indicators always precede new capabilities** If you do not have a running evaluation process, do not introduce new capabilities. The introduction without an evaluation is like walking with your eyes closed -- you don't know if you're going right or if you're going further away from the target. **Principle III: Reissued periodically** Regardless of whether the system is stable or not, a capacity reset is regularly performed:
+**Principle II: Assessment indicators always precede new capabilities**
+
+If you do not have a running evaluation process, do not introduce new capabilities. The introduction without an evaluation is like walking with your eyes closed -- you don't know if you're going right or if you're going further away from the target.
+
+**Principle III: Reissued periodically** 
+
+Regardless of whether the system is stable or not, a capacity reset is regularly performed:
 
 ```text
 Repetition checklist:
@@ -912,7 +1043,9 @@ Most of the classes only say "how" and don't say "how." But mature system design
 
 #### How to safely downgrade or remove
 
-Removal capacity needs to be more cautious than introducing capacity, as users may already have relied on certain behaviours. **Downgrade removal process:**
+Removal capacity needs to be more cautious than introducing capacity, as users may already have relied on certain behaviours.
+
+**Downgrade removal process:**
 
 ```text
 Step 1: Identification of impacts
@@ -948,7 +1081,9 @@ Step 5: Recording decision-making
   - How does this experience help to introduce future capabilities to decision-making??
 ```
 
-**Degraded better than direct removal:** In many cases, reducing capacity from "active" to "passive" is a better option:
+**Degraded better than direct removal:**
+
+In many cases, reducing capacity from "active" to "passive" is a better option:
 
 ```text
 Current status: Memoory autorecords each session
@@ -987,7 +1122,11 @@ Here are three new scenarios. For each scene:
 
 #### Practice I: Review of legal instrumentsAgent
 
-**Scene:** The law firm needs an Agent to assist the solicitor in reviewing the contract. Agent needed to check whether the contract terms were in compliance, whether there were risk clauses and whether key clauses were missing. The results of the review require final confirmation by a manual lawyer. **Binding:**
+**Scene:**
+
+The law firm needs an Agent to assist the solicitor in reviewing the contract. Agent needed to check whether the contract terms were in compliance, whether there were risk clauses and whether key clauses were missing. The results of the review require final confirmation by a manual lawyer.
+
+**Binding:**
 
 - The contract contents are highly sensitive and cannot be uploaded to external services
 - Different contract templates for different industries (technology, finance, real estate)
@@ -997,7 +1136,10 @@ Here are three new scenarios. For each scene:
 - Not included:
 - Entry path:
 
-<details > <summary > </summary > **Priority capacity:**
+<details >
+<summary >Check answer</summary >
+
+**Priority capacity:**
 
 - **RAG**: Need to retrieve the Institute ' s internal knowledge base (past case, contract template) and have to be locally deployed (privileged)
 - **human-in-the-loop**: final decision on legal review must be confirmed by a human lawyer, which is a hard demand **Not introduced:**
@@ -1019,17 +1161,27 @@ Minimum Closed Ring (LLM)+ (contract reading tool)
 
 #### Practice II: Smart Home Control Agent
 
-**scene:** Users interact with Agent by voice/text. Agent needs to control the lighting, air conditioning, curtains, sound, etc., to understand the user's daily habits and to adjust automatically to the scene (e.g. "I'm going to sleep" to trigger lights, close curtains, lower air conditioning). **Binding:**
+**scene:**
+
+Users interact with Agent by voice/text. Agent needs to control the lighting, air conditioning, curtains, sound, etc., to understand the user's daily habits and to adjust automatically to the scene (e.g. "I'm going to sleep" to trigger lights, close curtains, lower air conditioning).
+
+**Binding:**
 
 - Low delay required for equipment control (<500ms)
 - User habits vary from person to person.
 - The scene trigger requires user confirmation (prevent error)
-- Support multiple users (family members have preferences) **Please judge:**
+- Support multiple users (family members have preferences)
+
+**Please judge:**
+
 - Priority capacity:
 - Not included:
 - Entry path:
 
-<details > <summary > </summary >**Priority capacity:**
+<details >
+<summary >Check answer</summary >
+
+**Priority capacity:**
 
 - **Tool Use**: Base capacity of control equipment (calling equipment API)
 - **Memory**: Remember user preferences (temperature, light, common scenes)
@@ -1052,17 +1204,27 @@ Minimum Closed Ring+ Tool Use(equipment)
 
 #### Practice III: Auto-maintenance of technical documents
 
-**scene:** Open-source project maintainer needs an Agent auto-maintenance technical document. When the code changes, Agent needs to detect which documents need to be updated, automatically generate the document PR and explain the changes in the PR. **Binding:**
+**scene:**
+
+Open-source project maintainer needs an Agent auto-maintenance technical document. When the code changes, Agent needs to detect which documents need to be updated, automatically generate the document PR and explain the changes in the PR.
+
+**Binding:**
 
 - Consistency between documents and codes is essential.
 - Need to understand the impact of changes across multiple documents
 - Document quality influences the onboarding experience of new users
-- Document changes require final approval by human defenders **Please judge:**
+- Document changes require final approval by human defenders
+
+**Please judge:**
+
 - Priority capacity:
 - Not included:
 - Entry path:
 
-<details > <summary > </summary > **Priority capacity:**
+<details >
+<summary >Check answer</summary >
+
+**Priority capacity:**
 
 - **Tool Use**: Read replacement code diff, search affected documents, create PR
 - **Reflection**: Compare code and document consistency after document generation (e.g. check for API parameter names)

@@ -17,7 +17,9 @@ For the first time, a lot of people are going to think that it's done with the m
 - The model creates an apparently rational file path, but that path is outside the workspace -- if Runtme doesn't stop, it reads the files that should not be read.
 - The user said, "Send me an e-mail." `send_email` There was no confirmation of the recipient, no preview of the content — the user was in shock.
 
-These problems are not caused by the lack of models. They are rooted in: **The tool call is not an isolated API request, but a running-time mechanism that needs to be carefully designed.** Starting with the history of Function Calling mentioned in course II, the course opens up the tool to a complete link:
+These problems are not caused by the lack of models. They are rooted in: **The tool call is not an isolated API request, but a running-time mechanism that needs to be carefully designed.**
+
+Starting with the history of Function Calling mentioned in course II, the course opens up the tool to a complete link:
 
 ```text
 LLM Decision → Tool Selection → Parameter Generation
@@ -25,7 +27,7 @@ LLM Decision → Tool Selection → Parameter Generation
  → Observation / Feedback → State Update
 ```
 
-Each step of the chain is likely to fail, and each step requires a corresponding mechanism. The goal of course IV is not to give you "access to more tools" but to understand how to use them as an optional, implementable, manageable, reusable, auditable **system mechanism**.
+Each step of the chain is likely to fail, and each step requires a corresponding mechanism. The goal of course IV is not to give you "access to more tools" but to understand how to use them as an **optional, implementable, manageable, reusable, auditable** system mechanism.
 
 ---
 
@@ -100,7 +102,7 @@ After this lesson, you will be able to:
 
 Think back on course two: Toolformer and Function Calling. Toolformer proves one thing: models can learn when to call API. Function Calling standardized this matter into an engineering interface: the model no longer produces "recommends you to check the database," but rather a structured one. `{"tool": "query_db", "arguments": {...}}` .
 
-But there's an easily neglected jump. In the Function Calling design, the model is responsible only for **generating the call intent** — the real implementer is Runtime. This division of labour means that there is a whole chain of engineering that needs to be addressed from the model's "I want to call this tool" to "the result of the tool goes back to the next round of decision-making."
+But there's an easily neglected jump. In the Function Calling design, the model is responsible only for **generating the call intent** -— the real implementer is Runtime. This division of labour means that there is a whole chain of engineering that needs to be addressed from the model's "I want to call this tool" to "the result of the tool goes back to the next round of decision-making."
 
 Just look at the tool call as "Model Output Toolname → Program → API → Return Results" and leave out a few key questions:
 
@@ -127,7 +129,9 @@ This link can directly map the smallest closed ring of course three -- it's taki
 
 Course 2 combusts the evolution of the tools to be used: Toolformer (2023.2) proves that models can learn to use tools → ChatGPT Plugins (2023.3) to transform "AI works" into a popular experience → Function Calling (2023.6) standardized interfaces for model generation tools to be used → MCP (2024) seeks to standardize the discovery and connection of tools.
 
-Course 4 stands at these historical nodes, focusing on a question: **What mechanisms do you need to design when you really want models to be used in your own system?**![Overview of the Tool Mechanisms System](../assets/course-04-tool-mechanism-map.svg)
+Course 4 stands at these historical nodes, focusing on a question: **What mechanisms do you need to design when you really want models to be used in your own system?**
+
+![Overview of the Tool Mechanisms System](../assets/course-04-tool-mechanism-map.svg)
 
 ---
 
@@ -319,15 +323,25 @@ The problem is not just the wrong model. The more tools, the more they describe 
 Within what scope should the system let the model make decisions?
 ```
 
-There are usually three ways to achieve the choice of tools, the core difference being "who has the right to make decisions". **Modalities I: Model ownership**. Inserts a list of tools into the context to allow the model to determine which to call and which to call. **Mode II: Rules route**. The tool is determined by code based on input characteristics. **Mode III: Mixed route**. The rules reduce the pool of candidates first, and models are selected in the pool.
+There are usually three ways to achieve the choice of tools, the core difference being "who has the right to make decisions". 
 
-In practice, hybrid routes are the most common production option: **systems are reduced in scope and models are refined.**![Three ways to compare](../assets/course-04-three-routing-methods.svg)
+**Modalities I: Model ownership**. Inserts a list of tools into the context to allow the model to determine which to call and which to call.
+
+**Mode II: Rules route**. The tool is determined by code based on input characteristics.
+
+**Mode III: Mixed route**. The rules reduce the pool of candidates first, and models are selected in the pool.
+
+In practice, hybrid routes are the most common production option: **systems are reduced in scope and models are refined.**
+
+![Three ways to compare](../assets/course-04-three-routing-methods.svg)
 
 ### 3.3 Candidate management: Do not hand over all tools to models
 
 What tools should models see at this stage? **In some scenarios, a model should not determine whether to call a tool:**
 
-**The scene of the tool should be mandatory**: the user needs to search for real-time data, the user needs to read documents, the user needs to accurately calculate and the user needs to verify the external environment. If tools are not adapted, the model is expected to generate a reasonable but unverifiable answer in memory or language mode. **The use of the tool should be prohibited**: the user is just chatting or conceptual interpretation, the user requests ultra vires action, the current task has been completed and the high-risk action has not been confirmed. If tools are transferred at this time, resources are wasted or there are security risks.
+**The scene of the tool should be mandatory**: the user needs to search for real-time data, the user needs to read documents, the user needs to accurately calculate and the user needs to verify the external environment. If tools are not adapted, the model is expected to generate a reasonable but unverifiable answer in memory or language mode.
+
+**The use of the tool should be prohibited**: the user is just chatting or conceptual interpretation, the user requests ultra vires action, the current task has been completed and the high-risk action has not been confirmed. If tools are transferred at this time, resources are wasted or there are security risks.
 
 Most of the cases, except for mandatory and prohibited ones, should go into candidate screening rather than handing over all tools to models.
 
@@ -415,7 +429,9 @@ Restoration:
 - search_web Add the following to the description: "When users request extensive, up-to-date information. Do not read local files specified by the user."
 ```
 
-Principles for the selection of debugging tools: **Discrete the problem of the definition of tools before adjusting Prompt and finally doubt the capacity of the model.** ---
+Principles for the selection of debugging tools: **Discrete the problem of the definition of tools before adjusting Prompt and finally doubt the capacity of the model.**
+
+---
 
 ## Chapter 4: Implementation and Backfilling - Get the tool results into the next round
 
@@ -434,7 +450,9 @@ execute_tool_call(tool_name, arguments, tools, permissions, logger):
     # 5. Implementation tool → Successful return result, abnormal return structural error (with retryable tag)
 ```
 
-This is the concrete expression of the core principles of Curriculum III at the tool level: **Model decision-making, Runtime implementation.** The model should not have the opportunity to bypass the permission check, nor should it decide for itself that "not to read the document."
+This is the concrete expression of the core principles of Curriculum III at the tool level: **Model decision-making, Runtime implementation.**
+
+The model should not have the opportunity to bypass the permission check, nor should it decide for itself that "not to read the document."
 
 ### 4.2 Parameter verification, overtime, retesting and thorium, etc.
 
@@ -488,7 +506,7 @@ Compare two errors to return:
 }
 ```
 
-Structural error contains at least five fields: error code (%2) `code ` ), readable information (` message ` Whether to try again () ` retryable ` ), recommend next steps ( ` suggested_action ` ) Whether user intervention is required ( ` needs_user` I don't know. These five fields allow the model to make valid judgements in the next round, rather than making wild speculations about the word "failed".
+Structural error contains at least five fields: error code (%2) `code ` ), readable information (` message ` Whether to try again () ` retryable ` ), recommend next steps ( ` suggested_action ` ) Whether user intervention is required ( ` needs_user` ) I don't know. These five fields allow the model to make valid judgements in the next round, rather than making wild speculations about the word "failed".
 
 ### 4.4 Result processing: summary, page break, cut-off and transfer of resources
 
@@ -504,19 +522,23 @@ The result of the tool is often long - searching returns 20 pages, database retu
 
 ### 4.5 How to shape the next round of decision-making
 
-The four previous sections described how the tools were implemented and how the results were handled. But there's one key question that didn't go on: **When the tool results returned to the model, how did the model "use" it?** Observation has a very special position in the utility connection-- It is the end point of the previous round (the tool is implemented) and the starting point of the next round (the model is based on it for decision-making). This dual identity determines the quality of the design of the Observation directly affecting the quality of the operation of the entire ring.
+The four previous sections described how the tools were implemented and how the results were handled. But there's one key question that didn't go on: **When the tool results returned to the model, how did the model "use" it?**
+
+Observation has a very special position in the utility connection-- It is the end point of the previous round (the tool is implemented) and the starting point of the next round (the model is based on it for decision-making). This dual identity determines the quality of the design of the Observation directly affecting the quality of the operation of the entire ring.
 
 #### 4.5.1 The essence of Observation: providing a basis for the next round of decision-making
 
 Let's start with a specific comparison. Let's assume the model is switched. `read_file("notes.md")`, file does not exist.
 
-Observation:
+**Bad Observation:**
 
 ```text
 Error: failed
 ```
 
-The model gets this, and it doesn't know if the file doesn't exist, it doesn't have enough privileges, the disk is full or the network is broken. It can only guess. Wrong guess, wrong next move, wrong user sees Agent in gibberish. **Observation:**
+The model gets this, and it doesn't know if the file doesn't exist, it doesn't have enough privileges, the disk is full or the network is broken. It can only guess. Wrong guess, wrong next move, wrong user sees Agent in gibberish. 
+
+**Good Observation:**
 
 ```json
 {
@@ -672,7 +694,9 @@ Each of the audit logs answers: who, when, in which task, what tools to adjust, 
 
 ### 6.1 Models should not decide everything alone.
 
-The tool mechanism comes here, and a key control point needs to be covered: **What action models can make their own decisions, and what actions must be identified by humans?** The answer is that when the consequences of an action are irreversible, affect the true user or the model itself is not sufficiently confident, human beings should be drawn into the cycle.
+The tool mechanism comes here, and a key control point needs to be covered: **What action models can make their own decisions, and what actions must be identified by humans?**
+
+The answer is that when the consequences of an action are irreversible, affect the true user or the model itself is not sufficiently confident, human beings should be drawn into the cycle.
 
 Human-in-the-loop is not "Agent's temporary patch when it has insufficient capacity", but **the structural control points in the tool mechanisms**. It recognizes the fundamental fact that the model does not understand the consequences and that the ultimate responsibility lies with the person.
 
@@ -777,8 +801,8 @@ This example shows the full picture of MCP Server. Note the choice of two modes 
 - **stdio**: Server is initiated as a sub-process to communicate with Client through standard input output. Fits to single machine development - simple, network configuration is not required, but Server life cycle binds the Client process.
 - **HTTP/SSE**: Server runs as an independent HTTP service, Client is remotely connected by HTTP + Server-Sent Events. Fits to a production environment - Server can deploy independently, extend horizontally and be shared by multiple Agents.
 - **Tools** ( `read_file ` 、 ` search_files` ): Agent can call an enforceable action. Each Tool has a name, description and parameters Schema (auto-generated by type note). Corresponding to the definition of tools discussed earlier in this course - MCP places the definition and implementation in the same Server.
-- **Resources** ( `docs://{name}` 、 ` config://app `:Agent can read data resources. Tool executes action, source exposure data. Resources is read-only -- Agent can do it. ` docs://readme` This URI reads the document, but cannot modify it.
-- **Prompts**( `code_review_template`: A reusable reminder template. The difference with System Prompt is that Prompt is at **task level** — Agent is loaded on demand when dealing with a given task, not always in context.
+- **Resources** ( `docs://{name}` 、 ` config://app `):Agent can read data resources. Tool executes action, source exposure data. Resources is read-only -- Agent can do it. ` docs://readme` This URI reads the document, but cannot modify it.
+- **Prompts**( `code_review_template`): A reusable reminder template. The difference with System Prompt is that Prompt is at **task level** — Agent is loaded on demand when dealing with a given task, not always in context.
 
 For Agent developers, MCP is worth turning "access to a new tool" from "writing an integrated code" to "connecting a MCP Server". This Server can be independently deployed, independently updated, shared by multiple Agents -- just like the editor connects to any language grammatical service through LSP.
 
@@ -827,9 +851,14 @@ all_tools = {provider.tools, local_tools}
 This Clit example shows the complete way MCP works in Agent: **Two modes of transmission:**
 
 - `connect_stdio`: Start local sub-processes and output communications through standard input. Suitable to develop debug-zero network configuration.
-- `connect_http `: Connect remote HTTP Server (passed) `/sse ` End creates the Server-Sent Events Channel. Fit to a production environment - Server can be deployed independently, shared by multiple Agents, and scaled up independently. **Two forms of registration:**
-- **Dynamic finding** ( ` _discover_and_register `: Contact Server after call ` list_tools()` Automatically obtains a list of tools. Clint does not need to change the code after Server adds the tool. The disadvantage is to connect to Server to know what tools there are.
-- **Static declaration** `register_static`: When you register, you clearly state "what tools this Server provides", and the model immediately sees Schema, the actual MCP connection is delayed until the first call. Fits to a tool list stable, or to a view that Server may temporarily not be available - Agent does not have to wait for all Servers to be ready at startup. **Common bottom principle:** Regardless of the mode of transmission or registration, the model will always see a uniform Faction Calling format. MCP's role is to standardize "access", not to change the interactive models of models and tools.
+- `connect_http `: Connect remote HTTP Server (passed) `/sse ` End creates the Server-Sent Events Channel. Fit to a production environment - Server can be deployed independently, shared by multiple Agents, and scaled up independently.
+
+**Two forms of registration:**
+
+- **Dynamic finding** ( ` _discover_and_register `): Contact Server after call ` list_tools()` Automatically obtains a list of tools. Clint does not need to change the code after Server adds the tool. The disadvantage is to connect to Server to know what tools there are.
+- **Static declaration** `register_static`: When you register, you clearly state "what tools this Server provides", and the model immediately sees Schema, the actual MCP connection is delayed until the first call. Fits to a tool list stable, or to a view that Server may temporarily not be available - Agent does not have to wait for all Servers to be ready at startup.
+
+**Common bottom principle:** Regardless of the mode of transmission or registration, the model will always see a uniform Faction Calling format. MCP's role is to standardize "access", not to change the interactive models of models and tools.
 
 ### 7.4 When MCP was introduced
 
@@ -838,7 +867,10 @@ scene suitable for introduction of MCP:
 - The tool comes from a variety of external services, each with a different mode of access.
 - Multiple Agents or applications require reuse of the same set of tools.
 - Tools need dynamic detection and hot updating.
-- The team hopes that the tool service will be deployed and maintained independently. **No need for** MCP scene:
+- The team hopes that the tool service will be deployed and maintained independently.
+
+**No need for** MCP scene:
+
 - Only 2-3 local functions. That's what you're doing in class three and this class.
 - Instrument boundaries are not stable and definitions are frequently adjusted.
 - You're still learning the smallest loop, and you shouldn't introduce protocol layers.
@@ -862,7 +894,9 @@ Suppose you found out that Agent was always following this pattern in the code r
 6. Organize review output by severity
 ```
 
-Every mission model has to re-think these steps, waste Token, and occasionally miss the steps. That is the problem that Skill is going to solve: **Stable combination of tools and step experiences are packaged into reusable capability modules.** Tool addresses "what can you do?" (reading files, running tests). Skill solves "how to do a type of job" (code review, document summary, data analysis). The relationship is like the screwdriver and the furniture assembly instructions. The former are tools, the latter tell you what tools, what sequences, how to deal with problems.
+Every mission model has to re-think these steps, waste Token, and occasionally miss the steps. That is the problem that Skill is going to solve: **Stable combination of tools and step experiences are packaged into reusable capability modules.**
+
+Tool addresses "what can you do?" (reading files, running tests). Skill solves "how to do a type of job" (code review, document summary, data analysis). The relationship is like the screwdriver and the furniture assembly instructions. The former are tools, the latter tell you what tools, what sequences, how to deal with problems.
 
 ### 8.2 Structure of Skill
 

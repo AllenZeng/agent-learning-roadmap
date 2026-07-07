@@ -90,7 +90,9 @@ After this lesson, you will be able to:
 
 ## Chapter One: Why is the smallest Agent?
 
-In course two, we said that LLM is the core of Agent's decision-making, but not the full Agent system. This chapter pulls this conclusion closer to the point where you can see: **If only LLM, a system that looks like Agent would be stuck.** The key to understanding this problem is not to devalue the capacity of LLM, but to accurately understand the essence of LLM. The essence of it determines what it is good at, what it is not good at -- and the Agent system is putting "prosthesis" on LLM in a direction that is not good at.
+In course two, we said that LLM is the core of Agent's decision-making, but not the full Agent system. This chapter pulls this conclusion closer to the point where you can see: **If only LLM, a system that looks like Agent would be stuck.**
+
+The key to understanding this problem is not to devalue the capacity of LLM, but to accurately understand the essence of LLM. The essence of it determines what it is good at, what it is not good at -- and the Agent system is putting "prosthesis" on LLM in a direction that is not good at.
 
 ### 1.1 Nature of LLM: An extremely strong "Next Token Predictor"
 
@@ -134,8 +136,7 @@ This is hard for multi-step missions. Assuming that a mission takes 5 steps to c
 
 So Agent can't manage the state just by "throwing history into context." It requires a state storage independent of LLM, managed by Runtme — the reservation, the compression, the injection. That's what state management does.
 
-> If you read this, you might ask-- **Runtme what is it?** It has been mentioned repeatedly earlier: the state of the tube, the tools to implement it, the cycle is controlled by it. You can interpret Runtme as Agent's **operating system**. It's like operating systems managing CPU, memory, disk, process scheduling -- it doesn't write documents, make tables; Runtme management storage, tool execution, loop control, permission verification, Trade records -- it doesn't do semantic reasoning, it doesn't generate text. 
-
+> If you read this, you might ask-- **Runtme what is it?** It has been mentioned repeatedly earlier: the state of the tube, the tools to implement it, the cycle is controlled by it. You can interpret Runtme as Agent's **operating system**. It's like operating systems managing CPU, memory, disk, process scheduling -- it doesn't write documents, make tables; Runtme management storage, tool execution, loop control, permission verification, Trade records -- it doesn't do semantic reasoning, it doesn't generate text. <br>
 More precisely: **Agent structure, all parts of the "certainty duty" fall within Runtme.** The LLM output is uncertain (the same prompt two calls may have different results), but whether the tool is implemented, whether the parameters are valid and whether the number of steps is excessive — these judgments must be definitive and auditable. Runtme is the level of infrastructure that carries out these definitive duties. You will see it again and again in each follow-up course - in Course 4 it is the registration and competence centre for tools, in Course 5 it is the reader for Memoory, in Course 6 it is the Harness/observable skeleton, and in Course 7 it is the point of implementation of the failure recovery and safety strategy.
 
 ### 1.4 LLM can reason but cannot control its own borders
@@ -197,7 +198,9 @@ These five components are not separate blocks. They are connected by the running
 
 ### 2.2 Prompt: Definition of conduct
 
-> **Terminology: Prompt** in the Agent context is not "just a hint". It is a structured **behavioural definition document** — defining Agent's identity, reasoning protocols, tools available, output formats and boundary behaviour. In the follow-up course, each Agent (course V) has its own Prompt, and Prompt's version management and evaluation (course VI) also revolves around this "source code". **Please establish an accurate understanding of Prompt in this section: it's Agent's "Procedure", not "Remark".** The central problem that Prompt solved was that **LLM was a universal engine, not knowing that it was Agent.** You have to tell it clearly — who you are, how you think, what tools you can use, what your output must look like.
+> **Terminology: Prompt** in the Agent context is not "just a hint". It is a structured **behavioural definition document** — defining Agent's identity, reasoning protocols, tools available, output formats and boundary behaviour. In the follow-up course, each Agent (course V) has its own Prompt, and Prompt's version management and evaluation (course VI) also revolves around this "source code". **Please establish an accurate understanding of Prompt in this section: it's Agent's "Procedure", not "Remark".**
+
+The central problem that Prompt solved was that **LLM was a universal engine, not knowing that it was Agent.** You have to tell it clearly — who you are, how you think, what tools you can use, what your output must look like.
 
 In the smallest Agent, Prompt usually contains the following levels (section 3.3 will be spread out one by one):
 
@@ -273,7 +276,11 @@ Course IV will discuss in depth the definition, selection, implementation, autho
 
 ### 2.5 Status management
 
-> **Terminology: State (state)** is a core concept that cuts across the follow-up course. Runtime maintained in each cycle `state ` The object recorded Agent, "What has been done, where is it now, what more needs to be done." The results of the implementation of the tools for course four, the completion of course five, the continuation of course five, the recovery of Harness Trace for course six, and the breakdown of course seven, all around.` state` Expand. **Please establish an accurate understanding of State in this section.** Status Management made Agent move from "one-round questions and answers" to "multi-step assignments." The central problem it addresses is that the context window of **LLM cannot and should not be the only State storage.** A minimum Age field to maintain at least:
+> **Terminology: State (state)** is a core concept that cuts across the follow-up course. Runtime maintained in each cycle `state ` The object recorded Agent, "What has been done, where is it now, what more needs to be done." The results of the implementation of the tools for course four, the completion of course five, the continuation of course five, the recovery of Harness Trace for course six, and the breakdown of course seven, all around.` state` Expand. **Please establish an accurate understanding of State in this section.**
+
+Status Management made Agent move from "one-round questions and answers" to "multi-step assignments." The central problem it addresses is that the context window of **LLM cannot and should not be the only State storage.**
+
+A minimum Age field to maintain at least:
 
 - User target.
 - Current number of steps.
@@ -354,7 +361,7 @@ Prompt(Definition of behaviour: static template, definition of Agent identity an
  → LLM Decision(Core module: decision-making brain)
  → Tool / Environment Interaction → Execution(Core modules: hands and eyes)
  → Observation / Feedback(Connect points: the outside world → State The Bridge)
- → State Update(Write back to State
+ → State Update(Write back to State)
  → Continue or Stop(Core module: circulatory self-regulation)
  → If you continue, go back to Context Assembly
 ```
@@ -417,13 +424,21 @@ A complete Agent Prompt usually has five levels. Not every Prompt must be comple
 └─────────────────────────────────────────────┘
 ```
 
-Gradually: **First floor: Identity** Defines the roles, professional areas and overall objectives of Agent. This is Prompt's portal -- it tells the model who to play in the next conversation.
+Gradually:
+
+**First floor: Identity**
+
+Defines the roles, professional areas and overall objectives of Agent. This is Prompt's portal -- it tells the model who to play in the next conversation.
 
 ```text
 You're a professional research assistant. Your goal is to carry out information retrieval and summary tasks accurately and efficiently, based on information provided by users.
 ```
 
-The identity level seems simple, but far-reaching. If you write "you're a programming assistant" "vs" you're a code reviewer, the model gives a completely different style and focus of response to the same questions. Identity levels provide the tone for all subsequent actions. **Second floor: protocol** Definition of Agent's **Behavior Agreement** - How it thinks, how it acts, how it handles feedback. This is the most critical layer of Prompt because it directly determines whether Agent will be "circle."
+The identity level seems simple, but far-reaching. If you write "you're a programming assistant" "vs" you're a code reviewer, the model gives a completely different style and focus of response to the same questions. Identity levels provide the tone for all subsequent actions.
+
+**Second floor: protocol**
+
+Definition of Agent's **Behavior Agreement** - How it thinks, how it acts, how it handles feedback. This is the most critical layer of Prompt because it directly determines whether Agent will be "circle."
 
 Example of definition of prompt protocol for Rect mode:
 
@@ -444,7 +459,11 @@ The protocol level answers three questions:
 - **How does the action express?** Toolname + Parameters are placed in a specific format to facilitate the analysis of Runtime.
 - **When does it end?** Call finish/ output Final Answer.
 
-Once the protocol level is set, the back tools design, circulation control, State management will be around it. The protocol layer is the "interface definition" of the Agent architecture. **Third floor: Tool layer (Tools)** Tell the model what tools it can use, the use of each tool, parameters and attention.
+Once the protocol level is set, the back tools design, circulation control, State management will be around it. The protocol layer is the "interface definition" of the Agent architecture.
+
+**Third floor: Tool layer (Tools)**
+
+Tell the model what tools it can use, the use of each tool, parameters and attention.
 
 ```text
 You can use the following tools:
@@ -460,7 +479,11 @@ The tool layer is not just "list a functional signature". A good tool descriptio
 - Write clearly **parameters** (type + meaning + example better)
 - Write clearly **possible failures** (does not exist, network timeout, etc.) to prepare the model
 
-The tool layer is the only way for LLM to know what it can do. If the description of the tool is ambiguous, the model may be wrong -- it's not smart enough, it's your "document" not clear. **Fourth floor: Constraints** Defines the behavioral boundary of Agent - output format, cessation conditions, security constraints.
+The tool layer is the only way for LLM to know what it can do. If the description of the tool is ambiguous, the model may be wrong -- it's not smart enough, it's your "document" not clear.
+
+**Fourth floor: Constraints**
+
+Defines the behavioral boundary of Agent - output format, cessation conditions, security constraints.
 
 ```text
 Binding:
@@ -470,7 +493,11 @@ Binding:
 - In an uncertain situation, call ask user to request confirmation, do not guess.
 ```
 
-The binding layer reflects the division of labour between Runteme and LLM: **Runte is responsible for the execution of hard restraints (checking parameters, blocking hazardous operations) and Prompt is responsible for the communication of soft restraints (showing models which actions are not permitted and making them self-obligated in decision-making).** Two layers of protection are more reliable than one layer alone. **Fifth floor: Example Layer** How it should be done through the few-shot example church model. This is one of the most critical findings of the Rect paper.
+The binding layer reflects the division of labour between Runteme and LLM: **Runte is responsible for the execution of hard restraints (checking parameters, blocking hazardous operations) and Prompt is responsible for the communication of soft restraints (showing models which actions are not permitted and making them self-obligated in decision-making).** Two layers of protection are more reliable than one layer alone.
+
+**Fifth floor: Example Layer**
+
+How it should be done through the few-shot example church model. This is one of the most critical findings of the Rect paper.
 
 ```text
 Here are some examples of the right work:
@@ -580,8 +607,8 @@ Runtime takes over execution when the model decides to call the tool.
 
 Implementation will include:
 
-- Verify Tool Name (Does this tool exist?
-- Validation parameters (types correct? all required entries? values within legal range?
+- Verify Tool Name (Does this tool exist?)
+- Validation parameters (types correct? all required entries? values within legal range?)
 - Execute tools (real read_files, transfer API, run codes).
 - Capture anomalies (files do not exist, network overtime, inadequate access, return formats are abnormal).
 - Normalize return results (formulate original results into structured Observation).
@@ -715,7 +742,9 @@ The first three chapters say "what" and "why". This chapter says "how" - gives a
 
 A lot of Agent frames (LangGraph, CrewAI, AutoGen, etc.) can help you quickly build an Agent that looks great. But the framework hides too many key details for the minimum closed circle of first learning.
 
-You might see that the frame has automatically made you a tool to call back the next round of decision-making, but you don't know how the middle group is going to do it, where the State Update happened, or what the basis of the decision is. When Agent behaves abnormally, you can only guess whether it's a framework bug or whether it's a model problem -- because you don't walk the whole chain. **Minimum achieved for the first time, suggests hand-written loop + direct call to LLM API.** The tool is performed with a local function and the status is written to the console or local file with memory objects or JSON files, Trade. So when you see Agent making a strange decision at step 3, you can go back to Context, Decision, Observation, State Update and know exactly what's wrong.
+You might see that the frame has automatically made you a tool to call back the next round of decision-making, but you don't know how the middle group is going to do it, where the State Update happened, or what the basis of the decision is. When Agent behaves abnormally, you can only guess whether it's a framework bug or whether it's a model problem -- because you don't walk the whole chain.
+
+**Minimum achieved for the first time, suggests hand-written loop + direct call to LLM API.** The tool is performed with a local function and the status is written to the console or local file with memory objects or JSON files, Trade. So when you see Agent making a strange decision at step 3, you can go back to Context, Decision, Observation, State Update and know exactly what's wrong.
 
 The framework is a tool for efficiency after you understand the principle, not a substitute for when you don't understand the principle.
 

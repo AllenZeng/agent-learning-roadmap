@@ -2,7 +2,13 @@
 
 ## Introduction to the curriculum
 
-If you're reading this, you're probably already using ChatGPT, Claude or something. You ask it questions, and it answers you — sometimes amazing, sometimes nonsense. You might feel like, "This thing is smart, but can it really do something for me?" **This is the subject of this course.** This course is not theoretical, practical or structured. It has only one goal: **to show you Agent, to build intuition.** What's "see"? Open Claude Code to help you rebuild a file; open Cursor to see how it understands your code library; open Kimi to do an industry study. You don't need to understand how it works inside -- like you don't need to understand engine principles to feel the acceleration of a car.
+If you're reading this, you're probably already using ChatGPT, Claude or something. You ask it questions, and it answers you — sometimes amazing, sometimes nonsense. You might feel like, "This thing is smart, but can it really do something for me?" 
+
+**This is the subject of this course.** 
+
+This course is not theoretical, practical or structured. It has only one goal: **to show you Agent, to build intuition.** 
+
+What's "see"? Open Claude Code to help you rebuild a file; open Cursor to see how it understands your code library; open Kimi to do an industry study. You don't need to understand how it works inside -- like you don't need to understand engine principles to feel the acceleration of a car.
 
 What's "intuitive"? When you're done, you can naturally judge:
 
@@ -11,7 +17,9 @@ What's "intuitive"? When you're done, you can naturally judge:
 - Who's going to decide — users, fixed processes, models?
 - What would you change if you were to design it?
 
-These instincts, they're all the fuel behind the study. For beginners, it is easy to change principles without experience to empty terms; to learn them with intuition, you can think of a specific picture in every sentence. **This course is a sensory and cognitive level, with no details of achievement.** It provides a sample of product observations for the model understanding for course II and the minimum closed circle for course III.
+These instincts, they're all the fuel behind the study. For beginners, it is easy to change principles without experience to empty terms; to learn them with intuition, you can think of a specific picture in every sentence. 
+
+**This course is a sensory and cognitive level, with no details of achievement.** It provides a sample of product observations for the model understanding for course II and the minimum closed circle for course III.
 
 Ready? Let's get in touch for the first time.
 
@@ -68,19 +76,27 @@ Agent can try to open his own browser, search for flight information, compare pr
 
 The difference between these two reactions is not a difference between product names, but rather a difference in the pattern of interaction: the former answer primarily to questions, while the latter call tools around targets, observe results and continue to decide on the next step.
 
-And one more day-to-day scene -- assuming you're writing a competition analysis. Note that not just the name of the product here, because the same product may have both a regular question-and-answer mode and an Agent capability such as search, file, code execution: **The usual question-and-answer format**: you ask it, it gives you competitive names, analytical frameworks, writing suggestions. You need to open your browser to search, read articles, extract information, organize and document. **Agent Capability Practice**: You told it "Do me a competition analysis in the XX field" and it searchs its own official networks and news stories, extracts key information, compares product differences, and produces a structured report with information sources. You just have to confirm the key nodes (e.g. before the final release).
+And one more day-to-day scene -- assuming you're writing a competition analysis. Note that not just the name of the product here, because the same product may have both a regular question-and-answer mode and an Agent capability such as search, file, code execution: 
+
+**The usual question-and-answer format**: you ask it, it gives you competitive names, analytical frameworks, writing suggestions. You need to open your browser to search, read articles, extract information, organize and document. 
+
+**Agent Capability Practice**: You told it "Do me a competition analysis in the XX field" and it searchs its own official networks and news stories, extracts key information, compares product differences, and produces a structured report with information sources. You just have to confirm the key nodes (e.g. before the final release).
 
 It's not called ChatGPT, Claude or Kimi, it's just telling you what to do in this interaction, it's able to call tools, observe results and continue to decide on the next step based on intermediate information.
 
 ### 1.2 Agent isn't the smartest chat robot.
 
-This is the first key understanding of Agent: **Agent and Chatbot are not the difference between intelligence, but the difference between capacity dimensions.** Normal Chatbot works mainly on one dimension: **language space**. It receives text, processes text, output text. It understands you, responds to you, advises you. Even if you have access to a search or a knowledge base, it's often only to bring back external information to answer you in the dialogue box.
+This is the first key understanding of Agent: **Agent and Chatbot are not the difference between intelligence, but the difference between capacity dimensions.**
+
+Normal Chatbot works mainly on one dimension: **language space**. It receives text, processes text, output text. It understands you, responds to you, advises you. Even if you have access to a search or a knowledge base, it's often only to bring back external information to answer you in the dialogue box.
 
 Agent works on two dimensions: **language space + action space**. It doesn't just understand your intentions, it can generate action in tools and environments - search, read and write files, call API, execute codes, operate browsers, etc. More critically, the outcome of the operation will in turn influence its next decision-making.
 
 In summary:
 
-> **Agent is a system that can sustain decision-making and implementation around objectives, not simply answer questions.** Every word in this sentence matters:
+> **Agent is a system that can sustain decision-making and implementation around objectives, not simply answer questions.** 
+
+Every word in this sentence matters:
 
 - **Around the goal**: Agent is not "a question-and-answer" but is always moving towards a goal. It will determine how far away it is from the target and whether it has gone astray.
 - **Ongoing decision-making**: Not once, but after every step, re-judge "what happens next" based on new information.
@@ -92,11 +108,15 @@ After understanding what Agent is, you need to distinguish between three often c
 
 #### Chatbot: Responsible for dialogue and answers
 
-Chatbot's core competence is to understand and generate language. The user enters a statement, and it returns a statement. Even with access to the search engine or the knowledge base, as long as it's still "What you say, I answer," without making plans and without deciding "three things to do next," it's closer to Chatbot. **Core feature**: the next step is usually "waiting user input".
+Chatbot's core competence is to understand and generate language. The user enters a statement, and it returns a statement. Even with access to the search engine or the knowledge base, as long as it's still "What you say, I answer," without making plans and without deciding "three things to do next," it's closer to Chatbot. 
+
+**Core feature**: the next step is usually "waiting user input".
 
 #### Workflow: execution by fixed process
 
-Workflow is a predefined enforcement chain. What each step does, how the data is transmitted and what triggers what branch is determined at the design stage. Although some of the points in Workflow may call LLM (e.g. creating a file, categorizing intent), LLM here is only a "functional module", not a "decision maker." Decision-making is the process that was designed. **Core feature**: the next step will be determined by "pre-established rules".
+Workflow is a predefined enforcement chain. What each step does, how the data is transmitted and what triggers what branch is determined at the design stage. Although some of the points in Workflow may call LLM (e.g. creating a file, categorizing intent), LLM here is only a "functional module", not a "decision maker." Decision-making is the process that was designed.
+
+**Core feature**: the next step will be determined by "pre-established rules".
 
 Typical example of a workflow: smart customer service system
 
@@ -137,7 +157,11 @@ Each step in the chain is the model itself, not the preset process.
 
 In reality, many enterprise systems do not go directly into "full autonomy", but rather use a more manageable hybrid — **Agenda Workflow**.
 
-The core idea of Agenic WorkFlow is: **WorkFlow is responsible for the main process boundary and Agent is responsible for local mission decision-making.** It's not simply "call once at a point." The LLM node in the normal WorkFlow usually completes only one fixed action, such as classification, summary, rewrite; input, output and subsequent flow is still determined by process rules. The key difference is that some nodes have a controlled small closed ring inside, and models can select tools around local targets, observe results, adjust strategies and return judgement to the main process.
+The core idea of Agenic WorkFlow is: 
+
+**WorkFlow is responsible for the main process boundary and Agent is responsible for local mission decision-making.**
+
+It's not simply "call once at a point." The LLM node in the normal WorkFlow usually completes only one fixed action, such as classification, summary, rewrite; input, output and subsequent flow is still determined by process rules. The key difference is that some nodes have a controlled small closed ring inside, and models can select tools around local targets, observe results, adjust strategies and return judgement to the main process.
 
 This is the common course of practice in the current corporate AI transition. The reason for this is simple: the business landscape usually requires authority, audit, compliance, steady delivery and manual validation, and cannot leave the entire business chain freely to the model; but the model can also provide a more adaptive than the fixed rules in local areas such as information understanding, material screening, abnormal judgement, and recommendations for the next step.
 
@@ -152,12 +176,15 @@ The engineering wisdom of such a design is that there is no need to put "certain
 
 If you can only remember one concept to distinguish between Agent and other products, remember this:
 
-> **Look who decided the next step.** - Chatbot: User decides the next step (user does not enter, system waits)
+> **Look who decided the next step.**
 
+- Chatbot: User decides the next step (user does not enter, system waits)
 - Workflow: Preset process determines the next step (step A is bound to step B)
 - Agent: The model determines the next step according to the dynamics of objectives, status and feedback
 
-That's why whether LLM is used is not a good criterion -- a lot of Workflow is also used, but LLM is only responsible for the implementation of a link (e.g. classification, generation) and not for determining the course. **Judgement exercise**: Thinking about the following scenes -
+That's why whether LLM is used is not a good criterion -- a lot of Workflow is also used, but LLM is only responsible for the implementation of a link (e.g. classification, generation) and not for determining the course.
+
+**Judgement exercise**: Thinking about the following scenes：
 
 > A data analysis tool, user uploads Excel, system automatically generates charts and insight reports. When generating the report, the system calls LLM to write the analytical text.
 
@@ -254,16 +281,16 @@ This is followed by the core learning activities of the course: **in person.** Y
 
 ### 3.1 List of products and elements of experience
 
-Don't look at products in isolation by "domestic/foreign". A better way to do this would be to classify them by Agent product type before comparing the differences in capacity boundaries, process transparency and user control of the same product category.
+A better way to do this would be to classify them by Agent product type before comparing the differences in capacity boundaries, process transparency and user control of the same product category.
 
 The following is not a complete list, but a list of delegates suitable for an introductory experience. Product capacity is changing rapidly, and this list is based on the June 2026 product pattern and is based on the current version of the experience.
 
-| Agent Product Classification | Foreign representation products | Domestic representative product | For what? |
-|---|---|---|---|
-| General Assistant | ChatGPT、Claude | Kimi, Tunyuji / Bean bag | When does it just answer questions? When does it search, analyze, call tools or switch modes? |
-| Research / Search TypeAgent | ChatGPT Deep Research、Perplexity | Kimi, Tun Tsing Yuanbao / Tsang Yi | How it dismantles research issues, selects search keywords, screens sources, generates evidence-based conclusions |
-| Programming | Claude Code、Codex | Trae, Viola. | Does it understand the code library, cross-file modifications, running commands, validation results and request confirmation prior to high-risk operations |
-| Agency Workflow / Build Platform | Zapier Agents、Lindy | Buttons, Coze, Diffy. | How it combines fixed processes, plugins, knowledge banks and local Agent decision-making |
+| Agent Product Classification | Product | For what? |
+|---|---|---|
+| General Assistant | ChatGPT、Claude、Kimi | When does it just answer questions? When does it search, analyze, call tools or switch modes? |
+| Research / Search TypeAgent | ChatGPT Deep Research、Perplexity、Kimi / Tsang Yi | How it dismantles research issues, selects search keywords, screens sources, generates evidence-based conclusions |
+| Programming | Claude Code、Codex、Trae | Does it understand the code library, cross-file modifications, running commands, validation results and request confirmation prior to high-risk operations |
+| Agency Workflow / Build Platform | Zapier Agents、Lindy | How it combines fixed processes, plugins, knowledge banks and local Agent decision-making |
 
 The experience is not just about "what it supports," but about:
 
@@ -295,7 +322,9 @@ These four questions correspond to the four core dimensions designed by Agent: *
 
 ### 3.3 Progress: Testing different products with the same mission
 
-One of the most enlightening ways to learn is to test different Agent with the same mission. It shows you how different the "thinking" of different products is in the face of the same goal. Choose a suitable test assignment like "Help me study the important changes in the field of the AI programming tool for the last three months and make a brief."
+One of the most enlightening ways to learn is to test different Agent with the same mission. It shows you how different the "thinking" of different products is in the face of the same goal.
+
+Choose a suitable test assignment like "Help me study the important changes in the field of the AI programming tool for the last three months and make a brief."
 
 A good test mission meets four conditions:
 
@@ -334,7 +363,11 @@ Here's the 7-dimensional observation frame reference. On the right side is a com
 | **Failed and recovered** | What happens when something goes wrong? | Retry, downgrade, clarify, fail to exit | Active search directory, check configuration, change frame attempts when the test file does not exist and clarify to the user after successive failure |
 | **Agent Color Decision** | It's more like Chatbot, Workflow, or Agent? | Give your judgment and give your reasons. | Strong Agen. Auto-decision tools and sequencing of implementation; dynamic adjustments in unexpected feedback; high-risk recognition as security design, non-capacity constraints |
 
-The seven dimensions revolve around the same core issue: **How much "decision" responsibility does the model have in dealing with the task?** --- **Three levels of judgement**:
+The seven dimensions revolve around the same core issue: **How much "decision" responsibility does the model have in dealing with the task?**
+
+---
+
+**Three levels of judgement**:
 
 1. **What drives most behaviour in this product?** -- User input, preset rules, or model dynamic decision making?
 2. **In what specific scenario did it show the Agent character?** — Is it "search planning" autonomy, or is it a feedback loop when "code generation automatically runs test validation"?

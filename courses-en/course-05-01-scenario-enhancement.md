@@ -4,7 +4,11 @@
 
 After course 3 and course 4, you have a running Agent-LLM decision-making + Tool Call + State Management + Cycle Control. It deals with simple tasks that are stable: reading documents, making summaries and searching for replacements.
 
-But once you put it in the real scene for weeks, you hit two different kinds of problems: **Category I: Context — Information on which Agent's decision-making depends, where and how?** Private knowledge is not in the model parameters and external data cannot come in; user preferences and task status evaporates over one session; and when external knowledge and historical status are connected, multiple sources of information are injected into the context, from carefully designed inputs to expanding information piles. Such problems are addressed by **context enhancement**: RAG (access to external data), Memory (continuing historical status), Context Engineering (organizational multi-source information). **Category II: behaviour issues — how can Agent organize implementation, collaboration, response feedback when faced with complex tasks?** Naked Rect Cycle has no mandate structure and multi-step tasks are prone to drift; classification, processing and discontinuation mechanisms are lacking following unusual feedback from the implementation process; high-risk operations lack decision-making authority boundaries; and single players cannot look at their work from multiple perspectives. Such problems are addressed by the enhanced behaviour patterns: Planning (missions decomposition and organization), Reflection (results-based decision-making closed loop), Human-in-the-loop (decision-making boundaries), Multi-Agent (multi-role division of labour collaboration).
+But once you put it in the real scene for weeks, you hit two different kinds of problems:
+
+**Category I: Context — Information on which Agent's decision-making depends, where and how?** Private knowledge is not in the model parameters and external data cannot come in; user preferences and task status evaporates over one session; and when external knowledge and historical status are connected, multiple sources of information are injected into the context, from carefully designed inputs to expanding information piles. Such problems are addressed by **context enhancement**: RAG (access to external data), Memory (continuing historical status), Context Engineering (organizational multi-source information).
+
+**Category II: behaviour issues — how can Agent organize implementation, collaboration, response feedback when faced with complex tasks?** Naked Rect Cycle has no mandate structure and multi-step tasks are prone to drift; classification, processing and discontinuation mechanisms are lacking following unusual feedback from the implementation process; high-risk operations lack decision-making authority boundaries; and single players cannot look at their work from multiple perspectives. Such problems are addressed by the enhanced behaviour patterns: Planning (missions decomposition and organization), Reflection (results-based decision-making closed loop), Human-in-the-loop (decision-making boundaries), Multi-Agent (multi-role division of labour collaboration).
 
 These two sets of capabilities answer two fundamental questions. But they have one thing in common: **none of the mandatory core modules of Agent** — a minimum closed circle does not need them to run. They are selective introduction of empowerment by scene.
 
@@ -12,7 +16,7 @@ This course does not start with conceptual terms but begins with problems. Each 
 
 ```text
 It's a problem. → Technical background. → Thinking.
- → Programme (core links)+ Code skeleton) → iterative path (from minimum version to production level) → Judge the boundary (when not)
+ → Programme (core links + Code skeleton) → iterative path (from minimum version to production level) → Judge the boundary (when not)
 ```
 
 After school, you don't have to do all seven types of abilities, but you should be able to judge when you face a new scene:
@@ -60,13 +64,21 @@ After this lesson, you will be able to:
 
 You spent two weeks doing a personal knowledge assistant, Agent. It runs on the smallest closed ring of course three - LLM Decision + Tool Call + State Management + Cycle Control. The first month went smoothly, but the second began with problems coming up one after another.
 
-These questions appear to be varied, but look closely at them and hit two different ceilings. **First ceiling: context. Where does it come from and how does it work?** The least closed circle 'the context' is the System Prompt+User Message + Tool returns. All the information is in the current session, and the session is closed. This means three things:
+These questions appear to be varied, but look closely at them and hit two different ceilings. 
+
+**First ceiling: context. Where does it come from and how does it work?**
+
+The least closed circle 'the context' is the System Prompt+User Message + Tool returns. All the information is in the current session, and the session is closed. This means three things:
 
 - Private knowledge, real-time data other than model training data cannot be obtained by Agent. It can only remember "guess" by parameters.
 - User preferences, project engagements, progress of the last mission are evaporated through one session. It has to start from scratch every time.
 - When you access both the external knowledge (RAG) and the historical state (Memory), the new problem follows: multiple sources of information are simultaneously injected into the context, system hints, retrieval clips, memory recall, tool outputs, history messages are mixed — the context has changed from "detailed input" to "extended information piles". The model begins to ignore key constraints and fights between information.
 
-These three levels - **access to external data, continuity of history, organization multi-source information** - jointly determine the quality of information for Agent decision-making. Corresponding enhancements were RAG (chap. II), Momory (chap. III) and Context Engineering (chap. IV). **Second ceiling: behavior. How does Agent organize implementation, collaboration and recovery in the face of complex tasks?** The minimum closed circle has only one naked rect loop: each step determines what to do next according to the current context. This model, "Check out what X" is okay, but it's not enough when it comes to more complex mission patterns:
+These three levels - **access to external data, continuity of history, organization multi-source information** - jointly determine the quality of information for Agent decision-making. Corresponding enhancements were RAG (chap. II), Momory (chap. III) and Context Engineering (chap. IV).
+
+**Second ceiling: behavior. How does Agent organize implementation, collaboration and recovery in the face of complex tasks?**
+
+The minimum closed circle has only one naked rect loop: each step determines what to do next according to the current context. This model, "Check out what X" is okay, but it's not enough when it comes to more complex mission patterns:
 
 - The task itself is multi-step, dependent — not "what to do next," but "how to break it down, how to do it in sequence, how to do it."
 - There are errors in the implementation process — tools failed to call, returns abnormally and intermediate outputs did not match expectations. In the absence of a correction mechanism, errors are carried silently into subsequent steps.
@@ -110,7 +122,11 @@ The seven categories of capacity corresponding to the above seven issues are nat
 └─────────────────────────────────────────────────────────────┘
 ```
 
-Why do you make this distinction? Two reasons: **First, introduction order.** In real projects, you usually solve problems of information and then behavior. A person who doesn't even have a clear vision, and you've given it a complicated Planning model for nothing. It did the right task on the wrong message, and the result was wrong. The error clips that RAG retrieves, the outdated preferences recalled by Memory, the unorganized confusion context - the problem of these information dimensions will be magnified by the complex layout of Planning and Multi-Agent. **Second, positioning issues.** When Agent behaves badly, it is a question of information or behaviour. The model answers are inaccurate — are the results of the search not correct (information questions) or are the tasks broken down wrong (behaviour questions)? Agent deletes the document that should not be deleted -- is it without HITL confirmation, or is it the wrong file classification in Memoory? Bringing the problem to the right dimensions will lead to the right direction.
+Why do you make this distinction? Two reasons:
+
+**First, introduction order.** In real projects, you usually solve problems of information and then behavior. A person who doesn't even have a clear vision, and you've given it a complicated Planning model for nothing. It did the right task on the wrong message, and the result was wrong. The error clips that RAG retrieves, the outdated preferences recalled by Memory, the unorganized confusion context - the problem of these information dimensions will be magnified by the complex layout of Planning and Multi-Agent.
+
+**Second, positioning issues.** When Agent behaves badly, it is a question of information or behaviour. The model answers are inaccurate — are the results of the search not correct (information questions) or are the tasks broken down wrong (behaviour questions)? Agent deletes the document that should not be deleted -- is it without HITL confirmation, or is it the wrong file classification in Memoory? Bringing the problem to the right dimensions will lead to the right direction.
 
 The following table shows the coordinates of the next chapter — which does not require all of the lessons to be done — and turns to the corresponding section whenever the problem arises:
 
