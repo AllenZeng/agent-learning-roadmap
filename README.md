@@ -9,7 +9,7 @@ A systematic learning path for developers who want to understand, build, evaluat
 [![Status](https://img.shields.io/badge/status-active-success.svg)](https://github.com/AllenZeng/agent-learning-roadmap)
 ![Language](https://img.shields.io/badge/language-English%20%7C%20中文-blue.svg)
 
-> Current status: v0.6. The English version is available through course 05-09, with course 06-08 still in progress.
+> Current status: v0.7. The English version is available through course 05-09, with course 06-08 still in progress.
 
 ---
 
