@@ -13,7 +13,7 @@ A systematic learning path for developers who want to understand, build, evaluat
 
 ---
 
-![Agent Learning Roadmap overview](assets/course-roadmap.svg)
+![Agent Learning Roadmap overview](assets-en/course-roadmap.svg)
 
 ---
 
@@ -108,7 +108,8 @@ syllabus.md            # English syllabus
 syllabus.zh-CN.md      # Simplified Chinese syllabus
 courses/               # Chinese course content
 courses-en/            # English course content
-assets/                # Shared diagrams and visual assets
+assets/                # Chinese diagrams and visual assets
+assets-en/             # English-localized diagrams and visual assets
 examples/              # Shared runnable examples
 reference/             # Supplementary references
 ```

@@ -348,7 +348,7 @@ We will start with a full map: where the Prompt sits, where the runtime boundary
 
 ### 3.1 The Minimal Loop Diagram
 
-![Lesson 3: Minimal Agent execution path](../assets/course-03-minimal-agent-loop.svg)
+![Lesson 3: Minimal Agent execution path](../assets-en/course-03-minimal-agent-loop.svg)
 
 This diagram carries five meanings:
 

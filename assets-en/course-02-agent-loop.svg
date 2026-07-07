@@ -1,0 +1,122 @@
+<svg width="1200" height="610" viewBox="0 0 1200 610" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="al-title al-desc">
+  <title id="al-title">Basic Agent Loop</title>
+  <desc id="al-desc">Six core Agent steps form a continuous loop: perceive, assess, choose, act, observe feedback, and adjust. A travel-assistant scenario grounds each step.</desc>
+  <defs>
+    <linearGradient id="al-bg" x1="0" y1="0" x2="1200" y2="610" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#F0FDF4"/>
+    </linearGradient>
+    <filter id="al-shadow" x="-8%" y="-10%" width="116%" height="130%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrow-teal" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0 0L8 3L0 6Z" fill="#0F766E"/>
+    </marker>
+    <style>
+      .al-title { font: 700 32px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #102A43; }
+      .al-sub { font: 400 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; }
+      .al-step-no { font: 700 15px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #FFFFFF; }
+      .al-step-title { font: 600 18px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; }
+      .al-step-desc { font: 400 13.5px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; }
+      .al-example { font: 400 12.5px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F766E; }
+      .al-note { font: 400 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #94A3B8; }
+      .al-loop-label { font: 600 15px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F766E; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="610" fill="url(#al-bg)"/>
+
+  <!-- Title -->
+  <text x="600" y="54" text-anchor="middle" class="al-title">The Basic Agent Loop: Perceive, Reason, Act, Learn</text>
+  <text x="600" y="82" text-anchor="middle" class="al-sub">This loop stays stable from traditional Agents to LLM Agents; what changes is who performs each step.</text>
+
+  <!-- ===== Top Row: Steps 1 → 2 → 3 ===== -->
+  <!-- Card: 260×108, circle r=16 at (24,32), text starts x=48, lines at y=31/55/78 -->
+
+  <!-- Step 1: Perceive -->
+  <g transform="translate(124 115)" filter="url(#al-shadow)">
+    <rect x="0" y="0" width="260" height="108" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="1.5"/>
+    <circle cx="24" cy="32" r="16" fill="#0F766E"/>
+    <text x="24" y="36" text-anchor="middle" class="al-step-no">1</text>
+    <text x="48" y="31" class="al-step-title">Perceive</text>
+    <text x="48" y="55" class="al-step-desc">Read state and information</text>
+    <text x="48" y="78" class="al-example">E.g., schedule, flights, budget</text>
+  </g>
+
+  <!-- Arrow 1→2 -->
+  <path d="M384 169C404 169, 450 169, 470 169" stroke="#0F766E" stroke-width="1.8" marker-end="url(#arrow-teal)"/>
+
+  <!-- Step 2: Assess -->
+  <g transform="translate(470 115)" filter="url(#al-shadow)">
+    <rect x="0" y="0" width="260" height="108" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="1.5"/>
+    <circle cx="24" cy="32" r="16" fill="#0F766E"/>
+    <text x="24" y="36" text-anchor="middle" class="al-step-no">2</text>
+    <text x="48" y="31" class="al-step-title">Assess</text>
+    <text x="48" y="55" class="al-step-desc">Understand the current phase</text>
+    <text x="48" y="78" class="al-example">E.g., fixed meeting, tight budget</text>
+  </g>
+
+  <!-- Arrow 2→3 -->
+  <path d="M730 169C750 169, 796 169, 816 169" stroke="#0F766E" stroke-width="1.8" marker-end="url(#arrow-teal)"/>
+
+  <!-- Step 3: Choose Action -->
+  <g transform="translate(816 115)" filter="url(#al-shadow)">
+    <rect x="0" y="0" width="260" height="108" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="1.5"/>
+    <circle cx="24" cy="32" r="16" fill="#0F766E"/>
+    <text x="24" y="36" text-anchor="middle" class="al-step-no">3</text>
+    <text x="48" y="31" class="al-step-title">Choose Action</text>
+    <text x="48" y="55" class="al-step-desc">Decide what to do next</text>
+    <text x="48" y="78" class="al-example">E.g., search flights or hotels first?</text>
+  </g>
+
+  <!-- ===== Right side: Arrow 3→4 (curves outward, solid) ===== -->
+  <path d="M1076 169C1136 169, 1136 360, 1076 387" stroke="#0F766E" stroke-width="1.8" marker-end="url(#arrow-teal)"/>
+
+  <!-- Step 4: Execute -->
+  <g transform="translate(816 330)" filter="url(#al-shadow)">
+    <rect x="0" y="0" width="260" height="108" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="1.5"/>
+    <circle cx="24" cy="32" r="16" fill="#0F766E"/>
+    <text x="24" y="36" text-anchor="middle" class="al-step-no">4</text>
+    <text x="48" y="31" class="al-step-title">Execute</text>
+    <text x="48" y="55" class="al-step-desc">Call a tool or API for real</text>
+    <text x="48" y="78" class="al-example">E.g., call a flight-search API</text>
+  </g>
+
+  <!-- Arrow 4→5 -->
+  <path d="M816 384C796 384, 750 384, 730 384" stroke="#0F766E" stroke-width="1.8" marker-end="url(#arrow-teal)"/>
+
+  <!-- Step 5: Receive Feedback -->
+  <g transform="translate(470 330)" filter="url(#al-shadow)">
+    <rect x="0" y="0" width="260" height="108" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="1.5"/>
+    <circle cx="24" cy="32" r="16" fill="#0F766E"/>
+    <text x="24" y="36" text-anchor="middle" class="al-step-no">5</text>
+    <text x="48" y="31" class="al-step-title">Receive Feedback</text>
+    <text x="48" y="55" class="al-step-desc">Get the real result of the action</text>
+    <text x="48" y="78" class="al-example">E.g., cheap flight, but arrives late</text>
+  </g>
+
+  <!-- Arrow 5→6 -->
+  <path d="M470 384C450 384, 404 384, 384 384" stroke="#0F766E" stroke-width="1.8" marker-end="url(#arrow-teal)"/>
+
+  <!-- Step 6: Adjust Next Step -->
+  <g transform="translate(124 330)" filter="url(#al-shadow)">
+    <rect x="0" y="0" width="260" height="108" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="1.5"/>
+    <circle cx="24" cy="32" r="16" fill="#0F766E"/>
+    <text x="24" y="36" text-anchor="middle" class="al-step-no">6</text>
+    <text x="48" y="31" class="al-step-title">Adjust Next Step</text>
+    <text x="48" y="55" class="al-step-desc">Revise strategy from feedback</text>
+    <text x="48" y="78" class="al-example">E.g., search flights the night before</text>
+  </g>
+
+  <!-- ===== Left side: Return arrow 6→1 (curves outward, dashed) ===== -->
+  <path d="M124 384C64 384, 64 196, 124 169" stroke="#0F766E" stroke-width="1.8" stroke-dasharray="6,3" marker-end="url(#arrow-teal)"/>
+
+  <!-- Center label -->
+  <g transform="translate(480 468)">
+    <rect x="0" y="0" width="240" height="44" rx="22" fill="#0F766E" fill-opacity="0.08"/>
+    <text x="120" y="27" text-anchor="middle" class="al-loop-label">Loop until the task is done</text>
+  </g>
+
+  <!-- Footer note -->
+  <text x="600" y="568" text-anchor="middle" class="al-note">In the open world, every step is hard: messy environment, vague goals, too many actions, and noisy feedback.</text>
+</svg>

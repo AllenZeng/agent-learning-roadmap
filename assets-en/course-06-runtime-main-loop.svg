@@ -1,0 +1,204 @@
+<svg width="1600" height="980" viewBox="0 0 1600 980" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Lesson 6: Harness Runtime Architecture</title>
+  <desc id="desc">A full view of the Harness Runtime: user request at the top; loop control on the left; context assembly, model decision, action execution, and state update in the center; guardrails and observability on the right; final output at the bottom.</desc>
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1600" y2="980" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.55" stop-color="#ECFEFF"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <linearGradient id="runtime" x1="110" y1="142" x2="1490" y2="878" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F8FAFC"/>
+    </linearGradient>
+    <filter id="softShadow" x="-8%" y="-12%" width="116%" height="132%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#0F172A" flood-opacity="0.10"/>
+    </filter>
+    <filter id="lightShadow" x="-6%" y="-10%" width="112%" height="124%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.07"/>
+    </filter>
+    <marker id="arrowTeal" markerWidth="16" markerHeight="16" refX="13" refY="8" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M4 4L13 8L4 12" stroke="#0F766E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="16" markerHeight="16" refX="13" refY="8" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M4 4L13 8L4 12" stroke="#2563EB" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowAmber" markerWidth="16" markerHeight="16" refX="13" refY="8" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M4 4L13 8L4 12" stroke="#B45309" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      .title { font: 850 39px/1.15 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #102A43; letter-spacing: 0; }
+      .subtitle { font: 430 18px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #52616F; letter-spacing: 0; }
+      .runtimeTitle { font: 820 28px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .runtimeNote { font: 430 17px/1.32 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; letter-spacing: 0; }
+      .laneLabel { font: 820 20px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; letter-spacing: 0; }
+      .laneHint { font: 430 14px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; letter-spacing: 0; }
+      .phaseNo { font: 850 14px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #FFFFFF; letter-spacing: 0; }
+      .phaseTitle { font: 830 21px/1.16 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .phaseEn { font: 690 14px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; letter-spacing: 0; }
+      .phaseText { font: 430 13.5px/1.32 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; letter-spacing: 0; }
+      .chip { font: 720 13px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 0; }
+      .controlTitle { font: 830 22px/1.16 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #7C2D12; letter-spacing: 0; }
+      .controlText { font: 430 13.5px/1.32 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #7C2D12; letter-spacing: 0; }
+      .railTitle { font: 830 21px/1.18 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #FFFFFF; letter-spacing: 0; }
+      .railText { font: 500 14px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #E0F2FE; letter-spacing: 0; }
+      .railWarm { font: 500 14px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #FEF3C7; letter-spacing: 0; }
+      .outputTitle { font: 830 21px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #7C2D12; letter-spacing: 0; }
+      .outputText { font: 430 14px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #7C2D12; letter-spacing: 0; }
+      .flowLabel { font: 760 14px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #2563EB; letter-spacing: 0; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="980" fill="url(#page)"/>
+  <text x="800" y="68" text-anchor="middle" class="title">Harness Runtime Architecture</text>
+
+  <rect x="108" y="146" width="1384" height="790" rx="14" fill="url(#runtime)" stroke="#CBD5E1" stroke-width="2"/>
+  <g transform="translate(146 182)">
+    <text x="0" y="0" class="runtimeTitle">Harness Runtime</text>
+    <text x="0" y="32" class="runtimeNote">runtime control skeleton</text>
+  </g>
+
+  <g transform="translate(612 154)" filter="url(#lightShadow)">
+    <rect x="0" y="0" width="376" height="86" rx="12" fill="#FFFFFF" stroke="#99F6E4" stroke-width="2"/>
+    <rect x="24" y="26" width="58" height="28" rx="14" fill="#0F766E"/>
+    <text x="53" y="45" text-anchor="middle" class="phaseNo">IN</text>
+    <text x="104" y="36" class="phaseTitle">User Request</text>
+    <text x="104" y="63" class="phaseText">Goal, constraints, inputs, context signals</text>
+  </g>
+
+  <path d="M800 240V286" stroke="#0F766E" stroke-width="3" marker-end="url(#arrowTeal)"/>
+
+  <g transform="translate(236 406)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="280" height="378" rx="12" fill="#FFF7ED" stroke="#FDBA74" stroke-width="2"/>
+    <rect x="26" y="28" width="58" height="28" rx="14" fill="#CA8A04"/>
+    <text x="55" y="47" text-anchor="middle" class="phaseNo">05</text>
+    <text x="26" y="94" class="controlTitle">Loop Control</text>
+    <text x="26" y="124" class="phaseEn">Loop Control</text>
+    <text x="26" y="166" class="controlText">Decide whether to continue,</text>
+    <text x="26" y="190" class="controlText">stop, retry, or hand off.</text>
+    <text x="26" y="232" class="controlText">Choose orchestration modes:</text>
+    <text x="26" y="256" class="controlText">Chain / Router / ReAct</text>
+    <text x="26" y="280" class="controlText">/ Plan-Execute, and more.</text>
+    <g transform="translate(26 320)">
+      <rect x="0" y="0" width="78" height="26" rx="13" fill="#FEF3C7"/>
+      <text x="39" y="18" text-anchor="middle" class="chip" fill="#B45309">Continue</text>
+      <rect x="90" y="0" width="78" height="26" rx="13" fill="#FEF3C7"/>
+      <text x="129" y="18" text-anchor="middle" class="chip" fill="#B45309">Stop</text>
+      <rect x="180" y="0" width="64" height="26" rx="13" fill="#FEF3C7"/>
+      <text x="212" y="18" text-anchor="middle" class="chip" fill="#B45309">Retry</text>
+    </g>
+  </g>
+
+  <path d="M800 318V704" stroke="#CBD5E1" stroke-width="5" stroke-linecap="round"/>
+
+  <g transform="translate(590 306)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="480" height="100" rx="12" fill="#FFFFFF" stroke="#99F6E4" stroke-width="2"/>
+    <rect x="24" y="24" width="54" height="26" rx="13" fill="#0F766E"/>
+    <text x="51" y="42" text-anchor="middle" class="phaseNo">01</text>
+    <text x="98" y="36" class="phaseTitle">Context Assembly</text>
+    <text x="98" y="62" class="phaseEn">Context Assembly</text>
+    <text x="304" y="36" class="phaseText">Sources -> messages</text>
+    <text x="304" y="62" class="phaseText">AssemblyReport</text>
+    <g transform="translate(98 72)">
+      <rect x="0" y="0" width="64" height="22" rx="11" fill="#ECFDF5"/>
+      <text x="32" y="16" text-anchor="middle" class="chip" fill="#0F766E">RAG</text>
+      <rect x="72" y="0" width="78" height="22" rx="11" fill="#ECFDF5"/>
+      <text x="111" y="16" text-anchor="middle" class="chip" fill="#0F766E">Memory</text>
+    </g>
+  </g>
+
+  <path d="M800 406V430" stroke="#2563EB" stroke-width="3" marker-end="url(#arrowBlue)"/>
+
+  <g transform="translate(590 430)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="480" height="100" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2"/>
+    <rect x="24" y="24" width="54" height="26" rx="13" fill="#2563EB"/>
+    <text x="51" y="42" text-anchor="middle" class="phaseNo">02</text>
+    <text x="98" y="36" class="phaseTitle">Model Decision</text>
+    <text x="98" y="62" class="phaseEn">Model Decision</text>
+    <text x="304" y="36" class="phaseText">Decide next step</text>
+    <text x="304" y="62" class="phaseText">Reply / tool / reflect</text>
+    <g transform="translate(98 72)">
+      <rect x="0" y="0" width="64" height="22" rx="11" fill="#EFF6FF"/>
+      <text x="32" y="16" text-anchor="middle" class="chip" fill="#1D4ED8">LLM</text>
+      <rect x="72" y="0" width="94" height="22" rx="11" fill="#EFF6FF"/>
+      <text x="119" y="16" text-anchor="middle" class="chip" fill="#1D4ED8">Reflection</text>
+    </g>
+  </g>
+
+  <path d="M800 530V554" stroke="#2563EB" stroke-width="3" marker-end="url(#arrowBlue)"/>
+
+  <g transform="translate(590 554)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="480" height="100" rx="12" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2"/>
+    <rect x="24" y="24" width="54" height="26" rx="13" fill="#EA580C"/>
+    <text x="51" y="42" text-anchor="middle" class="phaseNo">03</text>
+    <text x="98" y="36" class="phaseTitle">Action Execution</text>
+    <text x="98" y="62" class="phaseEn">Action Execution</text>
+    <text x="304" y="36" class="phaseText">Tool call / subagent</text>
+    <text x="304" y="62" class="phaseText">Validate + process</text>
+    <g transform="translate(98 72)">
+      <rect x="0" y="0" width="70" height="22" rx="11" fill="#FFF7ED"/>
+      <text x="35" y="16" text-anchor="middle" class="chip" fill="#C2410C">Tools</text>
+      <rect x="78" y="0" width="98" height="22" rx="11" fill="#FFF7ED"/>
+      <text x="127" y="16" text-anchor="middle" class="chip" fill="#C2410C">SubAgent</text>
+    </g>
+  </g>
+
+  <path d="M800 654V678" stroke="#2563EB" stroke-width="3" marker-end="url(#arrowBlue)"/>
+
+  <g transform="translate(590 678)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="480" height="100" rx="12" fill="#FFFFFF" stroke="#C4B5FD" stroke-width="2"/>
+    <rect x="24" y="24" width="54" height="26" rx="13" fill="#7C3AED"/>
+    <text x="51" y="42" text-anchor="middle" class="phaseNo">04</text>
+    <text x="98" y="36" class="phaseTitle">State Update</text>
+    <text x="98" y="62" class="phaseEn">State Update</text>
+    <text x="304" y="36" class="phaseText">Write task state</text>
+    <text x="304" y="62" class="phaseText">Checkpoint / Log</text>
+    <g transform="translate(98 72)">
+      <rect x="0" y="0" width="68" height="22" rx="11" fill="#F5F3FF"/>
+      <text x="34" y="16" text-anchor="middle" class="chip" fill="#6D28D9">State</text>
+      <rect x="76" y="0" width="84" height="22" rx="11" fill="#F5F3FF"/>
+      <text x="118" y="16" text-anchor="middle" class="chip" fill="#6D28D9">Resume</text>
+    </g>
+  </g>
+
+  <path d="M590 728H516" stroke="#B45309" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowAmber)"/>
+  <text x="526" y="713" class="flowLabel" fill="#B45309">Flow</text>
+  <path d="M376 406V356H590" stroke="#B45309" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="9 9" marker-end="url(#arrowAmber)"/>
+  <text x="400" y="344" class="flowLabel" fill="#B45309">Continue: next round</text>
+
+  <g transform="translate(1092 326)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="326" height="452" rx="12" fill="#F8FAFC" stroke="#94A3B8" stroke-width="2"/>
+    <text x="24" y="34" class="laneLabel">Cross-cutting capabilities</text>
+    <text x="24" y="60" class="laneHint">Cover every phase, not one step</text>
+    <g transform="translate(24 84)">
+      <rect x="0" y="0" width="278" height="166" rx="12" fill="#102A43"/>
+      <text x="28" y="48" class="railTitle">Guardrails</text>
+      <text x="28" y="80" class="railText">Guardrails</text>
+      <text x="28" y="118" class="railText">Input filtering -> content isolation</text>
+      <text x="28" y="144" class="railText">Decision checks -> tool checks</text>
+    </g>
+    <g transform="translate(24 264)">
+      <rect x="0" y="0" width="278" height="166" rx="12" fill="#7C2D12"/>
+      <text x="28" y="48" class="railTitle">Observability</text>
+      <text x="28" y="80" class="railWarm">Observability</text>
+      <text x="28" y="118" class="railWarm">Every phase emits traces</text>
+      <text x="28" y="144" class="railWarm">Metrics, logs, evaluation evidence</text>
+    </g>
+  </g>
+
+  <path d="M1070 356H1092" stroke="#64748B" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8 8"/>
+  <path d="M1070 480H1092" stroke="#64748B" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8 8"/>
+  <path d="M1070 604H1092" stroke="#64748B" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8 8"/>
+  <path d="M1070 728H1092" stroke="#64748B" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="8 8"/>
+
+  <path d="M376 784V863H590" stroke="#B45309" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrowAmber)"/>
+  <text x="418" y="847" class="flowLabel" fill="#B45309">Stop: output result</text>
+  <g transform="translate(590 820)" filter="url(#lightShadow)">
+    <rect x="0" y="0" width="480" height="86" rx="12" fill="#FEF3C7" stroke="#FDBA74" stroke-width="2"/>
+    <rect x="24" y="26" width="58" height="28" rx="14" fill="#B45309"/>
+    <text x="53" y="45" text-anchor="middle" class="phaseNo">OUT</text>
+    <text x="104" y="36" class="outputTitle">Final Output</text>
+    <text x="104" y="59" class="outputText">Task complete, safe exit,</text>
+    <text x="104" y="76" class="outputText">or waiting for human handoff</text>
+  </g>
+</svg>

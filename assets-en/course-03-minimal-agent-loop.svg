@@ -1,0 +1,150 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Lesson 3: Minimal Agent Execution Path</title>
+  <desc id="desc">The diagram shows a minimal Agent loop inside a Runtime: the user goal enters context assembly, the model decides, interaction and execution produce observations, state is updated, and the loop continues or stops.</desc>
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.5" stop-color="#F0Fdfa"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <linearGradient id="runtime" x1="120" y1="120" x2="1480" y2="790" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F8FAFC"/>
+    </linearGradient>
+    <linearGradient id="mainStep" x1="250" y1="330" x2="1350" y2="330" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F766E"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+    <filter id="softShadow" x="-8%" y="-16%" width="116%" height="140%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#0F172A" flood-opacity="0.10"/>
+    </filter>
+    <marker id="arrowTeal" markerWidth="14" markerHeight="14" refX="10" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2L10 7L2 12" stroke="#0F766E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="14" markerHeight="14" refX="10" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2L10 7L2 12" stroke="#2563EB" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowAmber" markerWidth="14" markerHeight="14" refX="10" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M2 2L10 7L2 12" stroke="#B45309" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowTealSmall" markerWidth="18" markerHeight="18" refX="15" refY="9" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M4 4L15 9L4 14" stroke="#0F766E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowBlueSmall" markerWidth="18" markerHeight="18" refX="15" refY="9" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M4 4L15 9L4 14" stroke="#2563EB" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowAmberSmall" markerWidth="18" markerHeight="18" refX="15" refY="9" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M4 4L15 9L4 14" stroke="#B45309" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      .title { font: 850 42px/1.15 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #102A43; letter-spacing: 0; }
+      .subtitle { font: 430 19px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #52616F; letter-spacing: 0; }
+      .runtimeTitle { font: 780 23px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .runtimeNote { font: 430 15.5px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; letter-spacing: 0; }
+      .stepNo { font: 800 15px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #FFFFFF; letter-spacing: 0; }
+      .stepTitle { font: 800 21px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #102A43; letter-spacing: 0; }
+      .stepNote { font: 430 14.5px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #52616F; letter-spacing: 0; }
+      .promptNote { font: 430 15.5px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #CBD5E1; letter-spacing: 0; }
+      .sideTitle { font: 800 24px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #7C2D12; letter-spacing: 0; }
+      .sideNote { font: 430 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #7C2D12; letter-spacing: 0; }
+      .sideStepTitle { font: 800 20px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #7C2D12; letter-spacing: 0; }
+      .sideStepNote { font: 430 14.5px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #7C2D12; letter-spacing: 0; }
+      .smallLabel { font: 700 15px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F766E; letter-spacing: 0; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#page)"/>
+  <text x="800" y="78" text-anchor="middle" class="title">Minimal Agent Execution Path</text>
+  <text x="800" y="118" text-anchor="middle" class="subtitle">Prompt defines behavior, Runtime carries execution, and State feeds results into the next decision.</text>
+
+  <rect x="118" y="160" width="1364" height="650" rx="12" fill="url(#runtime)" stroke="#CBD5E1" stroke-width="2"/>
+  <g transform="translate(154 190)">
+    <text x="0" y="0" class="runtimeTitle">Runtime (deterministic infrastructure)</text>
+    <text x="0" y="32" class="runtimeNote">Runs tools, checks permissions, manages State, controls loops, records traces</text>
+  </g>
+
+  <g transform="translate(170 248)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="640" height="76" rx="10" fill="#102A43"/>
+    <text x="34" y="46" class="promptNote">Prompt (behavior definition: role, rules, tools, output format)</text>
+    <path d="M85 76V118" stroke="#0F766E" stroke-width="3" marker-end="url(#arrowTealSmall)"/>
+  </g>
+
+  <g>
+    <path d="M255 429H1250" stroke="url(#mainStep)" stroke-width="5" stroke-linecap="round" opacity="0.82"/>
+
+    <g transform="translate(170 376)">
+      <rect x="0" y="0" width="170" height="106" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="2" filter="url(#softShadow)"/>
+      <rect x="22" y="20" width="48" height="24" rx="12" fill="#0F766E"/>
+      <text x="46" y="37" text-anchor="middle" class="stepNo">01</text>
+      <text x="22" y="72" class="stepTitle">User Goal</text>
+      <text x="22" y="96" class="stepNote">User input</text>
+    </g>
+
+    <g transform="translate(392 376)">
+      <rect x="0" y="0" width="240" height="106" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="2" filter="url(#softShadow)"/>
+      <rect x="22" y="20" width="48" height="24" rx="12" fill="#0F766E"/>
+      <text x="46" y="37" text-anchor="middle" class="stepNo">02</text>
+      <text x="22" y="72" class="stepTitle">Context Assembly</text>
+      <text x="22" y="96" class="stepNote">Prompt + State</text>
+    </g>
+
+    <g transform="translate(662 376)">
+      <rect x="0" y="0" width="190" height="106" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2" filter="url(#softShadow)"/>
+      <rect x="22" y="20" width="48" height="24" rx="12" fill="#2563EB"/>
+      <text x="46" y="37" text-anchor="middle" class="stepNo">03</text>
+      <text x="22" y="72" class="stepTitle">LLM Decision</text>
+      <text x="22" y="96" class="stepNote">Model decides next step</text>
+    </g>
+
+    <g transform="translate(908 376)">
+      <rect x="0" y="0" width="220" height="106" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2" filter="url(#softShadow)"/>
+      <rect x="22" y="20" width="48" height="24" rx="12" fill="#2563EB"/>
+      <text x="46" y="37" text-anchor="middle" class="stepNo">04</text>
+      <text x="22" y="72" class="stepTitle">Interaction</text>
+      <text x="22" y="96" class="stepNote">Select tool or environment</text>
+    </g>
+
+    <g transform="translate(1154 376)">
+      <rect x="0" y="0" width="190" height="106" rx="10" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2" filter="url(#softShadow)"/>
+      <rect x="22" y="20" width="48" height="24" rx="12" fill="#EA580C"/>
+      <text x="46" y="37" text-anchor="middle" class="stepNo">05</text>
+      <text x="22" y="72" class="stepTitle">Execution</text>
+      <text x="22" y="96" class="stepNote">Runtime executes</text>
+    </g>
+  </g>
+
+  <g>
+    <path d="M1248 482V552" stroke="#B45309" stroke-width="5" stroke-linecap="round" opacity="0.82"/>
+    <g transform="translate(1068 552)">
+      <rect x="0" y="0" width="350" height="106" rx="10" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2" filter="url(#softShadow)"/>
+      <rect x="22" y="20" width="48" height="24" rx="12" fill="#EA580C"/>
+      <text x="46" y="37" text-anchor="middle" class="stepNo">06</text>
+      <text x="22" y="72" class="stepTitle">Observation / Feedback</text>
+      <text x="22" y="96" class="stepNote">External results return to system view</text>
+    </g>
+
+    <path d="M1248 658V694" stroke="#B45309" stroke-width="5" stroke-linecap="round" opacity="0.82"/>
+    <g transform="translate(1098 694)">
+      <rect x="0" y="0" width="300" height="106" rx="10" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2"/>
+      <rect x="22" y="20" width="48" height="24" rx="12" fill="#EA580C"/>
+      <text x="46" y="37" text-anchor="middle" class="stepNo">07</text>
+      <text x="22" y="72" class="stepTitle">Continue or Stop</text>
+      <text x="22" y="96" class="stepNote">Continue next round, or finish the task</text>
+    </g>
+  </g>
+
+  <g transform="translate(430 558)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="370" height="116" rx="10" fill="#FEFCE8" stroke="#FACC15" stroke-width="2"/>
+    <text x="24" y="38" class="sideTitle" fill="#713F12">State / Memory Store</text>
+    <text x="24" y="70" class="sideNote" fill="#713F12">Task state, history, tool results, errors</text>
+    <text x="24" y="94" class="sideNote" fill="#713F12">Information and optional persistent data</text>
+  </g>
+
+  <path d="M555 558V493" stroke="#0F766E" stroke-width="3" marker-end="url(#arrowTealSmall)"/>
+  <text x="576" y="526" class="smallLabel">read</text>
+  <path d="M1068 616H800" stroke="#B45309" stroke-width="3" fill="none" stroke-linecap="round" marker-end="url(#arrowAmberSmall)"/>
+  <text x="824" y="578" class="smallLabel" fill="#B45309">State Update / write</text>
+
+  <path d="M1098 731H420C394 731 374 711 374 685V520H512V493" stroke="#2563EB" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="9 9" marker-end="url(#arrowBlueSmall)"/>
+  <text x="734" y="704" class="smallLabel" fill="#2563EB">Return to Context Assembly when continuing</text>
+</svg>

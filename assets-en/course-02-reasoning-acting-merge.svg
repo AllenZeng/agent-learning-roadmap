@@ -1,0 +1,117 @@
+<svg width="1500" height="820" viewBox="0 0 1500 820" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ram-title ram-desc">
+  <title id="ram-title">Where Reasoning and Acting Converge</title>
+  <desc id="ram-desc">The reasoning line (direct QA to CoT) and the acting line (tool use to Plugins to Function Calling) evolve separately and meet at ReAct. Reasoning lacks external verification; acting lacks judgment. ReAct makes each feed the other.</desc>
+  <defs>
+    <linearGradient id="ram-bg" x1="0" y1="0" x2="1500" y2="820" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.5" stop-color="#F5F3FF"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <filter id="ram-shadow" x="-6%" y="-8%" width="112%" height="125%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+    <marker id="ram-arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0L8 3L0 6Z" fill="#94A3B8"/></marker>
+    <marker id="ram-arrow-purple" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0L8 3L0 6Z" fill="#7C3AED"/></marker>
+    <marker id="ram-arrow-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0L8 3L0 6Z" fill="#2563EB"/></marker>
+    <style>
+      .ram-title { font: 850 38px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #102A43; }
+      .ram-sub { font: 430 18px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; }
+      .ram-track-label { font: 820 18px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #7C3AED; }
+      .ram-card-title { font: 820 22px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; }
+      .ram-card-desc { font: 430 15px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; }
+      .ram-limit { font: 760 15px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #C2410C; }
+      .ram-merge-title { font: 850 26px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #6D28D9; }
+      .ram-merge-desc { font: 430 17px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #5B21B6; }
+      .ram-note { font: 430 15px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #94A3B8; }
+    </style>
+  </defs>
+
+  <rect width="1500" height="820" fill="url(#ram-bg)"/>
+  <text x="750" y="56" text-anchor="middle" class="ram-title">Two Threads, One Merge Point: Reasoning x Acting</text>
+  <text x="750" y="90" text-anchor="middle" class="ram-sub">Reasoning was trapped in text; acting could execute without judging. ReAct puts both in one loop.</text>
+
+  <!-- ===== LEFT TRACK: Reasoning line ===== -->
+  <g transform="translate(60 130)">
+    <rect x="0" y="0" width="520" height="56" rx="28" fill="#7C3AED" fill-opacity="0.08"/>
+    <text x="260" y="35" text-anchor="middle" class="ram-track-label">Reasoning: from direct answers to intermediate steps</text>
+  </g>
+
+  <!-- Card 1: Direct QA -->
+  <g transform="translate(60 210)" filter="url(#ram-shadow)">
+    <rect x="0" y="0" width="520" height="96" rx="10" fill="#FFFFFF" stroke="#C4B5FD" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="96" rx="3" fill="#7C3AED"/>
+    <text x="26" y="32" class="ram-card-title">Direct QA</text>
+    <text x="26" y="60" class="ram-card-desc">Question -> answer. Fine for simple tasks, but skips steps</text>
+    <text x="26" y="81" class="ram-card-desc">in multi-step judgment</text>
+  </g>
+  <path d="M320 306L320 326" stroke="#7C3AED" stroke-width="2" marker-end="url(#ram-arrow)"/>
+
+  <!-- Card 2: CoT -->
+  <g transform="translate(60 332)" filter="url(#ram-shadow)">
+    <rect x="0" y="0" width="520" height="96" rx="10" fill="#FFFFFF" stroke="#C4B5FD" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="96" rx="3" fill="#7C3AED"/>
+    <text x="26" y="32" class="ram-card-title">Chain-of-Thought</text>
+    <text x="26" y="60" class="ram-card-desc">Question -> intermediate steps -> answer.</text>
+    <text x="26" y="81" class="ram-card-desc">The model writes out its reasoning</text>
+  </g>
+  <path d="M320 428L320 448" stroke="#7C3AED" stroke-width="2" marker-end="url(#ram-arrow)"/>
+
+  <!-- Limit card: reasoning limitation -->
+  <g transform="translate(60 454)">
+    <rect x="0" y="0" width="520" height="86" rx="10" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1" stroke-dasharray="4,2"/>
+    <text x="260" y="30" text-anchor="middle" class="ram-limit">Limit: reasoning stays inside text</text>
+    <text x="260" y="58" text-anchor="middle" class="ram-limit">The model cannot see external reality;</text>
+    <text x="260" y="78" text-anchor="middle" class="ram-limit">it is stuck in its parameters</text>
+  </g>
+
+  <!-- ===== RIGHT TRACK: Acting line ===== -->
+  <g transform="translate(920 130)">
+    <rect x="0" y="0" width="520" height="56" rx="28" fill="#2563EB" fill-opacity="0.08"/>
+    <text x="260" y="35" text-anchor="middle" class="ram-track-label" fill="#2563EB">Acting: from saying things to doing things</text>
+  </g>
+
+  <g transform="translate(920 210)" filter="url(#ram-shadow)">
+    <rect x="0" y="0" width="520" height="96" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="96" rx="3" fill="#2563EB"/>
+    <text x="26" y="32" class="ram-card-title">Tool Calling / Plugins</text>
+    <text x="26" y="60" class="ram-card-desc">The model no longer just says what to do;</text>
+    <text x="26" y="81" class="ram-card-desc">it can trigger real actions</text>
+  </g>
+  <path d="M1180 306L1180 326" stroke="#2563EB" stroke-width="2" marker-end="url(#ram-arrow)"/>
+
+  <g transform="translate(920 332)" filter="url(#ram-shadow)">
+    <rect x="0" y="0" width="520" height="96" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5"/>
+    <rect x="0" y="0" width="6" height="96" rx="3" fill="#2563EB"/>
+    <text x="26" y="32" class="ram-card-title">Function Calling</text>
+    <text x="26" y="60" class="ram-card-desc">The model emits a structured call;</text>
+    <text x="26" y="81" class="ram-card-desc">the Runtime executes and returns results</text>
+  </g>
+  <path d="M1180 428L1180 448" stroke="#2563EB" stroke-width="2" marker-end="url(#ram-arrow)"/>
+
+  <g transform="translate(920 454)">
+    <rect x="0" y="0" width="520" height="86" rx="10" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1" stroke-dasharray="4,2"/>
+    <text x="260" y="30" text-anchor="middle" class="ram-limit">Limit: execution without judgment</text>
+    <text x="260" y="58" text-anchor="middle" class="ram-limit">Tools bring information back,</text>
+    <text x="260" y="78" text-anchor="middle" class="ram-limit">but do not know what it means</text>
+  </g>
+
+  <!-- ===== MERGE CENTER: ReAct ===== -->
+  <!-- Left merge arrow -->
+  <path d="M320 540C360 610, 480 640, 586 640" stroke="#7C3AED" stroke-width="3" fill="none" marker-end="url(#ram-arrow-purple)"/>
+  <!-- Right merge arrow -->
+  <path d="M1180 540C1140 610, 1020 640, 914 640" stroke="#2563EB" stroke-width="3" fill="none" marker-end="url(#ram-arrow-blue)"/>
+
+  <g transform="translate(590 580)" filter="url(#ram-shadow)">
+    <rect x="0" y="0" width="320" height="132" rx="14" fill="#FFFFFF" stroke="#7C3AED" stroke-width="2.5"/>
+    <rect x="0" y="0" width="320" height="132" rx="14" fill="url(#ram-bg)" fill-opacity="0.3"/>
+    <text x="160" y="36" text-anchor="middle" class="ram-merge-title">ReAct</text>
+    <text x="160" y="64" text-anchor="middle" class="ram-card-desc">Reasoning + Acting</text>
+    <text x="160" y="94" text-anchor="middle" class="ram-merge-desc">Reasoning chooses action</text>
+    <text x="160" y="118" text-anchor="middle" class="ram-merge-desc">action results revise reasoning</text>
+  </g>
+
+  <!-- Bottom insight -->
+  <g transform="translate(180 780)">
+    <text x="570" y="0" text-anchor="middle" class="ram-note">Real Agent tasks are neither pure reasoning nor pure acting. They interleave both: think, check, update beliefs from new information, then take the next step.</text>
+  </g>
+</svg>

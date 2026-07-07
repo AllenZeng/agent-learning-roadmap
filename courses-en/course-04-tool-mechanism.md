@@ -121,7 +121,7 @@ These problems cannot be solved only by making the model stronger. They require 
 
 Expanded fully, tool calling is a seven-step chain:
 
-![Seven-step tool-call chain](../assets/course-04-tool-call-chain.svg)
+![Seven-step tool-call chain](../assets-en/course-04-tool-call-chain.svg)
 
 This chain maps directly back to the minimal loop from Lesson III. It is the "tool/environment interaction" step opened up into its internal parts.
 
@@ -131,7 +131,7 @@ Lesson II traced the evolution of tool use: Toolformer (February 2023) showed th
 
 Lesson IV stands on top of those milestones and focuses on one practical question: **when you actually want a model to call tools inside your own system, which mechanisms do you need to design?**
 
-![Overview of the tool mechanism system](../assets/course-04-tool-mechanism-map.svg)
+![Overview of the tool mechanism system](../assets-en/course-04-tool-mechanism-map.svg)
 
 ---
 
@@ -271,7 +271,7 @@ The value of a structured result is direct: when the model sees `error.code == "
 
 Tool granularity is one of the easiest design decisions to overlook, but it has a major impact.
 
-![Choosing tool granularity: atomic vs composite](../assets/course-04-atomic-vs-composite.svg)
+![Choosing tool granularity: atomic vs composite](../assets-en/course-04-atomic-vs-composite.svg)
 
 ### 2.5 Design Principles for Good Tools
 
@@ -335,7 +335,7 @@ There are three common routing strategies. They differ mainly in who holds the d
 
 In practice, hybrid routing is the most common production choice: **the system narrows the scope, then the model makes the semantic choice.**
 
-![Comparison of three routing strategies](../assets/course-04-three-routing-methods.svg)
+![Comparison of three routing strategies](../assets-en/course-04-three-routing-methods.svg)
 
 ### 3.3 Candidate Set Management: Do Not Show Every Tool to the Model
 
@@ -362,7 +362,7 @@ When execution is needed, read deeper documents, examples, or scripts.
 
 Applied to tool mechanisms, this becomes a three-layer model:
 
-![Progressive disclosure: three-layer tool information model](../assets/course-04-progressive-disclosure.svg)
+![Progressive disclosure: three-layer tool information model](../assets-en/course-04-progressive-disclosure.svg)
 
 This solves two problems. First, it saves context: an Agent can have many tools, but the current turn does not need every tool description. Second, it reduces interference: the model chooses only among tools relevant to the current task, instead of being distracted by unrelated capabilities.
 
@@ -587,7 +587,7 @@ The core principle is: **Observation is not just a report of what happened. It i
 - **Context awareness.**
 - **Model actionability.**
 
-![Four dimensions of Observation design](../assets/course-04-observation-four-dimensions.svg)
+![Four dimensions of Observation design](../assets-en/course-04-observation-four-dimensions.svg)
 
 #### 4.5.3 Common Observation Design Mistakes
 

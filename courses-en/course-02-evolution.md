@@ -153,7 +153,7 @@ Those two things naturally conflict. Human goals are vague, contextual, and subj
 
 With or without LLMs, the basic Agent problem is stable. You can summarize it as a loop:
 
-![The basic Agent loop: perception, judgment, action, feedback](../assets/course-02-agent-loop.svg)
+![The basic Agent loop: perception, judgment, action, feedback](../assets-en/course-02-agent-loop.svg)
 
 The loop looks simple. In an open real-world setting, every step becomes hard:
 
@@ -553,7 +553,7 @@ and toward:
 How are tools discovered, described, authorized, called, logged, and governed?
 ```
 
-![Four stages in the evolution of tool calling](../assets/course-02-tool-evolution.svg)
+![Four stages in the evolution of tool calling](../assets-en/course-02-tool-evolution.svg)
 
 ### 3.7 Tool Calling Is a System Mechanism, Not Just an API Call
 
@@ -707,7 +707,7 @@ ReAct's key insight is to translate this human problem-solving rhythm into an LL
 Let judgment trigger action. Let action results return to context. Let new context change the next judgment.
 ```
 
-![The merge of reasoning and acting](../assets/course-02-reasoning-acting-merge.svg)
+![The merge of reasoning and acting](../assets-en/course-02-reasoning-acting-merge.svg)
 
 ### 4.3 ReAct Puts Judgment and Action into One Loop
 
@@ -1218,7 +1218,7 @@ This lesson has followed the main evolution line of the Agent paradigm up to the
 
 ### 8.1 The Main Evolution Line in One Diagram
 
-![Main evolution line of the Agent paradigm](../assets/course-02-agent-paradigm-timeline.svg)
+![Main evolution line of the Agent paradigm](../assets-en/course-02-agent-paradigm-timeline.svg)
 
 After 2025, the industry continued moving in three directions. First, reasoning models internalized more planning, checking, and long-chain reasoning into the model layer. Second, coding agents, deep research products, and computer-use agents pushed tools, permissions, state, recovery, and evaluation toward production-grade runtimes. Third, MCP, A2A, orchestration frameworks, and evaluation platforms tried to reduce the integration cost between Agents and external systems.
 

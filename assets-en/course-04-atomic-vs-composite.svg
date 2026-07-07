@@ -1,0 +1,176 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Lesson 4: Tool Granularity — Atomic Tools vs Composite Tools</title>
+  <desc id="desc">A comparison of atomic and composite tools: atomic tools are flexible building blocks but require more orchestration; composite tools package multi-step flows but hide internal steps. Start atomic, then distill stable combinations into Skills.</desc>
+
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1200" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.55" stop-color="#ECFEFF"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <filter id="colShadow" x="-3%" y="-6%" width="106%" height="118%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#0F172A" flood-opacity="0.06"/>
+    </filter>
+    <filter id="softShadow" x="-3%" y="-8%" width="106%" height="124%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F172A" flood-opacity="0.04"/>
+    </filter>
+    <marker id="arrowRight" markerWidth="10" markerHeight="8" refX="10" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8" fill="#7C3AED"/>
+    </marker>
+
+    <style>
+      .title { font: 850 34px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .subtitle { font: 430 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #52616F; letter-spacing: 0; }
+      .colTitle { font: 820 22px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; letter-spacing: 0; text-anchor: middle; }
+      .colSub { font: 430 15px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; letter-spacing: 0; text-anchor: middle; }
+      .proConTitle { font: 700 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 0; }
+      .proConText { font: 430 13.5px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 0; }
+      .toolBlock { font: 600 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #FFFFFF; letter-spacing: 0; text-anchor: middle; }
+      .toolBlockSmall { font: 550 12.5px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #FFFFFF; letter-spacing: 0; text-anchor: middle; }
+      .bridgeLabel { font: 750 16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #6D28D9; letter-spacing: 0; text-anchor: middle; }
+      .bridgeDesc { font: 430 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #7C3AED; letter-spacing: 0; text-anchor: middle; }
+      .footerText { font: 430 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; letter-spacing: 0; text-anchor: middle; }
+      .footerBold { font: 650 15px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; letter-spacing: 0; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="720" fill="url(#page)"/>
+
+  <!-- Title -->
+  <text x="600" y="46" text-anchor="middle" class="title">Tool Granularity: Atomic vs Composite</text>
+  <text x="600" y="80" text-anchor="middle" class="subtitle">Tool granularity is easy to overlook but high impact: start atomic, then distill stable patterns into Skills.</text>
+
+  <!-- ============================================================ -->
+  <!-- LEFT COLUMN: Atomic tools -->
+  <!-- ============================================================ -->
+  <g transform="translate(40, 108)" filter="url(#colShadow)">
+    <rect x="0" y="0" width="470" height="470" rx="14" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2"/>
+    <!-- header -->
+    <rect x="0" y="0" width="470" height="66" rx="14" fill="#EFF6FF"/>
+    <rect x="0" y="33" width="470" height="33" fill="#EFF6FF"/>
+    <text x="235" y="34" class="colTitle">Atomic Tools</text>
+    <text x="235" y="54" class="colSub">One tool does one thing</text>
+
+    <!-- Visual: individual blocks arranged flexibly -->
+    <!-- 4 colored blocks showing they can be arranged -->
+    <g transform="translate(40, 90)">
+      <!-- Block 1 -->
+      <rect x="0" y="0" width="90" height="42" rx="8" fill="#2563EB"/>
+      <text x="45" y="26" class="toolBlock">read_file</text>
+      <!-- Block 2 -->
+      <rect x="100" y="0" width="90" height="42" rx="8" fill="#0F766E"/>
+      <text x="145" y="26" class="toolBlock">write_file</text>
+      <!-- Block 3 -->
+      <rect x="200" y="0" width="100" height="42" rx="8" fill="#7C3AED"/>
+      <text x="250" y="26" class="toolBlock">search_text</text>
+      <!-- Block 4 -->
+      <rect x="310" y="0" width="100" height="42" rx="8" fill="#EA580C"/>
+      <text x="360" y="26" class="toolBlock">run_tests</text>
+
+      <!-- Dashed arrows showing flexibility -->
+      <text x="190" y="72" text-anchor="middle" class="proConText" fill="#64748B">Freely composable and flexible</text>
+    </g>
+
+    <!-- Pros -->
+    <g transform="translate(30, 180)">
+      <text x="0" y="16" class="proConTitle" fill="#16A34A">Strengths</text>
+      <circle cx="10" cy="40" r="3.5" fill="#16A34A"/>
+      <text x="22" y="45" class="proConText" fill="#334155">Flexible: the model combines tools to fit the task</text>
+      <circle cx="10" cy="66" r="3.5" fill="#16A34A"/>
+      <text x="22" y="71" class="proConText" fill="#334155">Clear boundaries: single responsibility, predictable behavior</text>
+      <circle cx="10" cy="92" r="3.5" fill="#16A34A"/>
+      <text x="22" y="97" class="proConText" fill="#334155">Easy failure isolation: each tool can be debugged alone</text>
+    </g>
+
+    <!-- Cons -->
+    <g transform="translate(30, 318)">
+      <text x="0" y="16" class="proConTitle" fill="#DC2626">Costs</text>
+      <circle cx="10" cy="40" r="3.5" fill="#DC2626"/>
+      <text x="22" y="45" class="proConText" fill="#334155">More steps: the model must plan the order itself</text>
+      <circle cx="10" cy="66" r="3.5" fill="#DC2626"/>
+      <text x="22" y="71" class="proConText" fill="#334155">Higher token cost: each task re-plans the sequence</text>
+    </g>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- CENTER BRIDGE: Distillation path -->
+  <!-- ============================================================ -->
+  <g transform="translate(518, 240)">
+    <!-- Arrow -->
+    <line x1="0" y1="0" x2="154" y2="0" stroke="#7C3AED" stroke-width="2.5" marker-end="url(#arrowRight)"/>
+    <!-- Labels -->
+    <text x="77" y="-16" class="bridgeLabel">Distill after stable</text>
+
+
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- RIGHT COLUMN: Composite tools -->
+  <!-- ============================================================ -->
+  <g transform="translate(690, 108)" filter="url(#colShadow)">
+    <rect x="0" y="0" width="470" height="470" rx="14" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="2"/>
+    <!-- header -->
+    <rect x="0" y="0" width="470" height="66" rx="14" fill="#F5F3FF"/>
+    <rect x="0" y="33" width="470" height="33" fill="#F5F3FF"/>
+    <text x="235" y="34" class="colTitle">Composite Tools</text>
+    <text x="235" y="54" class="colSub">Packages a multi-step flow</text>
+
+    <!-- Visual: assembled block -->
+    <g transform="translate(40, 90)">
+      <!-- One large block containing smaller ones glued together -->
+      <rect x="0" y="0" width="370" height="68" rx="10" fill="#F5F3FF" stroke="#A78BFA" stroke-width="2.5"/>
+      <!-- internal blocks glued -->
+      <rect x="12" y="14" width="80" height="40" rx="4" fill="#7C3AED" opacity="0.7"/>
+      <text x="52" y="38" class="toolBlockSmall">Read</text>
+      <text x="102" y="30" class="proConText" fill="#7C3AED">→</text>
+      <rect x="118" y="14" width="80" height="40" rx="4" fill="#7C3AED" opacity="0.8"/>
+      <text x="158" y="38" class="toolBlockSmall">Analyze</text>
+      <text x="208" y="30" class="proConText" fill="#7C3AED">→</text>
+      <rect x="224" y="14" width="80" height="40" rx="4" fill="#7C3AED" opacity="0.9"/>
+      <text x="264" y="38" class="toolBlockSmall">Write report</text>
+      <!-- label outside -->
+      <text x="185" y="98" text-anchor="middle" class="proConText" fill="#7C3AED">Internal steps are hidden</text>
+    </g>
+
+    <!-- Pros -->
+    <g transform="translate(30, 218)">
+      <text x="0" y="16" class="proConTitle" fill="#16A34A">Strengths</text>
+      <circle cx="10" cy="40" r="3.5" fill="#16A34A"/>
+      <text x="22" y="45" class="proConText" fill="#334155">Efficient: one call completes multiple steps</text>
+      <circle cx="10" cy="66" r="3.5" fill="#16A34A"/>
+      <text x="22" y="71" class="proConText" fill="#334155">Encapsulates practice: built-in patterns and failure handling</text>
+    </g>
+
+    <!-- Cons -->
+    <g transform="translate(30, 312)">
+      <text x="0" y="16" class="proConTitle" fill="#DC2626">Costs</text>
+      <circle cx="10" cy="40" r="3.5" fill="#DC2626"/>
+      <text x="22" y="45" class="proConText" fill="#334155">Opaque: internal steps are invisible to model and debugger</text>
+      <circle cx="10" cy="66" r="3.5" fill="#DC2626"/>
+      <text x="22" y="71" class="proConText" fill="#334155">Hard to debug: unclear which inner step failed</text>
+      <circle cx="10" cy="92" r="3.5" fill="#DC2626"/>
+      <text x="22" y="97" class="proConText" fill="#334155">Less flexible: small task changes can make it unusable</text>
+    </g>
+  </g>
+
+  <!-- Example labels below columns -->
+  <g transform="translate(40, 596)">
+    <rect x="0" y="0" width="470" height="36" rx="8" fill="#F1F5F9"/>
+    <text x="235" y="23" text-anchor="middle" class="proConTitle" fill="#475569">Examples: read_file · write_file · search_text · run_tests</text>
+  </g>
+  <g transform="translate(690, 596)">
+    <rect x="0" y="0" width="470" height="36" rx="8" fill="#F1F5F9"/>
+    <text x="235" y="23" text-anchor="middle" class="proConTitle" fill="#475569">Examples: generate_report(repo) · review_code_and_test(diff)</text>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- Bottom takeaway -->
+  <!-- ============================================================ -->
+  <g transform="translate(80, 652)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="1040" height="52" rx="12" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+    <text x="520" y="22" class="footerBold">Use atomic tools to learn the mechanism and close the loop -> find stable combinations -> distill them into Skills, not fixed Workflows.</text>
+    <text x="520" y="42" class="footerText">Skill is not a fixed process: it offers experienced guidance while leaving room for judgment; Workflow enforces a fixed order.</text>
+  </g>
+
+</svg>

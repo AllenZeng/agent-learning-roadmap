@@ -1,0 +1,253 @@
+<svg width="1160" height="1000" viewBox="0 0 1160 1000" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="te-title te-desc">
+  <title id="te-title">Four Stages of Tool Calling</title>
+  <desc id="te-desc">Tool calling evolved through four layers: Toolformer proved models can learn tool use, ChatGPT Plugins made AI actions tangible to users, Function Calling gave developers an interface, and MCP standardizes tool connectivity. Each layer solves old gaps and creates new complexity.</desc>
+  <defs>
+    <linearGradient id="te-bg" x1="0" y1="0" x2="0" y2="1000" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#F1F5F9"/>
+    </linearGradient>
+    <filter id="te-shadow" x="-4%" y="-6%" width="108%" height="118%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.06"/>
+    </filter>
+    <filter id="te-shadow-em" x="-4%" y="-6%" width="108%" height="118%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#0F172A" flood-opacity="0.10"/>
+    </filter>
+    <marker id="te-arrow-down" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><path d="M0 0L10 3.5L0 7Z" fill="#94A3B8"/></marker>
+    <marker id="te-arrow-s2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><path d="M0 0L10 3.5L0 7Z" fill="#2563EB"/></marker>
+    <marker id="te-arrow-s3" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><path d="M0 0L10 3.5L0 7Z" fill="#1D4ED8"/></marker>
+    <style>
+      .te-title { font: 850 31px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; }
+      .te-sub { font: 430 14.5px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; }
+      .te-year { font: 800 38px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .te-month { font: 600 16px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .te-publisher { font: 520 14px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .te-card-title { font: 820 22px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; }
+      .te-card-desc { font: 430 12.5px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; }
+      .te-stage-badge { font: 820 13px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .te-solve-label { font: 750 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F766E; }
+      .te-solve-text { font: 430 12.3px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; }
+      .te-leave-label { font: 750 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #C2410C; }
+      .te-leave-text { font: 430 12.3px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; }
+      .te-insight-title { font: 760 12px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; }
+      .te-insight-body { font: 590 13px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .te-chain-label { font: 520 12px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .te-footer { font: 430 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #94A3B8; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1160" height="1000" fill="url(#te-bg)"/>
+
+  <!-- Title -->
+  <text x="580" y="48" text-anchor="middle" class="te-title">Tool Calling Evolution: Research -> Product -> Interface -> Protocol</text>
+  <text x="580" y="76" text-anchor="middle" class="te-sub">Each layer answers problems left by the last. Tool calling is not just connecting APIs; it is an engineering system converging over time.</text>
+
+  <!-- ============================================ -->
+  <!-- LEFT TIMELINE RAIL                          -->
+  <!-- ============================================ -->
+  <!-- Grid: cards at y=140,350,560,770 (h=130); centers at 205,415,625,835 -->
+  <line x1="108" y1="195" x2="108" y2="845" stroke="#E2E8F0" stroke-width="2"/>
+
+  <!-- Timeline dots at card centers -->
+  <!-- Stage 1 -->
+  <circle cx="108" cy="205" r="14" fill="#FFFFFF" stroke="#94A3B8" stroke-width="3"/>
+  <circle cx="108" cy="205" r="5" fill="#64748B"/>
+  <!-- Stage 2 -->
+  <circle cx="108" cy="415" r="14" fill="#FFFFFF" stroke="#60A5FA" stroke-width="3"/>
+  <circle cx="108" cy="415" r="5" fill="#2563EB"/>
+  <!-- Stage 3 -->
+  <circle cx="108" cy="625" r="14" fill="#FFFFFF" stroke="#3B82F6" stroke-width="3"/>
+  <circle cx="108" cy="625" r="5" fill="#1D4ED8"/>
+  <!-- Stage 4 -->
+  <circle cx="108" cy="835" r="16" fill="#FFFFFF" stroke="#34D399" stroke-width="3"/>
+  <circle cx="108" cy="835" r="6" fill="#059669"/>
+
+  <!-- ============================================ -->
+  <!-- STAGE 1: Toolformer — Research Layer  (y=140)        -->
+  <!-- ============================================ -->
+  <g transform="translate(165 140)" filter="url(#te-shadow)">
+    <rect x="0" y="0" width="925" height="130" rx="12" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1"/>
+
+    <!-- LEFT ZONE: Time + Publisher — FIRST element in reading order -->
+    <rect x="0" y="0" width="170" height="130" rx="12" fill="#F8FAFC"/>
+    <rect x="12" y="0" width="158" height="130" rx="0" fill="#F8FAFC"/>
+    <!-- Year + Month — prominent -->
+    <text x="30" y="42" class="te-year" fill="#64748B">2023</text>
+    <text x="133" y="42" class="te-month" fill="#94A3B8">.02</text>
+    <!-- Publisher -->
+    <text x="30" y="66" class="te-publisher" fill="#64748B">Meta AI</text>
+    <!-- Phase indicator -->
+    <circle cx="30" cy="92" r="4" fill="#94A3B8"/>
+    <text x="40" y="96" class="te-chain-label" fill="#94A3B8">Research Stage</text>
+    <!-- Divider -->
+    <line x1="165" y1="18" x2="165" y2="112" stroke="#E2E8F0" stroke-width="1"/>
+
+    <!-- MAIN CONTENT ZONE -->
+    <!-- Stage badge + Title on same line -->
+    <rect x="188" y="18" width="118" height="24" rx="6" fill="#F1F5F9"/>
+    <text x="247" y="35" text-anchor="middle" class="te-stage-badge" fill="#64748B">Research Layer</text>
+    <text x="321" y="36" class="te-card-title">Toolformer</text>
+
+    <!-- Core question -->
+    <text x="188" y="66" class="te-card-desc">Core question: can a model learn when to call an API and how to continue after the result?</text>
+
+    <!-- Solved + left open -->
+    <text x="188" y="94" class="te-solve-label">Solved</text>
+    <text x="268" y="94" class="te-solve-text">Self-supervision teaches API calls as a learnable language pattern</text>
+    <text x="188" y="115" class="te-leave-label">Left open</text>
+    <text x="268" y="115" class="te-leave-text">Permissions, failures, and governance remain unresolved</text>
+
+    <!-- RIGHT: Key insight box -->
+    <rect x="724" y="20" width="181" height="90" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+    <text x="814" y="43" text-anchor="middle" class="te-insight-title">Core insight</text>
+    <text x="814" y="64" text-anchor="middle" class="te-insight-body" fill="#475569">Tool use</text>
+    <text x="814" y="80" text-anchor="middle" class="te-insight-body" fill="#475569">is also a</text>
+    <text x="814" y="96" text-anchor="middle" class="te-insight-body" fill="#475569">language pattern</text>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- CONNECTOR 1 → 2  (y=270, h=80)              -->
+  <!-- ============================================ -->
+  <g transform="translate(165 270)">
+    <path d="M460 24C460 54, 460 54, 460 68" stroke="#94A3B8" stroke-width="2" marker-end="url(#te-arrow-down)"/>
+    <text x="475" y="50" class="te-chain-label">Solved in the next layer</text>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- STAGE 2: ChatGPT Plugins — Product Layer (y=350)    -->
+  <!-- ============================================ -->
+  <g transform="translate(165 350)" filter="url(#te-shadow-em)">
+    <rect x="0" y="0" width="925" height="130" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="1.5"/>
+
+    <!-- LEFT ZONE: Time + Publisher -->
+    <rect x="0" y="0" width="170" height="130" rx="12" fill="#EFF6FF"/>
+    <rect x="12" y="0" width="158" height="130" rx="0" fill="#EFF6FF"/>
+    <text x="30" y="42" class="te-year" fill="#2563EB">2023</text>
+    <text x="133" y="42" class="te-month" fill="#60A5FA">.03</text>
+    <text x="30" y="66" class="te-publisher" fill="#2563EB">OpenAI</text>
+    <circle cx="30" cy="92" r="4" fill="#60A5FA"/>
+    <text x="40" y="96" class="te-chain-label" fill="#2563EB">Product Stage</text>
+    <line x1="165" y1="18" x2="165" y2="112" stroke="#BFDBFE" stroke-width="1"/>
+
+    <!-- MAIN CONTENT -->
+    <rect x="188" y="18" width="118" height="24" rx="6" fill="#EFF6FF"/>
+    <text x="247" y="35" text-anchor="middle" class="te-stage-badge" fill="#2563EB">Product Layer</text>
+    <text x="321" y="36" class="te-card-title">ChatGPT Plugins</text>
+
+    <text x="188" y="66" class="te-card-desc">Core question: how can ordinary users feel that AI can do more than answer?</text>
+
+    <text x="188" y="94" class="te-solve-label">Solved</text>
+    <text x="268" y="94" class="te-solve-text">Brought model + tools to users; ChatGPT could operate services</text>
+    <text x="188" y="115" class="te-leave-label">Left open</text>
+    <text x="268" y="115" class="te-leave-text">Blurry permissions, privacy, supply-chain risk, and overreach</text>
+
+    <!-- RIGHT: Key insight -->
+    <rect x="724" y="20" width="181" height="90" rx="8" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="1"/>
+    <text x="814" y="43" text-anchor="middle" class="te-insight-title">Historical meaning</text>
+    <text x="814" y="64" text-anchor="middle" class="te-insight-body" fill="#2563EB">Broke the idea</text>
+    <text x="814" y="80" text-anchor="middle" class="te-insight-body" fill="#2563EB">that LLMs are</text>
+    <text x="814" y="96" text-anchor="middle" class="te-insight-body" fill="#2563EB">only chat tools</text>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- CONNECTOR 2 → 3  (y=480, h=80)              -->
+  <!-- ============================================ -->
+  <g transform="translate(165 480)">
+    <path d="M460 24C460 54, 460 54, 460 68" stroke="#2563EB" stroke-width="2" marker-end="url(#te-arrow-s2)"/>
+    <text x="475" y="50" class="te-chain-label">Solved in the next layer</text>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- STAGE 3: Function Calling — Interface Layer (y=560)   -->
+  <!-- ============================================ -->
+  <g transform="translate(165 560)" filter="url(#te-shadow-em)">
+    <rect x="0" y="0" width="925" height="130" rx="12" fill="#FFFFFF" stroke="#2563EB" stroke-width="2"/>
+
+    <!-- LEFT ZONE: Time + Publisher -->
+    <rect x="0" y="0" width="170" height="130" rx="12" fill="#DBEAFE"/>
+    <rect x="12" y="0" width="158" height="130" rx="0" fill="#DBEAFE"/>
+    <text x="30" y="42" class="te-year" fill="#1D4ED8">2023</text>
+    <text x="133" y="42" class="te-month" fill="#3B82F6">.06</text>
+    <text x="30" y="66" class="te-publisher" fill="#1D4ED8">OpenAI</text>
+    <circle cx="30" cy="92" r="4" fill="#3B82F6"/>
+    <text x="40" y="96" class="te-chain-label" fill="#1D4ED8">Engineering Stage</text>
+    <line x1="165" y1="18" x2="165" y2="112" stroke="#93C5FD" stroke-width="1"/>
+
+    <!-- MAIN CONTENT -->
+    <rect x="188" y="18" width="118" height="24" rx="6" fill="#DBEAFE"/>
+    <text x="247" y="35" text-anchor="middle" class="te-stage-badge" fill="#1D4ED8">Interface Layer</text>
+    <text x="321" y="36" class="te-card-title">Function Calling</text>
+
+    <text x="188" y="66" class="te-card-desc">Core question: how can developers let models call functions and internal systems?</text>
+
+    <text x="188" y="94" class="te-solve-label">Solved</text>
+    <text x="268" y="94" class="te-solve-text">Models emit structured call intent; developers run the function</text>
+    <text x="188" y="115" class="te-leave-label">Left open</text>
+    <text x="268" y="115" class="te-leave-text">Schemas, retries, trust, and confirmations remain developer work</text>
+
+    <!-- RIGHT: Key insight -->
+    <rect x="724" y="20" width="181" height="90" rx="8" fill="#DBEAFE" stroke="#93C5FD" stroke-width="1"/>
+    <text x="814" y="43" text-anchor="middle" class="te-insight-title">Core design</text>
+    <text x="814" y="64" text-anchor="middle" class="te-insight-body" fill="#1D4ED8">Model emits</text>
+    <text x="814" y="80" text-anchor="middle" class="te-insight-body" fill="#1D4ED8">call intent; app</text>
+    <text x="814" y="96" text-anchor="middle" class="te-insight-body" fill="#1D4ED8">executes</text>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- CONNECTOR 3 → 4  (y=690, h=80)              -->
+  <!-- ============================================ -->
+  <g transform="translate(165 690)">
+    <path d="M460 24C460 54, 460 54, 460 68" stroke="#1D4ED8" stroke-width="2" marker-end="url(#te-arrow-s3)"/>
+    <text x="475" y="50" class="te-chain-label">Solved in the next layer</text>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- STAGE 4: MCP — Protocol Layer  (y=770)              -->
+  <!-- ============================================ -->
+  <g transform="translate(165 770)" filter="url(#te-shadow-em)">
+    <rect x="0" y="0" width="925" height="130" rx="12" fill="#FFFFFF" stroke="#86EFAC" stroke-width="2"/>
+
+    <!-- LEFT ZONE: Time + Publisher -->
+    <rect x="0" y="0" width="170" height="130" rx="12" fill="#D1FAE5"/>
+    <rect x="12" y="0" width="158" height="130" rx="0" fill="#D1FAE5"/>
+    <text x="30" y="42" class="te-year" fill="#059669">2024</text>
+    <text x="133" y="42" class="te-month" fill="#34D399">.11</text>
+    <text x="30" y="66" class="te-publisher" fill="#059669">Anthropic</text>
+    <circle cx="30" cy="92" r="4" fill="#34D399"/>
+    <text x="40" y="96" class="te-chain-label" fill="#059669">Standardization Stage</text>
+    <line x1="165" y1="18" x2="165" y2="112" stroke="#86EFAC" stroke-width="1"/>
+
+    <!-- MAIN CONTENT -->
+    <rect x="188" y="18" width="118" height="24" rx="6" fill="#D1FAE5"/>
+    <text x="247" y="35" text-anchor="middle" class="te-stage-badge" fill="#059669">Protocol Layer</text>
+    <text x="321" y="36" class="te-card-title">MCP（Model Context Protocol）</text>
+
+    <text x="188" y="66" class="te-card-desc">Core question: every model and tool connects differently. How do we standardize?</text>
+
+    <text x="188" y="94" class="te-solve-label">Solved</text>
+    <text x="268" y="94" class="te-solve-text">An open protocol standardizes model-tool connections</text>
+    <text x="188" y="115" class="te-leave-label">Left open</text>
+    <text x="268" y="115" class="te-leave-text">Coverage, security models, and governance are still maturing</text>
+
+    <!-- RIGHT: Key insight -->
+    <rect x="768" y="20" width="137" height="90" rx="8" fill="#D1FAE5" stroke="#86EFAC" stroke-width="1"/>
+    <text x="836" y="46" text-anchor="middle" class="te-insight-title">Design inspiration</text>
+    <text x="836" y="68" text-anchor="middle" class="te-insight-body" fill="#059669">from LSP</text>
+    <text x="836" y="90" text-anchor="middle" class="te-insight-body" fill="#059669">like editor plugins</text>
+  </g>
+
+  <!-- ============================================ -->
+  <!-- BOTTOM: Future direction  (y=920)           -->
+  <!-- ============================================ -->
+  <g transform="translate(165 920)">
+    <!-- Dashed line continuing the timeline -->
+    <line x1="-57" y1="8" x2="-14" y2="8" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="5,4"/>
+    <!-- Future label -->
+    <rect x="0" y="-4" width="230" height="24" rx="6" fill="#F1F5F9"/>
+    <text x="115" y="12" text-anchor="middle" class="te-chain-label" fill="#64748B">Next stage: ecosystem and governance</text>
+    <path d="M240 8L280 8" stroke="#CBD5E1" stroke-width="1.5" stroke-dasharray="5,4"/>
+  </g>
+
+  <!-- Footer -->
+  <text x="580" y="975" text-anchor="middle" class="te-footer">Four stages, four abstraction layers: tool calling is moving from craft work to industrial standards, with each step answering the last.</text>
+</svg>

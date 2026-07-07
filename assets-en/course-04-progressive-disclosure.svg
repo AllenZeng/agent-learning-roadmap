@@ -1,0 +1,143 @@
+<svg width="1200" height="740" viewBox="0 0 1200 740" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Lesson 4: Progressive Disclosure — Three-Layer Tool Information Model</title>
+  <desc id="desc">A three-layer model for tool information: tool index, candidate tool definition, and deep documentation/examples/scripts. Load the next layer only after relevance is established, saving context.</desc>
+
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1200" y2="740" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.55" stop-color="#ECFEFF"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <filter id="layerShadow" x="-2%" y="-8%" width="104%" height="124%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.06"/>
+    </filter>
+    <filter id="softShadow" x="-2%" y="-8%" width="104%" height="124%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F172A" flood-opacity="0.04"/>
+    </filter>
+    <marker id="arrowExpand" markerWidth="10" markerHeight="8" refX="1" refY="4" orient="auto">
+      <polygon points="1,0 9,4 1,8" fill="#0F766E"/>
+    </marker>
+
+    <style>
+      .title { font: 850 33px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .subtitle { font: 430 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #52616F; letter-spacing: 0; }
+      .layerLabel { font: 800 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #FFFFFF; letter-spacing: 0; text-anchor: middle; }
+      .layerName { font: 820 20px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .layerDesc { font: 430 12.7px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; letter-spacing: 0; }
+      .itemLabel { font: 550 12.5px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; letter-spacing: 0; }
+      .itemMuted { font: 430 11.7px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; letter-spacing: 0; }
+      .expandLabel { font: 430 12.5px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F766E; letter-spacing: 0; text-anchor: middle; }
+      .contextBar { font: 430 12.5px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; letter-spacing: 0; text-anchor: middle; }
+      .footerBold { font: 650 15px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; letter-spacing: 0; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="740" fill="url(#page)"/>
+
+  <!-- Title -->
+  <text x="600" y="48" text-anchor="middle" class="title">Progressive Disclosure: Three-Layer Tool Information Model</text>
+  <text x="600" y="82" text-anchor="middle" class="subtitle">Do not expose every detail up front. Start with an index, then expand only relevant tools.</text>
+
+  <!-- ============================================================ -->
+  <!-- LAYER 3: Deep docs (shown first/bottom because it's the widest/base) — but I'll go top to bottom in the visual -->
+  <!-- Actually let me go Layer 1 (top) → Layer 2 (middle) → Layer 3 (bottom) with expanding width -->
+  <!-- ============================================================ -->
+
+  <!-- LAYER 1: Tool Index -->
+  <g transform="translate(260, 110)" filter="url(#layerShadow)">
+    <rect x="0" y="0" width="680" height="132" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2"/>
+    <!-- top accent -->
+    <rect x="0" y="0" width="680" height="5" rx="3" fill="#2563EB"/>
+    <!-- header bar -->
+    <rect x="0" y="0" width="680" height="50" rx="12" fill="#EFF6FF"/>
+    <rect x="0" y="25" width="680" height="25" fill="#EFF6FF"/>
+    <!-- layer badge -->
+    <rect x="24" y="14" width="80" height="24" rx="12" fill="#2563EB"/>
+    <text x="64" y="31" class="layerLabel">Layer 1</text>
+    <text x="120" y="31" class="layerName">Tool Index</text>
+    <!-- content items - compact list -->
+    <text x="28" y="76" class="itemLabel">Tool name + one-line description + use case + risk level</text>
+    <!-- visual: compact representation -->
+    <g transform="translate(28, 92)">
+      <rect x="0" y="0" width="130" height="28" rx="6" fill="#F1F5F9"/>
+      <text x="65" y="19" text-anchor="middle" class="itemMuted">read_file</text>
+      <rect x="140" y="0" width="130" height="28" rx="6" fill="#F1F5F9"/>
+      <text x="205" y="19" text-anchor="middle" class="itemMuted">search_web</text>
+      <rect x="280" y="0" width="130" height="28" rx="6" fill="#F1F5F9"/>
+      <text x="345" y="19" text-anchor="middle" class="itemMuted">write_file</text>
+      <rect x="420" y="0" width="130" height="28" rx="6" fill="#F1F5F9"/>
+      <text x="485" y="19" text-anchor="middle" class="itemMuted">run_shell</text>
+      <rect x="560" y="0" width="60" height="28" rx="6" fill="#DBEAFE"/>
+      <text x="590" y="19" text-anchor="middle" class="itemMuted" fill="#2563EB">More</text>
+    </g>
+  </g>
+
+  <!-- Expand arrow L1 → L2 -->
+  <line x1="600" y1="246" x2="600" y2="270" stroke="#0F766E" stroke-width="2" marker-end="url(#arrowExpand)"/>
+  <text x="616" y="262" class="expandLabel" style="text-anchor:start">After relevance is detected, load details</text>
+
+  <!-- LAYER 2: Candidate Tool Definition -->
+  <g transform="translate(170, 282)" filter="url(#layerShadow)">
+    <rect x="0" y="0" width="860" height="148" rx="12" fill="#FFFFFF" stroke="#99F6E4" stroke-width="2"/>
+    <rect x="0" y="0" width="860" height="5" rx="3" fill="#0F766E"/>
+    <rect x="0" y="0" width="860" height="50" rx="12" fill="#F0FDFA"/>
+    <rect x="0" y="25" width="860" height="25" fill="#F0FDFA"/>
+    <rect x="24" y="14" width="80" height="24" rx="12" fill="#0F766E"/>
+    <text x="64" y="31" class="layerLabel">Layer 2</text>
+    <text x="120" y="31" class="layerName">Candidate Tool Definition</text>
+    <!-- content -->
+    <text x="28" y="76" class="itemLabel">Full description + parameter schema + boundaries + return structure</text>
+    <!-- visual: expanded tool card -->
+    <g transform="translate(28, 90)">
+      <rect x="0" y="0" width="804" height="46" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+      <text x="16" y="20" class="itemLabel" fill="#0F172A" font-weight="700">read_file</text>
+      <text x="110" y="20" class="itemMuted">Reads UTF-8 text files under the workspace. Use when the user asks to view, read, or inspect a file.</text>
+      <text x="16" y="38" class="itemMuted">params: path (string, required) - relative to workspace | boundary: workspace files only</text>
+    </g>
+  </g>
+
+  <!-- Expand arrow L2 → L3 -->
+  <line x1="600" y1="434" x2="600" y2="458" stroke="#0F766E" stroke-width="2" marker-end="url(#arrowExpand)"/>
+  <text x="616" y="450" class="expandLabel" style="text-anchor:start">Before execution, load deep docs, examples, or scripts</text>
+
+  <!-- LAYER 3: Deep docs -->
+  <g transform="translate(60, 470)" filter="url(#layerShadow)">
+    <rect x="0" y="0" width="1080" height="152" rx="12" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="2"/>
+    <rect x="0" y="0" width="1080" height="5" rx="3" fill="#7C3AED"/>
+    <rect x="0" y="0" width="1080" height="50" rx="12" fill="#F5F3FF"/>
+    <rect x="0" y="25" width="1080" height="25" fill="#F5F3FF"/>
+    <rect x="24" y="14" width="80" height="24" rx="12" fill="#7C3AED"/>
+    <text x="64" y="31" class="layerLabel">Layer 3</text>
+    <text x="120" y="31" class="layerName">Deep Docs / Examples / Scripts</text>
+    <!-- content in three columns -->
+    <!-- Col 1: Detailed docs -->
+    <g transform="translate(28, 74)">
+      <rect x="0" y="0" width="326" height="64" rx="8" fill="#F5F3FF" stroke="#DDD6FE" stroke-width="1"/>
+      <text x="16" y="24" class="itemLabel" fill="#6D28D9">Detailed docs</text>
+      <text x="16" y="46" class="itemMuted">Parameter boundaries, known limits, performance traits</text>
+    </g>
+    <!-- Col 2: Call examples -->
+    <g transform="translate(370, 74)">
+      <rect x="0" y="0" width="326" height="64" rx="8" fill="#F5F3FF" stroke="#DDD6FE" stroke-width="1"/>
+      <text x="16" y="24" class="itemLabel" fill="#6D28D9">Call examples</text>
+      <text x="16" y="46" class="itemMuted">Typical use, common mistakes, good/bad comparisons</text>
+    </g>
+    <!-- Col 3: Domain rules -->
+    <g transform="translate(712, 74)">
+      <rect x="0" y="0" width="340" height="64" rx="8" fill="#F5F3FF" stroke="#DDD6FE" stroke-width="1"/>
+      <text x="16" y="24" class="itemLabel" fill="#6D28D9">Domain rules / helper scripts</text>
+      <text x="16" y="46" class="itemMuted">Business constraints, pre-checks, post-processing</text>
+    </g>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- Bottom takeaway -->
+  <!-- ============================================================ -->
+  <g transform="translate(120, 652)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="960" height="56" rx="12" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+    <text x="480" y="24" class="footerBold">Save context + reduce distraction: the model chooses only among tools relevant to the task</text>
+    <text x="480" y="44" class="contextBar">The more tools and risk, the more you need candidate-set management and progressive disclosure</text>
+  </g>
+
+</svg>

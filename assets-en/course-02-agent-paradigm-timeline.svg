@@ -1,0 +1,152 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Main Evolution Line of the Agent Paradigm</title>
+  <desc id="desc">A timeline of the Agent paradigm from traditional Agents to LLM decision cores, tool calling, ReAct, correction and reflection, Planning, and Multi-Agent systems. Each stage solves earlier constraints while creating new engineering challenges.</desc>
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.55" stop-color="#ECFEFF"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <linearGradient id="spine" x1="128" y1="460" x2="1472" y2="460" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F766E"/>
+      <stop offset="0.5" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#EA580C"/>
+    </linearGradient>
+    <filter id="softShadow" x="-6%" y="-10%" width="112%" height="130%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#0F172A" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .title { font: 850 44px/1.15 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #102A43; letter-spacing: 0; }
+      .subtitle { font: 430 19px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #52616F; letter-spacing: 0; }
+      .stageNo { font: 850 17px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #FFFFFF; letter-spacing: 0; }
+      .stageTitle { font: 820 21px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .stageMeta { font: 520 15px/1.25 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; letter-spacing: 0; }
+      .note { font: 430 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #64748B; letter-spacing: 0; }
+      .label { font: 760 14px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F766E; letter-spacing: 0; }
+      .labelOrange { font: 760 14px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #C2410C; letter-spacing: 0; }
+      .body { font: 430 17px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; letter-spacing: 0; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#page)"/>
+  <text x="800" y="78" text-anchor="middle" class="title">Main Evolution Line of the Agent Paradigm</text>
+  <text x="800" y="120" text-anchor="middle" class="subtitle">Each generation removes the previous bottleneck while pushing complexity into the next layer.</text>
+
+  <path d="M150 492H1450" stroke="url(#spine)" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="1476" cy="492" r="5" fill="#EA580C"/>
+  <circle cx="1496" cy="492" r="5" fill="#EA580C"/>
+  <circle cx="1516" cy="492" r="5" fill="#EA580C"/>
+
+  <g transform="translate(82 180)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="306" height="250" rx="12" fill="#FFFFFF" stroke="#99F6E4" stroke-width="2"/>
+    <circle cx="48" cy="44" r="24" fill="#0F766E"/>
+    <text x="48" y="50" text-anchor="middle" class="stageNo">01</text>
+    <text x="84" y="39" class="stageTitle">Traditional Agent</text>
+    <text x="84" y="63" class="stageMeta">Bellman / Q-learning / BDI</text>
+    <foreignObject x="28" y="96" width="250" height="142">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:0;">
+        <div style="font-size:14px; line-height:1.2; font-weight:760; color:#0F766E; margin-bottom:10px;">Solved:</div>
+        <div style="font-size:17px; line-height:1.42; font-weight:430; color:#334155; margin-bottom:12px;">Turns perception, decision, and action into a modelable frame</div>
+        <div style="font-size:14px; line-height:1.55; font-weight:760; color:#C2410C;">New bottleneck: open language goals are hard to model cheaply</div>
+      </div>
+    </foreignObject>
+  </g>
+  <path d="M235 430V492" stroke="#0F766E" stroke-width="4"/>
+
+  <g transform="translate(260 560)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="322" height="286" rx="12" fill="#FFFFFF" stroke="#BAE6FD" stroke-width="2"/>
+    <circle cx="48" cy="44" r="24" fill="#0284C7"/>
+    <text x="48" y="50" text-anchor="middle" class="stageNo">02</text>
+    <text x="84" y="39" class="stageTitle">LLM Decision Core</text>
+    <text x="84" y="63" class="stageMeta">GPT-3 / CoT</text>
+    <foreignObject x="28" y="96" width="266" height="172">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:0;">
+        <div style="font-size:14px; line-height:1.2; font-weight:760; color:#0F766E; margin-bottom:10px;">Solved:</div>
+        <div style="font-size:17px; line-height:1.42; font-weight:430; color:#334155; margin-bottom:12px;">Brings natural-language goals into the system, shifting from rules to goals</div>
+        <div style="font-size:14px; line-height:1.55; font-weight:760; color:#C2410C;">New bottleneck: judgment is not reliable execution</div>
+      </div>
+    </foreignObject>
+  </g>
+  <path d="M421 560V492" stroke="#0284C7" stroke-width="4"/>
+
+  <g transform="translate(460 180)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="322" height="292" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2"/>
+    <circle cx="48" cy="44" r="24" fill="#2563EB"/>
+    <text x="48" y="50" text-anchor="middle" class="stageNo">03</text>
+    <text x="84" y="39" class="stageTitle">Tool Calling</text>
+    <text x="84" y="63" class="stageMeta">Toolformer / Plugins / MCP</text>
+    <foreignObject x="28" y="96" width="266" height="172">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:0;">
+        <div style="font-size:14px; line-height:1.2; font-weight:760; color:#0F766E; margin-bottom:10px;">Solved:</div>
+        <div style="font-size:17px; line-height:1.42; font-weight:430; color:#334155; margin-bottom:12px;">Connects the model to external information, files, APIs, and real actions</div>
+        <div style="font-size:14px; line-height:1.55; font-weight:760; color:#C2410C;">New bottleneck: selection, permission, traces, and governance get complex</div>
+      </div>
+    </foreignObject>
+  </g>
+  <path d="M621 472V492" stroke="#2563EB" stroke-width="4"/>
+
+  <g transform="translate(666 560)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="304" height="286" rx="12" fill="#FFFFFF" stroke="#C4B5FD" stroke-width="2"/>
+    <circle cx="48" cy="44" r="24" fill="#7C3AED"/>
+    <text x="48" y="50" text-anchor="middle" class="stageNo">04</text>
+    <text x="84" y="39" class="stageTitle">ReAct</text>
+    <text x="84" y="63" class="stageMeta">Reasoning + Acting loop</text>
+    <foreignObject x="28" y="96" width="248" height="178">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:0;">
+        <div style="font-size:14px; line-height:1.2; font-weight:760; color:#0F766E; margin-bottom:10px;">Solved:</div>
+        <div style="font-size:17px; line-height:1.42; font-weight:430; color:#334155; margin-bottom:12px;">Closes the loop between reasoning and acting, giving Agents a minimal runtime pattern</div>
+        <div style="font-size:14px; line-height:1.55; font-weight:760; color:#C2410C;">New bottleneck: loop control and context management</div>
+      </div>
+    </foreignObject>
+  </g>
+  <path d="M818 560V492" stroke="#7C3AED" stroke-width="4"/>
+
+  <g transform="translate(842 180)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="334" height="292" rx="12" fill="#FFFFFF" stroke="#FDE68A" stroke-width="2"/>
+    <circle cx="48" cy="44" r="24" fill="#CA8A04"/>
+    <text x="48" y="50" text-anchor="middle" class="stageNo">05</text>
+    <text x="84" y="39" class="stageTitle">Correction &amp; Reflection</text>
+    <text x="84" y="63" class="stageMeta">Self-Refine / Reflexion</text>
+    <foreignObject x="28" y="96" width="278" height="172">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:0;">
+        <div style="font-size:14px; line-height:1.2; font-weight:760; color:#0F766E; margin-bottom:10px;">Solved:</div>
+        <div style="font-size:17px; line-height:1.42; font-weight:430; color:#334155; margin-bottom:12px;">Moves from one-shot generation to verifiable, iterative improvement</div>
+        <div style="font-size:14px; line-height:1.55; font-weight:760; color:#C2410C;">New bottleneck: self-evaluation is unreliable; over-reflection slows systems</div>
+      </div>
+    </foreignObject>
+  </g>
+  <path d="M1009 472V492" stroke="#CA8A04" stroke-width="4"/>
+
+  <g transform="translate(1044 560)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="314" height="268" rx="12" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2"/>
+    <circle cx="48" cy="44" r="24" fill="#EA580C"/>
+    <text x="48" y="50" text-anchor="middle" class="stageNo">06</text>
+    <text x="84" y="39" class="stageTitle">Planning</text>
+    <text x="84" y="63" class="stageMeta">ToT / Plan-and-Execute</text>
+    <foreignObject x="28" y="96" width="258" height="158">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:0;">
+        <div style="font-size:14px; line-height:1.2; font-weight:760; color:#0F766E; margin-bottom:10px;">Solved:</div>
+        <div style="font-size:17px; line-height:1.42; font-weight:430; color:#334155; margin-bottom:12px;">Breaks long tasks into structured, inspectable steps</div>
+        <div style="font-size:14px; line-height:1.55; font-weight:760; color:#C2410C;">New bottleneck: plans can be wrong, and execution can drift</div>
+      </div>
+    </foreignObject>
+  </g>
+  <path d="M1201 560V492" stroke="#EA580C" stroke-width="4"/>
+
+  <g transform="translate(1232 180)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="308" height="292" rx="12" fill="#FFFFFF" stroke="#FDA4AF" stroke-width="2"/>
+    <circle cx="48" cy="44" r="24" fill="#E11D48"/>
+    <text x="48" y="50" text-anchor="middle" class="stageNo">07</text>
+    <text x="84" y="39" class="stageTitle">Multi-Agent</text>
+    <text x="84" y="63" class="stageMeta">Gen Agents / AutoGen</text>
+    <foreignObject x="28" y="96" width="252" height="172">
+      <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC','Microsoft YaHei',sans-serif; letter-spacing:0;">
+        <div style="font-size:14px; line-height:1.2; font-weight:760; color:#0F766E; margin-bottom:10px;">Solved:</div>
+        <div style="font-size:17px; line-height:1.42; font-weight:430; color:#334155; margin-bottom:12px;">Uses role division to reduce single-Agent context overload and responsibility conflict</div>
+        <div style="font-size:14px; line-height:1.55; font-weight:760; color:#C2410C;">New bottleneck: coordination cost, ownership, compression, and consensus</div>
+      </div>
+    </foreignObject>
+  </g>
+  <path d="M1386 472V492" stroke="#E11D48" stroke-width="4"/>
+  <text x="800" y="888" text-anchor="middle" class="note">Note: this is not a strict paper chronology or complete timeline; it is a conceptual line for understanding how the Agent paradigm evolved.</text>
+</svg>

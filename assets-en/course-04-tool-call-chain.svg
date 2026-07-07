@@ -1,0 +1,169 @@
+<svg width="1600" height="920" viewBox="0 0 1600 920" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Lesson 4: Seven-Step Tool-Call Chain</title>
+  <desc id="desc">The left side shows the core tool-call mechanism; the right side expands seven branches: LLM decision, tool selection, parameter generation, permission check, tool execution, observation feedback, and state update. Each branch explains the main function and common risks.</desc>
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1600" y2="920" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.55" stop-color="#ECFEFF"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <linearGradient id="core" x1="104" y1="292" x2="470" y2="658" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F766E"/>
+      <stop offset="0.58" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#EA580C"/>
+    </linearGradient>
+    <linearGradient id="branch" x1="454" y1="456" x2="610" y2="456" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#94A3B8"/>
+    </linearGradient>
+    <filter id="softShadow" x="-6%" y="-12%" width="112%" height="132%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#0F172A" flood-opacity="0.10"/>
+    </filter>
+    <style>
+      .title { font: 850 38px/1.15 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #102A43; letter-spacing: 0; }
+      .subtitle { font: 430 18px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #52616F; letter-spacing: 0; }
+      .coreTitle { font: 850 34px/1.18 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #FFFFFF; letter-spacing: 0; }
+      .coreNote { font: 500 18px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #E0F2FE; letter-spacing: 0; }
+      .stepNo { font: 850 16px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #FFFFFF; letter-spacing: 0; }
+      .stepTitle { font: 820 22px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .stepMeta { font: 760 15px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F766E; letter-spacing: 0; }
+      .stepText { font: 430 15px/1.36 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #334155; letter-spacing: 0; }
+      .funcFlow { font: 500 13px/16px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #334155; letter-spacing: 0; margin: 0; overflow-wrap: break-word; }
+      .riskMeta { font: 760 15px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #C2410C; letter-spacing: 0; }
+      .riskFlow { font: 500 12.5px/15px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #7C2D12; letter-spacing: 0; margin: 0; overflow-wrap: break-word; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="920" fill="url(#page)"/>
+  <text x="800" y="62" text-anchor="middle" class="title">Tool calling is not one API request; it is a seven-step runtime chain</text>
+  <text x="800" y="102" text-anchor="middle" class="subtitle">The model only emits call intent. The Runtime chain makes tools selectable, executable, controlled, and traceable.</text>
+
+  <g filter="url(#softShadow)">
+    <circle cx="286" cy="476" r="186" fill="url(#core)"/>
+    <circle cx="286" cy="476" r="160" fill="none" stroke="#FFFFFF" stroke-opacity="0.38" stroke-width="2"/>
+    <text x="286" y="438" text-anchor="middle" class="coreTitle">Tool-Call</text>
+    <text x="286" y="486" text-anchor="middle" class="coreTitle">Chain</text>
+    <text x="286" y="536" text-anchor="middle" class="coreNote">From call intent to next-round evidence</text>
+    <text x="286" y="568" text-anchor="middle" class="coreNote">Every step needs a runtime guardrail</text>
+  </g>
+
+  <path d="M454 476C505 268 540 189 610 174" stroke="url(#branch)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M454 476C514 326 548 289 610 282" stroke="url(#branch)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M454 476C520 399 555 395 610 390" stroke="url(#branch)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M454 476C506 492 548 498 610 498" stroke="url(#branch)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M454 476C520 569 555 601 610 606" stroke="url(#branch)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M454 476C514 642 548 707 610 714" stroke="url(#branch)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M454 476C505 700 540 807 610 822" stroke="url(#branch)" stroke-width="4" stroke-linecap="round"/>
+
+  <g transform="translate(610 130)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="850" height="88" rx="10" fill="#FFFFFF" stroke="#BAE6FD" stroke-width="2"/>
+    <circle cx="44" cy="44" r="22" fill="#2563EB"/>
+    <text x="44" y="50" text-anchor="middle" class="stepNo">01</text>
+    <text x="82" y="35" class="stepTitle">LLM Decision</text>
+    <text x="82" y="63" class="stepText">Decide whether external capability is needed</text>
+    <text x="410" y="33" class="stepMeta">Main function</text>
+    <foreignObject x="410" y="44" width="190" height="40">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="funcFlow">Turn the user goal into call intent</div>
+    </foreignObject>
+    <text x="630" y="33" class="riskMeta">Common risks</text>
+    <foreignObject x="630" y="44" width="192" height="40">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="riskFlow">Missed when needed; overused when unnecessary</div>
+    </foreignObject>
+  </g>
+
+  <g transform="translate(610 238)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="850" height="88" rx="10" fill="#FFFFFF" stroke="#99F6E4" stroke-width="2"/>
+    <circle cx="44" cy="44" r="22" fill="#0F766E"/>
+    <text x="44" y="50" text-anchor="middle" class="stepNo">02</text>
+    <text x="82" y="35" class="stepTitle">Tool Selection</text>
+    <text x="82" y="63" class="stepText">Choose a tool from the available list</text>
+    <text x="410" y="33" class="stepMeta">Main function</text>
+    <foreignObject x="410" y="44" width="190" height="40">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="funcFlow">Match task, boundaries, and tool capability</div>
+    </foreignObject>
+    <text x="630" y="33" class="riskMeta">Common risks</text>
+    <foreignObject x="630" y="44" width="192" height="40">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="riskFlow">Wrong tool selected; better tool missed</div>
+    </foreignObject>
+  </g>
+
+  <g transform="translate(610 346)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="850" height="88" rx="10" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2"/>
+    <circle cx="44" cy="44" r="22" fill="#0284C7"/>
+    <text x="44" y="50" text-anchor="middle" class="stepNo">03</text>
+    <text x="82" y="35" class="stepTitle">Parameter Generation</text>
+    <text x="82" y="63" class="stepText">Generate tool parameters</text>
+    <text x="410" y="33" class="stepMeta">Main function</text>
+    <foreignObject x="410" y="44" width="190" height="40">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="funcFlow">Fill types, objects, and required fields</div>
+    </foreignObject>
+    <text x="630" y="33" class="riskMeta">Common risks</text>
+    <foreignObject x="630" y="44" width="192" height="40">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="riskFlow">Wrong types, invented objects, missing fields</div>
+    </foreignObject>
+  </g>
+
+  <g transform="translate(610 454)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="850" height="88" rx="10" fill="#FFFFFF" stroke="#FDE68A" stroke-width="2"/>
+    <circle cx="44" cy="44" r="22" fill="#CA8A04"/>
+    <text x="44" y="50" text-anchor="middle" class="stepNo">04</text>
+    <text x="82" y="35" class="stepTitle">Permission Check</text>
+    <text x="82" y="63" class="stepText">Runtime checks whether execution is allowed</text>
+    <text x="410" y="33" class="stepMeta">Main function</text>
+    <foreignObject x="410" y="44" width="190" height="40">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="funcFlow">Block out-of-scope, risky, and unauthorized actions</div>
+    </foreignObject>
+    <text x="630" y="33" class="riskMeta">Common risks</text>
+    <foreignObject x="630" y="44" width="192" height="40">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="riskFlow">Overreach, mistakes, real-world impact</div>
+    </foreignObject>
+  </g>
+
+  <g transform="translate(610 562)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="850" height="88" rx="10" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2"/>
+    <circle cx="44" cy="44" r="22" fill="#EA580C"/>
+    <text x="44" y="50" text-anchor="middle" class="stepNo">05</text>
+    <text x="82" y="35" class="stepTitle">Tool Execution</text>
+    <text x="82" y="63" class="stepText">Runtime actually executes the tool</text>
+    <text x="410" y="33" class="stepMeta">Main function</text>
+    <foreignObject x="410" y="44" width="190" height="40">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="funcFlow">Call external systems and handle execution</div>
+    </foreignObject>
+    <text x="630" y="33" class="riskMeta">Common risks</text>
+    <foreignObject x="630" y="44" width="192" height="40">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="riskFlow">Timeouts, execution errors, unavailable services</div>
+    </foreignObject>
+  </g>
+
+  <g transform="translate(610 670)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="850" height="88" rx="10" fill="#FFFFFF" stroke="#C4B5FD" stroke-width="2"/>
+    <circle cx="44" cy="44" r="22" fill="#7C3AED"/>
+    <text x="44" y="50" text-anchor="middle" class="stepNo">06</text>
+    <text x="82" y="35" class="stepTitle">Observation / Feedback</text>
+    <text x="82" y="63" class="stepText">Package results and return them to the model</text>
+    <text x="410" y="33" class="stepMeta">Main function</text>
+    <foreignObject x="410" y="44" width="190" height="40">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="funcFlow">Compress raw results into decision-ready information</div>
+    </foreignObject>
+    <text x="630" y="33" class="riskMeta">Common risks</text>
+    <foreignObject x="630" y="44" width="192" height="40">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="riskFlow">Results too long; unclear error causes</div>
+    </foreignObject>
+  </g>
+
+  <g transform="translate(610 778)" filter="url(#softShadow)">
+    <rect x="0" y="0" width="850" height="88" rx="10" fill="#FFFFFF" stroke="#FDA4AF" stroke-width="2"/>
+    <circle cx="44" cy="44" r="22" fill="#E11D48"/>
+    <text x="44" y="50" text-anchor="middle" class="stepNo">07</text>
+    <text x="82" y="35" class="stepTitle">State Update</text>
+    <text x="82" y="63" class="stepText">Write task state for the next round</text>
+    <text x="410" y="33" class="stepMeta">Main function</text>
+    <foreignObject x="410" y="44" width="190" height="40">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="funcFlow">Persist history, results, errors, and traces</div>
+    </foreignObject>
+    <text x="630" y="33" class="riskMeta">Common risks</text>
+    <foreignObject x="630" y="44" width="192" height="40">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="riskFlow">Lost state; failures cannot be reconstructed</div>
+    </foreignObject>
+  </g>
+</svg>

@@ -1,0 +1,171 @@
+<svg width="1400" height="888" viewBox="0 0 1400 888" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Lesson 4: Four Dimensions of Observation Design</title>
+  <desc id="desc">Observation design across four dimensions: information completeness, structural consistency, context awareness, and model actionability. Each dimension includes its key question, design points, and examples.</desc>
+
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1400" y2="888" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.55" stop-color="#ECFEFF"/>
+      <stop offset="1" stop-color="#FFF7ED"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-4%" y="-4%" width="108%" height="112%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0F172A" flood-opacity="0.07"/>
+    </filter>
+    <filter id="barShadow" x="-2%" y="-8%" width="104%" height="128%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F172A" flood-opacity="0.05"/>
+    </filter>
+
+    <style>
+      .title { font: 850 36px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .subtitle { font: 430 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #52616F; letter-spacing: 0; }
+      .dimNo { font: 850 15px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #FFFFFF; letter-spacing: 0; text-anchor: middle; }
+      .dimTitle { font: 820 20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; letter-spacing: 0; }
+      .coreQuestion { font: 650 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #1E293B; letter-spacing: 0; }
+      .sectionTag { font: 760 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 0; }
+      .bodyText { font: 430 12.8px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; letter-spacing: 0; }
+      .exampleLabel { font: 700 13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; letter-spacing: 0; }
+      .exampleBody { font: 430 13.5px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #475569; letter-spacing: 0; margin: 0; overflow-wrap: break-word; }
+      .footerText { font: 430 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #475569; letter-spacing: 0; text-anchor: middle; }
+      .footerBold { font: 650 15px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #0F172A; letter-spacing: 0; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1400" height="888" fill="url(#page)"/>
+
+  <!-- Title area -->
+  <text x="700" y="52" text-anchor="middle" class="title">Four Dimensions of Observation Design</text>
+  <text x="700" y="86" text-anchor="middle" class="subtitle">A good Observation does not merely report what happened; it gives the next decision a basis.</text>
+
+  <!-- ============================================================ -->
+  <!-- DIMENSION 1: Information Completeness -->
+  <!-- ============================================================ -->
+  <g transform="translate(60, 118)" filter="url(#cardShadow)">
+    <rect x="0" y="0" width="600" height="310" rx="12" fill="#FFFFFF" stroke="#BFDBFE" stroke-width="2"/>
+
+    <rect x="0" y="0" width="600" height="4" rx="2" fill="#2563EB"/>
+    <rect x="0" y="0" width="600" height="54" rx="12" fill="#EFF6FF"/>
+    <rect x="0" y="27" width="600" height="27" fill="#EFF6FF"/>
+    <circle cx="36" cy="27" r="17" fill="#2563EB"/>
+    <text x="36" y="33" class="dimNo">1</text>
+    <text x="64" y="33" class="dimTitle">Information Completeness</text>
+
+    <text x="28" y="82" class="coreQuestion">Does the Observation include everything the model needs for the next decision?</text>
+
+    <text x="28" y="114" class="sectionTag" fill="#2563EB">Design points</text>
+    <circle cx="34" cy="134" r="3.5" fill="#2563EB" opacity="0.55"/>
+    <text x="46" y="139" class="bodyText">On success: result summary + key data + what it means</text>
+    <circle cx="34" cy="158" r="3.5" fill="#2563EB" opacity="0.55"/>
+    <text x="46" y="163" class="bodyText">On failure: error code + cause + retryability + suggested next step</text>
+
+    <rect x="22" y="184" width="556" height="114" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+    <rect x="22" y="184" width="4" height="114" rx="2" fill="#2563EB" opacity="0.5"/>
+    <text x="42" y="208" class="exampleLabel" fill="#2563EB">Example</text>
+    <foreignObject x="42" y="224" width="518" height="72">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="exampleBody">An error must not just say "failed". Include error.code, retryable, and suggested_action so the model can tell temporary failures from permanent errors.</div>
+    </foreignObject>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- DIMENSION 2: Structural consistency -->
+  <!-- ============================================================ -->
+  <g transform="translate(740, 118)" filter="url(#cardShadow)">
+    <rect x="0" y="0" width="600" height="310" rx="12" fill="#FFFFFF" stroke="#99F6E4" stroke-width="2"/>
+
+    <rect x="0" y="0" width="600" height="4" rx="2" fill="#0F766E"/>
+    <rect x="0" y="0" width="600" height="54" rx="12" fill="#F0FDFA"/>
+    <rect x="0" y="27" width="600" height="27" fill="#F0FDFA"/>
+    <circle cx="36" cy="27" r="17" fill="#0F766E"/>
+    <text x="36" y="33" class="dimNo">2</text>
+    <text x="64" y="33" class="dimTitle">Structural Consistency</text>
+
+    <text x="28" y="82" class="coreQuestion">Does the model see a consistent structure across tools, success, and failure?</text>
+
+    <text x="28" y="114" class="sectionTag" fill="#0F766E">Design points</text>
+    <circle cx="34" cy="134" r="3.5" fill="#0F766E" opacity="0.55"/>
+    <text x="46" y="139" class="bodyText">Use one outer structure: every tool returns {status, summary, data, error}</text>
+    <circle cx="34" cy="158" r="3.5" fill="#0F766E" opacity="0.55"/>
+    <text x="46" y="163" class="bodyText">The model need not adapt to new formats, reducing misjudgment</text>
+
+    <rect x="22" y="184" width="556" height="114" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+    <rect x="22" y="184" width="4" height="114" rx="2" fill="#0F766E" opacity="0.5"/>
+    <text x="42" y="208" class="exampleLabel" fill="#0F766E">Example</text>
+    <foreignObject x="42" y="224" width="518" height="72">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="exampleBody">read_file, search_web, and run_shell are very different tools, but all return ToolResult(status, summary, data, error), so the model parses every result with one logic.</div>
+    </foreignObject>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- DIMENSION 3: Context Awareness -->
+  <!-- ============================================================ -->
+  <g transform="translate(60, 468)" filter="url(#cardShadow)">
+    <rect x="0" y="0" width="600" height="310" rx="12" fill="#FFFFFF" stroke="#DDD6FE" stroke-width="2"/>
+
+    <rect x="0" y="0" width="600" height="4" rx="2" fill="#7C3AED"/>
+    <rect x="0" y="0" width="600" height="54" rx="12" fill="#F5F3FF"/>
+    <rect x="0" y="27" width="600" height="27" fill="#F5F3FF"/>
+    <circle cx="36" cy="27" r="17" fill="#7C3AED"/>
+    <text x="36" y="33" class="dimNo">3</text>
+    <text x="64" y="33" class="dimTitle">Context Awareness</text>
+
+    <text x="28" y="82" class="coreQuestion">Does the Observation include current task context, not just raw tool output?</text>
+
+    <text x="28" y="114" class="sectionTag" fill="#7C3AED">Design points</text>
+    <circle cx="34" cy="134" r="3.5" fill="#7C3AED" opacity="0.55"/>
+    <text x="46" y="139" class="bodyText">Add task-relevant context on top of the raw result</text>
+    <circle cx="34" cy="158" r="3.5" fill="#7C3AED" opacity="0.55"/>
+    <text x="46" y="163" class="bodyText">Distinguish tool failure from successful execution with no match</text>
+
+    <rect x="22" y="184" width="556" height="114" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+    <rect x="22" y="184" width="4" height="114" rx="2" fill="#7C3AED" opacity="0.5"/>
+    <text x="42" y="208" class="exampleLabel" fill="#7C3AED">Example</text>
+    <foreignObject x="42" y="224" width="518" height="72">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="exampleBody">When search returns 20 results, do not just list them. Add context_hint such as "the first 3 are directly relevant". No results should be success, not error.</div>
+    </foreignObject>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- DIMENSION 4: Model Actionability -->
+  <!-- ============================================================ -->
+  <g transform="translate(740, 468)" filter="url(#cardShadow)">
+    <rect x="0" y="0" width="600" height="310" rx="12" fill="#FFFFFF" stroke="#FDBA74" stroke-width="2"/>
+
+    <rect x="0" y="0" width="600" height="4" rx="2" fill="#EA580C"/>
+    <rect x="0" y="0" width="600" height="54" rx="12" fill="#FFF7ED"/>
+    <rect x="0" y="27" width="600" height="27" fill="#FFF7ED"/>
+    <circle cx="36" cy="27" r="17" fill="#EA580C"/>
+    <text x="36" y="33" class="dimNo">4</text>
+    <text x="64" y="33" class="dimTitle">Model Actionability</text>
+
+    <text x="28" y="82" class="coreQuestion">After seeing the Observation, can the model decide the next step directly?</text>
+
+    <text x="28" y="114" class="sectionTag" fill="#EA580C">Design points</text>
+    <circle cx="34" cy="134" r="3.5" fill="#EA580C" opacity="0.55"/>
+    <text x="46" y="139" class="bodyText">Include enough information for a decision without guessing</text>
+    <circle cx="34" cy="158" r="3.5" fill="#EA580C" opacity="0.55"/>
+    <text x="46" y="163" class="bodyText">Provide actionable fields such as suggested_action and retryable</text>
+
+    <rect x="22" y="184" width="556" height="114" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+    <rect x="22" y="184" width="4" height="114" rx="2" fill="#EA580C" opacity="0.5"/>
+    <text x="42" y="208" class="exampleLabel" fill="#EA580C">Test method</text>
+    <foreignObject x="42" y="224" width="518" height="72">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="exampleBody">Show the Observation alone to the model and ask: "Based on this result, what should happen next?" If it gives a reasonable next step, the Observation works.</div>
+    </foreignObject>
+  </g>
+
+  <!-- ============================================================ -->
+  <!-- Bottom takeaway -->
+  <!-- ============================================================ -->
+  <g transform="translate(90, 806)" filter="url(#barShadow)">
+    <rect x="0" y="0" width="1220" height="68" rx="12" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+
+    <circle cx="50" cy="34" r="5.5" fill="#2563EB"/>
+    <circle cx="82" cy="34" r="5.5" fill="#0F766E"/>
+    <circle cx="114" cy="34" r="5.5" fill="#7C3AED"/>
+    <circle cx="146" cy="34" r="5.5" fill="#EA580C"/>
+
+    <text x="610" y="26" class="footerBold">How the four dimensions relate: progressive and all required</text>
+    <text x="610" y="48" class="footerText">Completeness is the base -> consistency reduces load -> context improves decisions -> actionability is the final test</text>
+  </g>
+
+</svg>
