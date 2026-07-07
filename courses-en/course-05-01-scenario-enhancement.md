@@ -11,8 +11,8 @@ These two sets of capabilities answer two fundamental questions. But they have o
 This course does not start with conceptual terms but begins with problems. Each chapter follows the same path:
 
 ```text
-问题代入（怎么出问题的）→ 技术背景（这个能力怎么来的）→ 思考（设计者当时在想什么）
-→ 方案（核心链路 + 代码骨架）→ 迭代路径（从最小版本到生产级）→ 判断边界（什么时候别用）
+It's a problem. → Technical background. → Thinking.
+ → Programme (core links)+ Code skeleton) → iterative path (from minimum version to production level) → Judge the boundary (when not)
 ```
 
 After school, you don't have to do all seven types of abilities, but you should be able to judge when you face a new scene:
@@ -64,7 +64,7 @@ These questions appear to be varied, but look closely at them and hit two differ
 
 - Private knowledge, real-time data other than model training data cannot be obtained by Agent. It can only remember "guess" by parameters.
 - User preferences, project engagements, progress of the last mission are evaporated through one session. It has to start from scratch every time.
-- When you access both the external knowledge (RAG) and the historical state (Memory), the new problem follows: multiple sources of information are simultaneously injected into the context, system hints, retrieval clips, memory recall, tool outputs, history messages are mixed — the context has changed from “detailed input” to “extended information piles”. The model begins to ignore key constraints and fights between information.
+- When you access both the external knowledge (RAG) and the historical state (Memory), the new problem follows: multiple sources of information are simultaneously injected into the context, system hints, retrieval clips, memory recall, tool outputs, history messages are mixed — the context has changed from "detailed input" to "extended information piles". The model begins to ignore key constraints and fights between information.
 
 These three levels - **access to external data, continuity of history, organization multi-source information** - jointly determine the quality of information for Agent decision-making. Corresponding enhancements were RAG (chap. II), Momory (chap. III) and Context Engineering (chap. IV). **Second ceiling: behavior. How does Agent organize implementation, collaboration and recovery in the face of complex tasks?** The minimum closed circle has only one naked rect loop: each step determines what to do next according to the current context. This model, "Check out what X" is okay, but it's not enough when it comes to more complex mission patterns:
 
@@ -85,28 +85,28 @@ The seven categories of capacity corresponding to the above seven issues are nat
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│                    上下文增强（信息维度）                       │
-│  核心问题：Agent 的"视野"里有什么？                             │
+│                    Context enhancement (information dimension)│
+│  Question: What's in Agent's Vision??                             │
 │                                                             │
-│  RAG          → 查什么：外部知识怎么进到上下文里                  │
-│  Memory       → 记什么：跨会话状态怎么延续                      │
-│  Context Eng  → 怎么管：多个信息源怎么组织成有效上下文            │
+│  RAG → What? How does external knowledge get in the context?│
+│  Memory → Remember what? How does it last?│
+│  Context Eng → How does it work? How does multiple information sources fit into the context?│
 │                                                             │
-│  三者关系：RAG 和 Memory 是信息生产者，Context Engineering      │
-│  是信息组织者。没有组织者，生产者越多上下文越乱。                   │
+│  Three relationships: RAG and Memoory are information producers, Context Engineering│
+│  Is an information organizer. Without organizers, the more producers, the more the context becomes.│
 └─────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────┐
-│                   行为模式增强（行动维度）                      │
-│  核心问题：Agent 怎么"干活"？                                  │
+│                   Behavioural enhancement (action dimension)│
+│  Question: Agent how to "work"?                                  │
 │                                                             │
-│  Planning     → 怎么拆：复杂任务怎么分解和组织                   │
-│  Reflection   → 怎么判：反馈出现后下一步该重试、处理还是停止       │
-│  HITL         → 怎么停：什么时候不该自己决定                     │
-│  Multi-Agent  → 怎么分：单一角色不够时怎么分工协作                │
+│  Planning → How to break it down: how to break up a complex mission.│
+│  Reflection → How? Should we try again, process it or stop it next time the feedback comes out?│
+│  HITL → How? When should we decide?│
+│  Multi-Agent → How? How do you work when a single player is not enough?│
 │                                                             │
-│  四者关系：Planning 规划行动、Reflection 根据反馈调整行动、HITL   │
-│  约束行动（边界）、Multi-Agent 扩展行动（规模）。                 │
+│  Four relationships: Planning Action, Reflecting Action Based on Feedback, HITL│
+│  Binding action (border), Multi-Agent extension (scale).│
 └─────────────────────────────────────────────────────────────┘
 ```
 

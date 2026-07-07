@@ -33,8 +33,8 @@ Agent, a knowledge assistant, has access to RAG, Memory, Context Engineering, Pl
 Then one day, you let it sort out the papers.
 
 ```text
-你："帮我把 /tmp/logs 下超过 30 天的日志文件清理一下。"
-Agent："好的。" → 调用 delete_file → 开始删除
+You: "Help me clean up the log files under /tmp/logs for more than 30 days."
+Agent:"Okay. → Call → Start Delete
 ```
 
 You suddenly saw a file name flashing... `.env.backup` I don't know. That's the backup file you manually put in last week, not the log. You didn't have time to stop. The papers are gone.
@@ -42,8 +42,8 @@ You suddenly saw a file name flashing... `.env.backup` I don't know. That's the 
 It's not Agent "gets bad." It's done according to your instructions. The problem is: **The task of cleaning up log files has some consequences you didn't say (env backup cannot be deleted), and Agent is not aware of these implied constraints.** Another scenario: you're testing a guest suit, Agent. The user said, "I want a refund."
 
 ```text
-用户："这个产品不好用，我要退款。"
-Agent："非常抱歉给您带来了不好的体验。我已为您提交了全额退款申请，款项将在 3-5 个工作日内退回。"
+User: "This product doesn't work. I want a refund."
+Agent:"I'm so sorry for the bad experience. I have submitted you a full refund, which will be returned within three to five working days."
 ```
 
 You stare at the screen, your hands sweat. Refund strategies have not yet been defined — maximum amounts, conditions for refunds, approval process. Agent made a decision for you.
@@ -57,14 +57,14 @@ That's the problem for Human-in-the-loop (HITL): **In Agent's decision-making ch
 We need to clear up the meaning of several concepts in the HITL context:
 
 ```text
-能力（Capability）：Agent 在技术上能执行什么操作。
-  例：Agent 可以调用 delete_file、可以调用 refund_api、可以发送邮件。
+Capability: Agent can do anything technically.
+  Example: Agent can call delete file, call refund api, send mail.
 
-权限（Permission）：系统允许 Agent 自主执行什么操作。
-  例：delete_file 被允许，但需要人类确认。refund_api 完全禁止自主调用。
+Permission: The system allows Agent to perform what it owns.
+  Example: delete file is allowed but requires human confirmation. Refund api is completely prohibited from calling autonomously.
 
-判断（Judgment）：这个具体操作在当下是否合适。
-  例：删除 /tmp/logs/access_2026.log 是合适的。删除 /tmp/logs/.env.backup 不是。
+Judgment: Is this a suitable operation for the moment?
+  Example: Delete /tmp/logs/access 2026.log is appropriate. Delete /tmp/logs/.env.backup
 ```
 
 The essence of HITL is that **when Agent's ability covers an operation, but the system cannot afford to return judgment to humans when all the rules of judgement are exhausted at the code level.** Why not write the rules in the code? Because:
@@ -83,28 +83,28 @@ HITL is not a simple "play a confirmation box". Depending on the timing and dept
 **When to use**: Agent has decided what to do, but the operation is risky and requires human nodding.
 
 ```text
-Agent："我将删除以下 12 个文件：
-  - /tmp/logs/access_20260501.log (32MB, 45 天前)
-  - /tmp/logs/error_20260515.log (8MB, 31 天前)
+Agent:"I will delete the following 12 files:
+  - /tmp/logs/access_20260501.log (32MB, 45 Apogee)
+  - /tmp/logs/error_20260515.log (8MB, 31 Apogee)
   - ……
-  [确认执行] [取消] [修改范围]"
+  [Confirmation of implementation] [Cancel] [Modify Scope]"
 ```
 
 Identification of the three design elements of the model: **1. Presentation of "effects" instead of "operations"**
 
 ```text
-❌ 差："确认调用 delete_file？"
-   人类不知道要删什么、删多少、有什么影响。
+❌ W: "Record call confirmation?"
+   Humans do not know what to delete, how much to delete, and what the implications are.
 
-✅ 好："将删除 12 个文件，共 156MB。这些文件上次修改超过 30 天。
-   注意：/tmp/logs 目录下还有 3 个非日志文件（.env.backup, config.json, README），
-   它们不会被删除。"
+✅ Good: "will delete 12 files totalling 156 MB. These files were last modified over 30 days.
+   Note: /tmp/logs and 3 non-post files (.env.backup, config.json, README),
+   They won't be deleted."
 ```
 
 **2. Provide intermediate options, more than "Yes/No"**
 
 ```text
-[确认全部] [只删 .log 文件] [让我逐个确认] [取消]
+[Confirm All] [Delete only.log files] [Let me confirm one by one.] [Cancel]
 ```
 
 The second option is to give humans a preference for confirmation. The granting of intermediate options has improved the quality of decision-making. **3. Complete but not lengthy context of confirmation** Humans need to see what they want to do, why they think they should do it, what risks they have, what they don't.
@@ -114,12 +114,12 @@ The second option is to give humans a preference for confirmation. The granting 
 **When to use**: Agent is uncertain about the user's intentions and needs human clarity.
 
 ```text
-你："把最近的文章整理一下。"
-Agent："'最近的文章'可能指：
-  A. 最近 7 天写的文章（共 3 篇）
-  B. 最近修改过的文章（共 8 篇）
-  C. 最近打开过的文章（共 5 篇）
-  你指的是哪种？"
+You said, "Check out the latest article."
+Agent:"'Recent articles' may refer to:
+  A. Recent 7-day articles (3 articles)
+  B. Recently modified articles (8 articles)
+  C. Recent articles (5 articles)
+  What do you mean??"
 ```
 
 Clarify the difference between mode and confirmation mode: Confirm "I have decided, you nod", clarify "I need you to help me decide."
@@ -135,14 +135,14 @@ Clarification of the design elements of the model:
 **When to use**: the operation is too complex or too sensitive, Agent should not do it himself, and control should be returned to mankind.
 
 ```text
-Agent："检测到数据库迁移脚本涉及以下操作：
-  - 修改 users 表的 email 字段类型
-  - 删除 deprecated_records 表
+Agent:"The database migration script was detected to involve the following operations:
+  - Modify email field type of user tables
+  - Delete deprecated records Table
 
-  这类操作需要人工执行。我已准备好迁移脚本：
+  Such operations require manual execution. I'm ready to move the script:
   /tmp/migration_20260629.sql
 
-  执行后请回复'已完成'，我会继续后续步骤。"
+  Please answer 'complete' after execution, and I will continue with the next steps."
 ```
 
 Essential difference between takeover and confirmation: confirmation is Agent enforcement, human permit. Taking over is **human execution, Agent waiting**. Agent retreats to the auxiliary role -- it is prepared, it explains, it waits, but it does not operate.
@@ -159,13 +159,13 @@ Application of the takeover model:
 **When the output was completed with**: Agent, but required human examination of quality or selection in multiple programmes.
 
 ```text
-Agent："技术方案已完成，共 4 个部分：
-  1. 架构概述（已生成）
-  2. API 设计（已生成）
-  3. 数据库设计（已生成）
-  4. 安全考虑（已生成，标注了 3 个待确认点）
+Agent:"The technical programme has been completed in four parts:
+  1. Outline of structure (generated)
+  2. API Design (generated)
+  3. Database design (generated)
+  4. Security considerations (generated, marked 3 to be confirmed)
 
-  [查看全文] [逐节审核] [修改某节] [通过]"
+  [View full text] [Section by section] [Modify a section] [Pass.]"
 ```
 
 The core of the audit model is to enable humans **to quickly position what needs attention**. Agent should take the initiative:
@@ -177,11 +177,11 @@ The core of the audit model is to enable humans **to quickly position what needs
 Humans should not be allowed to read the full text in order to judge. **Stating uncertainty as the most valuable output of the audit model.**### 7.3.5 Teaching feedback model (Teaching Feedback) **When did you use**: Agent did something wrong or not good enough, humans did it, Agent learned from it.
 
 ```text
-Agent："我为你生成了发布 checklist。"
-你："第 3 项漏了数据库备份步骤。第 6 项的检查命令不对，应该用 pytest 而不是 unittest。"
-Agent："已修正。我注意到你在这个项目中一直使用 pytest。我将在 Memory 中更新：
-  '项目 test_runner 偏好：pytest（非 unittest）'
-  以后生成 checklist 时也会自动包含数据库备份步骤。"
+Agent:"I generated a release for you."
+You: "Databack steps are missing in item 3. The inspection order for block 6 is wrong, and it should be pytest instead of unitist."
+Agent:"Amended. I noticed you've been using pytest in this project. I will update it in Memoory:
+  'Project test runner preferences: pytest (non unitttest)'
+  The subsequent checklist generation will automatically include the backup steps of the database."
 ```
 
 Pedagogical feedback is the intersection of HITL and Memoory. Every human amendment should be captured as reusable knowledge. There are three levels:
@@ -232,22 +232,22 @@ The hardest thing about HITL design is not "what to ask," but "how often." **Too
 Several strategies for frequency control: **Strategy I: batch confirmation**
 
 ```text
-❌ 单个确认：
-  "确认删除 access_20260501.log？" [确认]
-  "确认删除 error_20260515.log？" [确认]
-  "确认删除 debug_20260520.log？" [确认]
-  …（12 次）
+❌ Individual confirmation:
+  "Confirm delete Access 20260501.log?" [Confirm.]
+  "Confirm Delete Error 20260515.log?" [Confirm.]
+  "Confirm delete debug 2026052.log?" [Confirm.]
+  …(12 Number of sessions
 
-✅ 批次确认：
-  "将删除以下 12 个文件，共 156MB。其中 11 个为 .log 文件，1 个为 .txt 文件。
-   [确认全部] [只删 .log 文件] [逐个确认] [取消]"
+✅ Batch confirmation:
+  "The following 12 files, totalling 156MB, will be deleted. Of these, 11 are .log files and 1 is .txt files.
+   [Confirm All] [Delete only.log files] [Individual confirmation] [Cancel]"
 ```
 
 **Strategy II: Building trust** If the user confirms the same operation five times in a row, you can ask: "Do you trust me in the operation of the same file, and don't confirm it item by item?"**Strategy III: Summary retroactive confirmation** Not to confirm each step before implementation, but to provide a summary after implementation to allow users to confirm the overall direction:
 
 ```text
-"上一阶段完成：已收集 8 篇相关文档，共 32KB。准备进入写作阶段。
- [继续] [查看文档列表] [调整方向]"
+"Previous phase completed: 8 relevant documents have been collected for a total of 32KB. Prepare for writing.
+ [Go on.] [View List of Documents] [Reorientation]"
 ```
 
 **Strategy IV: Decline of trust based on session** In the same session, Agent's judgment of user preferences will be more accurate. But after the break-up, trust should be reset — because mandates may be different.
@@ -259,18 +259,18 @@ When humans make HITL decisions, they also face a lack of information. You play 
 OK. HITL design gives a simplified but complete decision-making context when requesting human decision-making:
 
 ```text
-Agent 请求执行退款操作：
+Agent Request for refund operation:
 
-▸ 用户：张三 (ID: 12847)
-▸ 订单：ORD-20260629-0042
-▸ 金额：¥299.00（全额）
-▸ 原因：用户反馈"产品功能与描述不符"
-▸ 用户历史：注册 2 年，此前 0 次退款申请
-▸ 订单状态：已支付，未发货
+▸ User: Zhang III (ID: 12847)
+▸ Order: ORD-20260629-0042
+▸ Amount:¥299.00(full)
+▸ Reason: User feedback "product function inconsistent with description"
+▸ User history: 2 years of registration, prior to 0 refund requests
+▸ Order status: paid, not delivered
 
-Agent 判断：符合退款条件（7 天无理由，未发货）
+Agent Judgement: condition of refund is met (7 days without justification, no delivery)
 
-[批准退款] [拒绝并说明原因] [转为人工处理]
+[Approval of refunds] [Refusal and reasons] [Change to manual processing]
 ```
 
 Key design principles:
@@ -286,18 +286,18 @@ HITL every intervention is marked once. Humans say "yes" or "no" and these signa
 Three levels of learning: **Level 1: Immediate application (Always)** Human decisions affect the continuing direction of the current task. "No refunds" – Agent stopped the refund process and informed the user. **Level 2: Prefer Update (in collaboration with Memoory)** When humans repeatedly confirm or reject the same operation, it updates memory:
 
 ```text
-"用户偏好更新：对 /tmp/logs 目录下的文件清理操作，用户已连续 3 次确认同类操作。
-下次可以降低确认频率（批次确认即可）。"
+"User preference update: The user has confirmed the same operation three times in a row for the file cleanup operation under /tmp/logs.
+Next time, the frequency of confirmation can be reduced. "
 ```
 
 **Level III: strategy adjustments (needs manual review)** Analyzing from HITL data: Which operations have too low pass rate (notation Agent)? Which operators are never rejected (may not need HITL)?
 
 ```text
-HITL 数据分析（过去 30 天）：
-- read_file 确认：120 次，通过率 100%  → 考虑移除确认
-- delete_file 确认：45 次，通过率 89%  → 保持确认
-- refund 确认：8 次，通过率 50%       → 确认不够，考虑改为接管模式
-- send_email 确认：30 次，通过率 97%  → 可降低为中风险操作
+HITL Data analysis (last 30 days):
+- read_file Recognized: 120, pass rate 100% → Consider removing confirmation
+- delete_file Recognition: 45, pass rate 89% → Keep confirmation.
+- refund Recognition: eight, pass rate 50% → Inadequate identification and consideration of a takeover model
+- send_email Recognition: 30, pass rate 97% → Can be reduced to medium risk operation
 ```
 
 This analysis should not be implemented automatically — human beings should review and decide whether to adjust their strategies. The value of HITL data is that it makes policy adjustments sound, rather than the system itself.
@@ -319,7 +319,7 @@ Most projects start with V1. V0 is too conservative (Agent can't do anything use
 **Counter-model I: confirmed every step** Click the confirmation box before all tools are called. Result: User clicked 15 times in 30 seconds, and didn't look. HITL is nothing. **Correct practice**: intervention is limited to high-risk and critical operations. A low-risk operation allows it to be implemented automatically. **Anti-model II: insufficient information on confirmation boxes**
 
 ```text
-"Agent 要执行 write_file，确认？"
+"Agent To execute write file, confirm?"
 ```
 
 Users do not know what to write, where to write, why, and what to do. This confirmation box does not give the user any basis for judgement. **Correct practice**: A path to document, summary of changes, basis of judgement for Agent. **Counter-model III: HiTL as a security mechanism** Use the HITL to prevent Prompt Intervention or ultra vires operations. "Someone confirmed that no input verification was required."**Correct practice**: HITL is a decision-making enhancement, not a complete security option. Security requires authority, verification, isolation, audit and Guardrails to work together. Humans also make mistakes -- the attacker can design the context in which humans tend to "confirm". **Counter-module IV: no timeout** Agent waits for humans to confirm that humans are going to meet. Agent's been waiting. **Correct practice**: set timeout. Overtime behaviour depends on operational risk - low-risk operations can continue automatically and high-risk operations should be terminated safely. **Anti-Model V: All users treated equally** New and senior users see the same frequency of confirmation. **Correct practice**: allows users to adjust the HITL level. The Developer Model can reduce the frequency of confirmation, the Security Model increases the frequency of confirmation. Let users themselves control the degree of autonomy they are willing to assume.
@@ -344,12 +344,12 @@ Example also generated `hitl_audit.jsonl ` and ` hitl_memory.json` First, HITL d
 The example is teaching realization, not a complete production safety framework: risk assessment usage rules are achieved, refunds and database migrations do not call on external systems, only printing decision context, subsequent process branches and audit records; running requires manual choice of HITL decision-making, directly by Enter using default options to facilitate continuous observation of the full process. The real system still requires permission verification, tool segregation, input filtering, audit logs and Guardrails.
 
 ```bash
-# Python 版本
+# Python Version
 cd examples/course-05-07-human-in-the-loop/python
 python3 hitl_demo.py
 python3 -m unittest test_hitl_demo.py
 
-# Node.js 版本
+# Node.js Version
 cd examples/course-05-07-human-in-the-loop/nodejs
 npm start
 ```

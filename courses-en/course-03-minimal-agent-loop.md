@@ -7,7 +7,7 @@ Course one shows you the true shape of the Agent product, course two explains wh
 This class answers a very specific question:
 
 ```text
-一个最小但完整的 Agent，到底由什么组成？
+What exactly makes up a minimal but complete Agent?
 ```
 
 Many learners fall into two error zones. The first error was to think of Agent as "a stronger LLM" -- thinking that if the model was strong enough, Agent would be automatically reliable. The second area of error is the reverse -- thinking that it is necessary to add all RAG, Memory, Planning, MCP, Multi-Agent.
@@ -21,7 +21,7 @@ The second problem is that those capabilities are really important, but they are
 The core points of this course are:
 
 ```text
-Agent = Prompt（行为定义） + LLM 决策 + 工具/环境交互 + State（状态管理） + 循环控制
+Agent = Prompt (behavior definition) + LLM decision-making + tool/environment interaction + State (state management) + loop control
 ```
 
 This formula has five, which can be seen in two layers: **Prompt is the defined layer** -- And it decided before the cycle started, "What's this Agent, how does it think, how does it output?" And the last four are **Runtime Layer** -- they make Agent really work in the cycle.
@@ -105,13 +105,13 @@ In the language of course two: LLM ' s internal reasoning is strong, but it lack
 Suppose you say to a pure LLM system:
 
 ```text
-帮我检查这个项目为什么测试失败。
+Help me check why this project failed.
 ```
 
 It may answer:
 
 ```text
-你可以先运行测试命令，查看错误日志，再定位相关文件。
+You can run the test command, check the error log, and then locate the relevant files.
 ```
 
 The answer may be entirely correct, but it is only recommendation **, not action**. The model does not really run the tests, does not read the log, does not check the code. It's like a man trapped in a room who can tell you how the outside world works, but cannot reach out to touch anything.
@@ -134,7 +134,7 @@ This is hard for multi-step missions. Assuming that a mission takes 5 steps to c
 
 So Agent can't manage the state just by "throwing history into context." It requires a state storage independent of LLM, managed by Runtme — the reservation, the compression, the injection. That's what state management does.
 
-> If you read this, you might ask-- **Runtme what is it?** It has been mentioned repeatedly earlier: the state of the tube, the tools to implement it, the cycle is controlled by it. You can interpret Runtme as Agent's **operating system**. It's like operating systems managing CPU, memory, disk, process scheduling -- it doesn't write documents, make tables; Runtme management storage, tool execution, loop control, permission verification, Trade records -- it doesn't do semantic reasoning, it doesn't generate text. <br/ >
+> If you read this, you might ask-- **Runtme what is it?** It has been mentioned repeatedly earlier: the state of the tube, the tools to implement it, the cycle is controlled by it. You can interpret Runtme as Agent's **operating system**. It's like operating systems managing CPU, memory, disk, process scheduling -- it doesn't write documents, make tables; Runtme management storage, tool execution, loop control, permission verification, Trade records -- it doesn't do semantic reasoning, it doesn't generate text. 
 
 More precisely: **Agent structure, all parts of the "certainty duty" fall within Runtme.** The LLM output is uncertain (the same prompt two calls may have different results), but whether the tool is implemented, whether the parameters are valid and whether the number of steps is excessive — these judgments must be definitive and auditable. Runtme is the level of infrastructure that carries out these definitive duties. You will see it again and again in each follow-up course - in Course 4 it is the registration and competence centre for tools, in Course 5 it is the reader for Memoory, in Course 6 it is the Harness/observable skeleton, and in Course 7 it is the point of implementation of the failure recovery and safety strategy.
 
@@ -160,8 +160,8 @@ LLM is a universal text generator when it leaves the plant. It's trained to "ren
 The authors of the Rect paper have done a key experiment to prove this: the same frozen PLM-540B model, **the general question-and-answer tip and the react style few-shot trajectories, showing a difference**. It's not the model getting stronger -- it's Prompt telling the model how it should be done.
 
 ```text
-普通问答提示：LLM → 生成一段文本（可能是建议、可能是答案、可能是胡编）
-ReAct 风格提示：LLM → 学会按 Thought → Action → Observation 轨迹推进
+Regular question and answer reminder: LLM → Generate a text (may be recommendations, may be answers, may be fabrications)
+ReAct Style tip: LLM → Learn to press → Action → Observation Orbital advance.
 ```
 
 Prompt solves the problem: **Turns the universal engine into a specific type of Agent.** It defines three things:
@@ -181,7 +181,7 @@ In the last chapter, the LLM four "no" -- can't do it, can't remember, can't con
 ### 2.1 Core formula
 
 ```text
-Agent = Prompt（行为定义） + LLM 决策 + 工具/环境交互 + State（状态管理） + 循环控制
+Agent = Prompt (behavior definition) + LLM decision-making + tool/environment interaction + State (state management) + loop control
 ```
 
 Five parts are not necessary. This formula says not that all Agent can have these five parts, but that: **If not even these five, it cannot be a minimum integrity.** | Composition | Address which limitations of LLM | What if it's missing? |
@@ -218,7 +218,7 @@ Prompt and what is to be said later is the upstream/downstream relationship: **P
 LLM decision is Agent's brain. Its duty is to answer a question that every cycle has to face:
 
 ```text
-基于当前上下文和状态，下一步应该做什么？
+What should be done next based on the current context and state?
 ```
 
 Specifically, the model requires judgement:
@@ -236,7 +236,7 @@ decision_type: call_tool
 tool_name: read_file
 arguments:
   path: notes.md
-reason: 需要读取用户指定文档才能完成总结任务
+reason: Read user-specified documents to complete wrap-up tasks
 ```
 
 Why the emphasis on structure? Because Runtme needs to know exactly what the model wants to do to decide whether to allow it. If the model is produced in the natural language, "I think we should read the file," Runtme is hard to decipher in a reliable way -- each person's expression is different, and the same model may be different at different times. The structured output removed this ambiguity.
@@ -244,7 +244,7 @@ Why the emphasis on structure? Because Runtme needs to know exactly what the mod
 Here is an important engineering principle that runs through the entire course:
 
 ```text
-模型负责提出下一步，Runtime 负责判断能不能执行。
+The model is responsible for proposing the next step, Runtime is responsible for judging whether it can be implemented.
 ```
 
 Models are good at understanding semantics and making decisions, but they should not have final enforcement powers. The enforcement authority remains in Runte, which can verify whether the instrument exists, whether the parameters are legal and whether the operation is within a secure border. It's not a model of mistrust -- it's a separation between "decision" and "authorization".
@@ -280,7 +280,7 @@ Course IV will discuss in depth the definition, selection, implementation, autho
 - Historical messages (or compressed summaries).
 - Tools mobilized and their results.
 - Intermediate findings and findings.
-- Can not open message
+- information sources
 - Reason for discontinuation (if any).
 
 There is an important conceptual distinction here: **State (state) is not equal to long-term memory.** In this course, State primarily refers to information that needs to be saved while the current task is running - Its life cycle is this task. The long-term Memoory is a cross-task, cross-conference information accumulation (user preference, historical experience) that is part of the fifth course and is not a mandatory option for the minimum closed circle.
@@ -288,9 +288,9 @@ There is an important conceptual distinction here: **State (state) is not equal 
 The smallest State object can be long:
 
 ```text
-# State 示例：一个结构化的运行时状态对象
+# State Example: A structured run-time status object
 task:
-  goal: "读取 notes.md，并总结为 5 个要点"
+  goal: "Read notes.md and summarize it as five points."
   step_count: 2
   max_steps: 8
   history:
@@ -300,7 +300,7 @@ task:
   tool_results:
     - tool: read_file
       status: success
-      summary: "读取到 1200 字 Markdown 内容"
+      summary: "Read 1200 word Markdown content"
   errors: []
   stop_reason: null
 ```
@@ -338,7 +338,7 @@ Let's change it. I'll give you a panorama -- draw the entire chain and indicate 
 This picture has five meanings:
 
 - **Prompt at the top (defined layer)**: Prompt is the "source code" of Agent, which exists before the cycle starts. It's not in the loop link -- it's not involved in every step of the update -- but it's used as a template for every round of Text Assembly to fill in dynamic data. Sections 3.2 and 3.3 will go deep into the structure design of Prompt.
-- **Closed link (first half)**: User Goal →Context Assembly →LLLM Regulation →Tool Exchange → Observation →State Update or Stop — this is the path for data flow in each cycle.
+- **Closed link (first half)**: User Goal → Context Assembly → LLLM Regulation → Tool Exchange → Observation → State Update or Stop — this is the path for data flow in each cycle.
 - **Runtime Load (Box)**: The whole link runs over Runtime. The tool is not directly executed by LLM, it is executed by Runtme; the cycle is not stopped by model reasoning, it is judged by Runtme; State is not forgotten by LLM, it is managed by Runtme. 1.3 The division of labour between LLM and Runtme referred to in the section - "Model for decision, Runtme for execution and boundary" - is its visualization.
 - **State Reading and Writing (Left Bottom Box)**: Context Assembly Read from State, State Update Write to State. State is not on the main chain road - it is not a step in the business process, but an infrastructure maintained by Runtme.
 - **Feedback closed loop (right loop)**: Each round of Observation will influence the next round of decision-making through State Update -- That's the core idea of Rect: reasoning and action feed each other in a cycle.
@@ -348,15 +348,15 @@ This picture has five meanings:
 With the panorama, the following links are spread by text:
 
 ```text
-Prompt（行为定义：静态模板，定义 Agent 的身份和协议）
-    → User Goal（用户输入锚点）
-    → Context Assembly（连接点：Prompt 模板 + State → LLM 的完整上下文）
-    → LLM Decision（核心模块：决策大脑）
-    → Tool / Environment Interaction → Execution（核心模块：手和眼）
-    → Observation / Feedback（连接点：外部世界 → State 的桥梁）
-    → State Update（写回 State）
-    → Continue or Stop（核心模块：循环自律）
-    → 如果继续，回到 Context Assembly
+Prompt(Definition of behaviour: static template, definition of Agent identity and protocol)
+ → User Goal(User input anchor)
+ → Context Assembly(Connect point: Prompt template+ State → LLM )
+ → LLM Decision(Core module: decision-making brain)
+ → Tool / Environment Interaction → Execution(Core modules: hands and eyes)
+ → Observation / Feedback(Connect points: the outside world → State The Bridge)
+ → State Update(Write back to State
+ → Continue or Stop(Core module: circulatory self-regulation)
+ → If you continue, go back to Context Assembly
 ```
 
 Of the eight links, five are core components (Prompt, LLM decision-making, tool interaction, State management, circular control), two are operational connection points (Context Assembly, Operation / Feedback) and one is user input anchor (User Goal). 3.12 The distinction between core modules and connect points is explained in detail in the section.
@@ -392,35 +392,35 @@ A complete Agent Prompt usually has five levels. Not every Prompt must be comple
 
 ```
 ┌─────────────────────────────────────────────┐
-│ 第一层：身份层（Identity）                    │
-│ "你是一个……，你的目标是……"                    │
+│ First level: Identity│
+│ "You're the one.……,Your goal is...……"                    │
 ├─────────────────────────────────────────────┤
-│ 第二层：协议层（Protocol）                    │
-│ "你必须按照 Thought → Action → Observation  │
-│  的格式来思考和行动"                          │
+│ Second level: Protocol level (Protocol)│
+│ "You have to follow. → Action → Observation  │
+│  It's a format for thinking and acting."│
 ├─────────────────────────────────────────────┤
-│ 第三层：工具层（Tools）                       │
-│ "你可以使用以下工具：                          │
-│  - read_file(path): 读取文件内容              │
-│  - search_text(keyword): 搜索文本             │
-│  - finish(answer): 输出最终答案"              │
+│ Third level: Tool layer (Tools)│
+│ "You can use the following tools:│
+│  - read_file(path): Read File Contents│
+│  - search_text(keyword): Search Text│
+│  - finish(answer): Output final answer."│
 ├─────────────────────────────────────────────┤
-│ 第四层：约束层（Constraints）                  │
-│ "每步输出必须是合法 JSON"                      │
-│ "任务完成后必须调用 finish"                    │
-│ "不确定时请求用户确认，不要猜测"                 │
+│ Level 4: Constraints│
+│ "Every step of the output must be legal, JSON."│
+│ "You must call after the mission.│
+│ "If you're not sure, ask the user to confirm. Don't guess."│
 ├─────────────────────────────────────────────┤
-│ 第五层：示例层（Examples）                     │
-│ "以下是一些示例，展示你应该如何工作：            │
-│  [few-shot 示例 1]                           │
-│  [few-shot 示例 2]"                          │
+│ Fifth Layer: Example Layer│
+│ "Here are some examples of how you should work:│
+│  [few-shot Example 1]                           │
+│  [few-shot Example 2]"                          │
 └─────────────────────────────────────────────┘
 ```
 
 Gradually: **First floor: Identity** Defines the roles, professional areas and overall objectives of Agent. This is Prompt's portal -- it tells the model who to play in the next conversation.
 
 ```text
-你是一个专业的研究助手。你的目标是根据用户提供的信息，准确、高效地完成信息检索和总结任务。
+You're a professional research assistant. Your goal is to carry out information retrieval and summary tasks accurately and efficiently, based on information provided by users.
 ```
 
 The identity level seems simple, but far-reaching. If you write "you're a programming assistant" "vs" you're a code reviewer, the model gives a completely different style and focus of response to the same questions. Identity levels provide the tone for all subsequent actions. **Second floor: protocol** Definition of Agent's **Behavior Agreement** - How it thinks, how it acts, how it handles feedback. This is the most critical layer of Prompt because it directly determines whether Agent will be "circle."
@@ -428,14 +428,14 @@ The identity level seems simple, but far-reaching. If you write "you're a progra
 Example of definition of prompt protocol for Rect mode:
 
 ```text
-你必须按照以下格式交替进行思考和行动：
+You have to think and act in the following format:
 
-Thought: 分析当前情况，判断还需要什么信息，决定下一步做什么。
-Action: 执行一个具体操作。格式为 tool_name(arguments)。
-Observation: 操作的结果（由系统提供，你不需要生成这一行）。
+Thought: To analyse the current situation, to determine what more information is needed and to decide what to do next.
+Action: Perform a specific operation. Formats as tool names.
+Observation: The result of the operation (provided by the system, you do not need to generate this line).
 
-重复 Thought → Action → Observation 直到任务完成。
-任务完成后，输出 Final Answer。
+Repeat → Action → Observation Until the mission is completed.
+Finish the task, output Final Answer.
 ```
 
 The protocol level answers three questions:
@@ -447,11 +447,11 @@ The protocol level answers three questions:
 Once the protocol level is set, the back tools design, circulation control, State management will be around it. The protocol layer is the "interface definition" of the Agent architecture. **Third floor: Tool layer (Tools)** Tell the model what tools it can use, the use of each tool, parameters and attention.
 
 ```text
-你可以使用以下工具：
+You can use the following tools:
 
-1. read_file(path: str) — 读取指定路径的文件内容。path 必须是合法文件路径。
-2. search_text(keyword: str, text: str) — 在文本中搜索关键词，返回匹配的句子。
-3. finish(answer: str) — 任务完成时调用，输出最终答案。调用此工具后对话结束。
+1. read_file(path: str) — Reads the file contents of the specified path. Path must be a valid file path.
+2. search_text(keyword: str, text: str) — Searches for keywords in text, and returns a matching sentence.
+3. finish(answer: str) — Call when the task is completed, output the final answer. The dialogue ended when this tool was called.
 ```
 
 The tool layer is not just "list a functional signature". A good tool description should:
@@ -463,25 +463,25 @@ The tool layer is not just "list a functional signature". A good tool descriptio
 The tool layer is the only way for LLM to know what it can do. If the description of the tool is ambiguous, the model may be wrong -- it's not smart enough, it's your "document" not clear. **Fourth floor: Constraints** Defines the behavioral boundary of Agent - output format, cessation conditions, security constraints.
 
 ```text
-约束：
-- 每一步的输出必须是合法的 JSON 格式，包含 decision_type 和 reason 字段。
-- 如果连续两次调用同一工具且结果无新信息，必须改变策略或请求用户帮助。
-- 绝对不要删除文件，除非用户明确要求。
-- 遇到不确定的情况，调用 ask_user 请求用户确认，不要猜测。
+Binding:
+- The output of each step must be in a valid JSON format that contains the decision type and reason fields.
+- If the same tool is called twice in a row and the result is no new information, the strategy must be changed or user help requested.
+- Documents should never be deleted unless explicitly requested by the user.
+- In an uncertain situation, call ask user to request confirmation, do not guess.
 ```
 
 The binding layer reflects the division of labour between Runteme and LLM: **Runte is responsible for the execution of hard restraints (checking parameters, blocking hazardous operations) and Prompt is responsible for the communication of soft restraints (showing models which actions are not permitted and making them self-obligated in decision-making).** Two layers of protection are more reliable than one layer alone. **Fifth floor: Example Layer** How it should be done through the few-shot example church model. This is one of the most critical findings of the Rect paper.
 
 ```text
-以下是一些正确工作的示例：
+Here are some examples of the right work:
 
-示例 1：
-用户目标：读取 notes.md 并总结为 3 个要点
-Thought 1: 我需要先读取 notes.md 的内容，然后根据内容生成总结。
+Example 1:
+User Target: Read notes.md and summarize it as 3 points
+Thought 1: I need to read the content of notes.md and then get a summary based on it.
 Action 1: read_file("notes.md")
-Observation 1: [文件内容为 "Agent 是一种能够自主执行多步任务的 AI 系统……"]
-Thought 2: 我已经获得了文件内容。现在可以总结为 3 个要点。
-Action 2: finish("1. Agent 的核心是 LLM 决策 + 工具交互…… 2. 状态管理…… 3. 循环控制……")
+Observation 1: [Document content is "Agent" as an AI system capable of autonomous multi-step tasks……"]
+Thought 2: I've got the document. Now we can sum up three points.
+Action 2: finish("1. Agent LLM decision-making is at its core.+ Tool Interactive…… 2. Status Management…… 3. Cycle control……")
 ```
 
 The illustrative layer addresses boundary behaviour that is not described in the protocol layer — for example, how to try again in case of errors, how to change keywords when results cannot be found, and how to request users in case of uncertainty. These boundary acts are ludicrous in natural language, while one example is very intuitive.
@@ -495,7 +495,7 @@ Five layers are not five isolated words. When they work together, they have the 
 | scene | The working layer |
 |------|-----------|
 | User questions, Agent start thinking | Identity level + protocol level: know who you are and what to think about. |
-| Agent judge needs to read files | Tool Layer: Knowing that read file exists and knowing what parameters it accepts |
+| Agent judge needs to read_files | Tool Layer: Knowing that read_file exists and knowing what parameters it accepts |
 | Agent Output First Decision | Constraint + Protocol Layer: Output valid JSON, meeting Thought/Action format |
 | File does not exist, Agent received error | Example Layer: few-shot displays similar error recovery |
 | Agent requests user fixes path | Constraint: "Call user confirmation when uncertain." |
@@ -507,22 +507,22 @@ A good Prompt won't let a certain layer take all responsibility. The layer of id
 You may note that Prompt's reference to "target" and "history" changes in every cycle. This leads to a division of labour between Prompt and Context Assembly:
 
 ```text
-Prompt（静态模板）              Context Assembly（动态填充）
+Prompt(Static Template)
 ─────────────────────          ─────────────────────────
-身份层："你是一个研究助手"        → 不变，每轮都一样
-协议层："Thought → Action → …"  → 不变，每轮都一样
-工具层：工具列表和描述             → 不变（除非运行时增减工具）
-约束层：输出格式和安全规则          → 不变，每轮都一样
-示例层：few-shot 示例              → 不变，每轮都一样
+Identity level: "You're a research assistant." → It's the same. Every round.
+Protocol Layer: "Thought → Action → …" → It's the same. Every round.
+Tool Layer: Tool List and Description → No change (unless tools are added or reduced when running)
+Constraint: Output format and security rules → It's the same. Every round.
+Example Layer: few-shot Example → It's the same. Every round.
                                 +
-                                ← User Goal（从 State 读取）
-                                ← 当前步骤数（从 State 读取）
-                                ← 最近 N 步历史（从 State 读取）
-                                ← 上轮工具结果（从 State 读取）
-                                ← 错误信息（从 State 读取）
+                                ← User Goal(Read from State)
+                                ← Number of current steps (read from State)
+                                ← Recent N Step History (read from State)
+                                ← Previous tool result (read from State)
+                                ← Error information (read from State)
 ```
 
-In summary: **Prompt is the framework, Context Assembly is the filler.** Prompt defines "It's a Rect Act", and Context Assembly tells it "You've made step 3 now, read file just failed, the file doesn't exist."
+In summary: **Prompt is the framework, Context Assembly is the filler.** Prompt defines "It's a Rect Act", and Context Assembly tells it "You've made step 3 now, read_file just failed, the file doesn't exist."
 
 ---
 
@@ -545,7 +545,7 @@ It usually consists of:
 - User target.
 - Systemic constraints (roles, rules, secure borders).
 - Current status of the mission (to which point, what is known).
-- Historical decision-making (recent rounds of thought →Action →Observation).
+- Historical decision-making (recent rounds of thought → Action → Observation).
 - Recent tool results (or a compressed summary).
 - List of available tools (toolnames, uses, parameters).
 
@@ -554,7 +554,7 @@ Here is an important engineering judgement: **Not all historical information sho
 The smallest Agent uses simple policy first:
 
 ```text
-系统指令 + 用户目标 + 最近 N 步历史原文 + 可用工具列表 + 当前状态摘要
+System Command+ User Targets+ Recent N Step Original+ List of available tools+ Summary of the current status
 ```
 
 Lesson 6 will go further, subject Engineering. This class only requires understanding the position of Context Assembly in the closed circle: it's a bridge between "state storage" and "model decision-making."
@@ -582,7 +582,7 @@ Implementation will include:
 
 - Verify Tool Name (Does this tool exist?
 - Validation parameters (types correct? all required entries? values within legal range?
-- Execute tools (real read files, transfer API, run codes).
+- Execute tools (real read_files, transfer API, run codes).
 - Capture anomalies (files do not exist, network overtime, inadequate access, return formats are abnormal).
 - Normalize return results (formulate original results into structured Observation).
 
@@ -598,8 +598,8 @@ A real example:
 
 ```text
 Action: read_file("notes.md")
-Observation: status=error, code=file_not_found, message="未找到 notes.md"
-Next Decision: ask_user("没有找到 notes.md，请确认文件路径是否正确")
+Observation: status=error, code=file_not_found, message="Not Found
+Next Decision: ask_user("No notes.md, please confirm whether the file path is correct")
 ```
 
 That is the meaning of the closed circle: the outcome of each step changes the way forward.
@@ -675,13 +675,13 @@ Look at the connection point:
 Context Assembly is the link between Prompt templates, State management and LLM decision-making:
 
 ```text
-Prompt 模板 + State 里的动态数据 → 组装成完整上下文 → 模型据此决策
+Prompt Templates+ State dynamic data in → Organise as Full Context → Models are used to make decisions.
 ```
 
 Operation / Feedback is the link point between tool interaction and State management:
 
 ```text
-工具执行结果 → 转成模型可理解的信息 → 写回 State → 进入下一轮上下文
+Tool implementation results → Information to be understood in a model → Write back to State → Enter next round context
 ```
 
 This distinction is not a bit of a word. Its engineering meaning is that these connections will change significantly as the complexity of the system increases (the context management strategy changes, the type and source of feedback signals changes), but the functional boundaries of the five core components are relatively stable. The separation of the connect points and the core components will give you a clear idea of what I'm changing when expanding the system — whether it's reconnecting logic or core competencies.
@@ -691,8 +691,8 @@ This distinction is not a bit of a word. Its engineering meaning is that these c
 There is a consistent engineering principle behind the minimum closure ring. It's passed down from course two, and it's going to follow up on every course:
 
 ```text
-模型负责理解目标和做下一步判断；
-确定性基础设施负责工具执行、权限、安全、状态、恢复和观测。
+Models are responsible for understanding objectives and making the next judgement.;
+A defined infrastructure is responsible for the implementation of tools, competencies, safety, status, recovery and observation.
 ```
 
 Don't give everything to the model. For example:
@@ -744,13 +744,13 @@ def run_agent(
     state = AgentState(user_goal=user_goal, max_steps=max_steps)
 
     while not state.stop_reason:
-        # 1. Context Assembly：把 Prompt、用户目标、历史状态和工具列表组装给模型。
+        # 1. Context Assembly:Combining Prompt, user goals, historical status and tool lists into models.
         context = assemble_context(system_prompt, state, tools)
 
-        # 2. LLM Decision：模型只输出下一步决策，不直接执行动作。
+        # 2. LLM Decision:The model only outputs the next decision and does not directly execute the action.
         decision = llm_call(context)
 
-        # 3. Continue or Stop：终止类决策直接结束循环。
+        # 3. Continue or Stop:Termination of type decision-making directly ends the cycle.
         if decision["type"] == "final_answer":
             return {"status": "success", "answer": decision["answer"], "state": state}
 
@@ -760,10 +760,10 @@ def run_agent(
         if decision["type"] == "fail":
             return {"status": "failed", "reason": decision["reason"], "state": state}
 
-        # 4. Interaction / Execution：Runtime 校验并执行工具。
+        # 4. Interaction / Execution:Runtime Verify and execute tools.
         observation = execute_tool(decision, tools)
 
-        # 5. State Update：把本轮决策和 Observation 写回状态。
+        # 5. State Update:Write this round of decision-making back to status.
         state.history.append({
             "step": state.step_count,
             "decision": decision,
@@ -771,7 +771,7 @@ def run_agent(
         })
         state.step_count += 1
 
-        # 6. Stop Check：硬约束由 Runtime 判断，不交给模型自觉。
+        # 6. Stop Check:The hard constraint is judged by Runtime, not by the model's self-consciousness.
         state.stop_reason = check_stop(state)
 
     return {"status": "stopped", "reason": state.stop_reason, "state": state}
@@ -806,8 +806,8 @@ When successful:
 ```json
 {
   "status": "success",
-  "summary": "读取到 1200 字 Markdown 内容",
-  "content": "...可选，可能较长...",
+  "summary": "Read 1,200 words of Markdown content.",
+  "content": "...Optional, possibly longer...",
   "error": null
 }
 ```
@@ -817,11 +817,11 @@ Other Organiser
 ```json
 {
   "status": "error",
-  "summary": "文件不存在",
+  "summary": "The file does not exist.",
   "content": null,
   "error": {
     "code": "file_not_found",
-    "message": "未找到 notes.md，请检查文件路径"
+    "message": "Notes.md not found, check file path"
   }
 }
 ```
@@ -834,7 +834,7 @@ Trace is the debugging basis for the smallest Agent. Agent without Trace is like
 
 At least every step is recorded:
 
-- step number。
+- step number.
 - Context submary.
 - Model decision.
 - Tool call (recording tool names and parameters if tools are transferred).
@@ -856,11 +856,11 @@ Example:
   },
   "observation": {
     "status": "error",
-    "summary": "文件不存在",
+    "summary": "The file does not exist.",
     "content": null,
     "error": {
       "code": "file_not_found",
-      "message": "未找到 notes.md，请检查文件路径"
+      "message": "Notes.md not found, check file path"
     }
   },
   "state_update": {
@@ -868,7 +868,7 @@ Example:
   },
   "stop_check": {
     "continue": true,
-    "reason": "可以请求用户修正路径"
+    "reason": "You can ask the user to fix the path."
   }
 }
 ```

@@ -74,24 +74,24 @@ These things were valuable at the moment they were produced. But when Agent need
 This is typical of the crowding:
 
 ```text
-Agent 上下文窗口（简化示意）：
+Agent Context window (simplified indicative):
 ┌────────────────────────────────────────────────────────────┐
 │ System Prompt (500 tokens)                                 │
-│ 任务：写技术方案 + 安全审查                                  │
+│ Mission: writing technology programme+ Security clearances│
 ├────────────────────────────────────────────────────────────┤
-│ 用户消息 (100 tokens)                                       │
+│ User Message (100 tokens)│
 ├────────────────────────────────────────────────────────────┤
-│ 第 1 轮：尝试用方案 A，发现不合理，放弃 (800 tokens)         │  ← 噪声
-│ 第 2 轮：尝试用方案 B，写了一部分 (1200 tokens)              │  ← 部分噪声
-│ 第 3 轮：完成方案 B 的初稿 (2000 tokens)                     │  ← 有用
-│ 检索中间结果：关于 API 设计的 5 篇笔记摘要 (1500 tokens)     │  ← 部分噪声
-│ 第 4 轮：润色方案 (800 tokens)                              │  ← 噪声
+│ Round 1: Attempting to use option A, finding unreasonable, giving up (800 tokens)│  ← Noise
+│ Round 2: try to use option B, written in part (1200 tokens)│  ← Partial Noise
+│ Round 3: Completion of the first draft of Option B (2000 tokens)│  ← It works.
+│ Retrieving intermediate results: 5 notes summary on API design (1500 tokens)│  ← Partial Noise
+│ Round 4: Motion programme (800 tokens)│  ← Noise
 ├────────────────────────────────────────────────────────────┤
-│ 用户："现在从安全角度审查"                                   │
-│ Agent 需要在上述全部上下文中做安全判断                        │
+│ User: "Safety review now."│
+│ Agent Need to make a security determination in all the above-mentioned contexts│
 │                                                             │
-│ 问题：它看到了第 1 轮中"为了简化先用明文"的推理，              │
-│ 这个推理会在审查时变成"这是有意为之，不是问题"                 │
+│ Question: It saw the "preliminary" reasoning in Round 1 to simplify it.│
+│ It's a theory that's going to turn into a review, "It's intentional, it's not a problem."│
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -104,14 +104,14 @@ The first two are quality issues and the third is speed.
 The knowledge assistant received a research mission: "Help me look into the four main directions of the Agent architecture - Tool Use, Memory, Planning, Multi-Agent - and give me an update on each of them. "Single Agent treatment:
 
 ```text
-时间线（串行执行）：
-├─ [0:00-1:30] 调研 Tool Use：检索笔记 + 搜索最新资料 + 整理输出
-├─ [1:30-3:00] 调研 Memory：检索笔记 + 搜索最新资料 + 整理输出
-├─ [3:00-4:30] 调研 Planning：检索笔记 + 搜索最新资料 + 整理输出
-├─ [4:30-6:00] 调研 Multi-Agent：检索笔记 + 搜索最新资料 + 整理输出
-└─ [6:00-7:00] 汇总四份调研，生成最终报告
+Timeline (string execution):
+├─ [0:00-1:30] Research Tool Use: Retrieving Notes+ Search for updates+ Collapse Output
+├─ [1:30-3:00] Research Memoory: Retrieving notes+ Search for updates+ Collapse Output
+├─ [3:00-4:30] Research Planning: Retrieving notes+ Search for updates+ Collapse Output
+├─ [4:30-6:00] Research Multi-Agent: Retrieving Notes+ Search for updates+ Collapse Output
+└─ [6:00-7:00] Summarize four studies and produce final reports
 
-总耗时：约 7 分钟
+Total time taken: about 7 minutes
 ```
 
 But look closely at these four research missions — they are not dependent on each other. The study Memory does not have to wait for the results of Tool Use. They can be carried out simultaneously. **The structural causes of the serial bottlenecks**: single Agent has only one execution thread. Even if there is no dependency between mandates, there can be only one. This is not a question of the speed of the model — the speed of the model's reasoning, and the total time of queuing four tasks is the sum of four tasks.
@@ -141,39 +141,39 @@ The easiest mistake: to write "System Prompt" as "create Argentina." Define thre
 The difference between role-playing and the nature of Multi-Agent:
 
 ```text
-"假" Multi-Agent（改 Prompt）：
+"False "Multi-Agent" (change Prompt):
 ┌─────────────────────────────────────────────────────┐
-│ 同一个 LLM 实例                                      │
-│ 同一个上下文窗口                                     │
-│ 同一个工具集                                        │
+│ Same LLM instance│
+│ Same Context Window│
+│ The same tool set│
 │                                                     │
-│ Round 1: System = "你是研究员" → 产出调研报告         │
-│ Round 2: System = "你是工程师" → 看到调研报告 + 所有  │
-│          中间推理 → 产出技术方案                      │
-│ Round 3: System = "你是审查员" → 看到技术方案 + 调研  │
-│          报告 + 所有中间推理 → "没有明显问题"          │
+│ Round 1: System = "You're a researcher." → Output research reports│
+│ Round 2: System = "You're an engineer." → See the report.+ All│
+│          Intermediate reasoning → Outputs technical programme│
+│ Round 3: System = "You're the censor." → See the technology.+ Research│
+│          Report+ All middle reasoning → "No obvious problem."│
 │                                                     │
-│ 三个角色共享同一个大脑、同一段记忆、同一套工具。        │
-│ "审查员"看到了"研究员"和"工程师"的所有思考过程——       │
-│ 包括那些"这里简化一下后面再说"的妥协。                 │
+│ The three players share the same brain, the same memory, the same set of tools.│
+│ "The reviewers "see the researcher" and "engineer" all the thinking.——       │
+│ Those are the compromises, "Simplify here later."│
 └─────────────────────────────────────────────────────┘
 
-"真" Multi-Agent（独立实例）：
+"True "Multi-Agent" (independent example):
 ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│ Agent A: 研究员  │  │ Agent B: 工程师  │  │ Agent C: 审查员  │
+│ Agent A: Researchers│  │ Agent B: Engineer│  │ Agent C: Reviewer│
 │                 │  │                 │  │                 │
-│ 上下文：         │  │ 上下文：         │  │ 上下文：         │
-│ - 调研任务       │  │ - 技术方案任务    │  │ - 审查标准       │
-│ - 检索结果       │  │ - 调研报告（最终） │  │ - 技术方案（最终）│
-│                 │  │                 │  │ - 原始需求       │
-│ 工具：           │  │ 工具：           │  │                 │
-│ - 搜索          │  │ - 写文件         │  │ 工具：           │
-│ - 检索笔记       │  │ - 读文件         │  │ - 读文件（只读）  │
-│                 │  │                 │  │ - 安全扫描       │
-│ 看不到：         │  │ 看不到：         │  │                 │
-│ - 工程师的推理    │  │ - 研究员的中间推理 │  │ 看不到：         │
-│ - 审查员的判断    │  │ - 审查员的判断    │  │ - 研究员的推理    │
-│                 │  │                 │  │ - 工程师的妥协    │
+│ Context:│  │ Context:│  │ Context:│
+│ - Research mission│  │ - Technical programme mandate│  │ - Review criteria│
+│ - Search Results│  │ - Research report (final)│  │ - Technical programme (final)│
+│                 │  │                 │  │ - Original Requirements│
+│ Tools:│  │ Tools:│  │                 │
+│ - Search│  │ - Write Files│  │ Tools:│
+│ - Retrieving notes│  │ - Read Files│  │ - Read files (read-only)│
+│                 │  │                 │  │ - Clear scan.│
+│ Can not see:│  │ Can not see:│  │                 │
+│ - Engineer's reasoning.│  │ - Researcher's middle reasoning│  │ Can not see:│
+│ - Reviewer's judgement│  │ - Reviewer's judgement│  │ - Researcher's reasoning│
+│                 │  │                 │  │ - Engineer compromise.│
 └─────────────────┘  └─────────────────┘  └─────────────────┘
 ```
 
@@ -183,10 +183,10 @@ The key difference is not how well it is written in Prompt, but in **every Agent
 
 The real Multi-Agent splits four dimensions. For example, the knowledge assistant's "writing technology program + security clearance" scene:
 
-| Dimensions | Form Agent (self-review) | Multi-Agent（Author + Reviewer） |
+| Dimensions | Form Agent (self-review) | Multi-Agent(Author + Reviewer) |
 |---|---|---|
 | **Entered differently** | Author and Reviewer are in the same context. Reviewer "sees" the middle reasoning and compromise of Author. | The Author context requires documentation, notes search results, writing tools. Reviewer context **only** final option + review criteria not available for Author's draft and "simplified later." |
-| **Different tools** | The same tool set -- it can write files and make security scans. | Author can write documents and retrieve notes. Reviewer can only read files, run safety scans -- **can't write** to make sure the examiner doesn't quietly "do it again" |
+| **Different tools** | The same tool set -- it can write files and make security scans. | Author can write documents and retrieve notes. Reviewer can only read_files, run safety scans -- **can't write** to make sure the examiner doesn't quietly "do it again" |
 | **Different goals** | "Full the user's mission" -- the goal is vague and the sub-goals compromise. | Objective: Technical programmes with outputs to meet demand. Objective Reviewer: To find all issues that do not meet safety standards. **Targets do not compromise with each other** |
 | **Different acceptance standards** | "As long as the user thinks it's okay," no objective criteria. | Author standard: Programme fully covers needs. Reviewer standard: review list adopted article by article, any one FAIL as a whole REJECT |
 
@@ -199,25 +199,25 @@ Here's one of the simplest criteria: **If you can't say two Agents, "What differ
 Before introducing Multi-Agent, answer by article:
 
 ```text
-□ 角色冲突：是否存在两个目标天然矛盾的角色？
-   （例：创作者 vs 审查者、优化者 vs 安全评估者、推销者 vs 风险分析师）
-   如果不存在天然矛盾，单 Agent + 清晰的 Prompt 通常就够了。
+□ Role Conflict: Is there a natural contradiction between two objectives?
+   (Example: Creator vs examiner, optimist vs security assessor, promoter vs risk analyst)
+   If there's no natural contradiction, Agent.+ Clear Prompt usually is enough.
 
-□ 独立上下文需求：一个角色的中间推理对另一个角色是噪声还是必要信息？
-   （例：代码实现过程中的调试 trace 对安全审查是噪声；方案讨论中的妥协对最终验收是噪声）
-   如果中间推理对所有角色都有用，那不需要拆分上下文。
+□ Independent context needs: whether the middle reasoning of one role is noise or necessary information for the other?
+   (Example: Debugging track during code realization;The compromise in the programme discussion is noise for final acceptance)
+   If intermediate reasoning is useful for all roles, there is no need to split the context.
 
-□ 工具权限分离：是否有些操作不应该由同一个 Agent 负责？
-   （例：批准部署 vs 执行部署、写代码 vs 合并到主分支、生成发票 vs 审批发票）
-   如果所有操作可以被同一个 Agent 安全地完成，不需要拆分。
+□ Tool permission separation: whether some operations should not be performed by the same Agent?
+   (Example: Authorized deployment of vs execute deployment, write code vs merge to main branch, generate invoices vs approve invoices)
+   If all operations can be performed safely by the same Agent, no split is required.
 
-□ 并行可能性：是否存在互不依赖、可以同时执行的子任务？
-   （例：调研四个独立方向、分析三个独立模块、从五个数据源并行拉取数据）
-   如果任务有严格的顺序依赖，并行的价值为零。
+□ Parallel possibilities: whether there are non-dependent sub-missions that can be carried out simultaneously?
+   (Example: research on four separate directions, analysis of three separate modules, parallel extraction of data from five data sources)
+   If mandates are strictly sequentially dependent, the parallel value is zero.
 
-□ 视角多样性：是否需要从不同立场、不同假设、不同风险偏好来审视同一个问题？
-   （例：技术方案需要同时从成本、安全、可维护性三个角度评估）
-   如果单一视角已经能覆盖所有关注点，不需要多视角。
+□ Diversity of perspectives: need to look at the same issue from different positions, different assumptions, different risk preferences?
+   (Example: Technical programmes need to be assessed from the perspective of cost, safety and maintenance)
+   If a single perspective already covered all the concerns, there was no need for more perspectives.
 ```
 
 **Introductory judgement**: satisfaction of at least two of these is worth serious consideration. When only one is satisfied, there is usually a simpler method (better Prompt, more detailed tool privileges, predefined checklist) to achieve similar results.
@@ -233,31 +233,31 @@ It solves only one problem: **implementers cannot review their outputs impartial
 ### 8.3.1 Model skeleton: one execution, one review
 
 ```text
-Executor Agent（执行者）                   Reviewer Agent（审查者）
+Executor Agent(Reviewer
 ┌──────────────────────────┐              ┌──────────────────────────┐
-│ System: 你是技术方案撰写者 │              │ System: 你是安全审查员     │
+│ System: You're a tech writer.│              │ System: You're a security inspector.│
 │                          │              │                          │
-│ 工具：                    │              │ 工具：                    │
-│  - 写文件                 │   最终产出    │  - 读文件（只能读！）       │
-│  - 检索笔记               │─────────────►│  - 检索安全规范            │
-│  - Web 搜索               │              │  - 检查清单核对            │
-│                          │   审查意见    │                          │
-│ 上下文：                   │◄─────────────│ 上下文：                   │
-│  - 需求文档               │              │  - 最终产出（只有这个！）    │
-│  - 笔记检索结果            │              │  - 审查标准清单            │
-│  - 创作过程中的草稿和推理   │              │  - 安全规范文档            │
+│ Tools:│              │ Tools:│
+│  - Write Files│   Final outputs│  - Read files (read only)！)       │
+│  - Retrieving notes│─────────────►│  - Search safety code│
+│  - Web Search│              │  - Checklist checks│
+│                          │   Review observations│                          │
+│ Context:│◄─────────────│ Context:│
+│  - Required Document│              │  - Final output (only this)！)    │
+│  - Note search results│              │  - List of criteria for review│
+│  - Drafts and reasoning in the creation process│              │  - Security Code Document│
 │                          │              │                          │
-│ 目标：完成技术方案          │              │ 目标：找出所有安全问题       │
-│ 验收：方案覆盖需求          │              │ 验收：审查清单逐条通过       │
+│ Objective: To complete the technical programme│              │ Objective: To identify all security issues│
+│ Receipt and inspection: programme coverage requirements│              │ Acceptance and inspection: review of the list adopted article by article│
 └──────────────────────────┘              └──────────────────────────┘
 ```
 
 Core skeleton code:
 
 ```python
-# Reviewer 模式：最简 Multi-Agent，2 个 Agent + 结构化审查
+# Reviewer Mode: Shortest Multi-Agent, 2 Agent+ Structural review
 class ReviewerPattern:
-    """Executor 产出 → Reviewer 审查 → 修正或上报"""
+    """Executor produces output; reviewer checks it; then fix or report."""
 
     def __init__(self, executor: Agent, reviewer: Agent):
         self.executor = executor
@@ -265,22 +265,22 @@ class ReviewerPattern:
 
     def run(self, task: str, criteria: list[dict]) -> dict:
         """
-        task: 用户任务描述
-        criteria: 审查清单，每项是可逐条核对的检查项
-          [{"id": "C1", "check": "所有用户输入是否经过长度校验？",
-            "how_to_verify": "检查 API 端点定义中的参数声明"},
-           {"id": "C2", "check": "API 密钥是否存储在环境变量中？",
-            "how_to_verify": "搜索配置文件中是否包含 key=或 secret= 字面量"},
+        task: Other Organiser
+        criteria: Review lists, each of which is an article-by-article check
+          [{"id": "C1", "check": "All user input is verified for length?",
+            "how_to_verify": "Check the parameter statements in the API endpoint definition"},
+           {"id": "C2", "check": "API Whether the key is stored in an environment variable?",
+            "how_to_verify": "Search for whether key is included in the profile=or secret= Literally."},
            ...]
         """
-        # Step 1: Executor 产出
+        # Step 1: Executor Outputs
         draft = self.executor.run(task)
 
-        for round_num in range(2):  # 最多修正两轮
-            # Step 2: Reviewer 审查
-            # 关键：reviewer 只收到最终产出和审查标准，收不到 executor 的中间推理
+        for round_num in range(2):  # Up to two rounds of correction
+            # Step 2: Reviewer Review
+            # Key: Reviewer only receives final output and review criteria and does not receive intermediate reasoning from execuator
             review = self.reviewer.run(
-                task="对照审查清单，逐条检查以下产出。给出具体的通过/不通过判断和证据。",
+                task="The following outputs are examined article by article against the review list. Give specific pass/fail judgement and evidence. " I don't know.
                 context={
                     "original_requirement": task,
                     "artifact": draft.output,
@@ -296,19 +296,19 @@ class ReviewerPattern:
                     "review_trace": review
                 }
 
-            # Step 3: Executor 修正
-            # 关键：只传具体的 issues，不传 reviewer 的主观评价
+            # Step 3: Executor Amendments
+            # Key: Only specific issues, no subjective evaluation of reviewer
             draft = self.executor.run(
                 task=task,
-                fix_instructions=review.issues  # 具体问题列表，不是"整体质量较差"
+                fix_instructions=review.issues  # A list of specific issues, not "a poor overall quality."
             )
 
-        # 两轮未通过：标记分歧，人工裁决
+        # Two rounds not passed: marking differences, manual adjudication
         return {
             "status": "disputed",
             "output": draft.output,
             "unresolved_issues": review.issues,
-            "message": "两轮修正仍未通过审查，需要人工裁决"
+            "message": "Two rounds of amendment are still pending review, requiring manual adjudication."
         }
 ```
 
@@ -335,83 +335,83 @@ Here's the end-to-end comparison with the Knowledge Assistant, Writing Technolog
 
 ```text
 ═══════════════════════════════════════════════════════════════════
-任务：写一份 API 模块技术方案，并从安全角度审查
+Mission: Write an API module technical programme and review it from a security perspective
 ═══════════════════════════════════════════════════════════════════
 
-方式一：单 Agent（自审）
+Mode I: Single Agent (self-review)
 ┌─────────────────────────────────────────────────────────────────┐
-│ [10:00] Agent 写方案（35 秒）                                    │
-│         产出：API 设计文档，含端点定义、数据流、配置说明            │
+│ [10:00] Agent Writing scheme (35 seconds)│
+│         Output: API design document containing endpoint definition, data stream, configuration description│
 │                                                                 │
-│ [10:01] 用户："现在从安全角度审查"                                │
-│         Agent："经过审查，该方案在安全方面没有明显问题。"           │
+│ [10:01] User: "Safety review now."│
+│         Agent:"As a result of the review, the programme has no obvious security problems."│
 │                                                                 │
-│         隐藏的四个问题（审查漏掉的）：                               │
-│         ① /api/data 端点没有输入长度限制                          │
-│         ② API key 明文写在 config.yaml 中                        │
-│         ③ 权限模型只有 admin 一种角色，所有操作需要 admin 权限      │
-│         ④ requirements.txt 未锁定第三方依赖版本                   │
+│         Four hidden questions (examining missing):│
+│         ① /api/data End does not enter length limit│
+│         ② API key Written in config.yaml│
+│         ③ Permission model only has one character, all operations need admin permissions│
+│         ④ requirements.txt Unlocked third-party dependent version│
 │                                                                 │
-│         为什么漏掉？Agent 在写方案时的中间推理里包含了：              │
-│         - "为了方便本地开发，先用明文"                              │
-│         - "权限模型后续再细化"                                     │
-│         这些推理在审查时变成了"解释"，削弱了审查标准。               │
+│         Why did you miss it??Agent The middle line of reasoning in writing the program included:│
+│         - "In order to facilitate local development, first, it's clear."│
+│         - ""The power model will be refined."│
+│         These reasonings became "explaining" at the time of the review, weakening the review criteria.│
 └─────────────────────────────────────────────────────────────────┘
 
-方式二：Reviewer 模式
+Mode 2: Reviewer Mode
 ┌─────────────────────────────────────────────────────────────────┐
-│ [10:00] Author Agent 写方案（35 秒）                              │
-│         产出：同上                                                │
+│ [10:00] Author Agent Writing scheme (35 seconds)│
+│         Outputs: Idem│
 │                                                                 │
-│ [10:01] Reviewer Agent 收到：                                    │
-│         - 最终方案文本（没有 Author 的中间推理）                    │
-│         - 审查清单（4 项，每项有具体的 verify 方法）                │
-│         - 安全规范文档（作为参考）                                  │
-│         - 工具：读文件、检索规范、逐条核对                          │
+│ [10:01] Reviewer Agent Received:│
+│         - Final formula text (no middle reasoning for Author)│
+│         - Review list (4 items, each with a specific method)│
+│         - Safety Code Document (as reference)│
+│         - Tools: Reading documents, searching guidelines, article-by-article checks│
 │                                                                 │
-│         Reviewer 逐条审查：                                       │
+│         Reviewer Article by article:│
 │         ┌─────────────────────────────────────────────────────┐  │
-│         │ C1: 输入校验                                         │  │
-│         │   verify: 检查 API 端点定义中的参数声明                │  │
-│         │   结果: /api/data 端点 input 参数无长度限制 → FAIL    │  │
-│         │   证据: api_schema.yaml 第 12 行                      │  │
+│         │ C1: Enter Validation│  │
+│         │   verify: Check the parameter statements in the API endpoint definition│  │
+│         │   Result: /api/data endpoint input parameter has no length limit → FAIL    │  │
+│         │   Evidence: api schema.yaml row 12│  │
 │         │                                                      │  │
-│         │ C2: 密钥管理                                         │  │
-│         │   verify: 搜索配置文件中 key=/secret= 字面量          │  │
-│         │   结果: config.yaml 第 8 行 api_key: "sk-abc123" → FAIL│  │
-│         │   证据: config.yaml 第 8 行                           │  │
+│         │ C2: Key Management│  │
+│         │   verify: Search for profile key=/secret= Volume│  │
+│         │   Result: config.yaml line 8 api key: "sk-abc123" → FAIL│  │
+│         │   Evidence: config.yaml line 8│  │
 │         │                                                      │  │
-│         │ C3: 权限模型                                         │  │
-│         │   verify: 检查是否存在非 admin 的角色定义              │  │
-│         │   结果: 只有 admin 角色，缺少 read/write 分离 → FAIL  │  │
-│         │   证据: permissions.py 第 3-5 行                      │  │
+│         │ C3: Permission Model│  │
+│         │   verify: Check for non-admin role definition│  │
+│         │   Result: only admin role missing read/write separation → FAIL  │  │
+│         │   Evidence: missions.py Line 3-5│  │
 │         │                                                      │  │
-│         │ C4: 依赖安全                                         │  │
-│         │   verify: 检查 requirements.txt 是否有版本锁定         │  │
-│         │   结果: 所有依赖使用 >= 而非 ==，未锁定 → FAIL         │  │
-│         │   证据: requirements.txt 全文                         │  │
+│         │ C4: Reliance on security│  │
+│         │   verify: Checks whether releases.txt are locked│  │
+│         │   Result: All dependent uses>= Not==,Unlocked → FAIL         │  │
+│         │   Evidence: requirements.txt full text│  │
 │         └─────────────────────────────────────────────────────┘  │
 │                                                                 │
 │         verdict: rejected (4/4 FAIL)                             │
 │         issues: [                                               │
-│           {id:"C1", desc:"/api/data 缺少输入长度限制",            │
-│            location:"api_schema.yaml:12", suggestion:"加 max_length"},│
-│           {id:"C2", desc:"API key 明文存储",                     │
-│            location:"config.yaml:8", suggestion:"改用环境变量"},  │
+│           {id:"C1", desc:"/api/data Missing input length limit,│
+│            location:"api_schema.yaml:12", suggestion:"Add max legth."},│
+│           {id:"C2", desc:"API key "Specific storage"│
+│            location:"config.yaml:8", suggestion:"Change to an environment variable."},  │
 │           ...                                                   │
 │         ]                                                       │
 │                                                                 │
-│ [10:02] Author 收到审查意见，逐条修正（25 秒）                     │
+│ [10:02] Author Review received, amended article by article (25 seconds)│
 │                                                                 │
-│ [10:03] Reviewer 第二轮审查：                                    │
+│ [10:03] Reviewer Second round of reviews:│
 │         C1: PASS  C2: PASS  C3: PASS  C4: PASS                  │
 │         verdict: approved                                        │
 │                                                                 │
-│ 对比：                                                           │
-│ 单 Agent 自审：漏了 4 个安全隐患，声称"没有明显问题"               │
-│ Reviewer 模式：发现并修正了全部 4 个问题                          │
-│ 额外成本：+1 分钟（Reviewer 审查 + Author 修正）+ $0.04 token    │
-│ 收益：从"有安全漏洞上线"变为"通过安全审查清单"                      │
+│ Comparison:│
+│ Single Agent self-censorship: four security risks missing, claiming "no obvious problem."│
+│ Reviewer Mode: All 4 problems identified and corrected│
+│ Additional costs:+1 Minutes (Reviewer review)+ Author Amended)+ $0.04 token    │
+│ Proceeds: from "safe breach online" to "security clearance list."│
 ═══════════════════════════════════════════════════════════════════
 ```
 
@@ -420,14 +420,14 @@ Here's the end-to-end comparison with the Knowledge Assistant, Writing Technolog
 The Reviewer model works, but it works only under certain conditions. Here are its four failed borders: **Boundary I: Expiry when the list is vague.** If the review criterion is "Check if the program is safe" (one sentence), Reviewer's output will be the same as the single Agent self-censorship - "no obvious problem". The review list must be specific, article-by-article, with a clear verify methodology.
 
 ```text
-模糊的审查标准：
-  "检查方案是否安全" → Reviewer 输出"整体安全，没有明显问题"
+Fuzzy review criteria:
+  "Check if the program is safe." → Reviewer Output: "All clear. No obvious problem."
 
-具体的审查标准：
-  "1. 所有用户输入是否经过长度和类型校验？验证方法：检查 API schema 中每个参数声明。
-   2. 密钥是否存储在环境变量或密钥管理服务中？验证方法：grep config 文件中的 key= 模式。
-   3. 是否存在非 admin 的角色定义？验证方法：检查权限模块中定义的角色列表。
-   4. 第三方依赖是否锁定了版本号？验证方法：检查 requirements.txt 中的版本声明格式。"
+Specific review criteria:
+  "1. All user input verified for length and type?Validation method: Check the statement of each parameter in API schema.
+   2. Whether the key is stored in an environmental variable or key management service Medium?Authentication method: key in grep config file= Mode.
+   3. Existence of non-admin role definition?Validation method: Check the list of roles defined in the permission module.
+   4. Third party dependent on locking in version number?Validation method: Check the version declaration format in requirements.txt."
 ```
 
 **Boundary II: Reviewer lapses when no independent authentication tool is available.** If the Reviewer can only read the text of the scheme and then judge it is not different from the individual Agent self-examination. Reviewer must have a validation tool independent of Executor: read the original profile (rather than read the excurator's description in the program), run linter, retrieve the original security code. Core principle: **Reviewer validates "real things", not Executor "proclaimed things."**
@@ -447,19 +447,19 @@ The Supervisor model uses a scheduler Agent to dismantle and aggregate, and mult
 ```text
 Supervisor Agent                             Worker Agents
 ┌─────────────────────────┐       ┌─────────────────────────────────┐
-│ 接收用户任务              │       │ Worker 1: 调研 Tool Use         │
-│                         │       │  - 独立上下文                    │
-│ 拆解为 N 个子任务：       │       │  - 独立检索工具                  │
-│  - 明确边界               │───┬───│  - 输出：结构化调研结果           │
-│  - 指定输出格式           │   │   │                                 │
-│  - 指派 Worker           │   │   │ Worker 2: 调研 Memory           │
-│                         │   │   │  - 独立上下文                    │
-│ 汇总 N 份结果：           │   │   │  - 独立检索工具                  │
-│  - 去重                  │   │   │  - 输出：结构化调研结果           │
-│  - 识别冲突               │◄──┴──│                                 │
-│  - 标注缺失               │       │ Worker 3: 调研 Planning         │
-│  - 合成最终输出           │       │  ...                            │
-└─────────────────────────┘       │ Worker 4: 调研 Multi-Agent      │
+│ Receive user assignments│       │ Worker 1: Research Tool Use│
+│                         │       │  - Independent Context│
+│ Other Organiser│       │  - Independent search tool│
+│  - Clarifying borders│───┬───│  - Output: Structured findings│
+│  - Specify output format│   │   │                                 │
+│  - Assign Worker│   │   │ Worker 2: Research.│
+│                         │   │   │  - Independent Context│
+│ Summary N Results:│   │   │  - Independent search tool│
+│  - Heavy.│   │   │  - Output: Structured findings│
+│  - Conflict identification│◄──┴──│                                 │
+│  - Note Missing│       │ Worker 3: Research│
+│  - Synthetic Final Output│       │  ...                            │
+└─────────────────────────┘       │ Worker 4: Research Multi-Agent│
                                   └─────────────────────────────────┘
 ```
 
@@ -467,47 +467,47 @@ Core skeleton code:
 
 ```python
 class SupervisorPattern:
-    """Supervisor 拆任务 → Workers 并行 → Supervisor 汇总"""
+    """Supervisor Other Organiser → Workers Parallel → Supervisor Summarize """
 
     def __init__(self, supervisor: Agent, workers: dict[str, Agent]):
         self.supervisor = supervisor
         self.workers = workers
 
     def run(self, task: str) -> dict:
-        # Step 1: Supervisor 拆解任务
-        # 拆解结果必须包含：边界、输出模板、Worker 指派
+        # Step 1: Supervisor Dismantling Tasks
+        # Dismantling results must include: boundary, output template, workker assignment
         plan = self.supervisor.decompose(task)
         # plan.subtasks = [
-        #   {"id": "T1", "topic": "Tool Use 最新实践",
+        #   {"id": "T1", "topic": "Tool Use The latest practice."
         #    "worker": "researcher_1",
-        #    "scope": "设计模式、失败模式、框架对比",
-        #    "exclude": "不包含与其他方向的交叉内容（交叉由汇总时处理）",
-        #    "output_template": "## Tool Use\n### 关键发现\n- ...\n### 失败模式\n- ...\n### 来源\n- ..."},
+        #    "scope": "Design mode, fail mode, frame comparison,
+        #    "exclude": "It does not contain cross-cutting elements from other directions (which are dealt with in aggregate)"
+        #    "output_template": "## Tool Use\n### Key findings\n- ...\n### Failed Mode\n- ...\n### Source\n- ..."},
         #   ...
         # ]
 
-        # Step 2: 并行执行
+        # Step 2: Parallel implementation
         results = parallel_execute(
             plan.subtasks,
             lambda st: self.workers[st.worker].execute(
-                task=f"调研 {st.topic}。范围：{st.scope}。排除：{st.exclude}。"
-                     f"输出格式：{st.output_template}",
+                task=f"Research{st.topic}.Scope:{st.scope}.Exclude:{st.exclude}."
+                     f"Output format:{st.output_template}",
                 tools=["search_notes", "web_search"]
             )
         )
-        # results 中失败或超时的 Worker 返回 None，不阻塞其他 Worker
+        # results Worker failed or timed out returns None without blocking other Worker
 
-        # Step 3: Supervisor 汇总
-        # 关键操作：去重、识别冲突、标注缺失、合成
+        # Step 3: Supervisor Summary
+        # Critical operations: weighting, conflict identification, missing labels, synthesis
         final = self.supervisor.synthesize(
             task=task,
             worker_results=results,
             instructions="""
-            汇总规则：
-            1. 如果两个 Worker 对同一话题给出矛盾结论 → 标注"存在分歧"而非自动选择
-            2. 如果某个 Worker 超时或失败 → 在报告中标注"该方向数据缺失"
-            3. 去重：相同发现合并，标注来自哪些 Worker
-            4. 最终输出按统一结构组织，不要直接拼接 Worker 原文
+            Summary rules:
+            1. If two Walkers make conflicting conclusions about the same subject, → It's not automatic.
+            2. If a Worker overtime or failure → It says, "The data is missing."
+            3. Weight: Same found merger, indicating which is from Worker
+            4. Final output organized according to a unified structure, do not spell Worker original
             """
         )
         return final
@@ -520,33 +520,33 @@ The most easily underestimated step of the Supervisor model is the dismantling. 
 Good dismantling takes four things: **1. Clear borders (include)** Not only "your research A, your research B," but also to say, "Don't touch anything."
 
 ```text
-糟糕的拆解：
-  Worker 1: 调研 Tool Use
-  Worker 2: 调研 Multi-Agent
-  → 两个 Worker 都在写关于"Tool Use 在 Multi-Agent 中的应用"
-  → 30% 内容重叠
+Bad dismantling:
+  Worker 1: Research Tool Use
+  Worker 2: Research Multi-Agent
+ → Both Walkers are writing about "Tool Use's application in Multi-Agent"
+ → 30% Overlapping
 
-好的拆解：
-  Worker 1: 调研 Tool Use 的设计模式、失败模式和框架实现
-            exclude: 不涉及 Tool Use 在 Multi-Agent 协作中的角色（由 Worker 4 覆盖）
-  Worker 2: 调研 Multi-Agent 的协作模式、通信协议和故障模式
-            exclude: 不涉及单个 Agent 的 Tool Use 机制（由 Worker 1 覆盖）
+Good disassembly:
+  Worker 1: Research: Design models, failure models and framework realization for Tool Use
+            exclude: Not involving Tool Use in Multi-Agent collaboration (covered by Worker 4)
+  Worker 2: Research Multi-Agent collaboration model, communication protocol and failure model
+            exclude: Tool Use mechanism that does not involve individual Agent (covered by Worker 1)
 ```
 
 **2. Unified output template** Each Worker must output with the same structure, otherwise Supervisor cannot merge automatically.
 
 ```text
-输出模板（所有 Worker 共用）：
-## {调研方向}
-### 关键发现
-- 发现 1（1-2 句话 + 来源引用）
-- 发现 2
-### 失败模式
-- 常见失败 1（表现 + 原因 + 修正方向）
-### 推荐实践
-- 实践 1（适用场景 + 不适用场景）
-### 来源引用
-- [来源 1](链接或笔记路径)
+Output template (all Worker shared):
+## {Research orientation}
+### Key findings
+- Found 1 (1-2 sentence)+ Source Reference)
+- Found 2
+### Failed Mode
+- Common failure 1 (performance)+ Reason+ Revised direction)
+### Recommended practice
+- Practice 1 (applying scenes)+ No scene applicable)
+### Source Reference
+- [Source 1](Link or Note Path)
 ```
 
 **3. Worker Capability Match** Not all Walkers should be the same model. Research-type Worker may require a strong search capability (networked search, context) and analytical-type Worker may require a strong reasoning capability. assigns the right task to the right workker.**.4. Control of the particle size of dismantling** It was too detailed (10 subtasks) and the cost of communication and aggregation exceeded the implementation benefits. It's too coarse (2 subtasks) and insufficiently parallel. An empirical rule: **Number of sub-tasks = Min (number of separate dimensions that can be used in parallel, number of workr, 5)**. Marginal gains over 5 sub-tasks are generally insufficient to cover coordination costs.
@@ -556,37 +556,37 @@ Good dismantling takes four things: **1. Clear borders (include)** Not only "you
 This is Supervisor's classic roll-over scene:
 
 ```text
-场景：用户要求"调研 Agent Memory 的最新实践"
-Supervisor 拆解为 3 个子任务 → 3 个 Worker 并行执行
+Scene: Users ask for "Research, Agent Memoory's Recent Practice."
+Supervisor Disassembly into 3 subtasks → 3 Worker in parallel
 
-时间线：
-├─ Worker 1 调研"短期记忆"（45 秒）
-├─ Worker 2 调研"长期记忆"（50 秒）
-├─ Worker 3 调研"Memory 框架"（40 秒）
-│  并行耗时：50 秒 ✓ 比串行快
+Timeline:
+├─ Worker 1 Research on short-term memory (45 seconds)
+├─ Worker 2 Research on Long-Term Memory (50 seconds)
+├─ Worker 3 Study "Memory Frame" (40 seconds)
+│  Parallel time: 50 seconds✓ Faster than a string.
 │
-├─ Supervisor 开始合并（60 秒）← 问题在这里
-│  为什么？因为三个 Worker 的产出：
-│  - Worker 1 输出了 3 页 Markdown（概述 + 详细分析 + 代码示例）
-│  - Worker 2 输出了 5 个要点 + 1 个表格
-│  - Worker 3 输出了 8 个框架的列表（没有分析）
-│  格式完全不同，结构完全不同，覆盖范围有大量重叠。
-│  Supervisor 无法"自动合并"——它实际上是在让 LLM 重新"综合"
-│  三份报告，而这个综合工作如果从一开始就让一个 Agent 做，
-│  可能只需要 70 秒。
+├─ Supervisor Start consolidation (60 seconds)← That's the problem.
+│  Why??Because of three worker outputs:
+│  - Worker 1 3 pages Markdown+ Detailed analysis+ Code Example)
+│  - Worker 2 Five points out.+ 1 Table
+│  - Worker 3 Output list of 8 frames (no analysis)
+│  The format is completely different, the structure is completely different and the coverage overlaps considerably.
+│  Supervisor Unable to "Auto Merge"——It's actually getting LLM to recombine.
+│  Three reports, and if this integration is done by one Agent from the beginning,
+│  Probably just need 70 seconds.
 │
-├─ 总耗时：50 秒（并行执行）+ 60 秒（合并）= 110 秒
-│  串行耗时：约 120 秒（三个方向 × 40 秒 + 自然汇总 10 秒）
-│  并行收益：几乎为零。引入了 3 倍复杂度，省了 10 秒。
+├─ Total time: 50 seconds (in parallel)+ 60 sec (merger)= 110 sec
+│  Serial time: about 120 seconds (3 directions)× 40 sec+ Natural summary 10 seconds)
+│  Parallel gains: almost zero. Three times the complexity, 10 seconds.
 └─
 
-根因：拆解时没有指定输出模板。三个 Worker 各自按自己的理解输出，
-      合并成本抵消了并行收益。
+Root: No output template was specified when dismantling. Three Walkers each output according to their own understanding.
+      Combined costs offset parallel gains.
 
-修复：
-1. 拆解时强制指定统一输出模板（结构、字段、长度限制）
-2. 每个 Worker 的输出长度控制在 300 字内（禁止输出"概述"和"背景介绍"）
-3. Worker 只输出"提取后的信息"，不做综合和总结——综合由 Supervisor 负责
+Restoration:
+1. Force a uniform output template when dismantling (structure, fields, length limits)
+2. The output length of each Worker is contained in 300 words (prohibits output "overview" and "background introduction")
+3. Worker Just output "post-extract information" without synthesis and summary.——The integration is the responsibility of Supervisor.
 ```
 
 **The core lesson of the rollover**: The parallel value is not "Worker runs fast", but **"Worker's output can be combined directly, without LLM understanding and synthesis"**. If combining steps requires LLM to read through all Worker outputs and "rewrite them," then let one of the Agent write from the beginning.
@@ -610,20 +610,20 @@ Each Worker of Supervisor handles different tasks. Parallel Specialists is a var
 ### 8.5.1 Distinction from Supervisor: same input, different dimensions
 
 ```text
-Supervisor 模式：                    Parallel Specialists 模式：
+Supervisor Mode: Parallel Specialists:
 
-任务 A → Worker 1                   同一个任务
-任务 B → Worker 2                         │
-任务 C → Worker 3               ┌─────────┼─────────┐
+Task A → Worker 1                   Same job.
+Task B → Worker 2                         │
+Task C → Worker 3               ┌─────────┼─────────┐
                                 ▼         ▼         ▼
-不同任务，不同 Worker           Specialist A  Specialist B  Specialist C
-                                (正确性)     (安全性)     (性能)
+Different Specialist A Specialist B Specialist C
+                                (Correctability (security) (performance)
                                     │         │         │
                                     └─────────┼─────────┘
                                               ▼
-                                          合并结果
+                                          Merge Results
 
-不同维度，同一输入
+Different dimensions, same input
 ```
 
 Application scenario: A code requires both correctness, security and performance. A programme needs to assess both technical feasibility, cost and maintenance. A response requires simultaneous examination of factual accuracy, logical completeness and clarity of presentation.
@@ -639,7 +639,7 @@ The dimensions design requires two conditions:
 
 ```python
 class ParallelSpecialists:
-    """多个专家并行处理同一任务的不同维度"""
+    """Multiple experts handle different dimensions of the same task."""
 
     def __init__(self, specialists: dict[str, Agent]):
         self.specialists = specialists
@@ -648,17 +648,17 @@ class ParallelSpecialists:
         """
         dimensions = [
           {"name": "correctness", "agent": "code_reviewer",
-           "focus": "逻辑错误、边界条件、异常处理、状态一致性",
-           "exclude": "不分析安全漏洞和性能瓶颈"},
+           "focus": ""Logical error, border conditions, anomalies, state consistency."
+           "exclude": "No analysis of security gaps and performance bottlenecks."},
           {"name": "security", "agent": "security_auditor",
-           "focus": "注入风险、密钥泄露、权限越界、敏感数据暴露",
-           "exclude": "不分析逻辑错误（即使它可能导致不确定行为）"},
+           "focus": "Injecting risk, leaking key, crossing authority, exposure to sensitive data."
+           "exclude": ""do not analyse logical errors (even if it may lead to uncertain behaviour)"},
           {"name": "performance", "agent": "perf_analyzer",
-           "focus": "时间复杂度、空间占用、I/O 瓶颈、缓存策略",
-           "exclude": "不分析正确性和安全性影响"},
+           "focus": "Time complexity, space occupation, I/O bottlenecks, cache strategy,
+           "exclude": "No analysis of correctness and safety effects."},
         ]
         """
-        # 并行执行
+        # Parallel implementation
         results = parallel_execute(
             dimensions,
             lambda d: self.specialists[d["agent"]].analyze(
@@ -668,11 +668,11 @@ class ParallelSpecialists:
             )
         )
 
-        # 合并：去重 + 标注来源 + 冲突识别
+        # Merge: Heavy+ Organisation+ Conflict Identification
         return self.merge(results, dimensions)
 
     def merge(self, results: list[dict], dimensions: list[dict]) -> dict:
-        """合并多维度分析结果"""
+        """Merge multi-dimensional analysis results."""
         all_findings = []
         conflicts = []
 
@@ -681,18 +681,18 @@ class ParallelSpecialists:
                 finding["source_dimension"] = dimensions[i]["name"]
                 all_findings.append(finding)
 
-        # 去重：相同位置 + 相同问题描述 → 合并为一条，标注来自多个维度
+        # Heavy: Same position+ Description of the same problem → Merge in one with the label from multiple dimensions
         deduped = self._deduplicate(all_findings)
 
-        # 冲突检测：如果两个维度对同一位置给出矛盾判断
-        # 例：Specialist A 说"这里的设计是安全的"
-        #     Specialist B 说"这里有注入风险"
-        # → 不能自动消解，标注为"存在分歧"
+        # Conflict detection: if two dimensions give conflicting judgements about the same location
+        # Example: Specialist A says, "The design here is safe."
+        #     Specialist B Say, "There's a risk here."
+        # → It's not self-resolved.
         conflicts = self._detect_conflicts(deduped)
 
         return {
             "findings": deduped,
-            "conflicts": conflicts,  # 标注但不自动解决
+            "conflicts": conflicts,  # Mark but not solve automatically
             "dimension_summary": {
                 d["name"]: len(r.findings) for d, r in zip(dimensions, results)
             }
@@ -729,9 +729,9 @@ A common failure of this model:
 Multi-Agent's first step is to open the editor to write
 
 ```text
-你是研究员。
-你是工程师。
-你是审查员。
+You're a researcher.
+You're an engineer.
+You're the censor.
 ```
 
 It's too early. Prompt is part of Agent's configuration, but not Agent's setting itself. What really should be written first is an **Agent setup card**: it's like a job description, like a running time configuration list. It places duties, inputs, tools, models, parameters, output protocols and failure processing in the same place so that you can judge whether this Agent is really different from other Agents.
@@ -740,7 +740,7 @@ Here is an example of a set card for Reviewer Argentina:
 
 ```yaml
 agent: security_reviewer
-responsibility: 只审查安全风险，不修改产物
+responsibility: Only review of security risks and no modification of products
 input:
   - final_artifact
   - original_requirement
@@ -754,16 +754,16 @@ tools:
   - run_security_scan
 model:
   capability: instruction_following
-  reason: 需要稳定遵循审查清单和结构化输出，不需要高创造性
+  reason: Need for stable compliance with review lists and structured outputs without high creativity
 parameters:
   temperature: 0
   max_tokens: 1000
 output_schema: ReviewResponse
 acceptance:
-  - 每个 FAIL 必须包含 location 和 evidence
-  - 不确定时不能猜测通过，必须标记 insufficient_information
+  - Each FAIL must contain the localization and evidence
+  - Uncertainty cannot be guessed, must be marked
 fallback:
-  - 两轮修正仍未通过时进入 human_review
+  - Enter human review when two rounds of amendment are still pending
 ```
 
 This one's not the key. `agent` Name, but a few sets of constraints:
@@ -782,7 +782,7 @@ If an Agent set card can't be written, this Agent is not clearly designed. This 
 | Dimensions | Project Configuration Tool | Take Author + Reviewer, for example |
 |---|---|---|
 | **Entered differently** | Context range declaration in System Prompt + information filter in Runtime | The context of Author contains the results of the notes search, the history of the creation, the draft. Reviewer context is only injected into the final scenario + review criteria filtering out all middle reasoning of Author |
-| **Different tools** | Agent Class White List in Tool Registration Table | Author is registered to write file, search notes, web search. Reviewer registers only read file, run security scan -- no write permission |
+| **Different tools** | Agent Class White List in Tool Registration Table | Author is registered to write file, search notes, web search. Reviewer registers only read_file, run security scan -- no write permission |
 | **Different goals** | Task definition in System Prompt + description of success criteria | Author: "Technology of output to meet demand, covering all demand points". Reviewer: "Find out all problems that do not meet safety standards, give location and evidence by article." |
 | **Different acceptance standards** | Output Schema binding + cessation condition | Author's output is not mandatory. Reviewer output must be `{verdict, checks[], issues[]}`,verdict has two values only. |
 
@@ -794,92 +794,92 @@ The most common spelling is:
 
 ```text
 # Author
-"你是一个技术方案撰写者，请根据需求写出完整的技术方案。"
+"You are a technical programme writer, please write a complete technical programme according to demand."
 
 # Reviewer
-"你是一个安全审查员，请审查这个技术方案的安全性。"
+"You're a security examiner, please review the security of this technical program."
 ```
 
 These two Prompt differences are only character names and verbs. They have no definition: what the Reviewer is specifically concerned with, what criteria to judge, what the output must contain, and what to do when it is uncertain. The result is that Reviewer is no different from the individual Agent -- it only knows its name as "censor," but it doesn't know what the censor should do. **Effective Systems Prompt must define five elements.** The following is an example:
 
 ```text
-# Reviewer Agent — System Prompt 结构
+# Reviewer Agent — System Prompt Structure
 
-## 1. 身份与职责范围（你管什么，不管什么）
-"你是安全审查员。你只负责从安全角度审查技术方案。
+## 1. Identity and terms of reference (whatever, whatever)
+"You're a security inspector. You are solely responsible for reviewing technical options from a safety perspective.
 
-你关注：输入校验、密钥管理、权限模型、依赖安全、数据保护。
-你不关注：技术可行性、代码质量、架构设计、性能优化——
-那些由其他角色负责，你不要在你的审查报告中提及。"
+You're concerned about input validation, key management, permission model, relying on security, data protection.
+You don't care: technical feasibility, code quality, architecture design, performance optimization——
+You don't have to mention it in your review."
 
-## 2. 输入说明（你能看到什么，看不到什么）
-"你会收到一份技术方案的最终版本。
+## 2. Enter instructions (what you can see, nothing you can see)
+"You'll get a final version of the technology program.
 
-你不会看到：方案撰写过程中的草稿、讨论记录、妥协权衡的推理过程。
-你只能基于最终方案文本和审查标准做判断。
-如果你在方案中看到类似'为了开发方便，这里先用明文'的描述——
-不要将其视为'合理的临时方案'，而要将其视为'安全漏洞'。
-你的判断不因作者的意图而软化。"
+You will not see the drafts of the programme, the minutes of the discussions, the reasoning of compromise.
+You can judge only on the basis of the final programme text and the review criteria.
+If you see in the program a description of 'for convenience', here's an explicit description.——
+Not as a 'reasonable temporary solution', but as a 'security loophole'.
+Your judgment is not softened by the author's intentions."
 
-## 3. 审查标准（逐条，可验证的）
-"你必须逐条检查以下标准。每一条都附有验证方法——你必须实际执行验证，
-不能只凭方案中的文字描述判断。
+## 3. Review criteria (article by article, verifiable)
+"You must examine the following criteria article by article. Each article is accompanied by a verification method.——You have to actually perform the validation.
+It cannot be judged solely by the language of the programme.
 
-C1: 输入校验
-    标准：所有用户输入点是否声明了长度和类型校验？
-    验证：查看方案中 API 定义的 input schema，确认每个参数有 type 和 max_length。
+C1: Enter Validation
+    Standard: Does all user input points declare length and type verification?
+    Validation: View the input scheme defined by the API, confirming that each parameter has type and max legth.
 
-C2: 密钥管理
-    标准：所有密钥和敏感配置是否存储在环境变量或密钥管理服务中？
-    验证：搜索方案文本和配置文件中的 key=、secret=、password= 字面量。
-          如果找到硬编码值 → FAIL。如果引用环境变量 → PASS。
+C2: Key Management
+    Standard: Whether all keys and sensitive configurations are stored in environmental variables or key management services Medium?
+    Authentication: search program text and key in profile=、secret=、password= Literally.
+          If Hard Encoding Value Found → FAIL.If Reference Environment Variable → PASS.
 
-C3: 权限模型
-    标准：是否存在非 admin 的角色定义？是否遵循最小权限原则？
-    验证：检查方案中是否定义了多个角色（如 read/write/admin），
-          以及每个操作是否声明了所需的最低权限。
+C3: Permission Model
+    Standard: Is there a non-admin role definition?Whether to follow the principle of minimum competence?
+    Validation: Check if multiple roles (e.g. read/write/admin) are defined in the program.
+          and whether each operation states the minimum powers required.
 
-C4: 依赖安全
-    标准：第三方依赖是否锁定了版本号？
-    验证：检查 requirements.txt 或等效文件中的版本声明格式（== 还是 >=）。"
+C4: Reliance on security
+    Standard: Third-party reliance on locking in version numbers?
+    Validation: Check version declaration formats in requirements.txt or equivalent files (== Still?>=)."
 
-## 4. 输出格式（强制结构）
-"你的输出必须是一个 JSON 对象，不能包含其他文字：
+## 4. Output format (compulsory structure)
+"Your output must be a JSON object and cannot contain other text:
 {
   "verdict": "approved" | "rejected",
   "checks": [
     {
       "id": "C1",
       "passed": true | false,
-      "evidence": "你在方案中的哪个位置（文件名:行号）找到了什么内容，
-                   支持你的判断。如果找不到足够信息，填'insufficient_information'。"
+      "evidence": "What did you find in the program?
+                   Support your judgment. If you can't find enough information to fill in 'insufficient information'.
     }
   ],
   "issues": [
     {
       "id": "I1",
-      "description": "具体问题描述（不是主观评价，是事实陈述）",
-      "location": "文件名:行号",
+      "description": "Description of specific issues (not subjective evaluation, fact statement),
+      "location": "File name: Line number,
       "severity": "must_fix" | "should_fix",
-      "suggestion": "修正建议，不超过 2 句话"
+      "suggestion": "Proposed amendments, no more than two words."
     }
   ]
 }
 
-不允许输出'整体评价''总结''建议进一步讨论'等内容。
-如果某个检查项不确定，passed 设为 false，evidence 说明为何不确定——
-这比错误地设为 true 要好。"
+The output of the `overall evaluation' summary' suggested further discussion is not allowed.
+If something's unsure, passed as false, evidence is why it's not.——
+It's better than putting it wrongly as true."
 
-## 5. 边界行为（不确定时怎么做）
-"以下情况按规则处理，不要自行发挥：
+## 5. Boundary behaviour (what to do when uncertain)
+"The following shall be dealt with in accordance with the rules and shall not be exercised on their own:
 
-- 方案中没有足够信息判断某个检查项 → passed=false，evidence='insufficient_information'
-- 方案中写了'已遵循安全最佳实践'但没有具体说明 → 不等于 PASS，
-  你需要验证的是'实际做了什么'，不是'声称要做什么'
-- 某个 issues 的 severity 不确定是 must_fix 还是 should_fix →
-  按 must_fix 处理，由人工裁决降级
-- 你发现了一个不在审查清单中的安全问题 →
-  仍然报告，severity 标注为 should_fix，在 description 中说明'不在清单中但建议关注'"
+- Program does not have sufficient information to judge an inspection item → passed=false,evidence='insufficient_information'
+- The program says, "Have followed best safety practices" without specifying → It's not equal to PASS.
+  What you need to prove is what you actually did, not what you claim to do.
+- If issue severity is unclear between must_fix and should_fix:
+  Treat it as must_fix; only manual review may downgrade it.
+- If you find a security issue that is not on the checklist:
+  Still report it, mark severity as should_fix, and note that it is outside the checklist but worth attention.
 ```
 
 **Design principles for five elements**:
@@ -895,34 +895,34 @@ The most common error in the distribution of tools in Multi-Agent is the registr
 It's equivalent to giving every employee access to all lock cards, and then a note says, "Please just go into your room." System Prompt is a suggestion, tool registration is hard. The proposal can be ignored by the model (especially when the model considers that "a better task can be accomplished with this tool"), and not by hard restraints. **Correct practice: white list.** Every Agent only registers the tools it needs, and the tools that are not on the white list don't exist for it -- Runtme directly rejects the tools at the level of their call, and the models don't even know the tools exist.
 
 ```python
-# 工具注册：白名单制
-# 每个 Agent 创建时，只传入它需要的工具——不是传入全量然后靠 Prompt 约束
+# Tool registration: white list
+# When each Agent is created, only the tools it needs are passed on——Not full load and constraints by Prompt
 
 AGENT_TOOL_WHITELIST = {
     "author": {
-        "search_notes",      # 检索笔记——需要查资料
-        "web_search",        # 网络搜索——需要最新信息
-        "read_file",         # 读文件——需要参考已有文档
-        "write_file",        # 写文件 ← Author 独有，产出物需要持久化
+        "search_notes",      # Retrieving notes——We need information.
+        "web_search",        # Network Search——We need an update.
+        "read_file",         # Read Files——Need reference to existing documents
+        "write_file",        # Write Files← Author Unique, output needs to be durable
     },
     "reviewer": {
-        "read_file",         # 读文件——读 Author 的产出
-        "search_notes",      # 检索安全规范——查安全标准
-        "run_security_scan", # 安全扫描 ← Reviewer 独有，Author 没有
-        # 注意：没有 write_file——Reviewer 不能修改 Author 的产出
-        # 注意：没有 web_search——Reviewer 不需要外部信息
+        "read_file",         # Read Files——Read Author output
+        "search_notes",      # Search safety code——Safety standards
+        "run_security_scan", # Clear scan.← Reviewer It's unique, Author. No.
+        # Note: no write file——Reviewer Unable to modify Author output
+        # Note: no web search——Reviewer No external information required
     },
     "supervisor": {
-        "read_file",         # 读 Worker 产出
-        # 注意：没有 write_file——Supervisor 只产出汇总报告，不修改原始文件
-        # 注意：没有 search——Supervisor 不做调研，那是 Worker 的工作
+        "read_file",         # Worker Output
+        # Note: no write file——Supervisor Output summary report only, without modification of original document
+        # Note: No search——Supervisor No research. That's Walker's job.
     },
     "worker_researcher": {
-        "search_notes",      # 检索笔记
-        "web_search",        # 网络搜索
-        "read_file",         # 读文件
-        # 注意：没有 write_file——Worker 只输出分析结果到上下文，
-        #       不修改文件系统
+        "search_notes",      # Retrieving notes
+        "web_search",        # Network Search
+        "read_file",         # Read Files
+        # Note: no write file——Worker Only output analysis to context.
+        #       Do not modify the file system
     },
 }
 ```
@@ -984,28 +984,28 @@ The same model, different parameter configurations allow the same model to prese
 Three Agents managed manually okay. At five Agents, Systems Prompt, White List of Tools, Model Selection, Parameters are scattered in multiple files. Modifys the review criteria for Reviewer, forgetting that the summary logic of Supervisor is being updated simultaneously - the system is beginning to show subtle inconsistencies. **Recommended practice: Agent configuration centralized, Systems Prompt external documentation.**
 
 ```python
-# agent_configs.py — 所有 Agent 配置的单一事实来源
-# 修改任何一个 Agent 的配置，只需改这一个文件。
-# 新增一个 Agent 时，在一个地方声明它的全部配置。
-# 代码 review 时，能一眼看到"这次改动影响哪些 Agent 的哪些配置"。
+# agent_configs.py — Single fact source for all Agent configurations
+# Modifys the configuration of any Agent only by changing this file.
+# When adding an Agent, declare its full configuration in one place.
+# When the code is reviewed, you can see "what configurations of Agent are affected by this change."
 
 AGENT_CONFIGS = {
     "author": {
         "model": "claude-sonnet-4-6",
         "temperature": 0.4,
         "max_tokens": 4096,
-        "system_prompt": "prompts/author_system.txt",  # 外部文件，便于 diff
+        "system_prompt": "prompts/author_system.txt",  # External file, easy diff
         "tools": ["search_notes", "web_search", "read_file", "write_file"],
-        "output_schema": None,  # 不强制结构化输出
+        "output_schema": None,  # Do not force structured output
     },
     "reviewer": {
         "model": "claude-sonnet-4-6",
-        "temperature": 0.0,  # 确定性——质量闸门不能有随机性
-        "max_tokens": 1024,  # 刚好够结构化输出，防止"补充说明"
+        "temperature": 0.0,  # Determination——The mass gates can't be random.
+        "max_tokens": 1024,  # Just enough to structure the output to prevent "addition"
         "system_prompt": "prompts/reviewer_system.txt",
         "tools": ["read_file", "search_notes", "run_security_scan"],
-        "output_schema": "schemas/review_result.json",  # 强制结构化输出
-        "max_rounds": 2,  # Reviewer 特定的控制参数
+        "output_schema": "schemas/review_result.json",  # Force structured output
+        "max_rounds": 2,  # Reviewer Specific control parameters
     },
     "supervisor": {
         "model": "claude-fable-5",
@@ -1013,16 +1013,16 @@ AGENT_CONFIGS = {
         "max_tokens": 2048,
         "system_prompt": "prompts/supervisor_system.txt",
         "tools": ["read_file"],
-        "decomposition_strategy": "template_first",  # 优先预定义模板
-        "merge_conflict_policy": "flag_not_resolve", # 冲突标注不解消
+        "decomposition_strategy": "template_first",  # Predefined Template for Priority
+        "merge_conflict_policy": "flag_not_resolve", # The conflict labels are overwhelming.
     },
     "worker_researcher": {
-        "model": "claude-haiku-4-5",  # 调研型用便宜模型
+        "model": "claude-haiku-4-5",  # Research with cheap models.
         "temperature": 0.2,
         "max_tokens": 800,
         "system_prompt": "prompts/worker_researcher_system.txt",
         "tools": ["search_notes", "web_search", "read_file"],
-        "output_template": "templates/research_report.md",  # 强制输出格式
+        "output_template": "templates/research_report.md",  # Force Output Format
     },
 }
 ```
@@ -1044,13 +1044,13 @@ The most intuitive means of communication is to allow Agent to speak freely — 
 However, in Multi-Agent, free dialogue is the most expensive, difficult to debug and the easiest to fail. There are three reasons: **1. Information decay.** The original message declines every time it passes between Agent. AgentA's discovery was repeated by AgentB, and then by AgentC's quote - when it came to Supervisor, the original specific judgment became a vague impression.
 
 ```text
-原始："config.yaml 第 8 行 api_key 字段为明文，存在泄露风险"
-↓ Agent B 复述：
-"A 提到了配置文件中有密钥管理问题"
-↓ Agent C 引用：
-"前面的讨论涉及了安全性方面的考虑"
-↓ Supervisor 收到：
-"团队讨论了安全性" ← 原始信息完全丢失
+Original: "config.yaml 8th row api key field is clear, there is a risk of leakage"
+↓ Agent B Repeat:
+"A The key management issue was mentioned in the configuration file."
+↓ Agent C References:
+"The previous discussion involved security considerations."
+↓ Supervisor Received:
+"The team discussed safety."← Original message completely lost
 ```
 
 **2. Intentional distortion.** One Agent says "recommended optimization", the other Agent understands "must optimization". The word "recommended" and "must" distinguish between human communication, and the word between Agent is easily lost.**3. Blur decision-making.** Free dialogue has no "decision point". Agent can keep talking about "consent" and "complement" and "advice" and "further consider" -- no one says "discussion is over, and the following is a decision." The final output was not a decision-making exercise, but a summary of the discussions.
@@ -1062,22 +1062,22 @@ Alternatives to free dialogue are **structured communications**. This is not the
 ```json
 {
   "type": "review_request",
-  "artifact": "API 设计方案 v1",
+  "artifact": "API Design v1",
   "context": {
-    "user_goal": "为内部知识库设计查询 API",
-    "constraints": ["不能暴露未授权文档", "响应时间小于 2 秒"]
+    "user_goal": "Design a query API for the internal knowledge base.",
+    "constraints": ["Do not expose unauthorized documents.", "Response time must be under 2 seconds."]
   },
   "criteria": [
     {
       "id": "security.authz",
-      "check": "是否说明文档级权限校验",
-      "how_to_verify": "方案中必须出现权限来源、校验位置和失败返回",
+      "check": "Document-level permission verification is specified.",
+      "how_to_verify": "The design must state the permission source, check location, and failure response.",
       "severity": "must_fix"
     },
     {
       "id": "reliability.timeout",
-      "check": "是否定义超时和降级策略",
-      "how_to_verify": "方案中必须说明超时时间、重试次数和用户可见结果",
+      "check": "Timeout and fallback strategies are defined.",
+      "how_to_verify": "The design must specify timeout, retry count, and user-visible fallback behavior.",
       "severity": "should_fix"
     }
   ]
@@ -1094,23 +1094,23 @@ Reviewer's response will be equally rigid. Note that there is no "overview" fiel
     {
       "check_id": "security.authz",
       "passed": false,
-      "evidence": "方案只写了'后续接入权限系统'，没有说明校验位置和失败返回",
-      "suggestion": "补充权限来源、查询前校验点，以及无权限时的错误响应。"
+      "evidence": "The design only says 'connect to the access system later' and does not specify the check location or failure response.",
+      "suggestion": "Add permission sources, pre-check points, and error responses for missing permission."
     },
     {
       "check_id": "reliability.timeout",
       "passed": true,
-      "evidence": "第 4 节定义了 2 秒超时和缓存降级",
+      "evidence": "Section 4 defines a 2-second timeout and cache fallback.",
       "suggestion": null
     }
   ],
   "issues": [
     {
       "id": "issue-001",
-      "location": "第 3 节：权限模型",
+      "location": "Section 3: Permission Model",
       "severity": "must_fix",
-      "description": "权限校验停留在承诺层，没有落到请求链路。",
-      "suggestion": "把'后续接入权限系统'改成可执行的权限校验流程。"
+      "description": "Permission verification is only promised and is not part of the request chain.",
+      "suggestion": "Replace 'connect to the access system later' with an enforceable permission verification process."
     }
   ]
 }
@@ -1123,14 +1123,14 @@ This format is suitable for quality gates: security clearance, front-line inspec
   "type": "subtask_assignment",
   "task_id": "research-vector-db",
   "worker": "researcher-1",
-  "topic": "向量数据库在 RAG 系统中的选型",
-  "scope": "只比较 Milvus、pgvector、Pinecone 的工程适用性",
-  "exclude": "不展开向量检索算法原理，不写市场背景",
+  "topic": "Vector database selection in a RAG system",
+  "scope": "Only compare applicability of Milvus, pgvector, and Pinecone.",
+  "exclude": "Do not cover vector search algorithms or market background.",
   "output_template": {
-    "key_findings": "最多 3 条",
-    "failure_modes": "最多 2 条",
-    "recommended_use": "一句话说明适合什么场景",
-    "sources": "列出引用来源"
+    "key_findings": "Up to 3",
+    "failure_modes": "Up to 2",
+    "recommended_use": "One sentence describing the best-fit scenario.",
+    "sources": "List Quote Sources"
   },
   "max_length": 300
 }
@@ -1145,16 +1145,16 @@ Worker, when you return, do not write a long, freely developed text, but complet
   "status": "completed",
   "content": {
     "key_findings": [
-      "pgvector 适合已有 Postgres 团队，运维成本最低。",
-      "Milvus 适合向量规模和检索性能要求更高的场景。",
-      "Pinecone 适合希望减少自运维负担的团队。"
+      "pgvector fits teams already using Postgres and has the lowest migration cost.",
+      "Milvus fits large-scale vector workloads with high search performance requirements.",
+      "Pinecone fits teams that want to reduce self-hosting operational burden."
     ],
     "failure_modes": [
-      "只看检索性能，忽略数据同步和权限过滤。",
-      "过早引入独立向量数据库，增加运维复杂度。"
+      "Only evaluates search features and ignores data synchronization and permission filters.",
+      "The premature introduction of an independent vector database increases the complexity of transport."
     ],
-    "recommended_use": "如果团队已有 Postgres，先用 pgvector 建立基线。",
-    "sources": ["官方文档", "项目 README", "工程实践文章"]
+    "recommended_use": "If the team already uses Postgres, first build a baseline with pgvector.",
+    "sources": ["Official docs", "Project README", "Engineering practice articles"]
   },
   "error": null
 }
@@ -1171,8 +1171,8 @@ This format is suitable for parallel research and aggregation. It doesn't have t
       "id": "sec-001",
       "location": "/login",
       "severity": "must_fix",
-      "description": "登录接口没有说明失败次数限制。",
-      "evidence": "方案只描述账号密码校验，没有提到 rate limit 或 lockout。"
+      "description": "The login interface does not specify failure-count limits.",
+      "evidence": "The scheme only describes the account password verification, and does not mention the rate limit or lockout."
     }
   ]
 }
@@ -1189,14 +1189,14 @@ The result of the merger would also be to retain the structure. If two dimension
       "dimension": "security",
       "location": "/login",
       "severity": "must_fix",
-      "description": "登录接口没有说明失败次数限制。"
+      "description": "The login interface does not specify failure-count limits."
     }
   ],
   "conflicts": [
     {
       "location": "/login",
-      "finding_a": "security 判断缺少失败次数限制",
-      "finding_b": "performance 判断不建议增加额外校验",
+      "finding_a": "Security: failure-count limit is missing.",
+      "finding_b": "Performance: additional checks may increase latency.",
       "resolution": "needs_human_review"
     }
   ],
@@ -1267,7 +1267,7 @@ Multi-Agent's suspension conditions are similar to those of Reflect, but there a
 | Number of Supervisor summaries | 1 Dismantling - Summary | If the summary results are missing, do not reopen - label missing and output |
 | Worker and timeout. | Maximum Worker time-consuming x 1.5 | The result of Worker's timeout is discarded, and the report indicates that the data is missing. |
 | Total token consumption | Single task 50K tokens | Stop all Agents, return partial results completed |
-| Can not open message | 3 consecutive rounds of communications with similar content > 90 per cent | Called "dialogue dead" and forced to stop and output the current state. |
+| information sources | 3 consecutive rounds of communications with similar content > 90 per cent | Called "dialogue dead" and forced to stop and output the current state. |
 | Error Upgrade | Recoverable error failure (e.g. network overtime becomes disk full) | Stop All Agent, keep the scene and notify the user |
 
 **The conditions for stopping must be coded hard and cannot be decided by Agent itself.** Agent has no instinct to stop -- it'll still start a new round of communications confidently on the sixth round. The condition for cessation is a mandatory check on the Runtme layer, unrelated to Agent 's reasoning ability.
@@ -1277,26 +1277,26 @@ Multi-Agent's suspension conditions are similar to those of Reflect, but there a
 When the Multi-Agent system is running, Worker Agent may fail for various reasons: API limit, network timeout, output unresolved, context spilling. The system must pre-empt every failure:
 
 ```text
-Worker 失败模式              兜底策略
+Worker Failed mode, bottom strategy.
 ─────────────────────────────────────────────────────
-单个 Worker 超时          → 丢弃该 Worker 结果
-                           在最终报告中标注"方向X: 数据缺失（超时）"
-                           不重试，不阻塞其他 Worker 的产出
+Individual Worker Timeout → Drop the worker result
+                           In the final report, mark "Specific X: Data Missing (over time)"
+                           Do not try again, do not block other Worker outputs
 
-单个 Worker 输出不可解析   → 尝试重新生成一次（仅一次）
-                           仍不可解析→同上，标注"数据缺失（格式错误）"
+Individual Worker Output Not Parsed → Attempt to regenerate once (only once)
+                           Still unsolved. → Idem, mark "Default of data."
 
-多个 Worker 同时失败       → 可能根因是上游问题（如 API 故障）
-（≥50% Worker 失败）         停止全部执行，返回部分结果 + 错误诊断
-                           不继续——继续可能只是消耗更多 token
+Multiple Worker also fails → Possible root cause is upstream (e.g. API failure)
+(≥50% Worker Stop all implementation and return partial results+ Error diagnosis
+                           No more.——It's probably just more token.
 
-Supervisor 拆解失败        → 如果拆解方案不满足最小要求（如边界重叠>30%）
-                           降级为"单 Agent 直接执行"，跳过 Multi-Agent
-                           通知用户："拆解方案质量不满足并行条件，已降级"
+Supervisor Dismantling failed → If the dismantling programme does not meet minimum requirements (e.g., overlapping borders)>30%)
+                           Decline to "Single Agent Direct Execution", Skip Multi-Agent
+                           Notify user: "The quality of the dismantling program does not meet the parallel conditions and is downgraded"
 
-Supervisor 汇总失败        → 返回各 Worker 的原始产出（标注为"未汇总"）
-                           不尝试让 LLM 重新汇总——第一次汇总失败的原因
-                           可能仍然存在
+Supervisor Synchronising folder → Returns original output for each Worker (labelled as "uncollected")
+                           Do not try to reassemble LLM——Reason for failure in first aggregation
+                           Could still be there.
 ```
 
 **Core principle at the bottom: demotion without silence.** The system can be downgraded to single Agent if Multi-Agent is not available - but cannot pretend Multi-Agent is successful. Missing data, failed worker, skipping check items - all clearly marked in the final output.
@@ -1313,67 +1313,67 @@ Take the example of the knowledge assistant writing technology program + securit
 
 ```text
 ═══════════════════════════════════════════════════════════════════
-任务：写一份 API 模块技术方案（约 2000 字），从安全角度审查
+Mission: Write an API module technology programme (approximately 2000 words), review from a security perspective
 
-单 Agent（自审）：
+Agent (self-review):
 ┌─────────────────────────────────────────────────────────────────┐
-│ 写作阶段：                                                       │
+│ Writing phase:│
 │   System Prompt: 800 tokens                                     │
-│   用户输入 + 上下文: 500 tokens                                   │
-│   模型输出（方案）: 2,500 tokens                                  │
-│   小计: 3,800 tokens                                            │
+│   User Input+ Context: 500 tokens│
+│   Model output (programme): 2,500 tokens│
+│   Subtotal: 3,800 tokens│
 │                                                                 │
-│ 自审阶段（同一上下文，追加一轮）：                                  │
-│   用户追加消息: 100 tokens                                       │
-│   模型输出（审查）: 300 tokens                                    │
-│   小计: 400 tokens                                              │
+│ Self-review phase (same context, additional round):│
+│   Could not close temporary folder: %s│
+│   Model output (review): 300 tokens│
+│   Subtotal: 400 tokens│
 │                                                                 │
-│ 总计: ~4,200 tokens                                             │
-│ 耗时: ~40 秒                                                    │
-│ 成本: ~$0.06（以 Claude Sonnet 定价估算）                         │
-│ 结果: 漏了 4 个安全隐患                                          │
+│ Total:~4,200 tokens                                             │
+│ Time consuming:~40 sec│
+│ Cost:~$0.06(Estimated with Claude Sonnet)│
+│ Result: four security risks missed.│
 └─────────────────────────────────────────────────────────────────┘
 
-Reviewer 模式：
+Reviewer Mode:
 ┌─────────────────────────────────────────────────────────────────┐
-│ Author Agent（独立实例）：                                        │
-│   System Prompt: 400 tokens（只管创作，不含审查逻辑）              │
-│   用户输入 + 上下文: 500 tokens                                   │
-│   模型输出（方案）: 2,500 tokens                                  │
-│   小计: 3,400 tokens                                            │
+│ Author Agent(Independent examples:│
+│   System Prompt: 400 tokens(Just create, without censorship logic)│
+│   User Input+ Context: 500 tokens│
+│   Model output (programme): 2,500 tokens│
+│   Subtotal: 3,400 tokens│
 │                                                                 │
-│ Reviewer Agent（独立实例，独立上下文）：                           │
-│   System Prompt: 300 tokens（只管审查，不含创作逻辑）              │
-│   写入上下文（方案 + 审查清单）: 2,800 tokens                      │
-│   模型输出（结构化审查结果）: 600 tokens                           │
-│   小计: 3,700 tokens                                            │
+│ Reviewer Agent(Independent example, independent context:│
+│   System Prompt: 300 tokens(Just censorship, without creative logic)│
+│   Write context (programmes)+ Review list: 2,800 tokens│
+│   Model output (structured review results): 600 tokens│
+│   Subtotal: 3,700 tokens│
 │                                                                 │
-│ Author 修正阶段（独立实例，只收到 issues）：                       │
-│   写入上下文（方案 + issues）: 3,300 tokens                       │
-│   模型输出（修正后方案）: 2,600 tokens                             │
-│   小计: 5,900 tokens                                            │
+│ Author Amendment phase (independent examples, only received issues):│
+│   Write context (programmes)+ issues): 3,300 tokens                       │
+│   Model output (amended scheme): 2,600 tokens│
+│   Subtotal: 5,900 tokens│
 │                                                                 │
-│ Reviewer 第二轮审查：                                             │
-│   写入上下文（修正后方案 + 审查清单）: 2,900 tokens                 │
-│   模型输出（审查结果）: 300 tokens                                 │
-│   小计: 3,200 tokens                                            │
+│ Reviewer Second round of reviews:│
+│   Writing context (modified scenario)+ Review list: 2,900 tokens│
+│   Model output (review results): 300 tokens│
+│   Subtotal: 3,200 tokens│
 │                                                                 │
-│ 总计: ~16,200 tokens（单 Agent 的 3.9 倍）                        │
-│ 耗时: ~80 秒（单 Agent 的 2 倍）                                  │
-│ 成本: ~$0.22（单 Agent 的 3.7 倍）                                │
-│ 结果: 发现并修正了全部 4 个安全隐患                                │
+│ Total:~16,200 tokens(3.9 times the single Agent)│
+│ Time consuming:~80 sec (2 times single Agent)│
+│ Cost:~$0.22(3.7 times the single Agent)│
+│ Result: All 4 security hazards identified and corrected│
 └─────────────────────────────────────────────────────────────────┘
 
-成本-收益分析：
+Cost-benefit analysis:
 ┌─────────────────────────────────────────────────────────────────┐
-│ 额外成本: +$0.16, +40 秒                                        │
-│ 收益: 从"有 4 个安全漏洞"变为"通过安全审查清单"                     │
+│ Additional costs:+$0.16, +40 sec│
+│ Proceed: from "there are 4 security holes" to "through the security clearance list."│
 │                                                                 │
-│ 判断: 如果这个方案部署后出现安全事件，修复成本 >> $0.16            │
-│       在这个场景中，额外成本是值得的                                │
+│ If there is a security incident after the programme is deployed, repair costs>> $0.16            │
+│       In this scenario, the extra cost is worth it.│
 │                                                                 │
-│ 但如果任务是一个低风险的内部备忘录？                                │
-│ 额外成本可能不值得——不是所有场景都需要 Multi-Agent                 │
+│ But if the mission is a low-risk internal memo,?                                │
+│ The extra costs may not be worth it.——Not all scenes need Multi-Agent│
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -1384,35 +1384,35 @@ Reviewer 模式：
 Multi-Agent's delay is not a simple "model reasoning time x Agent number". Real delays include:
 
 ```text
-Reviewer 模式延迟拆解：
+Reviewer Mode delayed dismantling:
 ┌──────────────────────────────────────────────────────────────┐
-│ Author 推理: 30 秒                                            │
+│ Author Argument: 30 seconds│
 │ +                                                             │
-│ Reviewer 推理: 25 秒                                          │
+│ Reviewer Inference: 25 seconds│
 │ +                                                             │
-│ 上下文构建和传递: 5 秒                                         │
-│   （将 Author 产出 + 审查清单打包为 Reviewer 的输入上下文）       │
+│ Context Build and Transfer: 5 seconds│
+│   (Output+ Review the checklist as input context for Reviewer)│
 │ +                                                             │
-│ Author 修正推理: 20 秒                                        │
+│ Author Revised reasoning: 20 seconds│
 │ +                                                             │
-│ Reviewer 二轮推理: 10 秒                                      │
+│ Reviewer Two rounds of reasoning: 10 seconds│
 │ =                                                             │
-│ 总计: ~90 秒                                                  │
+│ Total:~90 sec│
 │                                                                │
-│ 用户感知延迟: 90 秒（从发起到拿到 approved 结果）               │
-│ 单 Agent 自审: ~40 秒                                         │
-│ 延迟放大: 2.25 倍                                             │
+│ User perception delay: 90 seconds (from launch to accessed results)│
+│ Agent self-review:~40 sec│
+│ Delay Zooming: 2.25 times│
 │                                                                │
-│ Supervisor 模式延迟（4 个 Worker 并行）：                       │
-│ Supervisor 拆解: 8 秒                                         │
+│ Supervisor Mode delay (4 Worker parallel):│
+│ Supervisor Dismantling: 8 seconds│
 │ +                                                             │
-│ 并行 Worker（取最慢）: 45 秒                                   │
+│ Parallel Worker (lowest): 45 seconds│
 │ +                                                             │
-│ Supervisor 汇总: 15 秒                                        │
+│ Supervisor Summary: 15 seconds│
 │ =                                                             │
-│ 总计: ~68 秒                                                  │
-│ 串行（4 × 40 秒 + 10 秒汇总）: ~170 秒                         │
-│ 加速比: 2.5 倍 ✓                                              │
+│ Total:~68 sec│
+│ Serial (4)× 40 sec+ 10 Other Organiser~170 sec│
+│ Accelerating ratio: 2.5 times✓                                              │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -1428,24 +1428,24 @@ Multi-Agent's most hidden costs are not on the bill, on **maintenance**.
 Three months later, when the new guy took over the system, Ta faced:
 
 ```text
-单 Agent 系统：
-├─ 1 个 System Prompt
-├─ 1 个工具集
-├─ 1 条 trace（线性执行记录）
-└─ 调试：找到出问题的步骤 → 修正 Prompt 或工具
+Single Agent system:
+├─ 1 Systems Prompt
+├─ 1 Toolset
+├─ 1 Track (linear execution record)
+└─ Debug: Find the steps that are wrong → Fix Prompt or Tools
 
-Multi-Agent 系统：
-├─ 3 个 System Prompt（Author、Reviewer、Supervisor）
-├─ 3 个工具集（权限各不相同）
-├─ 多条交叉 trace（Agent A 的输出是 Agent B 的输入，找出"这个错误是谁引入的"
-│   需要同时翻 3 条 trace 并交叉对照）
-├─ 调试："为什么最终方案少了一个安全检查？"
-│   → Reviewer 漏掉了（检查 Reviewer 的 trace）
-│   → Author 在修正时忽略了（检查 Author 的 trace）
-│   → Supervisor 在汇总时丢失了（检查 Supervisor 的 trace）
-│   → 通信协议中某个字段被错误地解析了（检查通信层的序列化逻辑）
-└─ 修改影响面：改了 Reviewer 的审查清单 → 可能影响 Author 的修正策略
-                → 可能影响 Supervisor 的判断逻辑
+Multi-Agent System:
+├─ 3 Systems Prompt (Author, Reviewer, Supervisor)
+├─ 3 Tool sets (discrepancies)
+├─ Multiple Cross-Traces (Agent A's output is Agent B's input), find out who introduced the error.
+│   Need to flip 3 tracks and cross-check)
+├─ Debugging: "Why is the final solution missing a security check??"
+│ → Reviewer It's missing.
+│ → Author Ignored during correction (check the track)
+│ → Supervisor Missing during aggregation (check Supervisor track)
+│ → A field in the communication protocol was misinterpreted.
+└─ Change impact: change review list for Reviewer → A revision strategy that may affect Author
+ → The logic of judgement that may affect Supervisor
 ```
 
 It's not that Multi-Agent shouldn't be used. It says: **Should only be introduced if you are convinced that the additional maintenance costs can be covered by the value created by Multi-Agent.** If only Agent + good Prompt could do 90 points, the cost of introducing Multi-Agent for 95 points could be three times the maintenance complexity.

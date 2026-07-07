@@ -82,10 +82,10 @@ There are four questions to be answered — questions that are the main lines of
 A control program can be divided into four steps:
 
 ```text
-触发信号
-  -> 反馈分类 / 证据分析
-  -> 决定处理策略
-  -> 重试、降级、转人工或停止
+Trigger signal.
+  -> Feedback classification / evidence analysis
+  -> Decision on strategy
+  -> Retest, downgrade, transfer or halt
 ```
 
 But before going deep, there is a specific frame of reference.
@@ -120,7 +120,7 @@ In the case of knowledge assistants, commonly triggered signals and their corres
 | Trigger signal. | Specific examples of knowledge assistants | Process Action | Exceptions that should not be triggered |
 |---|---|---|---|
 | Invalid output format | JSON missing required fields, Schema verifying returns `required field 'tool_name' missing` | Recreate structured output, complete missing fields | The problem with format is that the definition of the tool itself has changed (e.g. the new API) - at this time it needs to be updated, rather than regenerated |
-| Tool Parameter Error | Call `search_notes(query="", limit=500) ` Back ` limit must be 1-100` | Amending Parameters (Limit=500→Limit=50), retrying | Parameter values per se are correct but are rejected by restricted flow - they should not be changed and should wait to try again |
+| Tool Parameter Error | Call `search_notes(query="", limit=500) ` Back ` limit must be 1-100` | Amending Parameters (Limit=500 → Limit=50), retrying | Parameter values per se are correct but are rejected by restricted flow - they should not be changed and should wait to try again |
 | Tool execution failed | `git log ` Back ` fatal: not a git repository` | Type of feedback analysed: This is an environmental problem (non-recoverability), not a parameter problem - - Skip this step and notify the user. | Network overtime failed - try again instead of skipping |
 | Test failed | `test_memory_cleanup ` The assertion failed, excepted ` cleaned ` got ` pending` | Positioning failure asserted analysis code logical correction rerun test | Test environment per se (e.g. test database not started) - code should not be amended |
 | Reference mismatch | Agent says, "Memoory has three layers of guards," but the original is only two. | Retrieving the original version of the false assertion in the correction answer indicates that the conclusion is based on section 2 of note A. | The search results were empty not because the reference was wrong, but because the notes were deleted — users should be informed, not repeated. |
@@ -188,7 +188,7 @@ Good coping strategies are like traffic diversion: Turn around, slow down, stop,
 | Wrong target understanding. | Rewrite hints, add constraints | Add "Do not generate code review report format, only output questions and recommendations" to the programt when the user rejects it | Confirm user after regenerated |
 | Context Missing | Additional Search | API method created by Agent to retrieve the module's actual method name in the notes and replace the hallucinogenic reference with the search result | Checks article by article whether the references can be found in the notes |
 | Tool selection error | Change Tools | WebSearch `search_local_notes` | Check if the tool returns from the correct knowledge Source |
-| Tool Parameter Error | Adjust tool parameters | `limit=500 ` → ` limit=50 ` ， ` query=""` Complete Query Word | Tool returns successful status code and results are not empty |
+| Tool Parameter Error | Adjust tool parameters | `limit=500 ` → ` limit=50 ` , ` query=""` Complete Query Word | Tool returns successful status code and results are not empty |
 | External context error | Unrecoverable demotion | `git log` Failed to manually specify a range notification user "because it's not in the guit repository, it's manual" | N/A (taken over by users after skipping) |
 | Output format error | Regenerated + Enhanced format bounds | JSON Missing Fields Add to Prompt `Required fields: tool_name, args, reason` | Schema Validation |
 | Insufficient Permissions | Request user authorization or downgrade | `Permission denied ` Application to user ` sudo` Competences or suggested alternatives | Re-enforce when user confirms authorization |
@@ -226,41 +226,41 @@ The failure of this segment is focused on "The Time to Stop":
 Reflecting the core skeleton of the cycle - the key is that the trigger must come from an external signal and the stop condition must be coded hard:
 
 ```python
-# Reflection 循环：只在有外部反馈信号时触发，永远设置停止边界
+# Reflection Cycle: Only trigger when external feedback signals are available, permanently set the stop border
 def reflection_loop(
-    action: callable,       # 执行动作（生成代码、回答问题等）
-    validate: callable,     # 外部验证器（运行测试、检查 schema、校验引用）
-    max_retries: int = 3,   # 硬上限
-    cost_budget: float = 1.0  # 成本上限（美元）
+    action: callable,       # Execute action (generation code, answer questions, etc.)
+    validate: callable,     # External certifier (run test, check schema, validate reference)
+    max_retries: int = 3,   # Hard ceiling
+    cost_budget: float = 1.0  # Cost cap (United States dollars)
 ) -> dict:
-    """带 Reflection 的执行循环"""
+    """Run a loop with Reflection."""
     cost_spent = 0
     last_error = None
 
     for attempt in range(max_retries):
-        # 1. 执行动作
+        # 1. Execute Action
         result = action(
-            previous_error=last_error,  # 把上次失败原因注入上下文
+            previous_error=last_error,  # Put the last reason for failure in the context
             attempt=attempt
         )
         cost_spent += result.cost
 
-        # 2. 外部验证（不是模型自评！）
+        # 2. External validation (not model self-assessment)！)
         validation = validate(result.output)
 
         if validation.passed:
             return {"status": "success", "output": result.output,
                     "attempts": attempt + 1, "cost": cost_spent}
 
-        # 3. 分类反馈，准备下一轮处理上下文
+        # 3. Classify feedback and prepare for the next round to process context
         last_error = {
             "type": classify_feedback(validation),  # schema_error | test_failure | tool_error | ...
             "message": validation.message,
-            "evidence": validation.evidence,      # 具体报错行、引用原文等
+            "evidence": validation.evidence,      # Specific wrongs reported, original quoted, etc.
             "suggested_action": validation.suggestion
         }
 
-        # 4. 停止条件检查
+        # 4. Stop Conditions Check
         if cost_spent > cost_budget:
             return {"status": "stopped", "reason": "cost_limit",
                     "last_error": last_error}
@@ -271,13 +271,13 @@ def reflection_loop(
     return {"status": "stopped", "reason": "max_retries_exceeded",
             "last_error": last_error}
 
-# 使用示例：代码修改 + 测试驱动的 Reflection
+# Using examples: code changes+ Test drive
 result = reflection_loop(
     action=lambda prev_err, attempt: llm_generate_code(
         task="fix the bug in user_service.py",
         test_failure=prev_err["evidence"] if prev_err else None
     ),
-    validate=lambda code: run_tests(code),  # 外部测试框架，不是 LLM
+    validate=lambda code: run_tests(code),  # External test frame, not LLM
     max_retries=3
 )
 ```
@@ -314,15 +314,15 @@ Reflection:
 Practical judgement:
 
 ```text
-如果有明确反馈信号，并且自动处理成本低于失败成本，Reflection 值得引入。
-如果只是让模型”再想想”，通常不值得。
+Reflecting is worth introducing if there is a clear feedback signal and the cost of processing is lower than the cost of failure.
+It's not usually worth it if you just let the model think again.
 ```
 
-> **The story is not over.** Reflecting allows Agent to learn to decide on the next step based on feedback, analyse the reasons for the failure and choose to retest, amend, downgrade or stop. However, one of the conditions for the cessation of Reflection is the “request for manual intervention” - the final safety valve is judged when automatic disposal is no longer possible.
+> **The story is not over.** Reflecting allows Agent to learn to decide on the next step based on feedback, analyse the reasons for the failure and choose to retest, amend, downgrade or stop. However, one of the conditions for the cessation of Reflection is the "request for manual intervention" - the final safety valve is judged when automatic disposal is no longer possible.
 >
-> However, the words “request for manual intervention” are simple and are all pits: what is to be asked, and what is to be dealt with? It's too frequent to ask, too few to be afraid. What information do you show the user when asked so he can make the right decision in three seconds? This is the next chapter of the Human-in-the-loop problem -- how to design people's interface with Agent when Agent should not decide for himself.
+> However, the words "request for manual intervention" are simple and are all pits: what is to be asked, and what is to be dealt with? It's too frequent to ask, too few to be afraid. What information do you show the user when asked so he can make the right decision in three seconds? This is the next chapter of the Human-in-the-loop problem -- how to design people's interface with Agent when Agent should not decide for himself.
 >
-> And looking back, you'll find that there's a deeper problem: there's some tasks that can be solved, not "letting one work with one person." You let Agent write a security plan and let it examine itself -- it says, "No obvious problems." You looked at it as a human being and found three security hazards. Why? Because “creatives” and “reviewers” require different perspectives, different contexts and different criteria for judgement. That's the last kind of empowerment Multi-Agent to solve: one person writes codes, another person stares.
+> And looking back, you'll find that there's a deeper problem: there's some tasks that can be solved, not "letting one work with one person." You let Agent write a security plan and let it examine itself -- it says, "No obvious problems." You looked at it as a human being and found three security hazards. Why? Because "creatives" and "reviewers" require different perspectives, different contexts and different criteria for judgement. That's the last kind of empowerment Multi-Agent to solve: one person writes codes, another person stares.
 
 ---
 
@@ -337,17 +337,17 @@ The example shows four iterative phases of Reflection around the knowledge assis
 The Reflection loop in the example is a teaching achievement, not a complete production framework: Validate simulates an external certifier with a definitive function, processing policy is generated by hard encoding according to the type of feedback rather than LLM dynamic, and costs are modelled. However, it presents a complete picture of the core skeletons of Reflection — external signal triggers, feedback classification, processing strategies to change input or control streams, stop condition hard coding — which remain unchanged in the real system.
 
 ```bash
-# Python 版本
+# Python Version
 cd examples/course-05-06-reflection/python
 python3 reflection_demo.py
 
-# Node.js 版本
+# Node.js Version
 cd examples/course-05-06-reflection/nodejs
 node reflection_demo.mjs
 ```
 
 ### Summary of this chapter
 
-The essence of Reflecting is not to "get the model rethinking" but to create a systematic mechanism in Runtme to "test the feedback and sort the decision-making process to validate or stop". Three main lines running through the chapter: **Validation must be externalized.** The credibility of Reflection depends entirely on the credibility of the certifier. If `validate()` It's "Let LLM examine itself," and that whole Reflection loop is that LLM is playing chess with itself -- judges and chess players are the same person. Test Frame, Schema Verify, Reference Original Comparison, User Rejected - These external anchorages are the basis of Reflection not becoming self-deception. Model self-evaluation outputs and original outputs share the same source of hallucinations. **Classification precedes treatment and is rooted in symptoms.** Seeing "test failure" run again — it's not reflection, it's prayer. Effective processing requires knowing “why fail”: is the code logic wrong or is the test environment broken? Did you quote an API that did not exist or an API that existed but was wrong? To fix the illusion as a tool parameter is to make Agent go further and further in the wrong direction. If an automatic correction is selected, the processing policy must change the input (prompt, parameter, tool selection or context) rather than simply rerun; if not, it should be downgraded, transferred or stopped. **The condition of cessation is the safety valve and cannot be left to the model.** The model does not have the instinct that it should stop - it will still say with confidence at the fifth treatment: “This time it should be right”. Maximum three retries, same feedback, two stops, maximum cost $1 — these must be hard coded and enforced while running. The condition of cessation is an OR relationship, and any satisfaction will stop. Reflection loop without conditions is more dangerous than no Reflection.
+The essence of Reflecting is not to "get the model rethinking" but to create a systematic mechanism in Runtme to "test the feedback and sort the decision-making process to validate or stop". Three main lines running through the chapter: **Validation must be externalized.** The credibility of Reflection depends entirely on the credibility of the certifier. If `validate()` It's "Let LLM examine itself," and that whole Reflection loop is that LLM is playing chess with itself -- judges and chess players are the same person. Test Frame, Schema Verify, Reference Original Comparison, User Rejected - These external anchorages are the basis of Reflection not becoming self-deception. Model self-evaluation outputs and original outputs share the same source of hallucinations. **Classification precedes treatment and is rooted in symptoms.** Seeing "test failure" run again — it's not reflection, it's prayer. Effective processing requires knowing "why fail": is the code logic wrong or is the test environment broken? Did you quote an API that did not exist or an API that existed but was wrong? To fix the illusion as a tool parameter is to make Agent go further and further in the wrong direction. If an automatic correction is selected, the processing policy must change the input (prompt, parameter, tool selection or context) rather than simply rerun; if not, it should be downgraded, transferred or stopped. **The condition of cessation is the safety valve and cannot be left to the model.** The model does not have the instinct that it should stop - it will still say with confidence at the fifth treatment: "This time it should be right". Maximum three retries, same feedback, two stops, maximum cost $1 — these must be hard coded and enforced while running. The condition of cessation is an OR relationship, and any satisfaction will stop. Reflection loop without conditions is more dangerous than no Reflection.
 
 ---

@@ -5,7 +5,7 @@
 Lesson 3 explains the smallest Agent closed ring:
 
 ```text
-Agent = LLM 决策 + 工具/环境交互 + 状态管理 + 循环控制
+Agent = LLM decision-making + tool/environment interaction + state management + loop control
 ```
 
 Course IV goes deep into the key links between "decision-making" and "implementation": **Tools/environment interface**.
@@ -21,8 +21,8 @@ These problems are not caused by the lack of models. They are rooted in: **The t
 
 ```text
 LLM Decision → Tool Selection → Parameter Generation
-    → Permission Check → Tool Execution
-    → Observation / Feedback → State Update
+ → Permission Check → Tool Execution
+ → Observation / Feedback → State Update
 ```
 
 Each step of the chain is likely to fail, and each step requires a corresponding mechanism. The goal of course IV is not to give you "access to more tools" but to understand how to use them as an optional, implementable, manageable, reusable, auditable **system mechanism**.
@@ -98,7 +98,7 @@ After this lesson, you will be able to:
 
 ### 1.1 Tool call is not a single API request
 
-Think back on course two: Toolformer and Function Calling. Toolformer proves one thing: models can learn when to call API. Function Calling standardized this matter into an engineering interface: the model no longer produces "recommends you to check the database," but rather a structured one. `{"tool": "query_db", "arguments": {...}}` 。
+Think back on course two: Toolformer and Function Calling. Toolformer proves one thing: models can learn when to call API. Function Calling standardized this matter into an engineering interface: the model no longer produces "recommends you to check the database," but rather a structured one. `{"tool": "query_db", "arguments": {...}}` .
 
 But there's an easily neglected jump. In the Function Calling design, the model is responsible only for **generating the call intent** — the real implementer is Runtime. This division of labour means that there is a whole chain of engineering that needs to be addressed from the model's "I want to call this tool" to "the result of the tool goes back to the next round of decision-making."
 
@@ -125,7 +125,7 @@ This link can directly map the smallest closed ring of course three -- it's taki
 
 ### 1.3 From Function Calling to Tool Mechanisms System
 
-Course 2 combusts the evolution of the tools to be used: Toolformer (2023.2) proves that models can learn to use tools →ChatGPT Plugins (2023.3) to transform "AI works" into a popular experience →Function Calling (2023.6) standardized interfaces for model generation tools to be used →MCP (2024) seeks to standardize the discovery and connection of tools.
+Course 2 combusts the evolution of the tools to be used: Toolformer (2023.2) proves that models can learn to use tools → ChatGPT Plugins (2023.3) to transform "AI works" into a popular experience → Function Calling (2023.6) standardized interfaces for model generation tools to be used → MCP (2024) seeks to standardize the discovery and connection of tools.
 
 Course 4 stands at these historical nodes, focusing on a question: **What mechanisms do you need to design when you really want models to be used in your own system?**![Overview of the Tool Mechanisms System](../assets/course-04-tool-mechanism-map.svg)
 
@@ -158,16 +158,16 @@ TOOL_READ_FILE = {
     "function": {
         "name": "read_file",
         "description": (
-            "读取 workspace 下的 UTF-8 文本文件。"
-            "当用户要求查看、阅读、检查某个文件内容时使用此工具。"
-            "注意：只能读取 workspace 目录下的文件，不能读取系统文件或外部路径。"
+            "Read UTF-8 text files under workspace."
+            "Use this tool when the user requests to view, read, and check the contents of a file."
+            "Note: Only documents under the workspace directory can be read, not system files or external paths."
         ),
         "parameters": {
             "type": "object",
             "properties": {
                 "path": {
                     "type": "string",
-                    "description": "文件相对于 workspace 的路径，例如 'notes.md' "
+                    "description": "Path to file relative to workspace, such as 'notes.md ' "
                 }
             },
             "required": ["path"]
@@ -186,34 +186,34 @@ Design elements:
 Compare the quality differences of the two descriptions:
 
 ```python
-# 糟糕的描述 — 太模糊，模型无法判断何时使用
+# Bad description.— It's too vague to judge when to use it.
 BAD_TOOL = {
     "name": "process_data",
-    "description": "处理数据",
+    "description": "Processing data."
     "parameters": {"properties": {"input": {"type": "string"}}}
 }
 
-# 好的描述 — 明确了场景、边界和约束
+# Good description.— The scenes, boundaries and constraints were clarified
 GOOD_TOOL = {
     "name": "summarize_document",
     "description": (
-        "将文本文件内容总结为指定数量的要点。"
-        "当用户要求'总结'、'概括'、'提炼要点'时使用。"
-        "注意：需要先通过 read_file 获取文件内容，不要在没有内容时调用。"
+        "Summarize the contents of the text document as elements of a specified quantity. "
+        "When the user requests 'summary', 'summary', 'computing points'."
+        "Note: The content of the document needs to be obtained first through read_file, and do not call without it."
     ),
     "parameters": {
         "type": "object",
         "properties": {
             "content": {
                 "type": "string",
-                "description": "要总结的文本内容（通常来自 read_file 的返回结果）"
+                "description": "Text content to summarize (usually returned from read_file)"
             },
             "num_points": {
                 "type": "integer",
                 "minimum": 1,
                 "maximum": 10,
                 "default": 5,
-                "description": "总结的要点数量，1-10，默认 5"
+                "description": "Number of points summarized, 1-10, default 5"
             }
         },
         "required": ["content"]
@@ -233,11 +233,11 @@ from typing import Any
 
 @dataclass
 class ToolResult:
-    """统一的工具返回结构"""
+    """Unified tool return structure."""
     status: str                          # "success" | "error"
-    summary: str                         # 简短摘要，会被放入上下文
-    data: Any | None = None              # 完整数据，可能较长
-    error: dict[str, str] | None = None  # 错误详情，仅 status="error" 时有值
+    summary: str                         # A short summary will be placed in the context
+    data: Any | None = None              # Complete data, possibly longer
+    error: dict[str, str] | None = None  # Error Details, only status="error" Time value
 
     @classmethod
     def success(cls, summary: str, data: Any = None) -> "ToolResult":
@@ -271,7 +271,7 @@ Tool particle size is the most easily neglected but most influential design deci
 
 Taken together, good tools usually have these characteristics:
 
-- **Atomic**: a tool to do a sort of clear action. Do not read files and e-mail a tool.
+- **Atomic**: a tool to do a sort of clear action. Do not read_files and e-mail a tool.
 - **Description is the document**: Tool description is the main or even the only document for the model understanding tool.
 - **Boundary clarity**: a clear statement of when and when to use. The latter is as important as the former.
 - **Structural returns**: Both successes and failures have uniform formats, and errors include codes, reasons and recommendations.
@@ -288,7 +288,7 @@ Taken together, good tools usually have these characteristics:
 The tool selection essentially answers three questions at one decision point:
 
 ```text
-什么时候用工具 → 用哪个工具 → 参数怎么填
+When do you use the tools? → What tool? → How do you fill the parameters?
 ```
 
 Any one of these three steps is wrong, and the tool will fail. And the root cause of the error is often not "no model" but tool definition, context or route design.
@@ -296,17 +296,17 @@ Any one of these three steps is wrong, and the tool will fail. And the root caus
 For example, users say:
 
 ```text
-请总结 notes.md 的内容。
+Please summarize the content of notes.md.
 ```
 
 Correct behaviour and possible errors:
 
 ```text
-正确：read_file("notes.md") → 获取内容 → 返回总结
-错误1：不读文件，直接编造一份"总结"        ← 该用不用（幻觉）
-错误2：search_web("notes.md")              ← 选错工具（边界混淆）
-错误3：read_file("note.md")               ← 参数填错（少了一个 s）
-错误4：read_file 成功后再次 read_file     ← 重复调用（缺进展判断）
+Correct: read_file("notes.md") → Get Content → Return Summary
+Error 1: Make a "summation" without reading the file.← Should I use it?
+Error 2:search_web("notes.md")← Wrong selection tool (boundary confusion)
+Error 3: read_file ("note.md")← Error filling arguments (one less s)
+Error 4: read_file again after success← Repeated calls (lack of progress judgement)
 ```
 
 ### 3.2 Three route methods
@@ -316,7 +316,7 @@ Look at a problem that is common in a real system: the first week of Agent's acc
 The problem is not just the wrong model. The more tools, the more they describe the context in which they are used; the more similar tools, the blurring of borders; and the more high-risk and low-risk tools mix, the more control of authority becomes dangerous. The vehicle route in the production system, the core is not "mixed smart enough" but:
 
 ```text
-系统应该让模型在什么范围内做决策？
+Within what scope should the system let the model make decisions?
 ```
 
 There are usually three ways to achieve the choice of tools, the core difference being "who has the right to make decisions". **Modalities I: Model ownership**. Inserts a list of tools into the context to allow the model to determine which to call and which to call. **Mode II: Rules route**. The tool is determined by code based on input characteristics. **Mode III: Mixed route**. The rules reduce the pool of candidates first, and models are selected in the pool.
@@ -336,10 +336,10 @@ Most of the cases, except for mandatory and prohibited ones, should go into cand
 In the practice of Claude Code/Agent Skills, there is a useful idea: **progressive disclosure**. Its core is not a particular document format, but a context management principle:
 
 ```text
-不要在一开始暴露所有能力细节。
-先暴露能力索引。
-模型判断相关后，再加载具体说明。
-真正要执行时，再读取深层文档、示例或脚本。
+Don't reveal all the details at first.
+Exposure index.
+When the model is judged relevant, the specification is loaded.
+When you really want to perform, read a deep document, example or script.
 ```
 
 Putting this idea into a tool mechanism can be divided into three layers:
@@ -363,28 +363,28 @@ Can not get folder: %s: %s A more reliable router will look at seven categories 
 A specific example:
 
 ```text
-用户请求：帮我看看 notes.md 里关于工具机制写得怎么样。
+User request: See how the tools are written in notes.md.
 
-上下文判断：
-- 意图：读取 + 分析
-- 阶段：探索 / 读取
-- 资源范围：本地文件
-- 权限：允许读取，不允许写入
-- 风险：低风险，只读
-- 证据：必须读取真实文件，不能凭空总结
+The context determines that:
+- Intent: Read+ Analysis
+- Stage: Explore / Read
+- Resource range: local documents
+- Permission: readable, not written
+- Risk: low risk, read-only
+- Evidence: Real documents must be read and cannot be summed up.
 
-候选工具：
+Candidates:
 - read_file
-- list_files（如果文件路径不明确）
+- list_files(If the file path is not clear)
 
-被过滤掉的工具：
-- write_file（用户没有要求修改）
-- search_web（用户指定的是本地文件）
-- send_email（无关且有外部副作用）
-- deploy_project（无关且高风险）
+Filtered tools:
+- write_file(Other Organiser
+- search_web(Other Organiser
+- send_email(It's irrelevant and has external side effects)
+- deploy_project(It's irrelevant and high risk)
 ```
 
-This is when the model is not freely chosen among dozens of tools, but is focused on a very small candidate: "The path is clear, so call directly." `read_file` 。"
+This is when the model is not freely chosen among dozens of tools, but is focused on a very small candidate: "The path is clear, so call directly." `read_file` ."
 
 The most important conclusion in this section is that **the tool route does not give the choice to the model in its entirety, but rather to the choice of the power layer.** The system determines the range of candidates, the model is semantically judged within the range and Runtime performs permissions and parameters validation before execution. The more tools and risks, the more candidate management and progressive disclosure should be used.
 
@@ -403,16 +403,16 @@ Do not change the Prompt only when the tool selection is wrong. Question of loca
 A specific debugging case:
 
 ```text
-问题：用户说"帮我看看 notes.md 写了什么"，模型调了 search_web("notes.md")
+Question: The user says, "Look at what's written for me.md."
 
-根因分析：
-1. 检查上下文 — 模型收到了 tools 列表，其中包括 read_file 和 search_web
-2. 检查工具描述 — read_file 的描述只说"Read a file"，没说它和 search_web 的区别
-3. 检查语义边界 — 两个工具的描述都没有明确各自的适用/不适用场景，模型无法有效区分
+Root analysis:
+1. Check Context— models received list of tables, including read_file and search_web
+2. Check Tool Description— read_file The description just says "Read a file" and doesn't say it's different from "search_web"
+3. Check semantic boundaries— The description of both tools is not clear on their respective application/disapplicability scenarios and the model cannot be effectively distinguished
 
-修复：
-- read_file 描述中加上："当用户指定了具体文件名时使用此工具，例如'读取 notes.md'。"
-- search_web 描述中加上："当用户要求搜索广泛信息、最新资讯时使用。不要用于读取用户指定的本地文件。"
+Restoration:
+- read_file Add in the description: "Use this tool when the user has specified a specific filename, such as 'read notes.md'."
+- search_web Add the following to the description: "When users request extensive, up-to-date information. Do not read local files specified by the user."
 ```
 
 Principles for the selection of debugging tools: **Discrete the problem of the definition of tools before adjusting Prompt and finally doubt the capacity of the model.** ---
@@ -421,17 +421,17 @@ Principles for the selection of debugging tools: **Discrete the problem of the d
 
 ### 4.1 Runtme is the real enforcer.
 
-Models are generated tool call, which does not mean that tools have been implemented. The model just says, "I want to call read file, the parameter is notes.md." It's Runtme that really reads the file, processes the error, formats the result.
+Models are generated tool call, which does not mean that tools have been implemented. The model just says, "I want to call read_file, the parameter is notes.md." It's Runtme that really reads the file, processes the error, formats the result.
 
 Runtme's role in the tool implementation chain:
 
 ```python
 execute_tool_call(tool_name, arguments, tools, permissions, logger):
-    # 1. 校验工具是否存在 → 不存在则返回 tool_not_found 错误
-    # 2. 校验参数（必填项、类型、约束）→ 不通过则返回具体校验错误
-    # 3. 检查权限（deny 优先，默认拒绝）→ 不通过则返回 permission_denied
-    # 4. 记录审计日志（谁、什么工具、什么参数、什么时间）
-    # 5. 执行工具 → 成功返回结果，异常返回结构化错误（含 retryable 标记）
+    # 1. Verify tool exists → return a tool_not_found error
+    # 2. Validation parameters (requirements, types, constraints) → Unable to pass returns specific verification error
+    # 3. Check permissions (deny priority, default rejection) → Returns if failed
+    # 4. Record audit logs (who, what tools, what parameters, what time)
+    # 5. Implementation tool → Successful return result, abnormal return structural error (with retryable tag)
 ```
 
 This is the concrete expression of the core principles of Curriculum III at the tool level: **Model decision-making, Runtime implementation.** The model should not have the opportunity to bypass the permission check, nor should it decide for itself that "not to read the document."
@@ -442,26 +442,26 @@ The verification of the pre-implementation parameters is the first line of defen
 
 ```python
 validate_params(tool_name, arguments, tools):
-    # 1. 从工具的 parameters Schema 中读取 required 和 properties
-    # 2. 遍历 required 列表 → 缺失则返回 missing_required 错误
-    # 3. 遍历 arguments → 检查类型匹配（integer 不能传 string）
-    #                    → 检查 enum 约束（值必须在允许范围内）
-    # 4. 全部通过返回 None，任何失败返回结构化错误
+    # 1. Read required and properties from tools
+    # 2. Walk Through List → Missing returns missing required error
+    # 3. Iterate over arguments → check type matches (integer cannot pass string)
+    # → Check enum bounds (values must be allowed)
+    # 4. Return None, any failed return structural error
 ```
 
 The implementation of tools also requires time-out and retry protection. Core model:
 
 ```python
-# 超时：每个工具设置执行时限，超时即中断
-# 重试：仅对幂等操作重试（读文件 ✓，发邮件 ✗），指数退避
-# 两者通过装饰器或中间件统一施加，不要在工具函数内部实现
+# Timeout: each tool sets an implementation time frame, timeout is interrupted
+# Retry: retrying only for the idempotent operations (read_files)✓,Send Mail✗),exponential backoff
+# Both are applied uniformly through decorators or intermediates, not within tool functions
 
 @timeout(30s)
 @retry(max=2, backoff=exponential)
-query_database(sql) → 只读查询，幂等 → 安全重试
+query_database(sql) → Read-only queries, et cetera → Safe Retry
 
 @timeout(10s)
-send_email(to, subject, body) → 非幂等 → 不加 retry，防止重复发送
+send_email(to, subject, body) → Non-prescriptive → No retry, prevent duplicates.
 ```
 
 Key findings of the re-test strategy: **Is this operation consistent?** Read the file → to try again. Check the database (read-only) and try again. Sending an email can not simply retry (possibly repeat). The creation of an order cannot simply be repeated (possibly double deduction).
@@ -473,17 +473,17 @@ When tools fail, the quality of the information returned determines the quality 
 Compare two errors to return:
 
 ```python
-# 糟糕：模型拿到这个不知道该干什么
+# Shit: I don't know what to do with this.
 "Error: failed"
 
-# 好的：模型能据此判断下一步
+# Okay. The model will determine the next step.
 {
   "status": "error",
   "error": {
     "code": "permission_denied",
-    "message": "文件 '/etc/passwd' 不在允许的 workspace 范围内",
+    "message": "The file '/etc/passwd' is not within the permitted workspace',
     "retryable": false,
-    "suggested_action": "请选择 workspace 目录下的文件重试"
+    "suggested_action": "Select the file under the workspace directory to retry."
   }
 }
 ```
@@ -523,9 +523,9 @@ The model gets this, and it doesn't know if the file doesn't exist, it doesn't h
   "status": "error",
   "error": {
     "code": "file_not_found",
-    "message": "文件 'notes.md' 在 workspace 中不存在",
+    "message": "'notes.md' does not exist in workspace.",
     "retryable": false,
-    "suggested_action": "请确认文件路径是否正确，或使用 list_files 查看 workspace 中的可用文件"
+    "suggested_action": "Please confirm the file path, or use list_files to view available files in the workspace."
   }
 }
 ```
@@ -533,11 +533,11 @@ The model gets this, and it doesn't know if the file doesn't exist, it doesn't h
 When the model gets this, it makes a reasonable judgment immediately:
 
 ```python
-Thought: 文件不存在。我应该列出 workspace 下的文件，让用户看到有哪些可选。
+Thought: File does not exist. I should list the documents under the workspace so that users can see what options are available.
 Action: list_files()
 Observation: ["notes.txt", "readme.md", "src/"]
-Thought: 没有 notes.md，但有一个 notes.txt，可能是用户记错了文件名。
-Action: ask_user("没有找到 notes.md，但发现了 notes.txt。您是指这个文件吗？")
+Thought: No notes.md, but there's one notes.txt, probably the user miscarded the file name.
+Action: ask_user("No notes.md, but notes.txt. You mean this file??")
 ```
 
 This contrast illustrates the central design principle of Observation: **Observation is not reporting on what happened, but is providing the basis for the next round of decision-making.** It should allow models to judge what to do next without speculation.
@@ -577,12 +577,12 @@ The problem with these operations is not that the model has bad intentions, but 
 Risk classification of tools first:
 
 ```python
-风险等级（从低到高）：
-  L1 READ_ONLY_LOW   — 读取公开资料、搜索网页        → auto（自动执行）
-  L2 READ_ONLY_MED   — 读取用户文件、查询数据库      → auto
-  L3 WRITE_LOW       — 写入草稿、生成本地临时文件    → confirm（执行前确认）
-  L4 WRITE_HIGH      — 修改用户文件、更新数据库记录  → confirm
-  L5 DANGEROUS       — 删除、支付、发布、线上配置    → deny（默认禁止）
+Risk level (from low to high):
+  L1 READ_ONLY_LOW   — Read public information, search_web pages → auto(Auto-execution)
+  L2 READ_ONLY_MED   — Read user files, query databases → auto
+  L3 WRITE_LOW       — Write drafts, generate local temporary files → confirm(Prior to implementation)
+  L4 WRITE_HIGH      — Modify user files, update database records → confirm
+  L5 DANGEROUS       — Delete, Pay, Publish, Online Configuration → deny(Default Ban)
 ```
 
 Risk classification is not once and for all. It will also be judged in relation to operational objects (delegate temporary files vs delete production data), scope of operations (modify a field vs modify the entire table), and user authorization levels.
@@ -592,35 +592,35 @@ Risk classification is not once and for all. It will also be judged in relation 
 There are only two core principles of competence design:
 
 ```text
-Deny-first：默认拒绝，明确允许。
-最小权限：只给 Agent 当前任务所需的最小工具、最小数据、最小作用域。
+Deny-first:Default refusal, explicitly allowed.
+Minimum permission: Only the smallest tool, minimum data, minimum field required by Agent for the current task.
 ```
 
 Code realization:
 
 ```python
 PermissionChecker:
-    rules = []   # 规则列表，deny 优先级高于 allow
+    rules = []   # Rule list, Deny priority above allow
 
-    allow(tool, condition=None)   # 添加允许规则
-    deny(tool, condition=None)    # 添加拒绝规则
+    allow(tool, condition=None)   # Add permitted rules
+    deny(tool, condition=None)    # Add rejection rule
 
     check(tool_name, arguments):
         for rule in rules:
             if rule is deny and match(rule, tool_name, arguments):
-                return False          # 命中 deny → 直接拒绝
+                return False          # Hit, Danny. → Direct refusal
         for rule in rules:
             if rule is allow and match(rule, tool_name, arguments):
-                return True           # 命中 allow → 允许
-        return False                  # 都没命中 → 默认拒绝
+                return True           # All right. → Allow
+        return False                  # I didn't get hit. → Default Rejection
 
-# 配置示例
+# Configure Example
 checker.allow("read_file", path in "workspace/")
 checker.deny("read_file",  path contains "secrets")
 checker.allow("write_file", path in "workspace/output/")
-checker.deny("delete_file")               # 全面禁止
+checker.deny("delete_file")               # Total prohibition
 checker.deny("send_email")
-# 未列出的工具 → 默认拒绝
+# Unlisted Tools → Default Rejection
 ```
 
 The main point of this design is that **deny has priority over allow, and non-listed tools are defaulted.** This clears the security boundaries of the access strategy -- you don't have to worry about "if there's a dangerous tool missing," because automatics that are not listed are useless.
@@ -645,7 +645,7 @@ The audit log is the basis for the tool to call security - there's no log, and y
   "tool_name": "write_file",
   "arguments": {
     "path": "output/summary.md",
-    "content_preview": "课程四工具机制总结...",
+    "content_preview": "Course 4 Tool Mechanism Summary...",
     "content_sha256": "9f86d081884c7d659a2feaa0c55ad015"
   },
   "risk_level": "WRITE_LOW",
@@ -696,15 +696,15 @@ User feedback must return to Agent status:
 
 ```python
 handle_user_feedback(state, feedback):
-    # 将用户反馈写入状态，影响下一轮决策
+    # Writing user feedback to state, influencing the next round of decision-making
     state.user_feedback = feedback
     state.history.append({step, type: "user_feedback", feedback})
 
     if feedback.type == "rejected":
-        # 用户拒绝 → 记录原因，模型下一轮据此调整策略
-        state.context_hint = "上轮被拒绝，原因：{reason}"
+        # User Refuse → Record the reason, and the model adjusts its policy to the next round.
+        state.context_hint = "The previous round was rejected because:{reason}"
     elif feedback.type == "modified":
-        # 用户修改了参数 → 用修改后的参数重新执行
+        # User modified arguments → Re-execut with modified parameters
         state.pending_action = {tool, arguments: modified_args}
     return state
 ```
@@ -742,43 +742,43 @@ They are not competitive relationships, but a relationship: MCP Server Exposure 
 MCP defines three core objects. The following is a complete MCP Server definition example of what they are:
 
 ```python
-# MCP Server 定义示例：一个"文件管理"服务
+# MCP Server Example of definition: a "document management" service
 
 server = Server("file_manager")
 
-# 1. Tools — 可执行动作（有名称、描述、参数 Schema）
+# 1. Tools — Executable Actions (with name, description, parameters Schema)
 @server.tool()
 def read_file(path: str) -> str:
-    """读取 workspace 下的文本文件。当用户指定具体文件名时使用。"""
+    """Reads text files under workspace. Use when the user specifies a specific filename. """
 
 @server.tool()
 def search_files(query: str, path: str) -> list:
-    """搜索文件内容。当用户要求'找一下'、'有没有关于X的文件'时使用。"""
+    """Search file contents when the user asks whether a file contains X."""
 
-# 2. Resources — 可读取的数据资源（只读，通过 URI 访问）
+# 2. Resources — Readable data resources (read-only, accessed through URI)
 @server.resource("docs://{name}")
 def get_document(name: str) -> str: ...
 
 @server.resource("config://app")
 def get_app_config() -> dict: ...
 
-# 3. Prompts — 可复用的提示模板（任务级，按需载入）
+# 3. Prompts — Reusable reminder template (task level, load as required)
 @server.prompt()
 def code_review_template(diff: str) -> str:
-    """代码审查模板，定义审查维度和输出格式。"""
+    """Code review template defining review dimensions and output format."""
 
-# 启动：两种传输方式
-server.run(transport="stdio")   # 本地子进程，适合开发调试
-server.run(transport="http")    # HTTP + SSE，适合生产环境、多 Agent 共享
+# Start: Two modes of transmission
+server.run(transport="stdio")   # Local subprocess, suitable for developing debugging
+server.run(transport="http")    # HTTP + SSE,Fit to a production environment, multiple Agent sharing
 ```
 
 This example shows the full picture of MCP Server. Note the choice of two modes of transmission:
 
 - **stdio**: Server is initiated as a sub-process to communicate with Client through standard input output. Fits to single machine development - simple, network configuration is not required, but Server life cycle binds the Client process.
 - **HTTP/SSE**: Server runs as an independent HTTP service, Client is remotely connected by HTTP + Server-Sent Events. Fits to a production environment - Server can deploy independently, extend horizontally and be shared by multiple Agents.
-- **Tools** （ `read_file ` 、 ` search_files` ): Agent can call an enforceable action. Each Tool has a name, description and parameters Schema (auto-generated by type note). Corresponding to the definition of tools discussed earlier in this course - MCP places the definition and implementation in the same Server.
-- **Resources** （ `docs://{name}` 、 ` config://app `:Agent can read data resources. Tool executes action, source exposure data. Resources is read-only -- Agent can do it. ` docs://readme` This URI reads the document, but cannot modify it.
-- **Prompts**（ `code_review_template`: A reusable reminder template. The difference with System Prompt is that Prompt is at **task level** — Agent is loaded on demand when dealing with a given task, not always in context.
+- **Tools** ( `read_file ` 、 ` search_files` ): Agent can call an enforceable action. Each Tool has a name, description and parameters Schema (auto-generated by type note). Corresponding to the definition of tools discussed earlier in this course - MCP places the definition and implementation in the same Server.
+- **Resources** ( `docs://{name}` 、 ` config://app `:Agent can read data resources. Tool executes action, source exposure data. Resources is read-only -- Agent can do it. ` docs://readme` This URI reads the document, but cannot modify it.
+- **Prompts**( `code_review_template`: A reusable reminder template. The difference with System Prompt is that Prompt is at **task level** — Agent is loaded on demand when dealing with a given task, not always in context.
 
 For Agent developers, MCP is worth turning "access to a new tool" from "writing an integrated code" to "connecting a MCP Server". This Server can be independently deployed, independently updated, shared by multiple Agents -- just like the editor connects to any language grammatical service through LSP.
 
@@ -787,40 +787,40 @@ For Agent developers, MCP is worth turning "access to a new tool" from "writing 
 Server defines the tool, and Clarent is responsible for discovery, connection and call. The following is an example of the use of MCP Client in Argentina:
 
 ```python
-# MCP Client 的核心职责：连接 → 发现 → 注册 → 调用
+# MCP Client Core responsibilities: connectivity → Found → Registration → Call
 
 class MCPToolProvider:
-    clients: dict   # server_name → Client 连接
+    clients: dict   # server_name → Client Connection
     tools: dict     # tool_name → {schema, callable}
 
-    # ── 两种传输方式 ──
+    # ── Two modes of transmission──
     connect_stdio(name, command, args):
-        # 启动本地子进程，通过标准输入输出通信
-        # 适用：单机开发，零网络配置
+        # Commencing local subprocesses and communicating via standard input
+        # Application: single machine development, zero network configuration
 
     connect_http(name, url):
-        # 连接远程 HTTP Server，通过 SSE 维持通道
-        # 适用：Server 独立部署，多 Agent 共享
+        # Connect remote HTTP Server to maintain channel via SSE
+        # Application: Server independent deployment, multiple Agent sharing
 
-    # ── 两种注册方式 ──
+    # ── Two forms of registration──
     discover_and_register(server, client):
-        # 连接后调用 list_tools() 自动发现，动态注册
-        # 优点：Server 更新工具后 Client 无需改代码
+        # Link to call list tools() automatically discovered, dynamically registered
+        # Advantages: Clint does not need to change the code after the Server update tool
 
     register_static(server, url, tool_defs):
-        # 提前声明工具 Schema，lazy connect（首次调用时才建立连接）
-        # 优点：启动时不依赖 Server 在线
+        # Advance Declaration Tool Schema, lazy conect (connection only when first called)
+        # Advantages: Start without reliance on Server Online
 
-    # ── 调用 ──
+    # ── Call──
     call_tool(server, tool, args):
-        # 通过 MCP 协议调用远程工具，返回统一格式结果
+        # Call remote tool via MCP protocol to return to uniform format results
 
-# ── 在 Agent 循环中的使用 ──
+# ── Use in Agent Loop──
 provider = MCPToolProvider()
 provider.connect_stdio("file_manager", "python", ["mcp_server.py"])
 provider.connect_http("weather", "http://tools.internal:8090/sse")
 
-# 所有工具合并为统一 Function Calling Schema → 模型看到的是统一列表
+# Merge all tools into Unified Calling Schema → The model sees a uniform list.
 all_tools = {provider.tools, local_tools}
 ```
 
@@ -854,12 +854,12 @@ The goal of introducing MCP in this class is not to get you into an MCP system i
 Suppose you found out that Agent was always following this pattern in the code review mission:
 
 ```text
-1. 读 git diff
-2. 判断改动类型（新增/修改/删除）
-3. 逐文件检查潜在 bug
-4. 检查测试覆盖是否足够
-5. 如果改动涉及关键路径，运行相关测试
-6. 按严重程度组织 review 输出
+1. Read
+2. Type of change judged (new/modified/deleted)
+3. Document-by-document check for potential bug
+4. Check if test coverage is sufficient
+5. If the change involves a key path, run the relevant test
+6. Organize review output by severity
 ```
 
 Every mission model has to re-think these steps, waste Token, and occasionally miss the steps. That is the problem that Skill is going to solve: **Stable combination of tools and step experiences are packaged into reusable capability modules.** Tool addresses "what can you do?" (reading files, running tests). Skill solves "how to do a type of job" (code review, document summary, data analysis). The relationship is like the screwdriver and the furniture assembly instructions. The former are tools, the latter tell you what tools, what sequences, how to deal with problems.
@@ -871,27 +871,27 @@ A Skill usually contains the following:
 ```python
 CODE_REVIEW_SKILL = {
     name: "code_review"
-    description: "审查 git diff，检查 bug、安全问题、测试覆盖和代码质量"
-    when_to_use: "用户要求 review、审查代码、检查 PR 时"
-    when_not_to_use: "用户只是询问代码含义、要求写新代码时"
+    description: ""Check git diff, check bug, security, test cover and code quality."
+    when_to_use: "User requests review, review code, check PR"
+    when_not_to_use: "When the user asks what the code means, asks for a new code."
     tools_needed: [read_file, run_shell, search_text]
 
     recommended_steps:
-        1. git diff → 获取改动
-        2. 判断改动类型和范围（新增/修改/删除，涉及哪些模块）
-        3. 逐文件 read_file → 检查逻辑变更和边界条件
-        4. search_text → 检查测试覆盖
-        5. run_shell → 运行关键测试（仅当改动涉及关键路径）
-        6. 按严重程度组织输出：Critical > Major > Minor > Suggestion
+        1. git diff → Get changes
+        2. Type and scope of changes (additional/modified/deleted, which modules are involved)
+        3. file-by-fileread_file → Check logical changes and boundary conditions
+        4. search_text → Check Test Overwrite
+        5. run_shell → Run key tests (only when changes involve key paths)
+        6. Organisation by severity: Cristical> Major > Minor > Suggestion
 
     failure_handling:
-        git_diff_empty → "告知用户无改动，确认分支"
-        test_not_found → "标记缺少测试覆盖，不阻塞流程"
-        diff_too_large → "先摘要再分段审查"
+        git_diff_empty → "Tell the user no change. Confirm branch."
+        test_not_found → "The tag lacks test cover and does not block the process."
+        diff_too_large → ""Summary and review in sequence."
 
     disabled_scenarios:
-        - 不在无 git 仓库的目录使用
-        - 不用于审查二进制文件
+        - Not in directory without guit repository
+        - Not used to review binary files
 }
 ```
 

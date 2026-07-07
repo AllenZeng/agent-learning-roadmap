@@ -34,12 +34,12 @@ In real projects, empowerment does occur frequently. Personal Knowledge Assistan
 The better order is - let the problem drive into the rhythm:
 
 ```text
-先让最小闭环跑起来
-  -> 观察第一个明确的问题模式
-  -> 用最小版本的能力修复它
-  -> 评测是否真的变好了
-  -> 再观察下一个瓶颈
-  -> 循环
+Let's get the smallest ring running.
+  -> Watch the first clear problem pattern.
+  -> We'll fix it with a minimum of capacity.
+  -> Is the evaluation really getting better?
+  -> Watch the next bottleneck.
+  -> Loop
 ```
 
 Do not join the system because a certain ability is popular in the community. Each capability should be supported by problematic evidence and evaluation methods before entering the system. If you can't say "What problem the user has at what point when there is no RAG," then RAG should not be your first priority.
@@ -49,18 +49,18 @@ Do not join the system because a certain ability is popular in the community. Ea
 Look at a scene. A team decided to be an "Agent" all-powerful code assistant, introducing seven capabilities simultaneously in a sprint:
 
 ```
-Sprint 目标：构建 SuperCodeAgent v1.0
+Sprint Target: Build SuperCodeAgent v1.0
 
-第一周：
-- 接入 RAG：索引公司内部全部代码仓库文档
-- 接入 Memory：保存用户所有编码习惯和偏好
-- 接入 Planning：支持多步骤重构计划自动拆解
+First week:
+- Access RAG: All code repository documents within index company
+- Access memory: Save all user code habits and preferences
+- Accessing Planning: Supporting multi-step reshuffle plan self-dismantling
 
-第二周：
-- 接入 Reflection：代码生成后自动审查并修正
-- 接入 Multi-Agent：一个写代码，一个审代码，一个写测试
+Week two:
+- Access: Automatically review and correct code generation
+- Access Multi-Agent: one writing code, one review code, one writing test
 
-Sprint 结束后上线，结果：
+Sprint Online after completion, results:
 ```
 
 **User feedback on first day:**
@@ -99,16 +99,16 @@ Every capacity also has a quiet cost in solving problems. Before the decision is
 **Cost amplification effect:** When multiple combinations of capacities, the cost is not simply added up, but is interactively amplified:
 
 ```text
-单能力延迟：
-  RAG 检索：800ms
-  Planning 拆解：1.2s
-  Reflection 修正：+1 轮 LLM 调用（1.5s）
-  Multi-Agent 协调：+500ms
+Single capacity delay:
+  RAG Search: 800 ms
+  Planning Dismantling: 1.2s
+  Reflection Amendments: + 1 round LLM Call (1.5s)
+  Multi-Agent Coordination:+500ms
 
-组合后延迟：
+Delay after grouping:
   RAG + Planning + Reflection + Multi-Agent
-  = 800ms + 1.2s + (1.5s × Agent数) + 500ms + 协调等待
-  ≈ 5-8 秒（用户感知的"卡顿"）
+  = 800ms + 1.2s + (1.5s × number of Agents)+ 500ms + Coordination waiting
+  ≈ 5-8 seconds (user-perceived lag)
 ```
 
 That is why the introduction of capabilities requires restraint — the waiting time of users, your debugging time, the probability of system error is growing every step.
@@ -119,33 +119,33 @@ Instead of using capability as a binary switch, let's see how complicated they a
 
 ```text
                         ┌─────────────────────────┐
-                        │  高复杂度：自适应协同     │
-                        │  多 Agent 根据任务自动    │
-                        │  组队、分工、互审         │
+                        │  High complexity: self-adaptation synergy│
+                        │  More Agent Auto by Task│
+                        │  Teaming, division of labour, mutual review│
                         ├─────────────────────────┤
-                        │  高复杂度：决策边界       │
-                        │  具备 Human-in-the-loop   │
-                        │  高风险操作人类确认       │
+                        │  High complexity: decision-making boundaries│
+                        │  Has Human-in-the-loop│
+                        │  High-risk operational human confirmation│
                         ├─────────────────────────┤
-                        │  中高复杂度：自我修正     │
-                        │  单 Agent 具备 Reflection │
-                        │  检测失败并自动重试/修正  │
+                        │  Medium high complexity: self-correction│
+                        │  Single Agent has Reflection│
+                        │  Test failed and automatically retry/correct│
                         ├─────────────────────────┤
-                        │  中高复杂度：复杂任务编排 │
-                        │  单 Agent 具备 Planning   │
-                        │  多步骤任务自动拆分执行   │
+                        │  Medium and high complexity: complex tasking│
+                        │  Single Agent with Planning│
+                        │  Multistep tasks automatically split│
                         ├─────────────────────────┤
-                        │  中复杂度：上下文管理     │
-                        │  具备 Context Engineering │
-                        │  分层、预算、优先级管理   │
+                        │  Medium complexity: Context management│
+                        │  Available Context Engineering│
+                        │  Layers, budgets, priority management│
                         ├─────────────────────────┤
-                        │  中复杂度：状态感知       │
-                        │  单 Agent 具备 RAG+Memory │
-                        │  能访问外部知识、记住偏好 │
+                        │  Medium complexity: state perception│
+                        │  Single Agent with RAG+Memory │
+                        │  Access to external knowledge, remember preferences│
                         ├─────────────────────────┤
-                        │  基线：最小闭环           │
+                        │  Baseline: minimum closed ring│
                         │  LLM + Tool Use + Loop    │
-                        │  处理简单、独立的任务     │
+                        │  Dealing with simple, independent mandates│
                         └─────────────────────────┘
 ```
 
@@ -166,50 +166,50 @@ The following is the actual introduction of the rhythm (simplified) within three
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
-│  第 0 周：最小闭环上线                                    │
-│  - LLM + 基础对话                                         │
-│  - 用户手动粘贴资料内容                                    │
-│  - 核心指标：回答是否合理（人工判断）                       │
+│  Week 0: Minimum closed loop on line│
+│  - LLM + Basic dialogue│
+│  - User manually paste information content│
+│  - Core indicator: Reasonable answers (manual judgement)│
 ├─────────────────────────────────────────────────────────┤
-│  第 2 周：问题发现 — RAG 引入                              │
-│  用户反馈："每次都要手动粘贴笔记，太麻烦了"                  │
-│  问自己："这个问题有多频繁？" → 70% 的对话都需要查资料       │
-│  引入：Markdown 文档索引 + 向量检索 + 引用输出              │
-│  评测：20 个固定问题，检查召回率、答案准确性、引用正确性       │
-│  结果：召回率 78% → 优化分块策略后 → 89%                   │
+│  Week 2: Problem finding— RAG Introduction│
+│  User feedback: "It's too much trouble to post notes manually every time."│
+│  Ask yourself, "How often is this question?"?" → 70% All the conversations need information.│
+│  Introduction: Markdown Document Index+ Vector Search+ Reference Output│
+│  Assessment: 20 fixed questions, check recall rate, answer accuracy, quote correctness│
+│  Result: recall rate 78% → Optimizing the segment policy → 89%                   │
 ├─────────────────────────────────────────────────────────┤
-│  第 6 周：问题发现 — Memory 引入                           │
-│  用户反馈："每次开启新对话，它都忘了我在研究什么"            │
-│  问自己："跨会话上下文对体验影响多大？" → 用户平均 3-5 次会话 │
-│  引入：会话摘要 + 关键信息持久化                            │
-│  评测：跨会话追问 10 个场景，检查上下文衔接准确性            │
-│  结果：衔接准确率 82% → 调整摘要策略后 → 91%               │
+│  Week 6: Problem finding— Memory Introduction│
+│  User feedback: "Every time a new conversation starts, it forgets what I'm working on."│
+│  Ask yourself, "How much does cross-session context affect experience?"?" → Average of 3-5 meetings for users│
+│  Introduction: Session Summary+ Sustainability of key information│
+│  Evaluation: Cross-session queries 10 scenes to check context connection accuracy│
+│  Result: Connection accuracy rate 82% → After adjusting the summary policy → 91%               │
 ├─────────────────────────────────────────────────────────┤
-│  第 8 周：问题发现 — Context Engineering 引入              │
-│  用户反馈："接了 RAG 和 Memory 后，上下文经常超限，         │
-│           偶尔会忽略我之前设的规则"                           │
-│  问自己："几个信息源了？组织方式合理吗？" → 3 个信息源       │
-│  引入：上下文分层 + Token 预算 + 工具输出压缩                │
-│  评测：10 个约束遗忘测试场景，检查约束遵守率                  │
-│  结果：约束遵守率从 72% 提升到 94%                          │
+│  Week 8: Problem finding— Context Engineering Introduction│
+│  User feedback: "After receiving RAG and Memory, the context is often overstretched.│
+│           "Sometimes I ignore the rules I set."│
+│  Ask yourself, "Some sources.?Is the organization reasonable??" → 3 information sources│
+│  Introduction: Context Layer+ Token Budget+ Tool Output Compression│
+│  Assessment: 10 binding forgotten test scenarios, check binding compliance rates│
+│  Result: binding compliance rate from 72% Raise to 94%                          │
 ├─────────────────────────────────────────────────────────┤
-│  第 12 周：问题发现 — Planning 引入                        │
-│  用户反馈："让它帮我整理一周的笔记，它经常漏掉某些文件夹"      │
-│  问自己："任务是线性的还是需要动态规划？" → 需要分支处理     │
-│  引入：简单的 ReAct 模式，允许 Agent 自己决定下一步           │
-│  评测：10 个多步骤整理任务，检查步骤覆盖率和遗漏率            │
-│  结果：遗漏率从 20% 降到 5%                                │
+│  Week 12: Problem finding— Planning Introduction│
+│  User feedback: "Let it help me organize my notes for a week. It always leaves out some folders."│
+│  Ask yourself: "The mission is linear or needs dynamic planning."?" → We need a branch.│
+│  Introduction: Simple Rect mode, allowing Agent to decide next step by itself│
+│  Assessment: 10 multi-step tasking, check step coverage and missing rates│
+│  Result: missed rate from 20% Down to 5%                                │
 ├─────────────────────────────────────────────────────────┤
-│  第 16 周：问题发现 — HITL 引入                            │
-│  用户反馈："它删了一个我不确定该不该删的文件，没问我"        │
-│  问自己："哪些操作风险高到必须确认？" → 文件删除、配置修改   │
-│  引入：风险分级 + 确认模式 + 批次确认                        │
-│  评测：高风险操作确认率 100%，用户误确认率 < 5%             │
-│  结果：无意外文件删除事件，用户信任度提升                    │
+│  Week 16: Problem finding— HITL Introduction│
+│  User feedback: "It deletes a document that I'm not sure I should, not asking me."│
+│  Ask yourself, "What operational risks are high enough to be identified?"?" → Delete files, configure changes│
+│  Introduction: Risk classification+ Confirm Mode+ Batch confirmation│
+│  Assessment: high-risk operational recognition rate 100%,User error recognition rate< 5%             │
+│  Result: No unexpected file deletion event, enhanced user trust│
 ├─────────────────────────────────────────────────────────┤
-│  第 18 周：暂不引入任何新能力                               │
-│  原因：当前五个能力稳定，无明确问题信号                       │
-│  Reflection 和 Multi-Agent 留到有证据时再说                  │
+│  Week 18: No new capabilities introduced│
+│  Reason: Current five capabilities are stable and no clear problem signals│
+│  Reflection And Multi-Agent stays until there's evidence.│
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -225,7 +225,7 @@ The following is the actual introduction of the rhythm (simplified) within three
 Before we talk about the power mix, we need to figure out what the "minimal closure" is -- because you need to have something to run before you can introduce anything.
 
 ```text
-最小闭环 = prompt + LLM 决策 + 工具调用 + 循环控制 + 状态管理
+Minimum Closed Ring= prompt + LLM Decision-making+ Tool Call+ Cycle control+ Status Management
 ```
 
 **What can the smallest closed ring do:**
@@ -237,19 +237,19 @@ Before we talk about the power mix, we need to figure out what the "minimal clos
 - Return final result **Minimum closed circle boundary:**
 
 ```text
-✅ 属于最小闭环：
-  - "帮我搜索这个文件夹里的所有 .md 文件"
-  - "把这段代码里的 foo 替换成 bar"
-  - "读这个 CSV 文件，统计每个分类的数量"
+✅ is the smallest closed ring:
+  - "Search this folder for all .md files."
+  - "Replace the foo in this code with a bar."
+  - "Read this CSV file. Count the number of each category."
 
-❌ 需要增强能力：
-  - "根据我的笔记回答这个问题" → 需要 RAG
-  - "记住我上次说的偏好" → 需要 Memory
-  - "信息源多了，上下文经常乱" → 需要 Context Engineering
-  - "把这个需求拆成子任务逐一完成" → 需要 Planning
-  - "检查你生成的代码有没有 bug" → 需要 Reflection
-  - "这个操作太重要，不能让它自己决定" → 需要 Human-in-the-loop
-  - "找人审查你的方案" → 需要 Multi-Agent
+❌ Capacity needs to be strengthened:
+  - "Answer the question according to my notes." → Require RAG
+  - "Remember what I said last time." → Yes, memory.
+  - "It's a lot of information. It's a lot of context. → Needs Context Engineering
+  - "Disassembly this need, one by one." → Require Planning
+  - "Check your code for any bugs." → Request
+  - ""This operation is too important for it to decide." → Could not initialise Bonobo
+  - "Find someone to review your program." → Require Multi-Agent
 ```
 
 **Importance of the minimum closed ring as a baseline:** Answer these questions with a minimum closed loop before introducing any enhancements:
@@ -273,14 +273,14 @@ The following six cases cover the most common Agent scene. Each case starts with
 - **RAG / External knowledge access**. That's core competence -- without it, Agent can only give a generic answer, and it can't meet the core requirement of "my notes."**Minimal version achieved:**
 
 ```text
-文档目录 → 文档解析（Markdown/PDF → 纯文本）
-         → 文本切分（按段落/标题，每块 500-1000 tokens）
-         → 向量化（embedding model）
-         → 存入向量数据库（Chroma / Milvus / Pinecone）
+Document Directory → Document parsing (Markdown/PDF) → Plain Text)
+ → Text split (500 to 1000 tokens per block by paragraph/heading)
+ → Quantification to Embedding Mode
+ → Deposit vector database (Chroma / Milvus / Pinecone)
 
-用户询问 → 查询向量化 → 检索 Top-K（K=5-10）
-        → 拼接检索结果到 Prompt
-        → LLM 生成回答（附带引用标记）
+User Ask → Query Quantification → Search Top-K (K)=5-10)
+ → Collapse Retrieval Results to Prompt
+ → LLM Generate answers (with reference tags)
 ```
 
 **Assessment of dimensions:**
@@ -295,14 +295,14 @@ The following six cases cover the most common Agent scene. Each case starts with
 - **Summaries of sessions and lightweight Memoory**. Note that this is not the introduction of a complete long-term memory system, but a light solution to the specific issue of "Remembering the current research theme". **Memory Minimum:**
 
 ```text
-每次会话结束：
-  → 用 LLM 生成会话摘要（研究主题、关键发现、待解决问题）
-  → 持久化存储（JSON 文件或轻量数据库）
+End of each session:
+ → Generate session summaries with LLM (research themes, key findings, pending issues)
+ → Enduring storage (JSON file or light database)
 
-下次用户开启新会话：
-  → 加载最近的会话摘要
-  → 附加到系统 Prompt 中作为上下文
-  → 用户可以随时要求"忘记之前的上下文"
+Other Organiser
+ → Load Recent Session Summary
+ → Attach to system Prompt as context
+ → Users can always ask "forget about the past."
 ```
 
 **Not introduced:**
@@ -312,12 +312,12 @@ The following six cases cover the most common Agent scene. Each case starts with
 - **Planning** unless the user's assignment becomes clearly multi-step (e.g. "Help me cross-check between the three sources"). **Introduction of path overview:**
 
 ```text
-最小闭环
-  → RAG
-    → 检索质量迭代
-      → Memory
-        → 稳定运行
-          → Planning？（等待问题信号）
+Minimum Closed Ring
+ → RAG
+ → Retrieving Quality
+ → Memory
+ → Steady running.
+ → Planning?(Waiting for problem signals)
 ```
 
 ---
@@ -333,18 +333,18 @@ The following six cases cover the most common Agent scene. Each case starts with
 - **Reflection: modified judgement after test failure**. Agent needs to correct its own conclusions when the tool calls results that contradict the initial judgement. **Minimal version achieved:**
 
 ```text
-接收到 PR diff
-  → 分析 diff 中的变更
-  → 对每个可疑点，调用工具：
-      - read_file: 读取相关文件的完整内容
-      - search_code: 搜索函数/变量的所有引用位置
-      - run_test: 运行相关测试
-  → 基于工具结果形成审查意见
-  → 如果测试失败，Reflection：
-      - 分析失败原因
-      - 确认是自己的判断有误还是代码确实有问题
-      - 修正审查意见
-  → 输出最终审查报告
+Received PR diff
+ → Analyse changes in diff
+ → For every suspicious point, call tools:
+      - read_file: Read full content of relevant documents
+      - search_code: Search for all references for functions/ variables
+      - run_test: Run relevant tests
+ → Review based on the results of the tool
+ → If the test fails, Reflect:
+      - Analysis of causes of failure
+      - Whether it's your judgment or the code is wrong.
+      - Amendment review
+ → Final output review report
 ```
 
 **Key design decisions: why first introduce Reflect rather than Multi-Agent?** For the code review scene, the first response is "introducing Multi-Agent, writing one review." But if you examine Agent without the tools to call, the other Agent just says, "Read it again and diff give general advice" -- two blind people can't see it together.
@@ -359,21 +359,21 @@ The correct sequence is: **Let individual Agent call "see" through the tool, the
 
 - **Multi-Agent**: One Agent reviews and makes recommendations and the other Agent reviews the revised code. Note that this is not a complete Multi-Agent system, but the "Reviewer Model" -- two Agent serial work, not complex coordination. **Multi-Agent Minimum:**
 ```text
-Reviewer Agent（审查者）：
-  输入：PR diff
-  输出：审查意见列表
-  工具：读文件、搜索代码、运行测试
+Reviewer Agent(Reviewer:
+  Input: PR diff
+  Output: List of review comments
+  Tools: Reading files, searching codes, running tests
 
-Verifier Agent（验证者）：
-  输入：修改后的代码 + Reviewer 的审查意见
-  输出：验证报告
-  行为：逐条检查 Reviewer 的建议是否被正确实现
-       检查修改是否引入了新问题
+Verifier Agent(Authenticator:
+  Enter: Modified Code+ Reviewer Reviews
+  Output: Validation report
+  Conduct: an article-by-article examination of whether Reviewer ' s recommendations are correctly implemented
+       Check if changes have introduced new questions
 
-冲突解决规则（简单版）：
-  - 如果 Reviewer 和 Verifier 意见一致 → 采纳
-  - 如果意见不一致 → 标记为"需人工审查"
-  - 禁止两个 Agent 互相调用形成循环
+Conflict resolution rules (simple version):
+  - If Reviewer and Verifier agree → Accepted
+  - If there is disagreement → Mark it as "a manual review required."
+  - Ban two Agents calling each other into a loop
 ```
 
 **Not introduced:**
@@ -382,12 +382,12 @@ Verifier Agent（验证者）：
 - **Planning**, unless the review mission becomes clearly multi-step (e.g. "Censorship safety first, performance later, readability last"). **Introduction of path overview:**
 
 ```text
-最小闭环
-  → Tool Use（有工具才能深入分析）
-    → Reflection（有外部信号才能修正）
-      → Multi-Agent Reviewer（角色冲突时才分工）
-        → 稳定运行
-          → Memory？（等待需求证据）
+Minimum Closed Ring
+ → Tool Use(In-depth analysis with tools)
+ → Reflection(We can't fix it without an external signal.
+ → Multi-Agent Reviewer(In the event of conflict of roles)
+ → Steady running.
+ → Memory?(Waiting for proof of need)
 ```
 
 ---
@@ -403,30 +403,30 @@ Verifier Agent（验证者）：
 - **Human-in-the-loop**. Critical operations require manual validation, which is a safety requirement rather than an experiential optimization. **Minimal version achieved:**
 
 ```text
-用户任务："为仓库配置 CI/CD"
-  → Planning Agent 拆解：
-      Step 1: 分析项目结构，确定 CI/CD 方案
-      Step 2: 编写 CI 配置文件
-      Step 3: 生成需要的 Secrets 列表
-      Step 4: [HITL] 等待用户确认 Secrets 列表
-      Step 5: 配置 GitHub Secrets
-      Step 6: 触发首次 CI 运行
-      Step 7: [HITL] 检查运行结果，等待用户确认
-  → 每个步骤执行完后更新状态
-  → 用户可随时查看进度
+User task: "Setting repository CI/CD"
+ → Planning Agent Dismantling:
+      Step 1: Analyse project structure and define CI/CD scheme
+      Step 2: Write CI Profiles
+      Step 3: Generate a list of required Secrets
+      Step 4: [HITL] Waiting for user confirmation of the Secrets list
+      Step 5: Configure GitHub Securitys
+      Step 6: Trigger First CI Run
+      Step 7: [HITL] Check run results until user confirmation
+ → Update status after implementation of each step
+ → Users can view progress at any time
 ```
 
 **Human-in-the-loop design elements:**
 ```text
-✅ 好的 HITL 设计：
-  - 在不可逆操作前暂停（删除、发布、权限变更）
-  - 暂停时给出明确的选项："确认执行 / 跳过 / 修改参数"
-  - 超时后的默认行为是"不执行"（safe default）
+✅ HITL Design:
+  - Pause pending irreversible operation (delete, publish, change of authority)
+  - Give clear options on pause: "Confirm execution / Skip / Modify parameters"
+  - The default after time is "no execution"
 
-❌ 不好的 HITL 设计：
-  - 每一步都暂停（确认疲劳）
-  - 暂停时信息不足，用户无法判断
-  - 超时后自动执行高危操作
+❌ Bad HITL design:
+  - Every step is suspended (recognised fatigue)
+  - Not enough information to judge when paused
+  - Automatically perform high-risk operations after timeout
 ```
 
 **Follow-up questions:**
@@ -436,14 +436,14 @@ Verifier Agent（验证者）：
 - **Task status and Checkpoint**, part of which will go into six courses. The core idea is to perpetuate the mandate and support recovery from the point of interruption. **Checkpoint Minimum:**
 
 ```text
-任务状态结构：
+Task status structure:
 {
   "task_id": "xxx",
-  "goal": "为仓库配置 CI/CD",
+  "goal": "Configure the warehouse with CI/CD."
   "steps": [
-    {"id": 1, "desc": "分析项目结构", "status": "done"},
-    {"id": 2, "desc": "编写 CI 配置", "status": "done"},
-    {"id": 3, "desc": "生成 Secrets 列表", "status": "in_progress"},
+    {"id": 1, "desc": "Analysis of project structure, "status": "done"},
+    {"id": 2, "desc": "Write CI Configuration, "status": "done"},
+    {"id": 3, "desc": "Generate the Secrets List, "status": "in process"},
     ...
   ],
   "checkpoint_data": {
@@ -454,8 +454,8 @@ Verifier Agent（验证者）：
   "last_updated": "2024-03-15T10:30:00Z"
 }
 
-恢复流程：
-  用户重新连接 → 检测未完成任务 → 加载 Checkpoint → 从断点继续
+Restore process:
+  User Reconnection → Test not completed → Load Checkpoint → Continue from Breakpoint
 ```
 
 **Not introduced:**
@@ -464,11 +464,11 @@ Verifier Agent（验证者）：
 - **Multi-Agent** does not need parallels in a single user scenario. **Introduction of path overview:**
 
 ```text
-最小闭环
-  → Planning + HITL（任务结构化和安全需求）
-    → Checkpoint（中断恢复需求）
-      → 稳定运行
-        → Memory？（跨任务偏好是否需要延续）
+Minimum Closed Ring
+ → Planning + HITL(Mission structure and security requirements)
+ → Checkpoint(Interrupted recovery needs)
+ → Steady running.
+ → Memory?(whether cross-mission preferences need to be sustained)
 ```
 
 ---
@@ -490,25 +490,25 @@ Verifier Agent（验证者）：
 This is "the scenario itself requires multiple capabilities to produce the least available product". But even so, step-by-step verification is recommended - make sure the RAG is retrieved correctly, then access Tool Use, and finally add HITL. **Minimal version achieved:**
 
 ```text
-用户消息
-  → 意图分类（产品咨询 / 订单查询 / 售后处理 / 闲聊）
-  → 路由到对应处理流程：
+User Message
+ → Intent classification (product consulting / order query / after-sale processing / chat)
+ → Route to corresponding process:
 
-产品咨询流程：
-  → RAG 检索产品知识库
-  → 拼接检索结果生成回答
-  → 附带产品链接
+Product consultation process:
+ → RAG Retrieving product knowledge base
+ → Spelling results to generate answers
+ → Additional product links
 
-订单查询流程：
-  → 验证用户身份
-  → 调用订单 API
-  → 格式化订单信息返回
+Order query process:
+ → Authentication of user identity
+ → Call order API
+ → Format Order Information Return
 
-售后处理流程：
-  → 查询订单状态
-  → 判断是否符合退换货条件
-  → [HITL] 如需退款 → 生成退款申请 → 等待人工审批
-  → [HITL] 审批通过 → 执行退款 → 通知用户
+Post-sale process:
+ → Query order status
+ → Determination of whether the condition for return of goods is met
+ → [HITL] Refund if required → Generate refund requests → Pending manual clearance
+ → [HITL] Approval approved → Execution refunds → Organisation
 ```
 
 **Follow-up questions:**
@@ -519,20 +519,20 @@ This is "the scenario itself requires multiple capabilities to produce the least
 - **Session Memory**: Remember the context of the current session and the recent history of contact. Attention is given to "talk-level" rather than "user-level long-term archives" — the former addressing the problem of repetitive statements, the latter involving privacy compliance. **Memory Design (Customs Special):**
 
 ```text
-会话级记忆（7 天有效）：
-  - 本次会话的对话历史
-  - 本次会话涉及的产品/订单
-  - 本次会话的未解决问题
+Sessional memory (7 days valid):
+  - History of Dialogue in this Session
+  - Products/orders covered by this session
+  - Unsolved issues for this session
 
-用户级记忆（需要用户授权）：
-  - 常用收货地址
-  - 最近 3 次购买记录
-  - 语言偏好
+User-level memory (user authorization required):
+  - Common receiving address
+  - Recent 3 purchase records
+  - Language preference
 
-记忆清理策略：
-  - 会话级记忆：会话结束后 7 天自动清除
-  - 用户级记忆：用户可随时查看和删除
-  - 敏感信息（支付、密码）永不记录
+Memory cleanup strategy:
+  - Session-level memory: 7 days to clear automatically after session
+  - User-level memory: user ready to view and remove
+  - Sensitive information (payment, password) never recorded
 ```
 
 **Not introduced:**
@@ -542,11 +542,11 @@ This is "the scenario itself requires multiple capabilities to produce the least
 - **Multi-Agent**: Unless two different roles, pre-sale and post-sale, need to be addressed simultaneously, but usually by route **Introduction of path overview:**
 
 ```text
-最小闭环
-  → RAG + Tool Use + HITL（场景硬需求，但分步验证）
-    → Memory（减少重复说明，注意隐私边界）
-      → 稳定运行
-        → 根据用户满意度数据决定下一步
+Minimum Closed Ring
+ → RAG + Tool Use + HITL(Scene needs, but in steps)
+ → Memory(Reduced repetition of statements and attention to privacy boundaries)
+ → Steady running.
+ → Next steps based on user satisfaction data
 ```
 
 ---
@@ -566,30 +566,30 @@ For single-form queries and one-time indicators to calculate such tasks, the use
 But it's not that data analysis doesn't need Planning. Planning is of clear value only when the task is upgraded to cross-table exploration, staged validation assumptions, first checking A, then results-based B, and final consolidation visualization. The sequence should be to stabilize the implementation and validation loops and then introduce a multi-step analysis of needs into Planning. **Minimal version achieved:**
 
 ```text
-用户需求 → Agent 分析：
-  1. 读取数据库 Schema，了解表结构和字段
-  2. 生成 SQL 查询
-  3. 执行 SQL
-  4. 检查结果：
-     - 执行是否成功？→ 如果失败，Reflection：分析错误信息，修正 SQL
-     - 结果是否合理？→ 如果行数为 0 或数值异常，Reflection：检查查询逻辑
-     - 结果是否符合用户意图？→ 对结果做合理性检查
-  5. 解释发现
-  6. 可选：生成可视化代码（matplotlib / eCharts）
+User Needs → Agent Analysis:
+  1. Read database Schema, understand table structure and fields
+  2. Generate SQL queries
+  3. Execute SQL
+  4. Inspection results:
+     - Successful implementation? → If failed, Refile: parsing error information, fixes SQL
+     - Is the result reasonable?? → If the number of lines is 0 or the value is abnormal, Reflection: Check the query logic
+     - The result is consistent with user intent? → Reasonable examination of results
+  5. Explain the discovery.
+  6. Optional: Generate visual codes (matpllotlib / eCharts)
 ```
 
 **Reflection for specific applications in the data analysis scene:**
 ```text
-Reflection 触发条件：
-  ✅ SQL 语法错误 → 读取错误信息，修正语法
-  ✅ 结果集为空 → 检查 WHERE 条件是否过于严格
-  ✅ 数值明显异常 → 检查 JOIN 是否正确
-  ✅ 结果与常识矛盾 → 提醒用户可能存在数据质量问题
+Reflection Trigger condition:
+  ✅ SQL Syntax Error → Read error information, correct syntax
+  ✅ The results are empty. → Check if the WEREE conditions are too strict
+  ✅ The values are clearly abnormal. → Check that JOIN is correct
+  ✅ The result is a contradiction with common sense. → Remind users of possible data quality problems
 
-Reflection 停止条件：
-  ❌ 修正 3 次后仍然失败 → 向用户说明情况，请求指导
-  ❌ 不确定是否正确 → 标注"需要人工验证"
-  ❌ 发现数据源本身有问题 → 报告问题，不继续尝试修复
+Reflection Conditions for discontinuation:
+  ❌ Amendment 3 failed → Informing users and requesting guidance
+  ❌ I'm not sure it's right. → The label "needs manual verification."
+  ❌ We found a problem with the data source itself. → Reporting problem. No further attempts at repair.
 ```
 
 **Follow-up questions:**
@@ -603,11 +603,11 @@ Reflection 停止条件：
 - **Multi-Agent**: Single-person analysis scenario, no role conflicts **Introduction of path overview:**
 
 ```text
-最小闭环
-  → Tool Use + Reflection（翻译+修正，分析场景核心）
-    → Planning（多步骤分析需求明确后）
-      → Memory（分析习惯复用需求明确后）
-        → 稳定运行
+Minimum Closed Ring
+ → Tool Use + Reflection(Translation+Amended, analyze the scene core)
+ → Planning(After the need for multi-step analysis is identified)
+ → Memory((Analysis of customary reuse needs identified)
+ → Steady running.
 ```
 
 ---
@@ -627,40 +627,40 @@ Reflection 停止条件：
 They are independent of each other but cannot be separated. There's no RAG inaccuracies, there's no memory incoherence. **Minimal version achieved:**
 
 ```text
-写作协作流程：
-  1. 用户提出写作主题
-  2. Agent 检索参考资料（RAG）
-  3. Agent 回忆用户风格偏好（Memory）
-  4. Agent 生成初稿
-  5. [HITL] 用户审阅，提出修改意见
-  6. Agent 根据反馈修改
-  7. Agent 质量检查：
-     - 引用校验（检索原文，确认引用存在）
-     - 代码示例测试（运行或静态检查）
-     - 术语/风格清单检查（对照 Memory 中的明确偏好）
-     - 用户反馈核对（逐条确认修改意见已处理）
-  8. 输出终稿
+Collaborative writing process:
+  1. User proposes a writing theme
+  2. Agent Search for Reference (RAG)
+  3. Agent Memoory
+  4. Agent Generate first draft
+  5. [HITL] User review to propose changes
+  6. Agent Based on feedback
+  7. Agent Quality check:
+     - Reference Validation (retribution original, confirmation of presence)
+     - Code Example Test (run or static)
+     - Check of terminologies/style lists (in contrast to explicit preference in Memoory)
+     - User feedback check (article-by-article confirmation that changes have been processed)
+  8. Output Final
 
-Memory 存储结构（写作场景）：
+Memory Storage structure (writing scene):
 {
   "style_preferences": {
-    "tone": "专业但亲切",
-    "sentence_length": "中短句为主",
-    "code_style": "Python, type hints 必加",
+    "tone": "Professional but friendly."
+    "sentence_length": ""The middle sentence is " ,
+    "code_style": "Python, type hints "and shall add."
     "preferred_terms": {
-      "use": ["数据库", "查询"],
+      "use": ["Database, Query],
       "avoid": ["DB", "query"]
     }
   },
   "structural_habits": {
-    "opening": "故事/问题引入",
-    "body": "概念 → 原理 → 示例 → 注意事项",
-    "closing": "总结 + 延伸阅读"
+    "opening": "Story/problem introduction."
+    "body": "Concept → Rationale → Example: → Attention."
+    "closing": "Summary+ Extend reading."
   },
   "common_mistakes_to_avoid": [
-    "不要过度使用被动语态",
-    "代码示例需要可运行",
-    "技术术语首次出现需要解释"
+    "Don't overdo passive speech."
+    "Code examples need to be runable."
+    "For the first time a technical term has appeared.
   ]
 }
 ```
@@ -673,17 +673,17 @@ Memory 存储结构（写作场景）：
 - **Planning**: Structural planning and outline management. **Reflection in the design of the writing scene:**
 
 ```text
-触发信号：
-  1. 引用校验失败：生成内容中的来源无法在 RAG 原文中找到
-  2. 代码检查失败：代码示例无法运行、类型检查失败或输出不符合预期
-  3. 术语清单不匹配：使用了用户明确要求避免的术语
-  4. 用户反馈未覆盖：修改意见清单中仍有未处理项
+Trigger signal:
+  1. Quote verification failed: source of generated content cannot be found in RAG original
+  2. Code check failed: the code example cannot run, type check failed or output did not match expectations
+  3. Inconsistencies in the list of terms: use of terms that users explicitly request to avoid
+  4. User feedback not covered: there are still pending items in the list of changes
 
-修正规则：
-  - 每完成一个章节后自动运行
-  - 发现问题后只修正对应问题，不重写整篇
-  - 同类问题修正超过 2 次仍失败 → 标记并请用户介入
-  - 纯主观表达质量（"够不够好看"、"语气是否高级"）交给用户或 Reviewer 清单，不用模型自评冒充 Reflection
+Amendments:
+  - Auto run every chapter completed
+  - When a problem is identified, only the corresponding problem will be corrected and the whole text will not be rewritten
+  - Over two corrections of the same kind still failed → Mark and request user intervention
+  - Purely subjective expression quality ( "Whether it's good enough" or "high-temperature") to the user or Reviewer list, without modeling self-assessment as Reflection
 ```
 
 **Not introduced:**
@@ -692,11 +692,11 @@ Memory 存储结构（写作场景）：
 - **Human-in-the-loop** enhanced version: Writing collaboration is naturally a HITL mode (HITL for each user review) and no additional system-level HITL mechanism is required. **Introduction of path overview:**
 
 ```text
-最小闭环
-  → RAG + Memory（内容准确 + 风格一致）
-    → Reflection（基于外部信号做质量检查）
-      → Planning（长文结构管理）
-        → 稳定运行
+Minimum Closed Ring
+ → RAG + Memory(Exact content+ The same style)
+ → Reflection(Quality check based on external signals)
+ → Planning(Longform structure management)
+ → Steady running.
 ```
 
 ---
@@ -710,8 +710,8 @@ I said, "Do what." This subsection says, "Don't do it."
 **Symptoms:**
 
 ```text
-"我们的 Agent 用了 RAG + Memory + Planning + Reflection + Multi-Agent，
-  还有 Tool Use、Guardrails、Human-in-the-loop..."
+"Our Agent used RAG.+ Memory + Planning + Reflection + Multi-Agent,
+  And Tool Use, Guardrails, Human-in-the-loop..."
 ```
 
 **Problem diagnosis:** Says "what" but says "why." Each ability is added to "if it works." As a result, the system was so complicated that no one could fully understand and no one could be held responsible for it. **The antidote:**
@@ -727,9 +727,9 @@ I said, "Do what." This subsection says, "Don't do it."
 **Symptoms:**
 
 ```text
-"RAG 的召回率才 78%，等优化到 90% 再上线"
-"Memory 的遗忘策略还没调好，先不上"
-"Planning 有时候会漂移，等我们解决了再发布"
+"RAG The rate of recall is 78.%,Wait till we optimize to 90.% Go back online."
+"Memory "The strategy of oblivion is not ready.
+"Planning "Sometimes it'll drift until we're done."
 ```
 
 **Diagnosis of the problem:** Waiting for a perfect minimum is equal to never being published. Users prefer a flawed Assistant to wait for a non-existent Assistant. Furthermore, real use feedback is not available without publication and no real optimization without feedback. **The antidote:**
@@ -739,16 +739,16 @@ I said, "Do what." This subsection says, "Don't do it."
 - Set up a user feedback channel for real use driver optimization **Criteria for judgement:**
 
 ```text
-能上线的最低标准：
-☐ 核心功能是否可用？（不能有阻塞性 bug）
-☐ 安全问题是否处理？（不能泄露数据、执行危险操作）
-☐ 失败模式是否优雅？（出问题时告诉用户，而不是悄悄出错）
-☐ 用户是否可以选择不使用？（能力应该是可选的）
+Minimum standards for access:
+☐ Availability of core functions?(Can't block it.
+☐ Whether or not security issues are addressed?(No data leak, no hazardous operations.
+☐ Is the failure pattern elegant??(Tell the user when there's a problem, instead of making a mistake
+☐ Whether user can choose not to use?(Capability should be optional)
 
-不需要等到的标准：
-☐ 性能是否最优？（可以后续优化）
-☐ 边界情况是否全覆盖？（有些边界只有用了才会发现）
-☐ 所有评测指标是否达标？（真实数据可能和评测集不同）
+No standards to wait:
+☐ Is performance optimal??(It'll be fine.
+☐ Is the border fully covered??(♪ Some borders are only to be found ♪
+☐ All assessment indicators met?(Real data may differ from evaluation data)
 ```
 
 ---
@@ -758,9 +758,9 @@ I said, "Do what." This subsection says, "Don't do it."
 **Symptoms:**
 
 ```text
-"Hacker News 上那篇文章说了，Multi-Agent 是 2024 年最重要的趋势"
-"大家都在用 LangGraph 做 Agent 工作流，我们也应该用"
-"XXX 公司的技术博客说他们的 Agent 用了 Reflection，效果很好"
+"Hacker News According to that article, Multi-Agent was the most important trend in 2024."
+"We're all using LangGraph to do the Agent workflow. We should use it."
+"XXX The company's technical blog says that Agent used Reflection. It worked well."
 ```
 
 **Problem diagnosis:** The scene, data, constraints, users are different from you. The solutions that suit them don't necessarily suit you. The replacement of community hot spots with their own problem analysis is the fastest way to introduce unnecessary complexity. **The antidote:**
@@ -770,11 +770,11 @@ I said, "Do what." This subsection says, "Don't do it."
 - Think of community articles as "menu of options" instead of "list of necessity." **Conversion exercise:**
 
 ```text
-读到："我们用 Multi-Agent 提升了代码审查质量"
-不要想："我也应该加 Multi-Agent"
-应该想："他们的代码审查遇到了什么问题？这个问题我也有吗？
-        他们用 Multi-Agent 解决了什么？为什么单 Agent 不够？
-        我的代码审查流程中，单 Agent 的瓶颈是什么？"
+Read: "We improved code review with Multi-Agent."
+Don't think, "I should add Multi-Agent."
+Think, "What's wrong with their code review?"?Do I have that too??
+        What did they solve with Multi-Agent??Why isn't the single Agent enough??
+        What's the bottleneck in my code review process??"
 ```
 
 ---
@@ -784,9 +784,9 @@ I said, "Do what." This subsection says, "Don't do it."
 **Symptoms:**
 
 ```text
-"我们两周前加了 RAG，用户说好像好了一点...其实我也不确定"
-"Memory 加上去了，没看效果，反正应该有用"
-"Planning 的步骤有时候不太对，但大部分时候还行吧"
+"We added it two weeks ago.
+"Memory Plus, it doesn't work. It should work."
+"Planning Sometimes the steps aren't right, but most of them are okay."
 ```
 
 **Diagnosis of the problem:** Introduction capacity is only the beginning, not the end. The introduction of non-assessed capabilities is tantamount to adding "no impact" variables to the system. Over time, you don't know whether the quality of the system is rising or falling. **The antidote:**
@@ -796,10 +796,10 @@ I said, "Do what." This subsection says, "Don't do it."
 - Re-engineer all available capabilities when new capabilities are introduced and check if they affect each other **Evaluation of rhythm recommendations:**
 
 ```text
-引入前：建立基线评测（当前系统在这些指标上的表现）
-引入后第 1 周：每日评测（快速确认方向是否正确）
-引入后第 2-4 周：每周评测（观察使用模式稳定后的表现）
-引入后第 2 个月起：每月评测（持续监控，防止退化）
+Pre-introduction: establishment of baseline assessments (current system performance on these indicators)
+Week 1 after introduction: daily assessment (quick confirmation of correct direction)
+Week 2-4 after introduction: weekly assessment (observation of performance after stable usage)
+2nd month after introduction: monthly assessment (continuous monitoring to prevent degradation)
 ```
 
 ---
@@ -809,9 +809,9 @@ I said, "Do what." This subsection says, "Don't do it."
 **Symptoms:**
 
 ```text
-RAG 检索到的内容，Memory 也记了一份（重复存储）
-Planning 生成了 5 步计划，但 Reflection 认为第 2 步已经完成（信息不一致）
-Multi-Agent 中的 Agent A 修改了文件，Agent B 不知道（状态不同步）
+RAG Retrieved, Memoory also wrote a copy.
+Planning Generated a 5-step plan, but Reflect considers step 2 completed (inconsistent information)
+Multi-Agent In which Agent A modified the file, Agent B does not know (state is not synchronized)
 ```
 
 **Problem diagnosis:** Capabilities are not stand-alone plugins that share status and influence each other ' s behaviour. System behaviour is unpredictable when multiple capacities have different understandings of the same data. **The antidote:**
@@ -822,11 +822,11 @@ Multi-Agent 中的 Agent A 修改了文件，Agent B 不知道（状态不同步
 - Consistency between periodic checks **CAPACITY COORDINATION LIST:**
 
 ```text
-☐ RAG 检索结果是否进入了 Memory 系统？如果是，是否需要？
-☐ Memory 中的信息是否影响了 Planning 的步骤生成？
-☐ Reflection 的修正是否更新了 Planning 的状态？
-☐ Multi-Agent 中的各 Agent 是否共享同一个 Memory 视图？
-☐ 一个能力的输出变更是否会破坏另一个能力的输入假设？
+☐ RAG Whether the search results are entered into the Memoory system?If so, is it necessary?
+☐ Memory Whether the information in is affecting Planning step generation?
+☐ Reflection Whether the amendments update the Planning status?
+☐ Multi-Agent Whether or not the various Agness share the same Memoory view?
+☐ An input assumption that an output change in one capability will destroy another capability?
 ```
 
 When a combination of capabilities begins, they should not be matched by a Prompt ad hoc agreement, but should be carried at the time of operation: a unified State, Trade, Checkpoint, Eval regression and permission boundaries will be carried out in the Harness structure of Course 6. This chapter deals with "shouldn't it be a combination" and course six with "how to stabilize after a combination."
@@ -840,12 +840,12 @@ When a combination of capabilities begins, they should not be matched by a Promp
 The following signals indicate that the user ' s needs have clearly exceeded the current system ' s capacity boundaries and that accelerated introduction is reasonable:
 
 ```text
-加速信号：
-✅ 同一个问题的用户反馈在 2 周内出现了 5+ 次
-✅ 当前能力的评测指标持续下降（说明需求在增长但能力没跟上）
-✅ 竞争对手已经提供了这个能力，用户开始流失
-✅ 问题的解决方案明确且风险可控
-✅ 用户明确表示"如果不支持 X 我就没法继续用了"
+Speed signal:
+✅ User feedback on the same issue appeared within 2 weeks+ Minor
+✅ Current capacity indicators continue to decline (reflecting growing demand but capacity not keeping pace)
+✅ The competitor has provided this capability, and the users are losing.
+✅ The solution to the problem is clear and the risks are manageable
+✅ The user made it clear, "I can't continue without X."
 ```
 
 **Speeding up does not represent a rush.** Even if it accelerates, keep the process of "inclusion of evaluation and observation". The acceleration is the observation cycle (e.g. from 4 weeks to 2 weeks) rather than skipping the evaluation.
@@ -855,12 +855,12 @@ The following signals indicate that the user ' s needs have clearly exceeded the
 The following signals indicate that you need to stop and digest, rather than continue to add new capabilities:
 
 ```text
-暂停信号：
-🛑 上一次引入的能力的评测指标还不稳定
-🛑 有已知 bug 还没修（超过 3 个 open issue）
-🛑 团队成员反映"系统太复杂了，新加入的人看不懂"
-🛑 用户反馈中关于"慢"和"不可靠"的比例在上升
-🛑 你发现自己说不清当前系统有多少个能力在工作
+Pause signal:
+🛑 Last introduced capacity assessment indicator is still unstable.
+🛑 Known bug not fixed (over 3 open issue)
+🛑 Team members say, "The system is too complicated for new entrants."
+🛑 The percentage of "slow" and "unreliability" in user feedback is rising.
+🛑 You find yourself unable to tell how many capabilities the current system has.
 ```
 
 **The suspension is not a failure; it is responsible.** The suspension may include:
@@ -875,24 +875,24 @@ The following signals indicate that you need to stop and digest, rather than con
 **Principle I: a new variable at a time** Only a new capability is introduced at any given time. If a capacity is not working well when it is introduced, you can only determine that it is. You never know which one works and which brings the problem.
 
 ```text
-❌ 同时引入 RAG + Memory：
-  "检索变好了，但跨会话上下文好像也有改善...不确定是哪个原因"
+❌ Also introduce RAG+ Memory:
+  "Retrieving has improved, but the context of the cross-conference seems to have improved... not sure which reason."
 
-✅ 先引入 RAG，稳定 2 周后引入 Memory：
-  "RAG 引入后召回率从 0% 提升到 85%（确定是 RAG 的效果）"
-  "2 周后引入 Memory，跨会话衔接准确率从 28% 提升到 80%（确定是 Memory 的效果）"
+✅ Introduce RAG first, stabilize 2 weeks later introduce Memoory:
+  "RAG Include recall Rate from 0% Raise to 85%(It's the effect of RAG."
+  "2 Introduction of memory after week, inter-session connection accuracy rate from 28% Raise to 80%(It's the effect of memory."
 ```
 
 **Principle II: Assessment indicators always precede new capabilities** If you do not have a running evaluation process, do not introduce new capabilities. The introduction without an evaluation is like walking with your eyes closed -- you don't know if you're going right or if you're going further away from the target. **Principle III: Reissued periodically** Regardless of whether the system is stable or not, a capacity reset is regularly performed:
 
 ```text
-复盘检查清单：
-☐ 每个已引入的能力：评测指标是否稳定或改善？
-☐ 每个暂未引入的能力：不引入的理由是否仍然成立？
-☐ 是否有新的问题模式出现？
-☐ 是否有能力可以被降级或移除？
-☐ 系统整体复杂度是否可以降低？
-☐ 团队对系统的理解是否充分（新成员能否快速上手）？
+Repetition checklist:
+☐ Capacity per introduced: assessment of stability or improvement of indicators?
+☐ Capacity not to be introduced: whether the reason for not being introduced is still valid?
+☐ Is there a new problem pattern??
+☐ Capability to be downgraded or removed?
+☐ Can the overall complexity of the system be reduced??
+☐ Is the system well understood by the team? (Can new members quickly start)?
 ```
 
 ## 9.5 Degradation and removal of capabilities
@@ -915,53 +915,53 @@ Most of the classes only say "how" and don't say "how." But mature system design
 Removal capacity needs to be more cautious than introducing capacity, as users may already have relied on certain behaviours. **Downgrade removal process:**
 
 ```text
-第一步：确认影响范围
-  - 统计该能力的使用频率
-  - 列出依赖该能力的用户场景
-  - 评估移除后的用户体验变化
+Step 1: Identification of impacts
+  - Statistics of the frequency of use of the capacity
+  - List user scenes that depend on this ability
+  - Assessing changes in user experience after removal
 
-第二步：寻找替代方案
-  - 能否用更简单的方式覆盖核心需求？
-  - 能否把能力从"自动"改为"按需触发"？
-  - 能否把能力限制到更小的范围？
+Step 2: Finding alternatives
+  - Whether core needs can be covered in a simpler way?
+  - Can we get the power changed from "automated" to "activated on demand"??
+  - Can we limit our capabilities to a smaller range??
 
-第三步：渐进降级
-  方案 A：从"自动"改为"手动"
-    原：每次对话自动执行 Memory 摘要
-    改：用户输入 /summarize 时才执行
+Step 3: Gradual downgrading
+  Option A: from Automatic to Manual
+    Original: Momory Summary is automatically implemented for each dialogue
+    Change: Only when user input/summarize
 
-  方案 B：缩小范围
-    原：Memory 记录所有对话
-    改：Memory 只记录用户明确标记为"重要"的对话
+  Option B: Downsizing
+    Original: Memoory
+    Change: Memoory only records conversations that users clearly mark as "important"
 
-  方案 C：用更轻量的替代
-    原：完整的 ReAct Planning
-    改：固定的 Chain 流程（如果大部分任务已标准化）
+  Option C: Replace with lighter
+    Original: Complete Reforming
+    Change: Fixed Chain process (if most tasks are standardized)
 
-第四步：灰度移除
-  - 对 10% 用户关闭该能力，观察反馈
-  - 如果无负面反馈，扩大到 50%
-  - 如果持续无问题，完全移除
+Step 4: Grayscale removal
+  - Yes, 10.% Users turn off the capability and observe feedback
+  - If no negative feedback, extend to 50%
+  - If continuous, remove completely
 
-第五步：记录决策
-  - 为什么移除？当初为什么引入？学到了什么？
-  - 这段经验对未来的能力引入决策有什么帮助？
+Step 5: Recording decision-making
+  - Why is it removed??Why was it introduced??What have you learned??
+  - How does this experience help to introduce future capabilities to decision-making??
 ```
 
 **Degraded better than direct removal:** In many cases, reducing capacity from "active" to "passive" is a better option:
 
 ```text
-原状态：Memory 自动记录每次会话
-降级后：Memory 只在用户明确要求时记录
+Current status: Memoory autorecords each session
+After downgrade: Memoory only recorded when specified by the user
 
-原状态：RAG 自动检索每次查询
-降级后：RAG 只在用户提及"查一下"时触发
+Current status: RAG auto-research every query
+After demotion: RAG only triggers when the user mentions "check"
 
-原状态：Planning 自动拆解所有任务
-降级后：Planning 只在任务超过 5 步时触发
+Current status: Planning Autodismantling all tasks
+After downgrade: Planning only touches when the task exceeds 5 steps Fire!
 
-原状态：Multi-Agent 并行处理
-降级后：默认单 Agent 处理，用户添加 --review 标记时启动 Reviewer
+Current status: Multi-Agent parallel processing
+After downgrade: Default list Agent processing, start Reviewer when users add --review tags
 ```
 
 #### Validation of effects after removal
@@ -1007,10 +1007,10 @@ Here are three new scenarios. For each scene:
 - **Multi-Agent**: Single-person review of scenes, an Agent + human lawyer confirmed sufficient **Introduction path:**
 
 ```text
-最小闭环（LLM + 合同读取工具）
-  → RAG（检索知识库，对比合同条款）
-    → HITL（人工确认节点）
-      → 稳定运行
+Minimum Closed Ring (LLM)+ (contract reading tool)
+ → RAG(Retrieval of knowledge base, comparison of contract terms)
+ → HITL(Manually confirm nodes)
+ → Steady running.
 ```
 
 </details>
@@ -1040,10 +1040,10 @@ Here are three new scenarios. For each scene:
 - **Multi-Agent**: single-user service, no parallel **Introduction path:**
 
 ```text
-最小闭环 + Tool Use（设备控制）
-  → Memory（记住用户偏好）
-    → HITL（场景确认）
-      → 稳定运行
+Minimum Closed Ring+ Tool Use(equipment)
+ → Memory(Remember user preferences)
+ → HITL(Image confirmed)
+ → Steady running.
 ```
 
 </details>
@@ -1074,10 +1074,10 @@ Here are three new scenarios. For each scene:
 Introduction path:
 
 ```text
-最小闭环 + Tool Use（读代码、搜文档、创 PR）
-  → Reflection（验证文档-代码一致性）
-    → Planning（多文件变更的文档更新编排）
-      → 稳定运行
+Minimum Closed Ring+ Tool Use(Read codes, search documents, create PR)
+ → Reflection(Validate document-code consistency)
+ → Planning(Documents updated for multi-file changes)
+ → Steady running.
 ```
 
 </details>

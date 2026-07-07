@@ -29,7 +29,7 @@
 Return to 1.1 intellectual assistants. You gave it a multistep mission:
 
 ```text
-帮我做发布准备：检查 README 完整性、跑一遍测试、整理 changelog、生成 release checklist。
+Help me get ready for release: check README's integrity, run the tests, organize changelogs, generate release checklist.
 ```
 
 Agent started work. The first step, it read the README, wrote a comment. Step two, it... started going over the source code to verify one of the details mentioned in the README. In the third step, it searched the relevant GitHub issue. Five minutes later you come back and check it out and find it detached from the original target, and you don't know what you're doing. You flipped the trace and found out that it had never touched anything about "publishing" since step 4.
@@ -46,22 +46,22 @@ The longer the task, the more a mechanism is needed to answer:
 This is the core issue that Planning/Workflow Pattersons is going to solve. **In this chapter, we will present specific presentations using a chapter-wide "publishing assistant" scene.** This scenario is defined as follows:
 
 ```text
-场景：发布助手 Agent
+Scene: Release Assistant Agent
 
-用户：一位维护着开源项目的开发者
-典型任务：软件版本发布准备（检查 README、运行测试、整理 changelog、生成 checklist）
-复杂度：4 个步骤，步骤间存在依赖关系（changelog 必须在测试通过后生成，
-        checklist 依赖所有前置步骤完成）
-挑战：
-  - 步骤不是完全独立的——有先后依赖
-  - 测试可能失败——需要决定重试还是跳过
-  - README 可能缺少必要章节——需要决定是否阻塞发布
-  - 初次使用者可能说不清楚所有步骤——需要 Agent 自己补全
+User: A developer maintaining open source projects
+Typical task: Software release preparation (check README, run tests, organize changelog, generate checklist)
+Complexity: 4 steps, with a dependency between the steps (changelog must be created after the test is passed).
+        checklist Reliance on all pre-steps)
+Challenges:
+  - Step is not completely independent.——He's dependent on you.
+  - Tests may fail.——You need to decide whether to try again or skip.
+  - README The necessary chapters may be missing——Need to decide whether to block the release
+  - First users may not be clear about all the steps.——Could not close temporary folder: %s
 
-Planning 需求：
-  - 步骤之间的依赖关系需要被明确建模
-  - 某一步失败后需要明确的处理策略
-  - 执行前用户可能需要确认计划
+Planning Needs:
+  - Dependency between steps needs to be clearly modelled
+  - When a step fails, a clear approach is required.
+  - Pre-implementation users may need to confirm the plan
 ```
 
 And every Planning model that follows, we're going to use this scenario -- the same mission, different organizational approaches, completely different effects.
@@ -90,28 +90,28 @@ Complex tasks usually take several forms:
 But looking at the tables alone is not intuitive. We use the release of the assistant scene for a different pattern of the same mission:
 
 ```text
-任务："准备 v1.2.0 版本发布"
+Other Organiser
 
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ Chain 模式处理：                                                         │
-│   检查 README → 运行测试 → 整理 changelog → 生成 checklist               │
-│   遇错即停。测试失败 → 后面全跳过。                                      │
+│ Chain Mode processing:│
+│   Check README → Run Test → Collate Changelog → Generate checklist│
+│   Stop in case of a mistake. Test failed → All in the back.│
 │                                                                         │
-│ Plan-Execute 模式处理：                                                   │
-│   1. 生成计划（同上 4 步）                                               │
-│   2. 用户确认                                                            │
-│   3. 逐步执行。测试失败 → 重试 2 次 → 仍失败 → 重规划                    │
-│      "测试失败原因是 test_memory_cleanup 断言错误，                      │
-│       新的后续步骤：分析失败原因 → 修复 → 重新测试 → 继续"                │
+│ Plan-Execute Mode processing:│
+│   1. Generation plan (ibid., step 4)│
+│   2. User confirmation│
+│   3. Progressive implementation. Test failed → Try again 2 times → Still failed. → Replanning│
+│      "The reason for the failure of the test was that the test was wrong, and that the test was wrong.│
+│       New next steps: analysis of causes of failure → Rehabilitation → Retest → Go on."│
 │                                                                         │
-│ Graph 模式处理：                                                          │
-│   检查 README ──success──▶ 运行测试 ──success──▶ changelog ──▶ checklist │
+│ Graph Mode processing:│
+│   Check README──success──▶ Run Test──success──▶ changelog ──▶ checklist │
 │        │                      │                                         │
 │        error                  error                                      │
 │        ▼                      ▼                                         │
-│   修复 README            重试测试                                        │
-│   (修复后终止，         (重试成功→changelog                               │
-│    人工检查)             重试失败→终止)                                   │
+│   Fix README Retest│
+│   (Ended after repair, (successful retest) → changelog                               │
+│    Manual check) → Terminated)│
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -138,20 +138,20 @@ Chain is the "one way to the black" -- like a water line in a factory, and each 
 
 ```python
 class ChainExecutor:
-    """按固定顺序依次执行步骤。遇错即停，无分支，无重试。"""
+    """Execute steps in a fixed order. Stop on error; no branches or retries."""
 
     def execute(self, on_step_start=None, on_step_end=None):
         for i, step_name in enumerate(self.steps):
             tool = TOOL_REGISTRY.get(step_name)
             if not tool:
                 return ChainResult(status="failed", failed_at=i,
-                                   error=f"未找到工具: {step_name}")
+                                   error=f"No tool found:{step_name}")
 
-            result = tool()  # 执行步骤
+            result = tool()  # Implementation steps
             if result.status == StepStatus.ERROR:
                 return ChainResult(status="failed", failed_at=i,
                                    error=result.error)
-            # 成功，继续下一步
+            # Success. Go on.
 
         return ChainResult(status="completed", results=all_results)
 ```
@@ -159,19 +159,19 @@ class ChainExecutor:
 **Chain's problem is not on the normal path** — normal, four steps go by, everything OK. But on the abnormal path:
 
 ```text
-场景：运行测试失败
+scene: run test failed
 
-Chain 执行过程：
-  ✅ 检查 README → 通过（缺少 Contributing 章节，但不算失败）
-  ❌ 运行测试 → 失败！1 个测试用例未通过
-  ⏭️ 整理 changelog → 跳过
-  ⏭️ 生成 checklist → 跳过
+Chain Implementation process:
+  ✅ Check README → Passed (lack of Contributing Chapter but not a failure)
+  ❌ Run Test → Failed！1 One test example failed
+  ⏭️ Collate Changelog → Skip
+  ⏭️ Generate checklist → Skip
 
-最终报告："发布准备失败，第 2 步运行测试出错。"
+Final report: "Performance failure, error in step 2 running test."
 
-用户的感受：我就因为一个测试失败，整个发布流程就停了？
-而且那个失败的测试跟这次发布改动无关，是之前的遗留问题。
-Chain 不会说"这个测试失败不阻塞发布，可以跳过"——它只会停止。
+User's perception: I stopped the entire release process because a test failed.?
+And that failed test had nothing to do with the release of the change. It was a legacy.
+Chain Not to say, "This test fails without blocking the release. You can skip."——It'll just stop.
 ```
 
 **Chain's applicable boundary is narrow and clear**: steps are fully defined, no surprises, no dynamic decision-making is required. Like, "Read profiles, poach, poach, poach, poach, poach, write in the cache," These four steps will not fail under normal circumstances, and failure means that the system is in trouble, and stop is right.
@@ -194,20 +194,20 @@ Router is basically "Classer + Multiple Chain". Different tasks follow different
 ```python
 class RouterExecutor:
     ROUTES = {
-        "release": ["检查 README", "运行测试", "整理 changelog", "生成 checklist"],
-        "bugfix":  ["运行测试", "整理 changelog"],
-        "docs":    ["检查 README"],
+        "release": ["Check README, Run Test, Collapse Changelog, Generate Checklist],
+        "bugfix":  ["Run test, "Check up changelog."],
+        "docs":    ["Check README"],
     }
 
     def classify(self, query: str) -> str:
-        # 实际项目中这里是 LLM 调用，这里简化为关键词匹配
-        if "发布" in query or "release" in query.lower():
+        # This is the LLM call in the actual project, which is simplified to match the keyword
+        if "In query or "release" in query.lower (:
             return "release"
-        if "bug" in query.lower() or "修复" in query:
+        if "bug" in query.lower() or "In repair:
             return "bugfix"
-        if "文档" in query or "readme" in query.lower():
+        if "Document in query or "readme" in query.lower():
             return "docs"
-        return "release"  # 兜底
+        return "release"  # Bottom
 
     def execute(self, query: str):
         category = self.classify(query)
@@ -237,42 +237,42 @@ Router solved the "choice which way," but the inside of the path is Chain -- sto
 This is Planning's most classic realization. Core process in four steps:
 
 ```text
-1. 生成计划：分析目标 → 拆解为结构化步骤（每步包含：名称、工具、描述、依赖、重试次数）
-2. 用户确认：展示计划 → 用户修改或确认
-3. 逐步执行：按依赖顺序执行 → 记录每步结果
-4. 失败重规划：某步重试耗尽 → 基于当前状态生成新的后续步骤
+1. Generating plan: analytical objective → Dismantling to a structured step (each step includes: name, tool, description, dependence, number of retries)
+2. User confirmation: presentation plan → User modify or confirm
+3. Progressive implementation: implementation in the order of reliance → Record the results of each step
+4. Failed to re-strategize: a step to exhaust → Generate new next steps based on current status
 ```
 
 ```python
 class PlanExecuteExecutor:
     def execute(self, goal, inject_failures=None):
-        # 1. 生成计划
+        # 1. Generation schedule
         plan = self.generate_plan(goal)
         # plan.steps = [
-        #   PlanStep("检查 README", tool="检查 README", depends_on=[]),
-        #   PlanStep("运行测试", tool="运行测试", depends_on=[]),
-        #   PlanStep("整理 changelog", tool="整理 changelog", depends_on=["运行测试"]),
-        #   PlanStep("生成 checklist", tool="生成 checklist",
-        #            depends_on=["检查 README", "运行测试", "整理 changelog"]),
+        #   PlanStep("Check README', tool="Check README, inspections on=[]),
+        #   PlanStep("Run Tests, tool="Run Tests, depends on=[]),
+        #   PlanStep("Cleaning up changelog, tool="Collapse changelog, depends on=["Run the test."]),
+        #   PlanStep("Generate checklist, tool="Generate checklist."
+        #            depends_on=["Check README, Run Test, Collapse Changelog]),
         # ]
 
-        # 2. 逐步执行
+        # 2. Progressive implementation
         for step in plan.steps:
-            # 检查依赖是否满足
+            # Check if dependency is satisfied
             unmet = [d for d in step.depends_on if d not in plan.completed_steps]
             if unmet:
-                # 依赖未满足 → 先插入依赖步骤
+                # Reliance Unsatisfied → Insert dependency step first
                 continue
 
             result = execute_step(step, inject_failures)
 
-            # 3. 失败处理
+            # 3. Failed to process
             if result.status == "error":
                 step.retries += 1
                 if step.retries < step.max_retries:
-                    continue  # 重试
+                    continue  # Try again
                 else:
-                    # 重试耗尽 → 触发重规划
+                    # It's exhausting. → Trigger replanning
                     new_steps = self.replan(goal, plan.completed_steps,
                                             step.name, result.error)
                     plan.replace_remaining(new_steps)
@@ -283,16 +283,16 @@ class PlanExecuteExecutor:
 **Replan is the core difference between Plan-Execute and Chain.** Its logic is to generate a new set of next steps based on completed steps + the cause of failure + the tools available. It's not "re-plan from zero" -- the steps that have been completed will not be repeated.
 
 ```text
-重规划示例（运行测试失败）：
-  输入：
-    已完成：["检查 README"]
-    失败步骤："运行测试"
-    错误信息："1 个测试失败: test_memory_cleanup_on_session_end"
+Reprogramming example (run test failed):
+  Input:
+    Completed:["Check README"]
+    Failed step: Run test
+    return a tool_not_found error
 
-  重规划输出（新步骤替换原计划的后续步骤）：
-    步骤 3. 分析运行测试失败原因 — 重新运行测试以确认失败原因
-    步骤 4. 整理 changelog — 继续执行
-    步骤 5. 生成 checklist — 继续执行
+  Reprogramming output (new steps replace planned next steps):
+    Step 3. Analysis of reasons for failure in running tests— Rerun test to confirm cause of failure
+    Step 4. Collapse changelog— Continue
+    Step 5. Generate checklist— Continue
 ```
 
 **The common trap of Plan-Execute**: Replanning itself may fail. If the new steps generated by replan are not enforceable, you need an exit condition-- – Usually the maximum number of heavy plans (e.g., up to 2 re-plannings) are reported later. The Plan-Execute Executor in the Example Project also achieved this layer of protection: `max_replan_count` Or when a duplicate planning step is generated, implementation will be suspended and a cycle avoided.
@@ -314,29 +314,29 @@ Plan-Execute's dynamic re-engineering is flexible, but it also has a cost — th
 Graph modeled the mission into a directional map. Unlike Plan-Execute's One-D List + Dynamic Reordering, all possible paths **are defined at the time of construction**:
 
 ```text
-发布准备的 Graph 结构：
+Launching the proposed Graph structure:
 
               ┌────────────┐
-              │ 检查 README │
+              │ Check README│
               └─────┬──────┘
                     │ success         error
                     ▼                 ▼
               ┌────────────┐    ┌──────────────┐
-              │  运行测试   │    │ 修复 README   │
+              │  Run Test│    │ Fix README│
               └─────┬──────┘    └──────┬───────┘
                     │                  │ success
              success│ error            ▼
-                    ▼     ▼       (终止: 人工检查)
+                    ▼     ▼       (Termination: manual check)
               ┌─────────────┐
-              │整理 changelog│
+              │Collate Changelog│
               └─────┬───────┘
-                    │ success/error → (终止)
+                    │ success/error → (Terminated)
                     ▼
               ┌─────────────┐
-              │生成 checklist│
+              │Generate checklist│
               └─────┬───────┘
                     ▼
-                  (完成!)
+                  (Completed!)
 ```
 
 ```python
@@ -357,26 +357,26 @@ class WorkflowGraph:
             if result.status == "error":
                 node.retry_count += 1
                 if node.retry_count < node.max_retries:
-                    current = current  # 重试
+                    current = current  # Try again
                 else:
-                    current = node.on_error  # 走失败分支
+                    current = node.on_error  # Go to the failed branch.
             else:
-                current = node.on_success  # 走成功分支
+                current = node.on_success  # Take the successful branch.
 ```
 
 Graph's real power in the failed branch. The path for normal running is `check_readme → run_tests → changelog → checklist` - Same as Chain. Distinction in an anomaly:
 
 ```text
-Graph 错误处理（README 检查失败）：
-  check_readme → 失败 → on_error 跳转 → fix_readme
-  路径：check_readme → fix_readme → (终止)
+Graph Error processing (README check failed):
+  check_readme → Failed → on_error Jump → fix_readme
+  Path: check readme → fix_readme → (Terminated)
 
-  Chain 做不到：Chain 的步骤顺序是 ["检查 README", "运行测试", ...]，
-  失败后只能停在第一步。
+  Chain Can't do it: Chain's sequence is["Check Readme, Run Test,...],
+  Failure can only be stopped at the first step.
 
-  Plan-Execute 也可以通过 replan 生成"修复 README"这类步骤，
-  但它是运行时动态生成；Graph 的修复路径是预定义的——
-  更可预测，也更依赖事先设计和测试。
+  Plan-Execute You can also create "rehabilitating README" through replans.
+  But it's run-time dynamic.;Graph The path to repair is predefined.——
+  More predictable and dependent on prior design and testing.
 ```
 
 **Graph 's modelling costs**: You need to think ahead of time about the jump target for each node in all cases. Graph needs to define 6 nodes (including error processing nodes) for the release of this 4-step task. For a more complex worksheet processing process, the number of nodes could reach dozens -- at which point the maintenance costs of Graph became significant.
@@ -399,50 +399,50 @@ Run each of the four modes of launching a preparatory mission against the actual
 
 ```text
 ═══════════════════════════════════════════════════════════════════
-任务："准备 v1.2.0 版本发布"（所有步骤正常）
+Mission: "Prepar for v1.2.0 release" (all steps are normal)
 ═══════════════════════════════════════════════════════════════════
 
-Chain:           ✅ 4/4 完成。路径: 检查README→运行测试→changelog→checklist
-Router(发布):     ✅ 4/4 完成。路径同上。
-Plan-Execute:    ✅ 4/4 完成。先展示计划，用户确认后执行。
-Graph:           ✅ 4 个节点。路径: check_readme→run_tests→changelog→checklist
+Chain:           ✅ 4/4 Done. Path: Check README → Run Test → changelog → checklist
+Router(Published:✅ 4/4 Done. The path is the same.
+Plan-Execute:    ✅ 4/4 Done. Show the plan first, user confirmation and implementation.
+Graph:           ✅ 4 Node. Path: check readme → run_tests → changelog → checklist
 
-所有模式都能完成。此时看不出差异。
+All models can be completed. There is no difference at this time.
 
 ═══════════════════════════════════════════════════════════════════
-任务："准备 v1.2.0 版本发布"（运行测试失败）
+Other Organiser
 ═══════════════════════════════════════════════════════════════════
 
-Chain:           ❌ 第 1 步完成，第 2 步失败，第 3-4 步跳过。
-                 最终输出: "发布准备失败"。
+Chain:           ❌ Step 1, step 2, failed, step 3-4 jumped.
+                 Final output: "Dispatch ready failed".
 
-Plan-Execute:    ⚠️ 第 1 步完成，第 2 步失败 → 重试 1 次 → 仍失败
-                 → 触发重规划 → 插入"分析失败原因"步骤
-                 → 判断为非阻塞且用户确认跳过后，继续执行 changelog 和 checklist。
-                 最终输出: "发布准备完成（测试失败已记录，待修复）。"
+Plan-Execute:    ⚠️ Step 1, step 2, failed → Try again 1 time → Still failed.
+ → Trigger replanning → Insert "Analyse the causes of failure" step
+ → Continue the changelog and checklist when judged unblocked and confirmed by the user.
+                 Final output: "Issuing ready for completion (the test failure has been recorded, pending repair). "
 
-Graph:           ✅ check_readme✓ → run_tests✗ → 重试 → 仍失败
-                 → on_error 跳转 → retry_tests✓ → changelog✓ → checklist✓
-                 最终输出: "发布准备完成"。
+Graph:           ✅ check_readme✓ → run_tests✗ → Try again → Still failed.
+ → on_error Jump → retry_tests✓ → changelog✓ → checklist✓
+                 Final output: "Release ready."
 
-三种模式对同一异常的处理完全不同：
-- Chain 直接放弃
-- Plan-Execute 动态生成应对策略
-- Graph 执行预定义的失败恢复路径
+The treatment of the same anomaly is completely different in three models:
+- Chain Just give up.
+- Plan-Execute Dynamic generation responses
+- Graph Executing predefined failed recovery path
 ```
 
 **Mode selection decision tree**(practical judgement process):
 
 ```text
-你的任务步骤是完全固定的吗？
-  ├─ 是 → 步骤会有异常需要分支处理吗？
-  │      ├─ 不会 → Chain
-  │      └─ 会 → 异常分支可以提前穷举吗？
-  │             ├─ 可以 → Graph
-  │             └─ 不可以 → Plan-Execute
-  └─ 否 → 需要根据输入类型选不同路径吗？
-         ├─ 是 → Router
-         └─ 否 → Plan-Execute 或 ReAct Loop
+Are your mission steps completely fixed??
+  ├─ Yes. → Is there an anomaly in the procedure that requires a branch??
+  │      ├─ Nope. → Chain
+  │      └─ Yes. → Can an abnormal branch run ahead??
+  │             ├─ Yeah. → Graph
+  │             └─ No way. → Plan-Execute
+  └─ Yes → Do you need to select different paths according to type of input??
+         ├─ Yes. → Router
+         └─ Yes → Plan-Execute Or Reform Loop
 ```
 
 > **Remember**: Do not push a simple task into Graph. Graph's problem is not "too powerful," but you have to maintain node, side, state, wrong branch, recovery strategy and test coverage; if the mission had only a three-step fixed process, these costs would not automatically yield benefits.
@@ -460,20 +460,20 @@ The first four models are sufficient to explain the release of the assistant sce
 Put them back in the release of the assistant's scene, as you can see:
 
 ```text
-用户："帮我做 v1.2.0 发布准备。"
+User: "Help me do v1.2.0 release preparation."
 
 Parallelization:
-  同时执行 README 检查、测试、依赖漏洞扫描。
-  等所有只读检查完成后，再决定是否生成 changelog。
+  Also perform README checks, tests, and rely on gap scanning.
+  When all read-only checks are completed, the decision is made to generate changelog.
 
 Orchestrator-Workers:
-  编排者发现项目里有 Python、Node.js、Docker 三类发布材料。
-  分别派发给三个 worker 检查，再汇总为统一 checklist。
+  The organizers found three types of release material for Python, Node.js and Docker.
+  Sending three worker checks each to be aggregated into a unified checklist.
 
 Evaluator-Optimizer:
-  先生成 checklist。
-  evaluator 检查 checklist 是否覆盖测试、版本号、文档、回滚、权限。
-  如果缺项，optimizer 修订 checklist，最多迭代 2 次。
+  Mr. Checklist.
+  evaluator Checks whether checklist covers tests, version numbers, documents, rollbacks, permissions.
+  If missing, optimizer revises checklist up to two times.
 ```
 
 These three models are often used in combination with previous models: Router can judge the type of task before entering Parallelization; Plan-Execute can break a step into Orchestra-Workers; and Graph can fix Evaluator-Optimizer into a subgraph. The premise of a combination is still the same: to prove simple models first with track and eval, then to add complexity.
@@ -485,18 +485,18 @@ Planning / Workflow Pattersons
 | Phase | Do what? | Fit to target. | Don't do anything too early. |
 |---|---|---|---|
 | V0: Naked | Model step-by-step decision tool, step-by-step judgement | See if the mission really takes more steps. | Don't introduce Planning Frames too early. |
-| V1：Checklist | Make the model list the steps, but not enforce them | We'll reduce the leaks and verify if there's a regular step pattern. | Don't ask too early for a structured plan. |
+| V1:Checklist | Make the model list the steps, but not enforce them | We'll reduce the leaks and verify if there's a regular step pattern. | Don't ask too early for a structured plan. |
 | V2: User confirmation plan | Allow users to modify the plan before execution, confirm and execute | Enhancing controllability and involving users in decision-making | Don't automate too early. If the user can't clear the steps, keep moving. |
 | V3: Structured Plan | Targeting, tools, input, acceptance standards per step | Support for traceable implementation and failure positioning | Do not seek form integrity too early - 5 steps enough to generate 15 steps |
 | V4: Dynamic re-planning | Automatically adjust plans in case of failure or environmental change | Supporting the adaptation of complex missions | Don't be too early to trust re-engineering -- check the validity of "misclass" and "exit conditions". |
-| V5：Graph | Solidize task nodes, states and branches into graphic structures | Support status sustainability, implementation recovery, path back Fire! | Don't fix it too early. |
+| V5:Graph | Solidize task nodes, states and branches into graphic structures | Support status sustainability, implementation recovery, path back Fire! | Don't fix it too early. |
 
 **The upgrade signal at each stage is specific and visible**, not the vague feeling that the system should be better:
 
 - V0V1: Users say, "You're missing another step" or "You should check X and then do Y" -- that the mission has a fixed pattern and is worth listing.
 - V1VV2: Users frequently interrupt Agent during implementation ( "No, don't do that first") — indicating that users want to participate in decision-making.
-- V2→V3: Similar tasks are performed more than five times, with a similar feedback from each user ( "What is the acceptance criterion for this step") - a description of the need to structure.
-- V3→V4: The failure of "Agent continues hard after a step has failed or abandons it all" - indicates the need for re-planning capability.
+- V2 → V3: Similar tasks are performed more than five times, with a similar feedback from each user ( "What is the acceptance criterion for this step") - a description of the need to structure.
+- V3 → V4: The failure of "Agent continues hard after a step has failed or abandons it all" - indicates the need for re-planning capability.
 - V4VV5: The mission is carried out at least once a week, and there are new people in the team who need to take over — at which point the reversible and recoverable value of Graph can be realized.
 
 It is recommended to be V2 or V3 at the initial stage. Graph waits until the state and branch is really complicated. The cost is not the abstract "complicated" but the need to maintain the node definition, border conditions, permanence, recovery strategy, wrong branch testing and debugging tools. **Rather than relying solely on a perceived mode of upgrading, it will be judged by a closed loop.** Prepare a set of real missions and failed injections, run one in different modes and compare the results:
@@ -514,12 +514,12 @@ It is recommended to be V2 or V3 at the initial stage. Graph waits until the sta
 A simple comparison template:
 
 ```text
-任务集：发布准备 10 条，其中 3 条注入失败
+Job set: 10 articles published, 3 of which failed to inject
 
-模式              完成率  失败恢复率  平均耗时  用户确认次数  计划偏离次数  是否升级
-Chain             70%     20%         低        0             0             否：异常路径太弱
-Plan-Execute      90%     80%         中        1.4           0             是：收益覆盖成本
-Graph             92%     90%         中        1.1           0             暂缓：建模成本高，任务还不稳定
+Mode, completion rate, failure recovery rate, average time, number of user confirmations, number of planned deviations, whether or not to upgrade
+Chain             70%     20%         Low 0 No: abnormal path weak
+Plan-Execute      90%     80%         1.4 0 Yes: Cost of revenue cover
+Graph             92%     90%         1.10 Suspension: high modelling costs and unstable tasks
 ```
 
 **Production level Planning at least records this information**. Otherwise, the plan would appear to be clear, effectively unrecoverable, unauditable and unmodified:
@@ -565,83 +565,83 @@ The quick check sheet tells you "what may be the problem," but there are often l
 - -- **Debug story one: Plan-Execute reprogrammed into a dead cycle**
 
 ```text
-症状：
-用户说"帮我做发布准备"。Agent 生成计划，执行到"整理 changelog"时失败
-（错误：GitError: 不在 git 仓库中）。重规划生成的新步骤中又有"整理 changelog"，
-再次失败，再次重规划……用户等了 3 分钟，Agent 还在循环。
+Symptoms
+The user said, "Help me get ready for the release." Agent Generation Program failed when it was implemented until "Check changelog"
+(Error: GitError: Not in guit repository. In the new steps generated by the reprogramming, there is also the "changelog" that has been created.
+Again, again, again.……The user waited three minutes, and Agent is still revolving.
 
-排查过程：
-1. 查看 trace → changelog 步骤失败了 8 次，重规划了 6 次
-2. 每次重规划都生成了相同的步骤："整理 changelog" + "生成 checklist"
-3. 错误信息一直是 "GitError: 不在 git 仓库中"——环境问题，重试不可能解决
-4. 重规划逻辑没有判断"失败原因是否可恢复"——对所有错误都一视同仁
+Queries:
+1. View Trace → changelog Step failed eight times, reprogrammed six times.
+2. Every reprogramming has generated the same step: "Collating Changelog."+ "Generate checklist"
+3. The wrong message has been "GitError: Not in the guit warehouse."——Environmental problems. It's impossible to try again.
+4. The reprogramming logic does not judge whether the cause of failure can be restored.——All mistakes are equal.
 
-根因：
-- replan() 函数只看了"失败步骤名"，没分析"失败原因类型"
-- GitError 是环境问题（不可恢复），但被当作可重试的错误处理
-- 缺少最大重规划次数限制
+GEN:
+- replan() The function only looks at the "failure step name" and does not analyze the "causes of failure."
+- GitError It is an environmental issue (non-recoverable), but it is treated as a re-testable error
+- Lack of maximum planning limit
 
-修复：
-1. 错误分类：可恢复错误（网络超时、资源暂时不可用）→ 重试；
-   不可恢复错误（配置错误、环境问题、权限不足）→ 跳过并通知用户
-2. 增加 max_replan_count=2：最多重规划 2 次，超过后终止并上报
-3. 重规划时检查"新步骤是否与前次相同"——如果相同，说明 replan 没有
-   产生有效替代方案，应该终止而不是继续
+Restoration:
+1. Error classification: recoverable error (network timeout, resources temporarily unavailable) → Try again;
+   Unrecoverable error (assembly error, environmental problem, inadequate authority) → Skip and notify users
+2. Add max replan count=2:Maximum multiple planning 2 times, terminated and reported after
+3. Check if the new step is the same as the previous one during reprogramming.——If it's the same, it means no.
+   The creation of effective alternatives should be discontinued rather than continued
 ```
 
 - -- **Debug Story II: The wrong branch of Graph was never tested**
 
 ```text
-症状：
-"修复 README"节点在生产环境中第一次被触发时，
-执行了 30 秒后 crash——它尝试写入一个不存在的目录。
-但这个节点在图中已经存在了 3 个月。
+Symptoms
+"When the README node was first triggered in the production environment,
+30 seconds to crash——It tries to write a non-existent directory.
+But this node has been in the picture for three months.
 
-排查过程：
-1. 查看 Graph 定义 → fix_readme 节点的 action 是 lambda 写的临时代码
-2. 这个节点从未在正常流程中被触发（因为"检查 README"几乎不会失败）
-3. 开发时只测试了主路径（happy path），错误分支只在代码中存在，
-   从未被集成测试覆盖
+Queries:
+1. View Graph Definition → fix_readme The action for node is a temporary code written by lmbda
+2. This node was never triggered in the normal process.
+3. Only primary path (happy path) was tested at the time of development, and the error branch only exists in the code.
+   Never covered by integration tests
 
-根因：
-- Graph 的失败分支在构建时定义，但测试时几乎只覆盖主路径
-- 错误分支代码是"写完就忘了"的代码——没有监控、没有告警
-- 正常情况下这些节点永远不会被访问，但一旦被访问就是紧急情况
+GEN:
+- Graph Failed branch defined at build, but tested with almost only main path
+- The wrong branch code is the code for writing and forgetting.——No surveillance, no police.
+- Under normal circumstances, these nodes will never be visited, but once visited, they will be an emergency.
 
-修复：
-1. 注入测试：定期向 Graph 中注入错误，强制触发所有错误分支
-   （例如：每周跑一次 chaos test，故意让 README 检查失败）
-2. 错误分支节点也必须有完整的日志和监控
-3. 每个错误分支节点单独做单元测试
+Restoration:
+1. Injection test: regularly inject errors into the Graph and force all error branches to trigger
+   (For example: once a week, Chaos test, deliberately failed the README inspection)
+2. The error branch must also have a complete log and monitor
+3. Unit testing for each error branch
 ```
 
 - -- **Debug story three: After user confirmation, Agent changed the plan without permission**
 
 ```text
-症状：
-用户确认了 Agent 生成的 4 步发布计划。执行到第 3 步（"整理 changelog"）时，
-Agent 发现 git log 中有一些未提交的改动，它自行插入了一个
-"先提交未保存的改动"步骤，导致 changelog 内容包含了不该包含的改动。
+Symptoms
+User confirms the 4-step release plan generated by Agent. As we move to step 3 ( "Cleaning Changelog" ),
+Agent Found some unsubmitted changes in the guit log, which inserted one of its own.
+"Submit unsaved changes first'step, resulting in changelog content containing changes that should not be included.
 
-排查过程：
-1. 查看执行 trace → 第 3 步执行前，Agent 检测到 dirty working tree
-2. Plan-Execute 的 execute() 方法中有一段逻辑：
-   "如果检测到环境异常，自动插入修复步骤"
-3. 用户确认的是 4 步计划，但实际执行了 5 步——用户不知道第 5 步的存在
+Queries:
+1. View execution track → Before step 3, Agent detected dirty working tree
+2. Plan-Execute There is a logic in the method:
+   "If an abnormal environment is detected, automatically insert the restoration step."
+3. User confirmed 4-step plan, but 5-step implementation——User does not know step 5 exists
 
-根因：
-- 计划确认后没有锁定：用户确认的是一个"快照"，但执行器把它当
-  "参考模板"来用
-- "自动插入步骤"的权限太高——它不应该在用户确认后还能修改计划
+GEN:
+- There's no lock after plan confirmation: the user identified a "scatter" but the implementer used it as a "scatter"
+  "Reference Templates
+- "Automatically insert steps with too much permission.——It shouldn't be able to change the plan after the user has confirmed it.
 
-修复：
-1. 计划确认后锁定：confirmed_plan 是 immutable 的，
-   任何偏离都需要重新请求用户确认
-2. 如果执行过程中发现需要额外步骤，暂停执行并通知用户：
-   "发现环境异常（working tree 有未提交改动），
-   建议先提交再继续。是否允许我插入这个步骤？"
-3. 区分"微小调整"（如重试延迟时间）和"结构变更"（如插入新步骤）——
-   前者自动处理，后者必须确认
+Restoration:
+1. The program confirmed locking: confirmed plan is immutable.
+   Any deviation requires a new request for confirmation
+2. If additional steps are found necessary in the course of implementation, suspend and inform users:
+   "In the past few years, environmental anomalies have been detected (working changes have not been submitted).
+   Recommendation submitted before continuation. Will you allow me to insert this step??"
+3. Distinguishing between "small adjustments" (e.g., delay in retry) and "structure changes" (e.g., insertion of new steps)——
+   The former are automatically treated, and the latter must be confirmed.
 ```
 
 ---
@@ -666,8 +666,8 @@ Planning:
 Practical judgement:
 
 ```text
-如果问题主要是"漏步骤、走偏、无法恢复"，考虑 Planning。
-如果问题只是"某一步工具调用错了"，先修工具机制。
+If the problem is mostly "missing, falling, not recovering," consider Planning.
+If the problem is just "a step tool is wrong," fix the tool mechanism.
 ```
 
 ## 5.8 From drift to removable: One Planning Life Cycle
@@ -676,133 +676,133 @@ The following is a series of key differences in the four models, replaying them 
 
 ```text
 ═══════════════════════════════════════════════════════════════════
-V1：裸 ReAct — 周一 14:00
+V1:Red— Monday 14:00
 ═══════════════════════════════════════════════════════════════════
 │
-│  [14:00] 用户："帮我做 v1.2.0 发布准备。"
+│  [14:00] User: "Help me do v1.2.0 release preparation."
 │
-│  Agent 的 ReAct 循环：
-│    思考：用户要做发布准备，先看看项目结构。
-│    行动：ls -la（列出文件）
-│    观察：看到 README.md, src/, tests/, CHANGELOG.md
+│  Agent Other Organiser
+│    Thinking: Users need to prepare for the launch and look at the project structure.
+│    Action: ls-la (file listing)
+│    Observation: README.md, src/, tests/, CHANGELOG.md
 │
-│    思考：有 CHANGELOG.md，让我看看内容。
-│    行动：cat CHANGELOG.md
-│    观察：（读取了 200 行 changelog 历史）
+│    Think: There's CHANGELOG.md, let me see the content.
+│    Action: Cat Changelog.md
+│    Observation: (read 200 row changelog history)
 │
-│    思考：changelog 最后更新在 3 个月前。让我看看最近的 git log。
-│    行动：git log --oneline -20
-│    观察：（输出了 20 条 commit）
+│    Thinking: Changelog was last updated three months ago. Let me see the latest guit log.
+│    Action: Git log-oneline-20
+│    Observation: (20 articles exported)
 │
-│    思考：最近的 commit 有 feat 和 fix，需要整理到 changelog。
-│    行动：（开始编辑 CHANGELOG.md……）
+│    Thinking: Recently, the committee has feat and fix, which needs to be sorted into changelog.
+│    Action: (start editing CHANGELOG.md)……)
 │
-│    思考：应该也检查一下测试。
-│    行动：npm test
-│    观察：42 passed, 0 failed
+│    Think: We should check the tests too.
+│    Action: npm test
+│    Observation: 42 passed, 0 covered
 │
-│    思考：测试通过。用户还提到要检查 README……
-│    行动：cat README.md
-│    （此时已经过去了 8 分钟，用户已经不耐烦了）
+│    Think: Test passed. User also mentioned checking README……
+│    Action: cat README.md
+│    (It's been eight minutes and the user's been impatient.
 │
-│  问题：Agent 在第 1 步就偏离了。它没有先理解"发布准备"需要哪些步骤，
-│        而是每步临场决策，被文件内容吸引，在 changelog 编辑上花了
-│        大量时间，最后才想起来还有 README 和 checklist。
-│        用户要的是一个清单，Agent 却开始改文件了。
+│  Question: Agent deviated at step 1. It didn't understand what steps were needed to make the release ready.
+│        It's every step of decision-making, attracted to the content of the document, spent on the changelog editing.
+│        A lot of time, and finally there's README and checklist.
+│        The user wanted a list, and Agent started changing the file.
 │
-│  用户反馈："我只是想让你生成一个 checklist，你怎么开始改 changelog 了？
-│             而且 changelog 内容也不对，包含了未完成的 commit。"
+│  User feedback: "I just want you to create a checklist. How did you start changing changelog??
+│             And changelog is not right, it contains unfinished content."
 │
 ═══════════════════════════════════════════════════════════════════
-V2：Plan-Execute — 周二 10:00（基于用户反馈改进）
+V2:Plan-Execute — Tuesday 10 a.m. (based on user feedback improvements)
 ═══════════════════════════════════════════════════════════════════
 │
-│  [10:00] 用户："帮我做 v1.2.0 发布准备。"
+│  [10:00] User: "Help me do v1.2.0 release preparation."
 │
-│  1. 生成计划：
-│     Agent 不再直接动手，而是先生成计划：
+│  1. Generation plan:
+│     Agent No more direct action, but rather a plan.
 │
 │     ┌─────────────────────────────────────────────────────────┐
-│     │ 发布准备计划 - v1.2.0                                    │
+│     │ Release Preparation Plan - v1.2.0│
 │     │                                                         │
-│     │ 步骤 1. 检查 README 完整性                               │
-│     │   工具: 文件读取 + 章节校验                               │
-│     │   验收: 确认 Installation, Quick Start, API,             │
-│     │         Contributing 四个章节都存在                       │
+│     │ Step 1. Check README integrity│
+│     │   Tools: File Read+ Chapter Validation│
+│     │   Acceptance, Quick Start, API,│
+│     │         Contributing All four chapters exist.│
 │     │                                                         │
-│     │ 步骤 2. 运行测试                                         │
-│     │   工具: npm test                                        │
-│     │   验收: 所有测试用例通过                                  │
+│     │ Step 2. Run tests│
+│     │   Tools: npm test│
+│     │   Accepted and accepted: all test examples passed│
 │     │                                                         │
-│     │ 步骤 3. 整理 changelog                                   │
-│     │   工具: git log + changelog 模板                         │
-│     │   依赖: 步骤 2 通过（确保改动已测试）                     │
-│     │   验收: changelog 覆盖本次发布的所有 commit               │
+│     │ Step 3. Collapse changelog│
+│     │   Tools: guit log+ changelog Templates│
+│     │   Dependence: Step 2 Pass (ensure that changes are tested)│
+│     │   Receiving and Inspection: Changelog covers all members of this release│
 │     │                                                         │
-│     │ 步骤 4. 生成 release checklist                           │
-│     │   工具: checklist 模板                                   │
-│     │   依赖: 步骤 1, 2, 3 全部完成                            │
-│     │   验收: checklist 覆盖所有发布检查项                      │
+│     │ Step 4. Generate based checklist│
+│     │   Tools: checklist templates│
+│     │   Dependence: Step 1, 2, 3│
+│     │   Receiving and Inspection: checklist overwrite all published entries│
 │     └─────────────────────────────────────────────────────────┘
 │
-│  [10:01] 用户确认："计划看起来不错，执行吧。但测试如果失败不要
-│           硬停——告诉我哪个失败了，我决定是否继续。"
+│  [10:01] User confirmed: "The plan looks good. But not if it fails.
+│           Stop hard.——Tell me which failed, and I'll decide whether to continue."
 │
-│  2. 执行：
-│     步骤 1 ✅ — README 缺少 Contributing 章节，但不算阻塞
-│     步骤 2 ❌ — 1 个测试失败: test_memory_cleanup
+│  2. Implementation:
+│     Step 1✅ — README Missing Contributing Chapter but not blocked
+│     Step 2❌ — 1 Could not close temporary folder: %s
 │
-│     重试步骤 2 — 仍然失败。
+│     Retry Step 2— Still failed.
 │
-│     根据用户的指示，Agent 不硬停，而是报告：
-│     "步骤 2 运行测试：1 个测试失败（test_memory_cleanup_on_session_end）。
-│      这个失败的测试与本次发布改动无关。是否跳过继续？"
+│     According to the user's instructions, Agent does not stop, but reports:
+│     "Step 2 Run test: 1 test failed (test memory cleanup on session end).
+│      This failed test has nothing to do with this release change. Skip Continue?"
 │
-│     用户："跳过，继续。"
+│     User: " Skip, continue."
 │
-│     步骤 3 ✅ — changelog 已生成，覆盖 5 个 commit
-│     步骤 4 ✅ — checklist 已生成
+│     Step 3✅ — changelog Generated, over 5 committees
+│     Step 4✅ — checklist Generated
 │
-│  3. 最终输出：
-│     ✅ 发布准备完成
-│     ⚠️ 测试：1 个已知失败（非阻塞，已记录）
-│     📋 Checklist 包含 7 个检查项
+│  3. Final output:
+│     ✅ Release ready.
+│     ⚠️ Test: 1 known failure (not blocked, recorded)
+│     📋 Checklist Include 7 Checkpoints
 │
-│  用户反馈："这次好多了！计划清晰，遇到问题有选择，不是一刀切。"
+│  User feedback: "This is much better.！The plan is clear, the problem is selective, not one size fits all."
 │
 ═══════════════════════════════════════════════════════════════════
-V3：Graph — 周三 15:00（流程固化为可复用工作流）
+V3:Graph — Wednesday, 15:00 (process solidifiably reusable workflow)
 ═══════════════════════════════════════════════════════════════════
 │
-│  经过一周的稳定运行，团队决定把发布流程固化为 Graph：
+│  After a week of steady operation, the team decided to anchor the release process into a Graph:
 │
-│  原因：
-│  - 发布流程每周至少执行一次，步骤和分支已经稳定
-│  - 需要支持"恢复执行"——如果执行到一半出问题，生产系统应能从失败节点继续
-│  - 需要可回放——新人接手发布时可以重放上一次的执行路径
+│  Reason:
+│  - Processes issued are implemented at least once a week and steps and branches have stabilized
+│  - We need to support the resumption of implementation.——If there is a problem with implementation, the production system should continue from the failure nodes.
+│  - Replayable if needed——You can reset the last execution path when the newcomer takes over for release.
 │
-│  [15:00] 新人第一次执行发布："帮我做 v1.3.0 发布准备。"
+│  [15:00] Newman's first execution release: "Help me do v1.3.0 release preparation."
 │
-│  Graph 执行路径（自动记录每一步）：
-│    check_readme   ✅ → "README 完整"
+│  Graph Execution path (automatically record every step):
+│    check_readme   ✅ → "README Full."
 │    run_tests      ✅ → "42/42 passed"
-│    changelog      ✅ → "Changelog 已生成"
-│    checklist      ✅ → "7/7 检查项"
+│    changelog      ✅ → "Changelog Generated
+│    checklist      ✅ → "7/7 "Check Item."
 │
-│  执行路径: check_readme → run_tests → changelog → checklist
+│  Execution path: check readme → run_tests → changelog → checklist
 │
-│  [15:30] 第二次发布（README 有问题）：
+│  [15:30] Second release (REDME has a problem):
 │    check_readme   ❌ → FileNotFoundError
-│    fix_readme     ✅ → "README 已补充"（自动跳转到修复节点）
-│    （终止，等待人工检查）
+│    fix_readme     ✅ → "README Added" (automated jump to fixed node)
+│    (Stop, wait for manual inspection)
 │
-│  执行路径: check_readme → fix_readme
+│  Execution path: check readme → fix_readme
 │
-│  用户反馈："我不用每次都说'如果失败怎么办'——分支逻辑已经
-│             写在 Graph 里了。而且执行路径可追溯，很放心。"
+│  User feedback: "I don't have to say "What if I fail?"——Branch logic is already in place.
+│             It's written in Graph. And the execution path can be traced, very reassuring."
 │
-│  但代价是：构建这个 Graph 花了一个下午。团队需要定义 6 个节点、
-│  8 条边、3 个重试策略——这些都是 Chain 和 Plan-Execute 不需要的。
+│  But the price is: it took Graph an afternoon to build this. Team needs to define 6 nodes,
+│  8 Side, 3 retry policies——These are not needed by Chain and Plan-Execute.
 │
 ═══════════════════════════════════════════════════════════════════
 ```
@@ -816,10 +816,10 @@ V3：Graph — 周三 15:00（流程固化为可复用工作流）
 
 | Mode | Core decision-making | Wrong behavior. |
 |---|---|---|
-| Chain（5.4.1） | Are the steps fully fixed and without abnormal branches? | Non-critical step failure leads to complete process interruption; users want to skip a step but Chain does not support |
-| Router（5.4.2） | Is the classification accurate enough? Is the bottom path secure? | The cataloguing error led to the wrong path being executed; the bottom path became a "massive bin". |
-| Plan-Execute（5.4.3） | Are reprogrammed exit conditions reliable? Are you locked after plan confirmation? | Reschedule dead loops;Agent inserts new steps without permission after user confirmation |
-| Graph（5.4.4） | Are modelling costs worth paying? Is the error branch tested the same as the main path? | 30 nodes no one can tell the whole story; wrong branch 3 months without trigger, crash |
+| Chain(5.4.1) | Are the steps fully fixed and without abnormal branches? | Non-critical step failure leads to complete process interruption; users want to skip a step but Chain does not support |
+| Router(5.4.2) | Is the classification accurate enough? Is the bottom path secure? | The cataloguing error led to the wrong path being executed; the bottom path became a "massive bin". |
+| Plan-Execute(5.4.3) | Are reprogrammed exit conditions reliable? Are you locked after plan confirmation? | Reschedule dead loops;Agent inserts new steps without permission after user confirmation |
+| Graph(5.4.4) | Are modelling costs worth paying? Is the error branch tested the same as the main path? | 30 nodes no one can tell the whole story; wrong branch 3 months without trigger, crash |
 
 **Three main lines through the entire link:**
 
@@ -850,11 +850,11 @@ This example revolves around the "publishing assistant" scene, where four Planni
 Examples are teaching achievement, not a complete production framework: It is confirmed by pressing the Enter simulation user that the Graph logs replayable path without lasting recovery; Plan-Execute already contains the maximum number of heavy plans and repeats the reprogramming test to avoid the failure path in the example.
 
 ```bash
-# Python 版本
+# Python Version
 cd examples/course-05-05-planning/python
 python3 planning_demo.py
 
-# Node.js 版本
+# Node.js Version
 cd examples/course-05-05-planning/nodejs
 node planning_demo.mjs
 ```

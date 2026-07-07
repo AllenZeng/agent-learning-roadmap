@@ -175,12 +175,12 @@ Based on the core perspective of who decides the next step, here is a quick-judg
    - User input open target, Agent autonomously plan execution path stronger Agent features
    - User step by step to give specific instructions more than Chatbot or WorkFlow
 2. **Initiation of action**: whether the action was initiated by the model itself or triggered by a user directive or preset rule?
-   - Autostart model →Agent feature
-   - User command trigger →Chatbot feature
-   - Preset rules trigger →Workflow feature
+   - Autostart model → Agent feature
+   - User command trigger → Chatbot feature
+   - Preset rules trigger → Workflow feature
 3. **Strategy adjustment**: Can the system change its strategy independently in the event of an accident?
    - Free to change tools, keywords, paths
-   - Only preset abnormal branch can be used to process →Workflow feature
+   - Only preset abnormal branch can be used to process → Workflow feature
    - Directly failed or requested to re-enter Chatbot feature
 
 These three problems are stacked together, and it's a product of the Agent Colour Spectra.
@@ -192,7 +192,7 @@ These three problems are stacked together, and it's a product of the Agent Colou
 Don't ask first, "What technology does it use?" Let's start with the question of a closer experience:
 
 ```text
-这个任务，适不适合交给一个会自己判断下一步的系统？
+It's not an appropriate task to give to a system that will decide on its own next move.?
 ```
 
 The same product may present a completely different picture in different missions. An Agent is very strong in writing codes, and may be subject to privileges and payment restrictions when ordering tickets; a search type Agent is well suited for sorting, but not necessarily for modifying your local files. So course one is not about ranking the product, but training you to judge whether the mission and product competencies match.
@@ -205,7 +205,7 @@ These features usually apply to jobs suitable for Agent:
 |---|---|---|
 | Target is clear, but the path is not fixed. | You know what you want, but you don't know what to do in the middle. | Help me find out why this project failed. |
 | We need more pace. | It's not the end of an answer. It's decomposition, execution, inspection, adjustment. | Help me organize a competition analysis brief. |
-| Need to use external capacity | Need to search web pages, read files, run codes, query data or call tools | "Read these PDFs, extract core views and generate forms." |
+| Need to use external capacity | Need to search_web pages, read_files, run codes, query data or call tools | "Read these PDFs, extract core views and generate forms." |
 | There could be an accident. | Unable to search, incorrect file format, error test, information conflict, need to change strategy | "Recover the code based on error reporting and verify whether the test passed." |
 | The results can be checked. | You can judge whether the output is useful, complete, reliable. | "to generate minutes and list to-dos." |
 
