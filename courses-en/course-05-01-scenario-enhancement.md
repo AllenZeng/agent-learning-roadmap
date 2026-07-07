@@ -13,6 +13,7 @@ This course does not start with conceptual terms but begins with problems. Each 
 ```text
 问题代入（怎么出问题的）→ 技术背景（这个能力怎么来的）→ 思考（设计者当时在想什么）
 → 方案（核心链路 + 代码骨架）→ 迭代路径（从最小版本到生产级）→ 判断边界（什么时候别用）
+
 ```
 
 After school, you don't have to do all seven types of abilities, but you should be able to judge when you face a new scene:
@@ -108,6 +109,7 @@ The seven categories of capacity corresponding to the above seven issues are nat
 │  四者关系：Planning 规划行动、Reflection 根据反馈调整行动、HITL   │
 │  约束行动（边界）、Multi-Agent 扩展行动（规模）。                 │
 └─────────────────────────────────────────────────────────────┘
+
 ```
 
 Why do you make this distinction? Two reasons: **First, introduction order.** In real projects, you usually solve problems of information and then behavior. A person who doesn't even have a clear vision, and you've given it a complicated Planning model for nothing. It did the right task on the wrong message, and the result was wrong. The error clips that RAG retrieves, the outdated preferences recalled by Memory, the unorganized confusion context - the problem of these information dimensions will be magnified by the complex layout of Planning and Multi-Agent. **Second, positioning issues.** When Agent behaves badly, it is a question of information or behaviour. The model answers are inaccurate — are the results of the search not correct (information questions) or are the tasks broken down wrong (behaviour questions)? Agent deletes the document that should not be deleted -- is it without HITL confirmation, or is it the wrong file classification in Memoory? Bringing the problem to the right dimensions will lead to the right direction.
@@ -116,26 +118,22 @@ The following table shows the coordinates of the next chapter — which does not
 
 | Dimensions | Problem scene | Gene. | Empowerment | Add complexity after introduction |
 |---|---|---|---|---|
-|**Context enhancement** | External knowledge doesn't fit. | No answers in model parameters | RAG (Ch2) | Index maintenance, delayed retrieval, reference verification |
-|**Context enhancement** | I'm losing my memory when I close my sessions. | Status evaporates with session | Memory (Ch3) | Writing strategy, privacy, memory pollution |
-|**Context enhancement** | Information source 1 context to dump | Multi-Info Unordered Injection | Context Engineering (Ch4) | Layer design, budget transfer, overcompression |
-|**Behavioural mode enhancement** | Multistep task drifting step | Naked. | Planning (Ch5) | Plan enforceability, reprogramming costs |
-|**Behavioural mode enhancement** | I saw the feedback and I kept going. | Lack of decision-making closed loop | Reflection (Ch6) | Multi-wheel cost, condition to stop |
-|**Behavioural mode enhancement** | It's up to you. | Models don't know what to do and what to do. | Human-in-the-loop (Ch7) | Block delay, confirm fatigue. |
-|**Behavioural mode enhancement** | You'll see. | Single Agent Role Overload | Multi-Agent (Ch8) | Coordinated expenses, costs 2-5 times |
+| **Context enhancement** | External knowledge doesn't fit. | No answers in model parameters | RAG (Ch2) | Index maintenance, delayed retrieval, reference verification |
+| **Context enhancement** | I'm losing my memory when I close my sessions. | Status evaporates with session | Memory (Ch3) | Writing strategy, privacy, memory pollution |
+| **Context enhancement** | Information source 1 context to dump | Multi-Info Unordered Injection | Context Engineering (Ch4) | Layer design, budget transfer, overcompression |
+| **Behavioural mode enhancement** | Multistep task drifting step | Naked. | Planning (Ch5) | Plan enforceability, reprogramming costs |
+| **Behavioural mode enhancement** | I saw the feedback and I kept going. | Lack of decision-making closed loop | Reflection (Ch6) | Multi-wheel cost, condition to stop |
+| **Behavioural mode enhancement** | It's up to you. | Models don't know what to do and what to do. | Human-in-the-loop (Ch7) | Block delay, confirm fatigue. |
+| **Behavioural mode enhancement** | You'll see. | Single Agent Role Overload | Multi-Agent (Ch8) | Coordinated expenses, costs 2-5 times |
 
 ### 1.3 Common diagnostic processes introduced by capacity
 
 Each time you want to introduce an empowerment, you ask five questions:
 
 1. **What is the current problem?** Is it a lack of knowledge, a fractured state, a confused context, a dysfunctional mission, a lack of correction, a lack of autonomy, or an overload of roles?
-
 2. **Is there a simpler solution?** For example, is it sufficient for users to provide context directly, to use fixed processes, to add tools to verify, to optimize the hint, and to add a confirmation step?
-
 3. **What complexity would introduce this capability?** For example, RAG will introduce indexing and citation questions, Memoory will introduce privacy and pollution issues, Context Engineering will increase information layering costs, HITL will increase delay and interactive design complexity, Multi-Agent will introduce communication and debugging issues.
-
 4. **How to make the smallest version?** First, a minimum assessable enhancement, rather than an initial complete architecture.
-
 5. **How does it really get better?** There must be task sets, comparative indicators or manual acceptance criteria.
 
 ---

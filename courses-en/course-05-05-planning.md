@@ -30,6 +30,7 @@ Return to 1.1 intellectual assistants. You gave it a multistep mission:
 
 ```text
 帮我做发布准备：检查 README 完整性、跑一遍测试、整理 changelog、生成 release checklist。
+
 ```
 
 Agent started work. The first step, it read the README, wrote a comment. Step two, it... started going over the source code to verify one of the details mentioned in the README. In the third step, it searched the relevant GitHub issue. Five minutes later you come back and check it out and find it detached from the original target, and you don't know what you're doing. You flipped the trace and found out that it had never touched anything about "publishing" since step 4.
@@ -62,13 +63,14 @@ Planning 需求：
   - 步骤之间的依赖关系需要被明确建模
   - 某一步失败后需要明确的处理策略
   - 执行前用户可能需要确认计划
+
 ```
 
 And every Planning model that follows, we're going to use this scenario -- the same mission, different organizational approaches, completely different effects.
 
 ## 5.2 Why is it only react not enough: from the incipient to the visible process?
 
-Planning was not in the beginning of the Agent field. Retrospect the evolution: **October 2022, rect paper (Yao et al.).** The core finding of the paper is that allowing LLM to rotate between "debate" and "action" can significantly increase the completion rate of complex missions. But the React model is "every step of the way" -- the model sees the current operation and decides the next action. This is effective for a three-to-five-step mission, but more than one step exposes the problem: the model does not have a global vision and can easily drift. **At the beginning of 2023, the Plan-and-Execute model emerged.** The idea is straightforward: to have the model break down the entire mission into an implementation plan before it is progressively implemented after user confirmation. This solves the Rect's "no global view" problem, but introduces a new problem... - The plan may not be implemented (the steps outlined in the model cannot be completed in the physical environment) or the original plan will no longer be applicable after the environmental changes. **In the second half of 2023, the structure (Graph) was created.** Frames like LangGraph and CrewAI begin to model tasks into nodes and edges - Each node is an action or judgement, and the border representation status is moved, and if it fails, it can jump back to a particular node and try again. The chart structure is not the only direction in which Plan-and-Execute evolves, but expands the one-dimensional step list to a visible control stream: it can express branches, tracers, parallel paths, artificial confirmation points, or can carry models such as React, Router or Plan-Execute. **2024 to date, the WorldFlow Pattersons became a consensus.** The "Building Employment Acts" article in Anthropic summarizes Prompt Chaining, Routing, Parallelization, Orchestra-Workers, Evaluator-Optimizer, OpenAgents SDK puts handoff, guardrail, Tracing, evals in the basic toolbox of Agent; LangGraph emphasizes durable expertise, human-in-the-loop, personal and time travel. Together, they point to the same principle: most scenes do not need to be complex at the outset. Graph, the key is to choose the least adequate organization based on the mission pattern, and to test whether complexity actually brings benefits by using a track and eval.
+Planning was not in the beginning of the Agent field. Retrospect the evolution: **October 2022, rect paper (Yao et al.).** The core finding of the paper is that allowing LLM to rotate between "debate" and "action" can significantly increase the completion rate of complex missions. But the React model is "every step of the way" -- the model sees the current operation and decides the next action. This is effective for a three-to-five-step mission, but more than one step exposes the problem: the model does not have a global vision and can easily drift. **At the beginning of 2023, the Plan-and-Execute model emerged.** The idea is straightforward: to have the model break down the entire mission into an implementation plan before it is progressively implemented after user confirmation. This solves the Rect's "no global view" problem, but introduces a new problem... - The plan may not be implemented (the steps outlined in the model cannot be completed in the physical environment) or the original plan will no longer be applicable after the environmental changes. **In the second half of 2023, the structure (Graph) was created.** Frames like LangGraph and CrewAI begin to model tasks into nodes and edges - Each node is an action or judgement, and the border representation status is moved, and if it fails, it can jump back to a particular node and try again. The chart structure is not the only direction in which Plan-and-Execute evolves, but expands the one-dimensional step list to a visible control stream: it can express branches, tracers, parallel paths, artificial confirmation points, or can carry models such as React, Router or Plan-Execute.**2024 to date, the WorldFlow Pattersons became a consensus.** The "Building Employment Acts" article in Anthropic summarizes Prompt Chaining, Routing, Parallelization, Orchestra-Workers, Evaluator-Optimizer, OpenAgents SDK puts handoff, guardrail, Tracing, evals in the basic toolbox of Agent; LangGraph emphasizes durable expertise, human-in-the-loop, personal and time travel. Together, they point to the same principle: most scenes do not need to be complex at the outset. Graph, the key is to choose the least adequate organization based on the mission pattern, and to test whether complexity actually brings benefits by using a track and eval.
 
 ## 5.3 Mission organization is more important than one-step decision-making
 
@@ -113,8 +115,10 @@ But looking at the tables alone is not intuitive. We use the release of the assi
 │   (修复后终止，         (重试成功→changelog                               │
 │    人工检查)             重试失败→终止)                                   │
 └─────────────────────────────────────────────────────────────────────────┘
+
 ```
-**Key Insight**: The difference between the three models is not "do it" — it can be done under normal processes. The difference is**when the anomaly occurs**:
+
+**Key Insight**: The difference between the three models is not "do it" — it can be done under normal processes. The difference is **when the anomaly occurs**:
 - Chain, just give up.
 - Plan-Execute Dynamic Adjustment
 - Graph jumps by predefined branch
@@ -138,23 +142,25 @@ Chain is the "one way to the black" -- like a water line in a factory, and each 
 ```python
 class ChainExecutor:
     """按固定顺序依次执行步骤。遇错即停，无分支，无重试。"""
-    
+
     def execute(self, on_step_start=None, on_step_end=None):
         for i, step_name in enumerate(self.steps):
             tool = TOOL_REGISTRY.get(step_name)
             if not tool:
-                return ChainResult(status="failed", failed_at=i, 
+                return ChainResult(status="failed", failed_at=i,
                                    error=f"未找到工具: {step_name}")
-            
+
             result = tool()  # 执行步骤
             if result.status == StepStatus.ERROR:
-                return ChainResult(status="failed", failed_at=i, 
+                return ChainResult(status="failed", failed_at=i,
                                    error=result.error)
             # 成功，继续下一步
-        
+
         return ChainResult(status="completed", results=all_results)
+
 ```
-**Chain's problem is not on the normal path**— normal, four steps go by, everything OK. But on the abnormal path:
+
+**Chain's problem is not on the normal path** — normal, four steps go by, everything OK. But on the abnormal path:
 
 ```text
 场景：运行测试失败
@@ -164,13 +170,15 @@ Chain 执行过程：
   ❌ 运行测试 → 失败！1 个测试用例未通过
   ⏭️ 整理 changelog → 跳过
   ⏭️ 生成 checklist → 跳过
-  
+
 最终报告："发布准备失败，第 2 步运行测试出错。"
 
 用户的感受：我就因为一个测试失败，整个发布流程就停了？
 而且那个失败的测试跟这次发布改动无关，是之前的遗留问题。
 Chain 不会说"这个测试失败不阻塞发布，可以跳过"——它只会停止。
+
 ```
+
 **Chain's applicable boundary is narrow and clear**: steps are fully defined, no surprises, no dynamic decision-making is required. Like, "Read profiles, poach, poach, poach, poach, poach, write in the cache," These four steps will not fail under normal circumstances, and failure means that the system is in trouble, and stop is right.
 
 Chain seems simple, but its failure is often underestimated - because "if you're wrong, stop" is in itself a design decision, not always right:
@@ -195,7 +203,7 @@ class RouterExecutor:
         "bugfix":  ["运行测试", "整理 changelog"],
         "docs":    ["检查 README"],
     }
-    
+
     def classify(self, query: str) -> str:
         # 实际项目中这里是 LLM 调用，这里简化为关键词匹配
         if "发布" in query or "release" in query.lower():
@@ -205,14 +213,16 @@ class RouterExecutor:
         if "文档" in query or "readme" in query.lower():
             return "docs"
         return "release"  # 兜底
-    
+
     def execute(self, query: str):
         category = self.classify(query)
         steps = self.ROUTES.get(category, self.ROUTES["release"])
         return ChainExecutor(steps).execute()
+
 ```
 
 Router's key design points:
+
 - **The classification accuracy**: the classification is wrong, the follow-up is all wrong. In the production environment, we don't just look at the "accuracy rate" as a percentage, but at the cost of a single error. The misallocation of the client's FAQ may have been simply an incorrect answer; a refund, a copy, a misallocation of production operations could have resulted in a real loss. High-risk pathways require identification, denial or manual takeover.
 - **Bottom path**: Difault path must be available when classification fails. The bottom should not default on the "most complete" path, but the "most secure" path: an explanation that cannot be judged, collects more information, or performs only read-only inspections.
 - **In the path or Chain**: Router only solves the "choice the road" and doesn't solve the "what about the pit on the road." Inside the path, it's still stopped by mistake.
@@ -224,7 +234,7 @@ Router's failure is usually not when it's right, but when it's wrong and there's
 | The classification error resulted in the wrong path being executed | The user said, "Check the code for me." Router classified it as a bugfix path. | Catalogs do not rely only on keyword matching; Image classification with LLM few-shot, adding a layer of "confirming route" interaction for vague input |
 | The bottom path becomes the "Box of Everything." | All unsettled inputs take the path, causing the path to be over-launched, and users wonder why writing a document for me triggers the release process. | The bottom path should be the safest path (e.g. only information presentation), not the full path; the trigger frequency of the bottom path Monitor |
 | Path definition outdated | The bugfix path that was defined last month only contains "run the test + sort the bagelog", but the team's now bugfix process needs an "updated version" | Path definition needs to follow actual workflow; frequency of usage and user feedback for each path is reviewed periodically |
-| There are no shared steps between paths | Release path and bugfix path have "run test" but separate definition -- - Change the test name twice. | Ripping public steps for reusable step definition, Router path reference step name instead of repeating definition |
+| There are no shared steps between paths | Release path and bugfix path have "run test" but separate definition -- Change the test name twice. | Ripping public steps for reusable step definition, Router path reference step name instead of repeating definition |
 
 ### 5.4.3 Plan-Execute: Make the plan visible before allowing failure and re-planning
 
@@ -237,21 +247,22 @@ This is Planning's most classic realization. Core process in four steps:
 2. 用户确认：展示计划 → 用户修改或确认
 3. 逐步执行：按依赖顺序执行 → 记录每步结果
 4. 失败重规划：某步重试耗尽 → 基于当前状态生成新的后续步骤
+
 ```
 
 ```python
 class PlanExecuteExecutor:
     def execute(self, goal, inject_failures=None):
         # 1. 生成计划
-        plan = self.generate_plan(goal)  
+        plan = self.generate_plan(goal)
         # plan.steps = [
         #   PlanStep("检查 README", tool="检查 README", depends_on=[]),
         #   PlanStep("运行测试", tool="运行测试", depends_on=[]),
         #   PlanStep("整理 changelog", tool="整理 changelog", depends_on=["运行测试"]),
-        #   PlanStep("生成 checklist", tool="生成 checklist", 
+        #   PlanStep("生成 checklist", tool="生成 checklist",
         #            depends_on=["检查 README", "运行测试", "整理 changelog"]),
         # ]
-        
+
         # 2. 逐步执行
         for step in plan.steps:
             # 检查依赖是否满足
@@ -259,9 +270,9 @@ class PlanExecuteExecutor:
             if unmet:
                 # 依赖未满足 → 先插入依赖步骤
                 continue
-            
+
             result = execute_step(step, inject_failures)
-            
+
             # 3. 失败处理
             if result.status == "error":
                 step.retries += 1
@@ -269,13 +280,15 @@ class PlanExecuteExecutor:
                     continue  # 重试
                 else:
                     # 重试耗尽 → 触发重规划
-                    new_steps = self.replan(goal, plan.completed_steps, 
+                    new_steps = self.replan(goal, plan.completed_steps,
                                             step.name, result.error)
                     plan.replace_remaining(new_steps)
-        
+
         return plan.final_output
+
 ```
-**Replan is the core difference between Plan-Execute and Chain.**Its logic is to generate a new set of next steps based on completed steps + the cause of failure + the tools available. It's not "re-plan from zero" -- the steps that have been completed will not be repeated.
+
+**Replan is the core difference between Plan-Execute and Chain.** Its logic is to generate a new set of next steps based on completed steps + the cause of failure + the tools available. It's not "re-plan from zero" -- the steps that have been completed will not be repeated.
 
 ```text
 重规划示例（运行测试失败）：
@@ -283,13 +296,15 @@ class PlanExecuteExecutor:
     已完成：["检查 README"]
     失败步骤："运行测试"
     错误信息："1 个测试失败: test_memory_cleanup_on_session_end"
-  
+
   重规划输出（新步骤替换原计划的后续步骤）：
     步骤 3. 分析运行测试失败原因 — 重新运行测试以确认失败原因
     步骤 4. 整理 changelog — 继续执行
     步骤 5. 生成 checklist — 继续执行
+
 ```
-**The common trap of Plan-Execute**: Replanning itself may fail. If the new steps generated by replan are not enforceable, you need an exit condition-- – Usually the maximum number of heavy plans (e.g., up to 2 re-plannings) are reported later. The Plan-Execute Executor in the Example Project also achieved this layer of protection:`max_replan_count`Or when a duplicate planning step is generated, implementation will be suspended and a cycle avoided.
+
+**The common trap of Plan-Execute**: Replanning itself may fail. If the new steps generated by replan are not enforceable, you need an exit condition-- – Usually the maximum number of heavy plans (e.g., up to 2 re-plannings) are reported later. The Plan-Execute Executor in the Example Project also achieved this layer of protection: `max_replan_count` Or when a duplicate planning step is generated, implementation will be suspended and a cycle avoided.
 
 Plan-Execute is the most flexible of the four models, but flexibility also leads to a unique pattern of failure:
 
@@ -331,23 +346,24 @@ Graph modeled the mission into a directional map. Unlike Plan-Execute's One-D Li
               └─────┬───────┘
                     ▼
                   (完成!)
+
 ```
 
 ```python
 class WorkflowGraph:
     def __init__(self):
         self.nodes: dict[str, Node] = {}
-    
-    def add_node(self, name, action, on_success=None, on_error=None, 
+
+    def add_node(self, name, action, on_success=None, on_error=None,
                  max_retries=1):
         self.nodes[name] = Node(name, action, on_success, on_error, max_retries)
-    
+
     def run(self, entry, context):
         current = entry
         while current:
             node = self.nodes[current]
             result = node.action(context)
-            
+
             if result.status == "error":
                 node.retry_count += 1
                 if node.retry_count < node.max_retries:
@@ -356,22 +372,25 @@ class WorkflowGraph:
                     current = node.on_error  # 走失败分支
             else:
                 current = node.on_success  # 走成功分支
+
 ```
 
-Graph's real power in the failed branch. The path for normal running is`check_readme → run_tests → changelog → checklist`- Same as Chain. Distinction in an anomaly:
+Graph's real power in the failed branch. The path for normal running is `check_readme → run_tests → changelog → checklist` - Same as Chain. Distinction in an anomaly:
 
 ```text
 Graph 错误处理（README 检查失败）：
   check_readme → 失败 → on_error 跳转 → fix_readme
   路径：check_readme → fix_readme → (终止)
-  
+
   Chain 做不到：Chain 的步骤顺序是 ["检查 README", "运行测试", ...]，
   失败后只能停在第一步。
 
   Plan-Execute 也可以通过 replan 生成"修复 README"这类步骤，
   但它是运行时动态生成；Graph 的修复路径是预定义的——
   更可预测，也更依赖事先设计和测试。
+
 ```
+
 **Graph 's modelling costs**: You need to think ahead of time about the jump target for each node in all cases. Graph needs to define 6 nodes (including error processing nodes) for the release of this 4-step task. For a more complex worksheet processing process, the number of nodes could reach dozens -- at which point the maintenance costs of Graph became significant.
 
 Graph's power lies in the predefined branch, but its failure is precisely due to the "predefined" -- you can only deal with the anomalies you've thought about:
@@ -379,7 +398,7 @@ Graph's power lies in the predefined branch, but its failure is precisely due to
 | Failed performance | Typical cause | Method of amendment |
 |---|---|---|
 | The wrong branch code was never tested. | The main path is almost the wrong branch. Crash at first trigger | Regular injection of failure force trigger error branch (chaos test); unit testing for each error branch separately |
-| Unforeseen anomalies have no branches. | Graph only defined branches for "test failure" and "reADME missing" but no nodes can be handled when "disk space is insufficient". | Each Graph keeps one`on_unexpected`Bottom-of-the-pipe - Defaults are pauses and notifications to users, not silent failures |
+| Unforeseen anomalies have no branches. | Graph only defined branches for "test failure" and "reADME missing" but no nodes can be handled when "disk space is insufficient". | Each Graph keeps one `on_unexpected` Bottom-of-the-pipe - Defaults are pauses and notifications to users, not silent failures |
 | It's hard to maintain. | In the first six nodes, six months later, 30 nodes, 50 sides, no one can tell the whole picture. | Subchart wrap (contain multiple nodes of "test-related" as a subchart); periodic review of dead nodes (three months without triggering nodes considered for removal) |
 | Unable to recover due to the lack of permanence | Crash, reboot, do not know where to proceed and what to do. | Endurance after implementation of each node (current node, completed steps, intermediate results); support for recovery from failure node |
 | Over-engineering | A three-line script for reading profile printout is modelled as 5 Node Graph | 5.4.5 Decision tree self-censorship: are the steps fully fixed and without abnormal branches? All right, Chain, that's enough. |
@@ -422,7 +441,9 @@ Graph:           ✅ check_readme✓ → run_tests✗ → 重试 → 仍失败
 - Chain 直接放弃
 - Plan-Execute 动态生成应对策略
 - Graph 执行预定义的失败恢复路径
+
 ```
+
 **Mode selection decision tree**(practical judgement process):
 
 ```text
@@ -435,6 +456,7 @@ Graph:           ✅ check_readme✓ → run_tests✗ → 重试 → 仍失败
   └─ 否 → 需要根据输入类型选不同路径吗？
          ├─ 是 → Router
          └─ 否 → Plan-Execute 或 ReAct Loop
+
 ```
 
 > **Remember**: Do not push a simple task into Graph. Graph's problem is not "too powerful," but you have to maintain node, side, state, wrong branch, recovery strategy and test coverage; if the mission had only a three-step fixed process, these costs would not automatically yield benefits.
@@ -466,6 +488,7 @@ Evaluator-Optimizer:
   先生成 checklist。
   evaluator 检查 checklist 是否覆盖测试、版本号、文档、回滚、权限。
   如果缺项，optimizer 修订 checklist，最多迭代 2 次。
+
 ```
 
 These three models are often used in combination with previous models: Router can judge the type of task before entering Parallelization; Plan-Execute can break a step into Orchestra-Workers; and Graph can fix Evaluator-Optimizer into a subgraph. The premise of a combination is still the same: to prove simple models first with track and eval, then to add complexity.
@@ -481,7 +504,9 @@ Planning / Workflow Pattersons
 | V2: User confirmation plan | Allow users to modify the plan before execution, confirm and execute | Enhancing controllability and involving users in decision-making | Don't automate too early. If the user can't clear the steps, keep moving. |
 | V3: Structured Plan | Targeting, tools, input, acceptance standards per step | Support for traceable implementation and failure positioning | Do not seek form integrity too early - 5 steps enough to generate 15 steps |
 | V4: Dynamic re-planning | Automatically adjust plans in case of failure or environmental change | Supporting the adaptation of complex missions | Don't be too early to trust re-engineering -- check the validity of "misclass" and "exit conditions". |
-| V5：Graph | Solidize task nodes, states and branches into graphic structures | Support status sustainability, implementation recovery, path back Fire! | Don't fix it too early. |**The upgrade signal at each stage is specific and visible**, not the vague feeling that the system should be better:
+| V5：Graph | Solidize task nodes, states and branches into graphic structures | Support status sustainability, implementation recovery, path back Fire! | Don't fix it too early. |
+
+**The upgrade signal at each stage is specific and visible**, not the vague feeling that the system should be better:
 
 - V0V1: Users say, "You're missing another step" or "You should check X and then do Y" -- that the mission has a fixed pattern and is worth listing.
 - V1VV2: Users frequently interrupt Agent during implementation ( "No, don't do that first") — indicating that users want to participate in decision-making.
@@ -510,7 +535,9 @@ A simple comparison template:
 Chain             70%     20%         低        0             0             否：异常路径太弱
 Plan-Execute      90%     80%         中        1.4           0             是：收益覆盖成本
 Graph             92%     90%         中        1.1           0             暂缓：建模成本高，任务还不稳定
+
 ```
+
 **Production level Planning at least records this information**. Otherwise, the plan would appear to be clear, effectively unrecoverable, unauditable and unmodified:
 
 | Fields | Meaning |
@@ -518,14 +545,18 @@ Graph             92%     90%         中        1.1           0             暂
 | `goal` | Original user target, avoid drifting from active target |
 | `plan_version` | planned version; new version generated for each structural change |
 | `steps` | Name, tool, input, output, dependence, acceptance standards per step |
-| `state` | `pending` / `running` / `completed` / `failed` / `skipped` |
+| `state ` | ` pending ` / ` running ` / ` completed ` / ` failed ` / ` skipped` |
 | `approval` | Who confirmed which version of the plan and what the scope was? |
-| `risk_level` | `read_only` / `modifies_files` / `external_side_effect` / `irreversible` |
+| `risk_level ` | ` read_only ` / ` modifies_files ` / ` external_side_effect ` / ` irreversible` |
 | `requires_approval` | Need for manual validation for execution, in particular for writing, submitting, publishing, deleting, paying, etc. |
 | `trace` | Call, time-consuming, error, number of retests and observations per step |
-| `recovery` | Rule(s) for retrying, skipping, reprogramming, manual takeover or termination after failure |**Designing the order of decision-making for Planning (in the case of publishing assistants):**1. **To confirm whether the task really requires Planning**: Self-censorship using 5.7 criteria — a task that can be accomplished in one step? Two or three steps of fixed process is enough? If the answer is yes, stop here and don't introduce Planning. Naked Rect ran five missions to see if there were signs of "missing steps, bias, inability to recover".
+| `recovery` | Rule(s) for retrying, skipping, reprogramming, manual takeover or termination after failure |
+
+**Designing the order of decision-making for Planning (in the case of publishing assistants):**
+
+1. **To confirm whether the task really requires Planning**: Self-censorship using 5.7 criteria — a task that can be accomplished in one step? Two or three steps of fixed process is enough? If the answer is yes, stop here and don't introduce Planning. Naked Rect ran five missions to see if there were signs of "missing steps, bias, inability to recover".
 2. **Observe the natural pattern of the mission**: are the mission steps fixed or subject to input changes? Do you need to try again, skip or reprogramme after you fail? Do users need to be involved in decision-making? These observations determine which direction you're going in -- instead of choosing an "advanced" model.
-3. **Start with the simplest mode**: first Chain (if steps are fixed and no anomalies) or Router (if diversion by type of input). Upgrade to Plan-Execute or Graph only when you do encounter an anomaly that Chain/Router cannot handle. **The only reasonable reason for the mode upgrade is that you have a specific malfunction, not "this model is higher."** 4. **Define exit conditions for each mode**: Chain stopped when it failed? How many times does Plan-Execute plan? Which part of the unforeseeable abnormality goes to? Planning without exit conditions is not Planning, it's "Agent can't get out of the loop."
+3. **Start with the simplest mode**: first Chain (if steps are fixed and no anomalies) or Router (if diversion by type of input). Upgrade to Plan-Execute or Graph only when you do encounter an anomaly that Chain/Router cannot handle. **The only reasonable reason for the mode upgrade is that you have a specific malfunction, not "this model is higher."**4. **Define exit conditions for each mode**: Chain stopped when it failed? How many times does Plan-Execute plan? Which part of the unforeseeable abnormality goes to? Planning without exit conditions is not Planning, it's "Agent can't get out of the loop."
 5. **The wrong path is the same as the main path**: the failed branches of Graph are the last time you want to face them when they're triggered for the first time. Regular injection of failure force triggers, and each error branch is tested separately.
 6. **The plan is locked as soon as it is confirmed**: the user confirms the 4-step plan, and the implementation cannot be 5-step. Any deviation — whether by inserting new steps or skipping — needs to be reconfirmed. Distinguishing between "light adjustment" (retry delay), which is automatic, and "structural change" (insert/delete steps), which is confirmed.
 7. **Comparative assessment with real missions**: preparation of 3 missions — one perfectly normal, one intermediate step failed, one required re-planning. Run in different modes, comparing: step completion rate, failure recovery rate, number of user interventions, final output quality, cost and track readability. Don't make decisions by feeling Chain enough.
@@ -547,7 +578,7 @@ Graph             92%     90%         中        1.1           0             暂
 
 The quick check sheet tells you "what may be the problem," but there are often layers between symptoms and root causes when actually debugging. The following is a display of how symptoms can be traced to the root causes and repaired by the failure of the three release assistant scenarios.
 
---- **Debug story one: Plan-Execute reprogrammed into a dead cycle**
+- -- **Debug story one: Plan-Execute reprogrammed into a dead cycle**
 
 ```text
 症状：
@@ -572,9 +603,10 @@ The quick check sheet tells you "what may be the problem," but there are often l
 2. 增加 max_replan_count=2：最多重规划 2 次，超过后终止并上报
 3. 重规划时检查"新步骤是否与前次相同"——如果相同，说明 replan 没有
    产生有效替代方案，应该终止而不是继续
+
 ```
 
----**Debug Story II: The wrong branch of Graph was never tested**
+- -- **Debug Story II: The wrong branch of Graph was never tested**
 
 ```text
 症状：
@@ -598,9 +630,10 @@ The quick check sheet tells you "what may be the problem," but there are often l
    （例如：每周跑一次 chaos test，故意让 README 检查失败）
 2. 错误分支节点也必须有完整的日志和监控
 3. 每个错误分支节点单独做单元测试
+
 ```
 
---- **Debug story three: After user confirmation, Agent changed the plan without permission**
+- -- **Debug story three: After user confirmation, Agent changed the plan without permission**
 
 ```text
 症状：
@@ -627,6 +660,7 @@ Agent 发现 git log 中有一些未提交的改动，它自行插入了一个
    建议先提交再继续。是否允许我插入这个步骤？"
 3. 区分"微小调整"（如重试延迟时间）和"结构变更"（如插入新步骤）——
    前者自动处理，后者必须确认
+
 ```
 
 ---
@@ -634,8 +668,7 @@ Agent 发现 git log 中有一些未提交的改动，它自行插入了一个
 **The three stories in common**:
 
 - **Reprogramming is not silver** — it needs to be accompanied by an erroneous classification (recoverable vs non-recoverable) and exit conditions (maximum planning times).
-- **The wrong path deserves to be as serious as the main path.**
-- **Plan should be locked as soon as it is confirmed.** The user confirms that the 4-step plan cannot be implemented in 5 steps. Any deviation would need to be reconfirmed.
+- **The wrong path deserves to be as serious as the main path.** -**Plan should be locked as soon as it is confirmed.** The user confirms that the 4-step plan cannot be implemented in 5 steps. Any deviation would need to be reconfirmed.
 
 ## 5.7 Not every multistep is worth Planning.
 
@@ -654,6 +687,7 @@ Practical judgement:
 ```text
 如果问题主要是"漏步骤、走偏、无法恢复"，考虑 Planning。
 如果问题只是"某一步工具调用错了"，先修工具机制。
+
 ```
 
 ## 5.8 From drift to removable: One Planning Life Cycle
@@ -671,22 +705,22 @@ V1：裸 ReAct — 周一 14:00
 │    思考：用户要做发布准备，先看看项目结构。
 │    行动：ls -la（列出文件）
 │    观察：看到 README.md, src/, tests/, CHANGELOG.md
-│    
+│
 │    思考：有 CHANGELOG.md，让我看看内容。
 │    行动：cat CHANGELOG.md
 │    观察：（读取了 200 行 changelog 历史）
-│    
+│
 │    思考：changelog 最后更新在 3 个月前。让我看看最近的 git log。
 │    行动：git log --oneline -20
 │    观察：（输出了 20 条 commit）
-│    
+│
 │    思考：最近的 commit 有 feat 和 fix，需要整理到 changelog。
 │    行动：（开始编辑 CHANGELOG.md……）
-│    
+│
 │    思考：应该也检查一下测试。
 │    行动：npm test
 │    观察：42 passed, 0 failed
-│    
+│
 │    思考：测试通过。用户还提到要检查 README……
 │    行动：cat README.md
 │    （此时已经过去了 8 分钟，用户已经不耐烦了）
@@ -707,7 +741,7 @@ V2：Plan-Execute — 周二 10:00（基于用户反馈改进）
 │
 │  1. 生成计划：
 │     Agent 不再直接动手，而是先生成计划：
-│     
+│
 │     ┌─────────────────────────────────────────────────────────┐
 │     │ 发布准备计划 - v1.2.0                                    │
 │     │                                                         │
@@ -737,15 +771,15 @@ V2：Plan-Execute — 周二 10:00（基于用户反馈改进）
 │  2. 执行：
 │     步骤 1 ✅ — README 缺少 Contributing 章节，但不算阻塞
 │     步骤 2 ❌ — 1 个测试失败: test_memory_cleanup
-│     
+│
 │     重试步骤 2 — 仍然失败。
-│     
+│
 │     根据用户的指示，Agent 不硬停，而是报告：
 │     "步骤 2 运行测试：1 个测试失败（test_memory_cleanup_on_session_end）。
 │      这个失败的测试与本次发布改动无关。是否跳过继续？"
-│     
+│
 │     用户："跳过，继续。"
-│     
+│
 │     步骤 3 ✅ — changelog 已生成，覆盖 5 个 commit
 │     步骤 4 ✅ — checklist 已生成
 │
@@ -761,7 +795,7 @@ V3：Graph — 周三 15:00（流程固化为可复用工作流）
 ═══════════════════════════════════════════════════════════════════
 │
 │  经过一周的稳定运行，团队决定把发布流程固化为 Graph：
-│  
+│
 │  原因：
 │  - 发布流程每周至少执行一次，步骤和分支已经稳定
 │  - 需要支持"恢复执行"——如果执行到一半出问题，生产系统应能从失败节点继续
@@ -791,30 +825,38 @@ V3：Graph — 周三 15:00（流程固化为可复用工作流）
 │  8 条边、3 个重试策略——这些都是 Chain 和 Plan-Execute 不需要的。
 │
 ═══════════════════════════════════════════════════════════════════
+
 ```
+
 **Several key behaviours exposed in playback**:
 
-1.**Naked Rect is not Planning**: it does not have a global task view and is prone to partial bias by local information — Agent is attracted to changelog content at step 1 and deviates from the goal of generating checklist.
-2.**Plan-Execute's core value lies in "Plan Visualization + Failed Decision Point"**: Users can see steps ahead of time, make choices when they fail -- skipping this non-stop test is not possible for Chain.
-3.**Graph's value lies in "reliability of solidification"**: normal and unusual processes are predefined and each execution is predictable and releasable. But the construction costs -- this release of Graph took the team one afternoon -- should not be the default option.
-4.**The iterative order is important**: nudity React validates feasibility plus Plan-Execute improves reliability and stabilizes before considering solidification to Graph. Don't skip the middle step. If you jump, you'll find the wrong branch in Graph that was never tested when the first trigger in the production environment.**Core decision review of four models:**| Mode | Core decision-making | Wrong behavior. |
+1. **Naked Rect is not Planning**: it does not have a global task view and is prone to partial bias by local information — Agent is attracted to changelog content at step 1 and deviates from the goal of generating checklist.
+2. **Plan-Execute's core value lies in "Plan Visualization + Failed Decision Point"**: Users can see steps ahead of time, make choices when they fail -- skipping this non-stop test is not possible for Chain.
+3. **Graph's value lies in "reliability of solidification"**: normal and unusual processes are predefined and each execution is predictable and releasable. But the construction costs -- this release of Graph took the team one afternoon -- should not be the default option.
+4. **The iterative order is important**: nudity React validates feasibility plus Plan-Execute improves reliability and stabilizes before considering solidification to Graph. Don't skip the middle step. If you jump, you'll find the wrong branch in Graph that was never tested when the first trigger in the production environment. **Core decision review of four models:**
+
+| Mode | Core decision-making | Wrong behavior. |
 |---|---|---|
 | Chain（5.4.1） | Are the steps fully fixed and without abnormal branches? | Non-critical step failure leads to complete process interruption; users want to skip a step but Chain does not support |
 | Router（5.4.2） | Is the classification accurate enough? Is the bottom path secure? | The cataloguing error led to the wrong path being executed; the bottom path became a "massive bin". |
 | Plan-Execute（5.4.3） | Are reprogrammed exit conditions reliable? Are you locked after plan confirmation? | Reschedule dead loops;Agent inserts new steps without permission after user confirmation |
-| Graph（5.4.4） | Are modelling costs worth paying? Is the error branch tested the same as the main path? | 30 nodes no one can tell the whole story; wrong branch 3 months without trigger, crash |**Three main lines through the entire link:**1.**Mode selection is driven by scenes, not by "high sense"**: Chain is not "lower mode", and Graph is not "high mode". If the steps of a mission are fully fixed and not unexpected, Chain is the best solution — it is simple, predictable and cost-free. A complex model is only worth introducing if it proves that it can reduce leakages, increase failure recovery rates or improve handover audits.
-2.**The abnormal path deserves to be as serious as the main path**: Most Planning malfunctions are not on the main path — normal processes can be completed in four modes. The failure occurred when Chain gave up, Plan-Execute fell into a re-planning cycle, and the error branch of Graph was never tested. When evaluating the Planning system, don't just look at "can we run out of normal time" or "what to do with abnormal times."
-3.**Plan is locked as soon as it is confirmed and deviation needs to be reconfirmed**: Planning ' s credibility is based on user confirmation of the plan. The user confirmed the 4-step plan that Agent could not implement 5-step -- whatever the "good faith" reasons. Any deviation required the knowledge and confirmation of the user.
+| Graph（5.4.4） | Are modelling costs worth paying? Is the error branch tested the same as the main path? | 30 nodes no one can tell the whole story; wrong branch 3 months without trigger, crash |
 
-Turning back to the question at the beginning of this chapter - Agent started drifting in the face of multistep tasks. Take the example of the release assistant: the user gave the release task of four steps, and the naked Reform Agent started to explore the details of the changelog in step 1, departing from the original target. The essence of Planning is not to let Agent "softly choose the next step", but**to establish a global mission structure**— which steps, what dependencies are, what happens after failure — before doing so. The more defined the structure (Chain), the less flexible it is, the more predictable it is; the more dynamic it is (Plan-Execute), the more flexible it is and the more necessary it is to exit the conditions.
+**Three main lines through the entire link:**
 
->**The story is not over.**Planning gives Agent a global task view and release is ready not to miss steps. But there's a new problem: Agent's test failed at the point of running the test, and TypeError clearly hit it in the log -- Agent saw it, but kept writing about changelog, and didn't stop to decide whether to try again, process, downgrade or stop. It lacks the closed loop of "responding to sorting decision-making or stopping". This is what the next chapter is about.
+1. **Mode selection is driven by scenes, not by "high sense"**: Chain is not "lower mode", and Graph is not "high mode". If the steps of a mission are fully fixed and not unexpected, Chain is the best solution — it is simple, predictable and cost-free. A complex model is only worth introducing if it proves that it can reduce leakages, increase failure recovery rates or improve handover audits.
+2. **The abnormal path deserves to be as serious as the main path**: Most Planning malfunctions are not on the main path — normal processes can be completed in four modes. The failure occurred when Chain gave up, Plan-Execute fell into a re-planning cycle, and the error branch of Graph was never tested. When evaluating the Planning system, don't just look at "can we run out of normal time" or "what to do with abnormal times."
+3. **Plan is locked as soon as it is confirmed and deviation needs to be reconfirmed**: Planning ' s credibility is based on user confirmation of the plan. The user confirmed the 4-step plan that Agent could not implement 5-step -- whatever the "good faith" reasons. Any deviation required the knowledge and confirmation of the user.
+
+Turning back to the question at the beginning of this chapter - Agent started drifting in the face of multistep tasks. Take the example of the release assistant: the user gave the release task of four steps, and the naked Reform Agent started to explore the details of the changelog in step 1, departing from the original target. The essence of Planning is not to let Agent "softly choose the next step", but **to establish a global mission structure** — which steps, what dependencies are, what happens after failure — before doing so. The more defined the structure (Chain), the less flexible it is, the more predictable it is; the more dynamic it is (Plan-Execute), the more flexible it is and the more necessary it is to exit the conditions.
+
+> **The story is not over.** Planning gives Agent a global task view and release is ready not to miss steps. But there's a new problem: Agent's test failed at the point of running the test, and TypeError clearly hit it in the log -- Agent saw it, but kept writing about changelog, and didn't stop to decide whether to try again, process, downgrade or stop. It lacks the closed loop of "responding to sorting decision-making or stopping". This is what the next chapter is about.
 
 ---
 
 ### Summary of this chapter
 
-The essence of Planning is not to let Agent "softly choose the next step" but to establish a global task structure before he does it — which steps, what dependencies are, what happens when he fails — and then to implement it under its constraints. Three main lines running through the chapter:**Mode selection is driven by scenes, not by "high senses".**Chain is not a low-level model, Graph is not an advanced model. Chain is the best — simple, predictable, zero maintenance costs — if the steps of a mission are completely fixed and not unexpected. 5.4.5 Decision tree self-censorship: steps fixed and non-abnormal? Yeah, Chain. Need input diversion? Router. Anomalous patterns can be exhaustive? Otherwise, Plan-Execute. The upgrade mode is preceded by track and eval proving that complexity can be replaced by higher completion, failure recovery or releasability.**Anomalous path deserves as much serious as the main path.**Most Planning malfunctions do not occur on the main path - normal processes can be completed in four modes. The failure occurred when Chain gave up, Plan-Execute fell into a re-planning cycle, and the error branch of Graph was never tested. When evaluating the Planning system, don't just look at "can we run out of normal time" or "what to do with abnormal times." Regular injections force trigger error branches, and each error branch is tested separately.**Plan locked once confirmed.**User confirmed the 4-step plan that Agent could not implement 5-step -- for whatever "good faith" reasons. Any deviation (inserting, deleting, skipping steps) requires a new request for user confirmation. Distinguishing between "small adjustments" (retry delay) and "structural changes" (inserting/deleting steps) — the former are automatically processed and the latter must be confirmed.
+The essence of Planning is not to let Agent "softly choose the next step" but to establish a global task structure before he does it — which steps, what dependencies are, what happens when he fails — and then to implement it under its constraints. Three main lines running through the chapter: **Mode selection is driven by scenes, not by "high senses".** Chain is not a low-level model, Graph is not an advanced model. Chain is the best — simple, predictable, zero maintenance costs — if the steps of a mission are completely fixed and not unexpected. 5.4.5 Decision tree self-censorship: steps fixed and non-abnormal? Yeah, Chain. Need input diversion? Router. Anomalous patterns can be exhaustive? Otherwise, Plan-Execute. The upgrade mode is preceded by track and eval proving that complexity can be replaced by higher completion, failure recovery or releasability. **Anomalous path deserves as much serious as the main path.** Most Planning malfunctions do not occur on the main path - normal processes can be completed in four modes. The failure occurred when Chain gave up, Plan-Execute fell into a re-planning cycle, and the error branch of Graph was never tested. When evaluating the Planning system, don't just look at "can we run out of normal time" or "what to do with abnormal times." Regular injections force trigger error branches, and each error branch is tested separately. **Plan locked once confirmed.** User confirmed the 4-step plan that Agent could not implement 5-step -- for whatever "good faith" reasons. Any deviation (inserting, deleting, skipping steps) requires a new request for user confirmation. Distinguishing between "small adjustments" (retry delay) and "structural changes" (inserting/deleting steps) — the former are automatically processed and the latter must be confirmed.
 
 ---
 
@@ -836,8 +878,9 @@ python3 planning_demo.py
 # Node.js 版本
 cd examples/course-05-05-planning/nodejs
 node planning_demo.mjs
+
 ```
 
->**Chapter IV Review.**You now have four perspectives on Agent: scene enhancement (Chapter 1) defines what additional capabilities Agent needs in multiple rounds of interaction; RAG (Chapter 2) solves "what the model doesn't know to look for information"; Memory (Chapter 3) solves "state continuity of cross-session"; and Planning (Chapter) solves "organization and execution of multi-step tasks". But, Agent, there's one more problem that we haven't solved in the face of a complicated mission.**It sees feedback signals, but continues the path down and does not stop to decide on the next step**. This is the next chapter of the question to be answered.
+> **Chapter IV Review.** You now have four perspectives on Agent: scene enhancement (Chapter 1) defines what additional capabilities Agent needs in multiple rounds of interaction; RAG (Chapter 2) solves "what the model doesn't know to look for information"; Memory (Chapter 3) solves "state continuity of cross-session"; and Planning (Chapter) solves "organization and execution of multi-step tasks". But, Agent, there's one more problem that we haven't solved in the face of a complicated mission. **It sees feedback signals, but continues the path down and does not stop to decide on the next step**. This is the next chapter of the question to be answered.
 
 ---

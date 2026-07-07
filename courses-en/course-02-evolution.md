@@ -1,12 +1,14 @@
 # Course II: Agent Paradigm Evolution
 
 ## Introduction to the curriculum
+
 Learning Agent's easiest pit is coming up and asking, "How does a frame work." It'll soon be exposed to a number of terms: Tool Use, Function Calling, RAG, Memoory... every word looks important, but it's hard for you to judge the relationship between them, and you don't know when it should or should not be.
 
 Better learning is the reverse:
 
 ```text
 先问系统遇到了什么问题，再看新能力为什么出现。
+
 ```
 
 For example:
@@ -121,6 +123,7 @@ The system should at least deal with:
 - Which flights are budget-compliant?
 - How far is the hotel from the conference?
 - What are the prices allowed in the company's reimbursement policy?
+
 ...
 
 In the absence of LLM, the system depends on the engineer writing the rules in advance:
@@ -130,6 +133,7 @@ In the absence of LLM, the system depends on the engineer writing the rules in a
 如果航班价格超过预算 20%，需要用户确认。
 如果酒店距离会议地点超过 3 公里，降低推荐优先级。
 ...
+
 ```
 
 When there are few rules, such systems can work. But you can feel how vulnerable it is -- once the demand becomes more complex, the rules expand rapidly. The user says, "I don't want to be too busy, but don't be too expensive," and the system is hard to handle because "too busy" and "too expensive" are not simple fixed fields to capture.
@@ -138,6 +142,7 @@ This is the core dilemma of traditional Agent:
 
 ```text
 系统需要像人一样围绕目标做判断，但工程上又必须把世界拆成明确的规则和状态。
+
 ```
 
 It's a natural contradiction. The expression of a person ' s objective is vague, dependent and subject to change at any time; the rule system requires that every path be predefined. This contradiction is not caused by an engineer's lazyness. It's an irreconcilable tension between the rule-driven system and the open-language goal.
@@ -157,14 +162,13 @@ This cycle looks simple, but it's very difficult to open up to the real world:
 
 The traditional Agent approach has been directed towards finding ways to formalize these things— translating the blurred world into structures that the system can handle. Researchers from different ages have given different answers, but they all face the same ceiling.
 
-
-
 ### 1.3 Decision-making is based on RL, software Agent, BDI and classic classification
 
 There are several important ideas in traditional Agent. They are not isolated concepts, but answers to the same question from different times:
 
 ```text
 如果系统要自己做决定，决策依据从哪里来？
+
 ```
 
 Several routes can be compressed into a table:
@@ -182,6 +186,7 @@ But together they depend on one premise:
 
 ```text
 世界可以被建模，行动空间可以被枚举，反馈信号可以被定义。
+
 ```
 
 Once the mission becomes, "Do me a favor on this project" and see why it's slowing down lately, "Give me a less dramatic travel programme," the traditional approach encounters the same bottleneck: The user goal is open language, but the system requires clarity of status, rules and rewards.
@@ -201,6 +206,7 @@ This is not the case for ordinary users. The user will say:
 
 ```text
 帮我看看这个项目最近为什么变慢了。
+
 ```
 
 This sentence may be followed by codes, logs, databases, network requests, product changes, deployment environments, and user behaviour. It's hard for you to finish all the rules in advance. Worse still, users themselves may not fully know what "lower" means -- is the response time long? Is it a page card? Is the overall amount of vomiting down?
@@ -209,6 +215,7 @@ So the fundamental limit of traditional Agent is not "no intelligence." They are
 
 ```text
 它们很难低成本地理解开放语言目标，并把目标转成可执行决策。
+
 ```
 
 You can imagine tradition as a very good chess program: It's strong in the board, but once it's turned over, it doesn't know what to do. Its intelligence is locked into rules and strategies and it is difficult to migrate to open missions.
@@ -219,18 +226,21 @@ Traditional Agent left an important question that was almost impossible to answe
 
 ```text
 如果用户目标无法完全规则化，Agent 的决策核心应该是什么？
+
 ```
 
 Before LLM emerged, engineers had only a few paths: either to continue writing more rules, or to train specialized models for specific areas, or to limit tasks to a very narrow range. Each path is avoiding the real problem — users want a decision maker **who has a common understanding of natural language objectives.** After LLM came along, things changed. It gives the system, for the first time, a strong ability to understand natural language, common sense reasoning and mandate interpretation. It's not that ILM is perfect -- it's got a lot of problems, and we'll discuss it in detail later. But its emergence made Agent's core issue from:
 
 ```text
 如何把所有规则写出来？
+
 ```
 
 Turned into:
 
 ```text
 如何让模型根据目标和上下文判断下一步？
+
 ```
 
 This shift sounds just different, but its engineering implications are fundamental. The "rules" require engineers to prejudge all situations in advance; "let the model judge" means that the system can run tasks that the engineers did not anticipate. The former are closed, definitive but powerless to open the world; the latter are open and flexible, but they present entirely new engineering challenges.
@@ -245,6 +255,7 @@ LLM didn't make all Agent's problems disappear, but it changed Agent's most crit
 
 ```text
 如果规则写不完，系统能不能把"理解目标和判断下一步"交给模型？
+
 ```
 
 After 2020, a small sample of GPT-3 learning showed that models could understand mission formats; Chain-of-Thought further explained that models could address more complex issues through intermediate reasoning. At this point, LLM is no longer just an answerer, but is beginning to be like a common core of decision-making that is available: it understands objectives, explains context and tries to judge what to do next.
@@ -275,9 +286,11 @@ For example:
 
 ```text
 用户说：这个项目有点乱，帮我整理一下。
+
 ```
 
 The model will judge that this may mean:
+
 - View the directory structure first.
 - Find duplicate or obsolete documents.
 - Understanding key modules.
@@ -298,6 +311,7 @@ Agent, the key question is always:
 
 ```text
 现在应该做什么？
+
 ```
 
 The next step could be to answer the user, continue reading the file, call for search, perform testing, request user confirmation or stop the task. The quality of this decision depends directly on Agent's ability to complete his mission. And more importantly, it's "looking ahead" -- models need to consider what they see, what they've done before, what they've done.
@@ -316,9 +330,11 @@ For example:
 
 ```text
 帮我调研某个行业的最新趋势。
+
 ```
 
 Agent can:
+
 1. Dismantling — what is the critical dimension of the industry?
 2. Search information — which sources are more credible?
 3. To judge the quality of the information — is the analysis supported by data or is it pure?
@@ -334,6 +350,7 @@ This is the core difference between LLM Agent and normal Workflow:
 ```text
 Workflow 适合步骤稳定的任务——你知道从 A 到 B 到 C 一定是正确的。
 Agent 适合目标明确但路径不完全确定的任务——你知道要去哪，但中间可能需要绕路。
+
 ```
 
 The choice should not depend on "Agent is not more advanced" but on the characteristics of the mission itself. If the steps of a mission are predictable, the workflow tends to be more reliable, faster and cheaper. Agent's advantage is not "it looks smarter," but it can handle tasks with uncertain paths.
@@ -357,6 +374,7 @@ So here's a very important idea that goes through the entire course:
 
 ```text
 LLM 是 Agent 的决策核心，但不是完整 Agent 系统。
+
 ```
 
 A good decision-making core is a necessary but far from sufficient condition. Agent Runtme's problem — tool connectivity, state management, circulation control, error processing, secure borders — is the skeleton that makes the core of decision-making truly useful. The rest, essentially, is adding bricks to the skeleton.
@@ -377,12 +395,14 @@ You said:
 
 ```text
 帮我检查这个项目为什么测试失败。
+
 ```
 
 It may answer:
 
 ```text
 你可以先运行测试命令，查看错误日志，再定位相关文件。
+
 ```
 
 This recommendation may be right, but it is "recommendation," not "action". The model does not actually run tests and does not read the log. The same applies to order queries, booking of tickets, data analysis: the model knows what to do and does not mean that it has real access to the real system.
@@ -393,6 +413,7 @@ This is the gap that the tool calls for:
 
 ```text
 用户要的不是"告诉我怎么做"，而是"在可控边界内帮我做"。
+
 ```
 
 ### 3.2 Response capacity must connect external capacity
@@ -409,6 +430,7 @@ Therefore, Agent must clearly separate two types of capabilities:
 ```text
 模型负责理解目标和判断下一步（决策层）。
 工具负责获取事实、执行动作和返回结果（执行层）。
+
 ```
 
 This border is very important. **The model should not pretend to have checked the database, nor should it pretend to have run the code.** It should generate tools to call requests for real actions by Runtime and then return the results to the model. This is not a question of trust, but a question of architecture — of having models do what models do best (syntax understanding and decision-making) and of having certainty systems do what they do best (exact execution and control of authority).
@@ -419,6 +441,7 @@ When we realize that LLM has to connect to external capabilities, the most direc
 
 ```text
 工具调用到底是外部系统硬塞给模型的规则，还是模型自己可以学会的一种行为？
+
 ```
 
 This is not a philosophical game — it has important engineering implications. If the model can only be called correctly under the "compulsory" of an external hint, then the call is fragile: a set of hints, a scene, a model version, can change the call behaviour. If the model itself learns when to call a tool, then it is a more stable and internalized ability.
@@ -437,6 +460,7 @@ This proves one important thing:
 
 ```text
 工具使用不只是外部系统给模型加的能力，也可以成为模型学习到的行为模式。
+
 ```
 
 It's critical for Agent, because the model itself needs to judge whether "I need external information right now" or "I can answer directly." However, Toolformer is more of a research paradigm than the interface most directly accessible to ordinary developers; it also does not fully address engineering issues such as access, failure processing, tool credibility and high-risk action confirmation. These issues will continue at the product and interface levels.
@@ -447,11 +471,13 @@ Toolformer answers the research question: can models learn to use tools? Another
 
 ```text
 普通用户如何真正感受到 AI 不只是会回答，而是能做事？
+
 ```
 
 The user's expectations for LLM quickly expanded from "response to questions" to "help me do my job": checking real-time news, checking airline hotels, ordering meals, reading the company's knowledge base, running calculations, calling for third-party services. In March 2023, OpenAI released ChatGPT Plugins, bringing these outside capabilities into the mainstream chat portal, breaking the cognitive boundaries of "LLM just chat tools".
 
 A plugin needs to expose two types of information to the model:
+
 - **Capability description for model orientation**: what can this plugin do and when it will fit?
 - **System-oriented interface description**: which APIs, what parameters, and how to authenticate.
 
@@ -461,6 +487,7 @@ Plugins changed the general perception of LLM:
 
 ```text
 AI 不再只是生成文本，而是可以连接外部世界。
+
 ```
 
 This step opens a door to the whole Agent field: Users and developers are beginning to see the combination of Model + Tools in the same chat portal. However, it also exposes engineering problems: tools need to be accurately described, access requires privileges and secure boundaries, users need to know when the model is accessing external services, and third-party tools entail privacy, ultra vires and supply chain risks.
@@ -485,11 +512,13 @@ The basic process of Function Calling is:
     → Runtime 执行真实函数或 API
     → 工具结果返回给模型
     → 模型继续判断下一步或生成最终回答
+
 ```
 
 There is a very critical design choice here: **The model is not a direct execution function, it is a structured call intention.** Real implementation takes place in the developers' system.
 
 Why is it designed like this? This is because of **authenticity and security**:
+
 - The output of the model is unreliable - it may miscalculate parameters, create non-existent order numbers, or give a function name that appears reasonable but does not actually exist.
 - Letting the model pretend that it's executed is tantamount to abandoning all opportunities for external validation.
 - Keeping enforcement rights in the developer ' s hands means that the database query returns the real result; that dangerous operations (transfers, deletions) can be controlled with permission; and that each tool call is monitored and audited by the developer.
@@ -498,6 +527,7 @@ This design embodies a fundamental engineering philosophy:
 
 ```text
 模型负责判断 what to do，Runtime 负责执行 how to do。
+
 ```
 
 This division of labour allows LLM to focus on semantic understanding and decision-making in which it specializes, and to turn precise implementation to a certainty system. This principle was subsequently inherited by almost all Agent frameworks as a central clue to the Agent architecture.
@@ -510,6 +540,7 @@ When Function Calling solved the problem of "how the model expresses the tools t
 
 ```text
 每个模型提供商、每个应用、每个工具服务器都有自己的连接方式。
+
 ```
 
 It's like every appliance in a world has its own power plug-in standard — a huge resistance to ecological development. Developers need to maintain multiple tool description formats if they use multiple model providers at the same time; if Agent is to connect different tools and data sources, it needs to write an integrated code for each.
@@ -522,6 +553,7 @@ MCP has defined standardized data models such as Researches, Prompts, and Tools,
 
 ```text
 工具如何被发现、描述、授权、调用、记录和治理？
+
 ```
 
 ![Tool Call Four Stage Evolution](../assets/course-02-tool-evolution.svg)
@@ -555,6 +587,7 @@ If you want to select a paper that has a profound impact on the Agent field, man
 
 ```text
 Reasoning + Acting
+
 ```
 
 That is, the combination of reasoning and action that feed each other.
@@ -569,12 +602,14 @@ Suppose you ask Agent:
 
 ```text
 帮我找出这个项目测试失败的原因。
+
 ```
 
 A model that answers only once might say:
 
 ```text
 你应该先运行测试，然后查看错误日志，再检查相关代码。
+
 ```
 
 This is a recommendation, not a solution. Models are speculating on the answer rather than interacting with reality.
@@ -583,11 +618,13 @@ A system that only calls tools but does not reason can be mechanically implement
 
 ```text
 运行测试 → 输出一大段日志 → 结束
+
 ```
 
 It received information, but did not determine which document should be read next, nor did it explain the error. It's like an assistant who can only follow orders but can't think.
 
 The real task requires:
+
 1. To judge what is missing.
 2. Take action to obtain information.
 3. Observation of the results of operations.
@@ -611,6 +648,7 @@ The most common way to use LLM early is through direct questions and answers:
 
 ```text
 问题 → 答案
+
 ```
 
 This is enough for simple questions, but once the task requires multi-step judgement, the model can easily "jump." It may come directly to conclusions without exposing the judgement in the middle; it may also be the first step that is wrong, and the latter answer is still fluent and makes the error seem more credible.
@@ -619,6 +657,7 @@ Chain-of-Thought emerged, and it was the problem that was solved. It allows the 
 
 ```text
 问题 → 中间步骤 → 答案
+
 ```
 
 This brings about an important change: the model is no longer forced to leap to conclusions, but can decomplicate complex issues into smaller judgements. This "writing the thinking process" will significantly improve performance on mathematical issues, common sense reasoning, symbolic reasoning and some complex questions and answers.
@@ -629,6 +668,7 @@ So the line of reasoning solved part of the question of whether the model can fi
 
 ```text
 模型想的东西，如何被真实环境验证？
+
 ```
 
 If there is only reasoning, the model is trapped in its own parameters and context. It has no access to the latest facts, is easily deduced on the basis of false assumptions and is unaware of the true state of the external environment. Like someone in a room, no matter how logical, it was impossible to know whether it was raining outside.
@@ -641,6 +681,7 @@ Tool calls, plugins, Funding Calling, mechanisms like this, which push LLM from 
 
 ```text
 用户目标 → 模型决定调用工具 → Runtime 执行工具 → 返回结果
+
 ```
 
 This step is crucial. The model can finally search web pages, search databases, run codes, read files, call business API. It doesn't just say, "You should run the test," but it does make the system run the test; it doesn't just say, "You should check the price," but it does.
@@ -668,6 +709,7 @@ Take the example of "Find out why the project failed":
 再行动：读取对应文件。
 再观察：时间戳单位不一致。
 再推理：现在可以解释根因。
+
 ```
 
 Each step here depends on the outcome of the previous step. The reasoning determines the next action, which, in turn, is recast. You can't finish all the steps at the outset because the external results have not yet appeared; nor can you just use a bunch of tools because the results need to be understood and screened.
@@ -691,6 +733,7 @@ Observation: 代码中 expiresAt 使用了秒级时间戳，但测试传入毫�
 
 Thought: 现在可以解释失败原因，并给出修复建议。
 Final Answer: 测试失败是因为时间单位不一致...
+
 ```
 
 This cycle has three key points:
@@ -703,6 +746,7 @@ The actual product does not necessarily show Thought to the user. It is importan
 
 ```text
 模型判断下一步 → 工具执行 → 结果回填 → 模型继续判断
+
 ```
 
 The underlying significance of this model is that **the model is deduced not on the island but in its continuous interaction with the outside world.** Every observation may change the direction of its thinking, and every reflection may trigger new action. It turns LLM from an answer machine to a problem solver.
@@ -715,6 +759,7 @@ It turns the one-off answer into:
 
 ```text
 判断下一步 → 调用工具或行动 → 接收观察 → 继续判断 → 停止
+
 ```
 
 This is the smallest Agent closed ring to be achieved in course three.
@@ -722,6 +767,7 @@ This is the smallest Agent closed ring to be achieved in course three.
 You can interpret React as the "minimal behavior syntax" of Agent. It is not the same as a production system — a production system that requires more state management, error processing, circulation control and user interaction — but it allows us to see what it is to manage. It's like learning basic grammar rules doesn't mean you can write good, but you don't know that they can't write good.
 
 React can be summed up as:
+
 - Put reasoning, action, observation in the same cycle so that they feed each other.
 - Let Agent adjust the next step based on external feedback, not a road to the dark.
 - It gives a minimum run-time prototype, and the next generation's Agent framework is almost built on this core cycle.
@@ -754,6 +800,7 @@ The answer to this chapter is not "Model can't think about it again" but a deepe
 
 ```text
 系统如何知道自己错了，并把这个发现转化成有效的修正？
+
 ```
 
 We're going to build a framework for two layers of capability, starting with "why there's not enough internal reasoning in the model," and then we're going to start the Reflection evolution story -- from the "author + editor" model of Self-Refine to the Reflexion scenario, and finally we're going to put together a core principle: the error must depend on real signals and not become self-consolation.
@@ -768,6 +815,7 @@ You might think:
 
 ```text
 那让模型多思考几步不就行了吗？
+
 ```
 
 It helps, but not enough. The reason for this is that many mistakes are not discovered "over time":
@@ -794,7 +842,7 @@ The distinction can be summarized as follows:
 | Limits | Maybe it's easy, but it's wrong. | Need for engineering design and cost input |
 | Typical representation | COT, TOT, Model self-assessment | Compiler error, failed test, failed Schema verification, rejected by user |
 
-A reliable Agent needs these two layers of capacity to match. The system is prone to "confident error" by internal reasoning alone — every step of the way is very good, but the direction is biased. Through external feedback alone, the system lacks the ability to understand objectives and judge trade-offs — it may mechanically repair a bug, but it is not aware that the bug is worth repairing. The key is not to choose one side, but to allow external feedback to set up checkpoints where models may be wrong and intervene in a timely manner. 
+A reliable Agent needs these two layers of capacity to match. The system is prone to "confident error" by internal reasoning alone — every step of the way is very good, but the direction is biased. Through external feedback alone, the system lacks the ability to understand objectives and judge trade-offs — it may mechanically repair a bug, but it is not aware that the bug is worth repairing. The key is not to choose one side, but to allow external feedback to set up checkpoints where models may be wrong and intervene in a timely manner.
 
 ### 5.3 How mistakes are spread and amplified in multi-step missions
 
@@ -829,6 +877,7 @@ The most important of these are:
 
 ```text
 模型说"修好了"不算，可验证信号说可用才算。
+
 ```
 
 For code tasks, the test is more credible than a model interpretation; for business actions, privileges and user confirmation are more important than model confidence; for tools to be called, the real return result is more reliable than the API document in the model memory.
@@ -839,6 +888,7 @@ The feedback mechanism answered "what signals are available". But the next quest
 
 ```text
 任务 → 推理 → 行动 → 观察 → 反思 → 记忆 → 下一轮推理
+
 ```
 
 It allows Agent to analyse why the last step was successful, why it failed, what experiences to remember, and to include the reflection in scenario or semantic memories. This way, Agent does not start from scratch every time, but builds experience in the current mission.
@@ -853,12 +903,14 @@ For example:
 
 ```text
 修改代码 → 运行测试 → 测试失败 → 分析失败原因 → 调整策略 → 再次运行 → ...
+
 ```
 
 For example:
 
 ```text
 生成初稿 → 检查是否覆盖所有维度 → 发现缺少价格信息 → 补充检索 → 更新报告 → ...
+
 ```
 
 This shift is important. It means that Agent went from "generator" to "improvement" -- It can become better and better in the course of its operation, rather than handing over the results of the first edition in a static manner. Every step of failure is narrowing the question, and every amendment is approaching the right answer. The system no longer merely believes in models, but is using real signal binding models.
@@ -878,6 +930,7 @@ The point is not to "rethink" much, but **at the right time, to reflect on the r
 
 ```text
 模型反思 + 工具验证 + 测试反馈 + 用户确认 + 可观测 Trace
+
 ```
 
 No single signal is enough to support a reliable correction. Only when multiple signals cross-check can the system really distinguish between "mistakes that require correction" and "unnecessary self-doubt."
@@ -896,6 +949,7 @@ Suppose you let Agent do one thing:
 
 ```text
 帮我调研 3 个竞品，比较它们的定位、功能、价格和增长策略，最后给出我们产品的建议。
+
 ```
 
 If Agent starts searching directly in Rect mode, several problems can arise:
@@ -910,6 +964,7 @@ This is not because the model does not write, but because the task itself is str
 
 ```text
 确定竞品 → 定义比较维度 → 搜集资料 → 整理事实 → 横向比较 → 形成建议
+
 ```
 
 Each step relies on the first. If the dimensions of the comparison are collected without a clear definition, it is impossible to cross-reference what has been recovered; if the facts are not completed, the conclusions are not solid enough.
@@ -938,6 +993,7 @@ The core value of Planning is to solve these problems:
 
 ```text
 先形成任务结构，再推进执行。
+
 ```
 
 The word "first" is all that matters. The cost of the plan is much lower than the cost of implementation — it takes 10 minutes to revise the outline and it may take hours to modify the draft already prepared. The same is true in the Agent scenario: to allow models to spend some of the Token planning structures first, a large number of ineffective implementations and back to work could be avoided.
@@ -949,6 +1005,7 @@ The evolution of Planning can be seen in roughly three steps: let the model writ
 ```text
 Planner: 先生成任务计划。
 Executor: 按计划执行每一步，并把结果返回。
+
 ```
 
 For example, for competition research missions:
@@ -960,6 +1017,7 @@ Plan:
 3. 按定位、功能、价格、增长策略四个维度整理表格。
 4. 横向对比，标出差异和差距。
 5. 给出针对性建议。
+
 ```
 
 At the time of execution, Planner is responsible for generating this structure, and Excelctor gradually completes every step and records the state after each step. Planner can adjust the plan after receiving feedback if a step of implementation fails (e.g., when there is too little information on a competition).
@@ -989,6 +1047,7 @@ So the future is more reliable. Planning isn't "one-off writing and then doing i
 
 ```text
 计划 → 执行 → 检查 → 重规划 → 继续执行
+
 ```
 
 This explains why follow-up courses involve different models such as Chain, Router, Rect Loop, Plan-Execute, and Graph. Different mandates require different organizational approaches and no model is suitable for all scenarios.
@@ -1044,13 +1103,14 @@ The central question for Multi-Agent is:
 
 ```text
 如何把一个复杂任务拆给多个有边界的 Agent 协作？
+
 ```
 
 ### 7.3 Role Division, Manager-Enforceor and Expert Collaboration
 
 Since 2023, the exploration of Multi-Agent has resulted in a variety of forms, with a common design approach: **Do not let a model play all roles in the same context.** Just as real teams do not allow the same person to produce, structure, develop, test, review and publish at the same time, the Agent system also needs to visualize the role boundaries.
 
-Stanford and Google Research **Generative Activities** (April 2023) show how many role models with memory, reflection and planning capabilities shape social behaviour. The Microsoft Institute **AutoGen** (August 2023) has developed a collaborative framework for dialogue among LLM Agents, the core design of which is to collaborate through multiAgent dialogues. **CrewAI** (early 2024) further packaged "roles, tasks, tools, processes" as a development experience closer to teamwork.
+Stanford and Google Research **Generative Activities**(April 2023) show how many role models with memory, reflection and planning capabilities shape social behaviour. The Microsoft Institute **AutoGen**(August 2023) has developed a collaborative framework for dialogue among LLM Agents, the core design of which is to collaborate through multiAgent dialogues. **CrewAI** (early 2024) further packaged "roles, tasks, tools, processes" as a development experience closer to teamwork.
 
 Several common patterns are as follows:
 
@@ -1077,6 +1137,7 @@ Worker B: 修改前端代码。
 Worker C: 补充测试。
 Worker D: 撰写文档。
 Manager: 汇总结果并检查一致性。
+
 ```
 
 This model looks like the project manager of the software team + the engineer structure. Manager does not need to know the details of each sub-mission, but needs to know how the task is broken down and the results consolidated.
@@ -1107,6 +1168,7 @@ For example, a product release process can be transformed into a streaming line:
 
 ```text
 需求分析 Agent → 方案设计 Agent → 实现 Agent → Review Agent → 文档 Agent → 发布检查 Agent
+
 ```
 
 Each stage has a clear input output, and there are problems that can be traced clearly to which point.
@@ -1128,6 +1190,7 @@ So the more practical Multi-Agent direction of the future is not "the more Agent
 
 ```text
 角色清晰、边界明确、通信可追踪、结果可验证。
+
 ```
 
 Many production systems combine Multi-Agent with Graph, WorldFlow, Human Review, rather than allowing a group of Agents to talk freely. Collaboration between Agent needs to be constrained by elaborate engineering, just as human teams need clear lines of responsibility and communication norms.
@@ -1151,6 +1214,7 @@ Later on you see a new Agent framework, paper, or product function that can be u
 #### Step 1: What is it addressing?
 
 Don't ask if it's advanced.
+
 - Does it solve the problem of tool calls?
 - Does it address long-term mission planning? (Do models know where to start and where to end?
 - Does it solve the problem of state management?
@@ -1160,6 +1224,7 @@ Don't ask if it's advanced.
 #### Step 2: What level does it place capacity?
 
 At least these are the layers of the Agent system, and different technologies solve different layers of problems:
+
 - **Model layer**: The model itself is more reasoned or more accessible (e.g. COT, ToT impact model).
 - **Interface Layer**: how models express tools to call and structure outputs (e.g. Function Calling, MCP impacts interface standards).
 - **Runtime Layer**: How the system is implemented, recorded, controlled, restored (e.g. React Loop, Plan-and-Execute, Reflexion affects operating structures).
@@ -1169,6 +1234,7 @@ At least these are the layers of the Agent system, and different technologies so
 #### Step 3: What new problems does it pose?
 
 Any increase in capacity poses new problems. **Seeing new issues means you really understand old solutions.** - The more tools, the harder the choice.
+
 - The more complex the plan is, the easier it is to be implemented.
 - The more reflection is, the more likely it is to fall into self-consolation or infinity.
 - The more Agent, the harder it is to coordinate.
@@ -1223,6 +1289,7 @@ Please repeat in your own words the evolutionary logic of:
 7. Multi-Agent
 
 At least three words per ability:
+
 - What was the problem before it appeared?
 - What solutions does it offer? What's the core insight behind it?
 - What new problems does it pose?
@@ -1241,7 +1308,7 @@ Find an Agent-related technical bulletin or product update to analyze this set o
 
 ### Practice III: Code Reading - Find an Agent Reciral
 
-Find an open source Agent project (recommended)[smolagents](https://github.com/huggingface/smolagents)Or something like that, reading its core loop code (usually one`run()`or`_step()`and then answer:
+Find an open source Agent project (recommended)[smolagents](https://github.com/huggingface/smolagents)Or something like that, reading its core loop code (usually one `run() ` or ` _step()` and then answer:
 
 1. Where's the code against text?
 2. Where's the code for action? How are tools mobilized and implemented?
@@ -1258,7 +1325,7 @@ After this class, you should be able to:
 
 - [ ] No information to explain why it is difficult in open language missions — it is possible to identify contradictions between rule modelling, state modelling and open environment.
 - [ ] Distinguishing the different positioning of Toolformer (research), ChatGPT Plugins (products), Funding Calling (engineering interfaces) and MCP (agreements).
-- [ ] Draw React`Thought → Action → Observation`Cycle, explain why it is a milestone — how reasoning and action feed each other.
+- [ ] Draw React `Thought → Action → Observation` Cycle, explain why it is a milestone — how reasoning and action feed each other.
 - [ ] A clear distinction between "model internal reasoning" and "system external feedback" capabilities is an example of why "let the model think more" is not a substitute for external validation.
 - [ ] Explain the "author + editor" model of Self-Refine and the scenario memory mechanism of Reflexion, indicating what they address and what their limitations are.
 - [ ] Explain why the correction cannot be based on model self-assessment alone — at least three typical traps of model self-assessment failures can be cited.
@@ -1272,39 +1339,71 @@ After this class, you should be able to:
 ### Key papers
 
 - Language Models are Few-Shot Learners（GPT-3）
+
 <https://arxiv.org/abs/2005.14165>
+
 - Chain-of-Thought Prompting Elicits Reasoning in Large Language Models
+
 <https://arxiv.org/abs/2201.11903>
+
 - ReAct: Synergizing Reasoning and Acting in Language Models
+
 <https://arxiv.org/abs/2210.03629>
+
 - Toolformer: Language Models Can Teach Themselves to Use Tools
+
 <https://arxiv.org/abs/2302.04761>
+
 - Tree of Thoughts: Deliberate Problem Solving with Large Language Models
+
 <https://arxiv.org/abs/2305.10601>
+
 - Self-Refine: Iterative Refinement with Self-Feedback
+
 <https://arxiv.org/abs/2303.17651>
+
 - Reflexion: Language Agents with Verbal Reinforcement Learning
+
 <https://arxiv.org/abs/2303.11366>
+
 - Generative Agents: Interactive Simulacra of Human Behavior
+
 <https://arxiv.org/abs/2304.03442>
+
 - AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation
+
 <https://arxiv.org/abs/2308.08155>
+
 - Artificial Intelligence: A Modern Approach（Russell & Norvig）
+
 <http://aima.cs.berkeley.edu/>
 
 ### Official documents and product information
 
 - OpenAI ChatGPT Plugins
+
 <https://openai.com/index/chatgpt-plugins/>
+
 - OpenAI Function Calling
+
 <https://openai.com/index/function-calling-and-other-api-updates/>
+
 - OpenAI Agents SDK
+
 <https://openai.github.io/openai-agents-python/>
+
 - Model Context Protocol（MCP）
+
 <https://modelcontextprotocol.io/>
+
 - Anthropic: Building Effective Agents
+
 <https://www.anthropic.com/engineering/building-effective-agents>
+
 - LangGraph Document
+
 <https://langchain-ai.github.io/langgraph/>
+
 - AutoGen Document
+
 <https://microsoft.github.io/autogen/>

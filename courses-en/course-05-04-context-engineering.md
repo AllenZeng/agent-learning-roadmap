@@ -82,6 +82,7 @@ Take a step back and figure out a fundamental question: **What can the model see
 模型不知道上下文之外有任何东西。
 模型不会"想起来"你上次说过什么（除非在上下文里）。
 模型不会"主动去查"什么（除非它决定调用工具，而工具结果又回到上下文里）。
+
 ```
 
 But there's a key distinction, and many beginners will ignore: **The current step of the model can only see the context directly, but the full view of the Agent system is much more than the context.** Agent can also expand its indirect vision by:
@@ -102,6 +103,7 @@ Memory 负责"记什么" ──→ 信息生产者
 工具负责"执行什么"  ──→ 信息生产者（工具结果也是上下文的一部分）
 
 Context Engineering 负责"怎么组织这些生产者的产出" ──→ 信息组织者
+
 ```
 
 Without the organizers, the more the producers, the more messy they are. It's not an issue of efficiency, it's a question of correctness — the model will really “not see” the key information in the context.
@@ -122,6 +124,7 @@ V3（接入 Planning）：
   上下文 = System Prompt + 执行计划 + Memory 召回 + RAG 片段 + 用户消息 + 历史消息 + 工具结果
 
 每一步都在往上下文里加东西。如果不加组织，V3 不是更强的 Agent，而是更混乱的 Agent。
+
 ```
 
 So the core theme of Context Engineering is not "Whether or not to put something in the context," but: **At this stage, what information has to go in, what information has to go back, what information has to go back, what information has to be left outside on demand, what information should be cleaned up, what information should be put back on a cache in a stable prefix — and how these decisions are verified.**
@@ -169,6 +172,7 @@ Before we talk about "how to manage," let's see what to manage. At each step of 
 │  → 启动子 Agent                                      │
 │                                                     │
 └─────────────────────────────────────────────────────┘
+
 ```
 
 The core message of this picture is: **Context Engineering is not "how token" but Agent's running information dispatch system.** You're not managing a static Prompt template, you're managing a dynamic flow of information... Each source is producing information on a continuous basis and you need a movement control layer to determine which enters the model, which stays outside and which needs to be compressed or cached.
@@ -202,9 +206,10 @@ message[6]: 历史消息 1
 ……
 模型看到的是一大坨文本，无法区分哪些是指令、哪些是参考、哪些是历史。
 当上下文变长，"Lost in the Middle"效应会让中间的信息被严重忽略。
-```
-**Better practice:**
 
+```
+
+**Better practice:**
 ```text
 ┌─────────────────────────────────────────────────────────┐
 │ Layer 0: 系统指令（System / Developer Instructions）      │  ← 最高优先级，永不裁剪
@@ -234,6 +239,7 @@ message[6]: 历史消息 1
 │ Layer 8: 外部状态索引（不进入上下文，但模型知道可以获取）       │  ← 不注入
 │ - 完整文件路径、数据库行 ID、日志文件位置                     │
 └─────────────────────────────────────────────────────────┘
+
 ```
 
 Each layer is separated by clear markers to help the model's attention mechanism locate information:
@@ -296,6 +302,7 @@ Each layer is separated by clear markers to help the model's attention mechanism
 - 完整日志文件：/tmp/task-log-20260629.txt (8500 tokens)
 - 完整检索结果：12 条匹配的完整内容
 </external_index>
+
 ```
 
 The core value of this tiered approach is **to reduce the probability that key information will be inundated by noise.** Research and practice have shown that intermediate information in the context is more likely to be overlooked, which is often referred to as the "lost in the Middle" effect. Placing behavioral restraints at the beginning, following the current task, at the end of the external index is not always the best formula, but rather a sound engineering inspiration: let the model see the rules and objectives first, and finally see the entry point where information can continue to be obtained.
@@ -307,11 +314,8 @@ Key design decisions: **RAG and Memory to separate.** RAG is mission-related kno
 The layer solves the "where" problem, the budget solves the "how much". The context solves the problem of "letting down" and does not solve the problem of "good, fast, good". There are four reasons for this:
 
 1. **Sensitivity**: The longer the context, the easier the model is to ignore key information buried in the middle. 100K token doesn't mean "100K is equally valid". The context capabilities of different models vary widely, but the judgement that "a long window is not an unlimited working memory" still holds true.
-
 2. **Delays and costs**: the longer the context, the slower and more expensive each call. Every more 1000 token input, delay and cost are online or even more linear.
-
 3. **Containment dilution**: System Prompt constraints may be diluted in the long context by a large number of intermediate elements. Your carefully written response in Chinese still exists, but the current steps of the model may have focused more on recent tool results, RAG clips or historical news.
-
 4. **Cache failure**: production systems often rely on prompt caping to reduce costs and delays. If dynamic content is inserted in the prefix on each round, the system hints, tool definitions and stabilization norms will not allow for a stable reuse cache.
 
 Set the Token budget for each layer:
@@ -368,6 +372,7 @@ Core principles selected: **Sorted according to "Model decision-making dependenc
 - System Prompt 的核心约束（安全规则、输出格式、角色定义）
 - 用户当前消息
 - 当前任务的执行计划和进度
+
 ```
 
 There is an important design option here: **cropping logic should be placed "before the context is inserted" rather than "after the model has read the context".** Once the context has entered the attention window of the model, costing and attention dilution have already occurred. The choice before injection is a proactive management of the Token budget, not an ex post passivity.
@@ -384,7 +389,9 @@ The three introductory packages (stratification, budget, selection) address the 
 
 ### 4.5.1 Writing context: not just reading, but taking notes
 
-Agent cannot rely only on chat history. The history of chat is a flow of books — each round of conversations is recorded, sequenced and not structured. When the task exceeds 10 paces, spans hours or even days, the flowbook history can get the model lost. **External status required:** - Dismantling current target and subtask
+Agent cannot rely only on chat history. The history of chat is a flow of books — each round of conversations is recorded, sequenced and not structured. When the task exceeds 10 paces, spans hours or even days, the flowbook history can get the model lost. **External status required:**
+
+- Dismantling current target and subtask
 - Completed steps and key outputs
 - To-dos and dependency
 - Verified facts and conclusions
@@ -408,9 +415,10 @@ message[21]: 助手：[工具调用] 执行发布脚本……
 
 到第 20 轮，上下文已经超过 50000 tokens。
 模型开始"忘记"用户的发布要求，忽略 README 的约束，甚至重复已完成的步骤。
-```
-**Better practice:**
 
+```
+
+**Better practice:**
 ```text
 维护一个外部 Scratchpad / Runtime State：
 
@@ -438,6 +446,7 @@ message[21]: 助手：[工具调用] 执行发布脚本……
     {"decision": "使用 CC BY-SA 4.0 而非 MIT", "reason": "用户明确要求", "confirmed_by": "user"}
   ]
 }
+
 ```
 
 For each round of reasoning, the part of Scratchpad relating to the current steps is selectively inserted into the context. Not all of the injections -- the models just need to know "where we are now, what we're going to do next, what we're going to have to do," without seeing a complete history of implementation.
@@ -449,6 +458,7 @@ Scratchpad can be written to a file by tool or saved by runningtime state scheme
 Select to use the most frequent operation in Context Engineering. Its core questions are: **pick out what is really needed in terms of RAG results, Memory recall, tool definition, historical news.** This is different from "crop" in Section 4.4.3. Cutting is passive — the context is too limited. The choice is proactive — screening before injecting context.
 
 Select the core strategy: **RAG Option** (see chapter II for further details):
+
 - Relevance score threshold filter
 - Heavy: Only one of the same contents is kept
 - Conflict detection: when two clips give contradictory information, the priority time stamp is updated or the source is more authoritative **Memory Option** (see chapter III for further details):
@@ -469,10 +479,11 @@ Three compression types:
 
 | Compression Type | Compress objects | Keep what? | Drop what? | Main risks |
 |---|---|---|---|---|
-|**History compression** | Multi-round original | User objectives, confirmed conclusions, constraints, key decisions | Processive dialogue, exploratory tool calls, abandoned programs | Loss of detail leads to repeated questions and conflicting decisions by models |
-|**Tool compression** | Long Tool Results | Key findings, evidence index, recommendations for next steps | Complete original text, intermediate process, redundant information | The summary error led the model to judge based on incomplete information |
-|**Task compression** | Execute Track | Current plan, completed/to-do, blocking points, verified facts | Specific implementation process, retreat operation, resolved branch | Mission status drift - summary and actual inconsistent |**History compression example:**
+| **History compression** | Multi-round original | User objectives, confirmed conclusions, constraints, key decisions | Processive dialogue, exploratory tool calls, abandoned programs | Loss of detail leads to repeated questions and conflicting decisions by models |
+| **Tool compression** | Long Tool Results | Key findings, evidence index, recommendations for next steps | Complete original text, intermediate process, redundant information | The summary error led the model to judge based on incomplete information |
+| **Task compression** | Execute Track | Current plan, completed/to-do, blocking points, verified facts | Specific implementation process, retreat operation, resolved branch | Mission status drift - summary and actual inconsistent |
 
+**History compression example:**
 ```text
 原始历史（1500 tokens，5 轮对话）：
 用户：查一下 context engineering 的论文
@@ -489,9 +500,10 @@ Three compression types:
 已讨论第 1 篇关于注意力衰减的内容，用户正在评估如何应用到自己的上下文管线。
 关键决策：用户关注组装阶段的优化，暂不关注训练阶段的改进。
 待确认：是否继续讨论剩余 2 篇。
-```
-**Example of tool compression:**
 
+```
+
+**Example of tool compression:**
 ```text
 原始工具结果（3000 tokens，grep 返回 120 行匹配）：
 [120 行 grep 输出……]
@@ -504,6 +516,7 @@ Three compression types:
 2. src/api/handlers.py - 15 处（使用限流器）
 3-8. 其余 6 个文件共 82 处（测试、配置、文档）
 完整结果索引：/tmp/grep-rate-limiter-20260629.txt
+
 ```
 
 Compression is not an LLM you imagine calling out. The compression itself makes mistakes — the summary may omit key information, may misinterpret the intent, may not synchronize with the current mission state. It is therefore important that the index of the original information be maintained after the compression so that the model can be traced back to the original language, as needed.
@@ -540,6 +553,7 @@ Context management in the production environment also takes into account two iss
 - 本轮 RAG 片段
 - 本轮 Memory 召回
 - 最近工具结果
+
 ```
 
 If the results of the latest tool are inserted in each round between the system command and the definition of the tool, the prefix changes frequently and the benefit of the cache disappears. Cacheful and friendly context layouts are usually: **stabilization rules preceded by dynamic tasks; stabilization content less changed and dynamic content less.**
@@ -558,6 +572,7 @@ The practical approach is not one: critical mission status is written in Scratch
 ### 4.6.1 Why tool output is the easiest to explode
 
 Tool output is the most destructive of all context sources of pollution. The reason is simple: **You can't completely control the size of the tool output.** - System Prompt was written by you, the length is controlled.
+
 - RAG turns out you search, you can just take top-K.
 - Memoory recall is under your control and you can set a numerical ceiling.
 
@@ -580,9 +595,10 @@ Different tools require different thin tactics: **Strategy I: Cut + Mark (suitab
 ……
 [后 50 行]
 总计 1500 行，已显示首尾各 50 行。如需查看完整日志，请指定行号范围。
+
 ```
 
-Key: Interception must be marked with "what to cut" and "how to get what's left." Otherwise, the model may make an erroneous inference based on incomplete information.**Strategy II: Extract + Summary (suitable for code search, document retrieval)**
+Key: Interception must be marked with "what to cut" and "how to get what's left." Otherwise, the model may make an erroneous inference based on incomplete information. **Strategy II: Extract + Summary (suitable for code search, document retrieval)**
 
 ```text
 原始输出：grep 返回 120 个匹配结果
@@ -600,6 +616,7 @@ Key: Interception must be marked with "what to cut" and "how to get what's left.
 
 3-8. [其他 6 个文件共 97 处匹配，涉及测试和配置文件]
    使用 "grep -n 'context window' <file>" 查看具体行
+
 ```
 
 Key: Structure the search results so that the model can quickly locate the most relevant files, rather than get lost in the 120 line grep output. **Strategy III: Structure + Filter (suitable for API calls, database queries)**
@@ -619,13 +636,14 @@ Key: Structure the search results so that the model can quickly locate the most 
 
 完整数据已写入临时文件 /tmp/query_result_20260629.json
 需要进一步分析时，使用 read_file 工具读取指定字段。
+
 ```
 
 Key: Don't let the model "remember" a lot of structured data. Keep summary and index and place the complete data where the model can be accessed again with tools.
 
 ### 4.6.3 Tool return is not just short, but actionable.
 
-Skinnyness is the first step. But the good instrument output is not only short — it should directly serve the next decision.**Bad tool returns:**
+Skinnyness is the first step. But the good instrument output is not only short — it should directly serve the next decision. **Bad tool returns:**
 
 ```text
 搜索 "rate_limiter" 返回 120 行匹配结果：
@@ -636,6 +654,7 @@ src/api/handlers.py:23:       limiter = RateLimiter(redis_client)
 src/api/handlers.py:56:       if not limiter.check_limit(user_id):
 ……
 [115 more lines]
+
 ```
 
 The model needs to solve 120 lines, figure out the focus, decide which document to read next. Each step represents an additional cost of reasoning and opportunity for error. **Better tool returns:**
@@ -663,6 +682,7 @@ The model needs to solve 120 lines, figure out the focus, decide which document 
   "other_matches": "其余 6 个文件共 82 处匹配（测试、配置、文档）",
   "suggested_next_action": "read_file('src/api/middleware.py', start_line=40, end_line=160)"
 }
+
 ```
 
 When the model gets this result, it doesn't have to focus in 120 lines. It knows firsthand where the core is, what the key line is, what the next step is. This reduces the second judgement burden of the model and reduces the probability of error.
@@ -688,18 +708,21 @@ Compression is to make long content shorter. But there are tools whose results s
 
 The following types of tools are suitable for clean-up rather than compression:
 
--**One-time query result**: 500 line results of a SQL query. The current steps are useful, but no further 20 rounds are required.
--**Full original**: read a 5,000 line HTML page. The summary is sufficient and the original text should not be in the context.
--**Duplicate results**: same grep ran three times (different parameters), last time only.
--**Large binary/log**: full log file line 20000. Only the abnormal summary + file path index is kept in the context.**Clean-up strategy:**
+- **One-time query result**: 500 line results of a SQL query. The current steps are useful, but no further 20 rounds are required.
+- **Full original**: read a 5,000 line HTML page. The summary is sufficient and the original text should not be in the context.
+- **Duplicate results**: same grep ran three times (different parameters), last time only.
+- **Large binary/log**: full log file line 20000. Only the abnormal summary + file path index is kept in the context. **Clean-up strategy:**
 
 ```text
 1. 工具结果只在接下来 N 轮可见（如 N=3），超出的自动清理
 2. 同类工具结果只保留最后一次（新的 grep 结果替换旧的）
 3. 大型结果不进入 message history，而是保存到外部 store，上下文中只保留结果 ID / 文件路径
 4. 跨轮仍然需要的结果——如用户确认过的决策——应该提取到 Scratchpad，而不是留在工具结果里
+
 ```
-**Clean vs compression option:**| Situation | Compression | Clean up. |
+
+**Clean vs compression option:**
+| Situation | Compression | Clean up. |
 |---|---|---|
 | Results may be cited in subsequent steps | ✅ | ❌ |
 | Results include user-identified decision-making | Scratchpad | ❌ |
@@ -812,13 +835,14 @@ def process_tool_output(tool_name: str, raw_output: str, max_tokens: int) -> Pro
     """对工具输出进行处理后再注入上下文"""
     processor = result_processors.get(tool_name, default_processor)
     return processor.process(raw_output, max_tokens)
+
 ```
 
 The core design of this skeleton:
 
 1. **The logic of the independent processing of each tool**: the output patterns of file reading and code search are completely different and cannot be one-size-fits-all
 2. **Process results are transparent**: Tell the model "Preliminary size, processing size, cut-off, complete results, where" and the model needs this meta-information to judge.
-3. **The cut-off is for the model**:`"文件共 1500 行，已显示首尾各 50 行"`— Models know that information is incomplete and they decide whether to continue to base their reasoning on existing information or to use tools to get more content
+3. **The cut-off is for the model**: `"文件共 1500 行，已显示首尾各 50 行"` — Models know that information is incomplete and they decide whether to continue to base their reasoning on existing information or to use tools to get more content
 4. **external ref supports cleanup semantics**: full results are saved externally and only summarized in context. The next round can remove the tool result from the cleanup mechanism and keep only the external ref index
 
 ### 4.6.7 Contextal credibility: information is not an instruction
@@ -846,13 +870,16 @@ So every information that enters the context should have metadata, not just text
   "freshness": "current",
   "instruction_authority": "none"
 }
+
 ```
 
 Key principles: **External information can provide facts that do not cover the rules of the system; tool results can provide observations and do not authorize subsequent operations on their own; Memory can provide preferences that do not bypass current user goals and permission boundaries.** When conflicts occur from different sources, the system will indicate the conflict in a visible manner, rather than allowing the model itself to guess in a series of conflicting texts.
 
 ## 4.7 How does the context strategy really work?
 
-Context Engineering can't just feel -- "I think the answer is better after the layering" is not engineering language. You need indicators and data to verify that the strategy is actually working. **Core assessment indicators:** | Indicators | Annotations | How? |
+Context Engineering can't just feel -- "I think the answer is better after the layering" is not engineering language. You need indicators and data to verify that the strategy is actually working. **Core assessment indicators:**
+
+| Indicators | Annotations | How? |
 |---|---|---|
 | Task Success Rate | Task Completion Rate - Does Agent Set User Target | Manual labelling or LLM-as-Judge assessment |
 | Constraint Following Rate | Output format, security constraints, language bound compliance rate | Autodetection (reforms, format validation) or manual labelling |
@@ -864,7 +891,9 @@ Context Engineering can't just feel -- "I think the answer is better after the l
 | Context Drift Rate | Multi-cycle target deviation ratio - Does Agent still do the original thing? | Per N round to compare current behaviour with initial target |
 | Recovery Rate | Recovery after error — ratio re-matched after context-related problems | Mark "deviation" event, statistical recovery rate |
 | Injection Resistance | Whether to continue to comply with the rules of the system in the event of malicious instructions in the external context | Construct RAG/webpage/tool output injection sample |
-| Context Ablation Sensitivity | Whether the result after deleting a category of context is significantly degraded | Remove RAG, Memoory, Tool Digest, ScratchPad |**A simple A/B assessment design:**It does not need to be fully automated from the outset. Fixed 30 representative mission samples, hand-run four sets:
+| Context Ablation Sensitivity | Whether the result after deleting a category of context is significantly degraded | Remove RAG, Memoory, Tool Digest, ScratchPad |
+
+**A simple A/B assessment design:** It does not need to be fully automated from the outset. Fixed 30 representative mission samples, hand-run four sets:
 
 ```text
 A 组：全量上下文（V0 baseline）
@@ -887,6 +916,7 @@ D 组：分层 + 预算 + 工具压缩 + Scratchpad（V4+）
 - 注入攻击通过率（恶意上下文是否被当成资料而不是指令）
 - 上下文消融结果（移除某类信息后质量是否下降）
 - 人工评分（1-5 分，由你或同事评估回答质量）
+
 ```
 
 After 30 samples x 4 groups = 120 assessments, you'll have data support for "what strategy really works in your scene," rather than sensory involvement.
@@ -901,14 +931,14 @@ Context Engineering does not need a step in place. As with all enhancements, it 
 
 | Phase | What did you do? | Added Capability Dimension | Apply scene |
 |---|---|---|---|
-|**V0: All in** | All messages remain unmoved into context and cut with tokenizer | None | Prototype validation, one-step simple task |
-|**V1: plus budget** | Set a maximum number of tokens for each type of information, which is simply cut when exceeded | Budget | Prototype with no more than 3 sources |
-|**V2: Tool-output processing** | Registration of results processor for HF tools, long output compression/cleaning | Budget + tool compression | Tool calls frequently, output easily explodes |
-|**V3: Layer + Priority** | Context structured layers, cut by priority rather than simply cut over time | Layer + Budget + Selection | Source 3+, multi-step task |
-|**V4：Scratchpad + Compaction** | Introduction of external status to manage task progress; structured compression of historical and tool results | + Write + Compress | A single task exceeding 10 steps, or crossing multiple rounds |
-|**V5: Child isolation** | The context submission was assigned to the child Agent independently and returned only to the enrichment results | + Segregation | Complex tasks requiring in-depth analysis of a large number of documents |
-|**V6: Cache friendly + Trustworthiness layer** | Stable prefix reuse cache; indicating source, permission and credibility for external context | +Cache + Secure Border | Cost-sensitive or access to external web pages, enterprise knowledge base, user memory systems |
-|**V7：Eval-driven Optimization** | Establish an evaluation system for context strategies, using data-driven policy selection and parameter optimization | + Evaluation | Production systems that continuously optimize the quality of context |
+| **V0: All in** | All messages remain unmoved into context and cut with tokenizer | None | Prototype validation, one-step simple task |
+| **V1: plus budget** | Set a maximum number of tokens for each type of information, which is simply cut when exceeded | Budget | Prototype with no more than 3 sources |
+| **V2: Tool-output processing** | Registration of results processor for HF tools, long output compression/cleaning | Budget + tool compression | Tool calls frequently, output easily explodes |
+| **V3: Layer + Priority** | Context structured layers, cut by priority rather than simply cut over time | Layer + Budget + Selection | Source 3+, multi-step task |
+| **V4：Scratchpad + Compaction** | Introduction of external status to manage task progress; structured compression of historical and tool results | + Write + Compress | A single task exceeding 10 steps, or crossing multiple rounds |
+| **V5: Child isolation** | The context submission was assigned to the child Agent independently and returned only to the enrichment results | + Segregation | Complex tasks requiring in-depth analysis of a large number of documents |
+| **V6: Cache friendly + Trustworthiness layer** | Stable prefix reuse cache; indicating source, permission and credibility for external context | +Cache + Secure Border | Cost-sensitive or access to external web pages, enterprise knowledge base, user memory systems |
+| **V7：Eval-driven Optimization** | Establish an evaluation system for context strategies, using data-driven policy selection and parameter optimization | + Evaluation | Production systems that continuously optimize the quality of context |
 
 The logical goal for most projects is **V3 (Strategic + Priority)**. V4-V7 applies to:
 
@@ -925,26 +955,22 @@ These symptoms will not occur at the same time, but almost every Agent project t
 
 | Problem performance | Common statements in industry | Bottom Interpretation | Treatment direction |
 |---|---|---|---|
-|**Constraint oblivion**: the model violates the explicit constraints in System Prompt | Instruction Dilution | Constraint is "drowned" in the long context and attention is diverted to a lot of irrelevant token. | Repeat key constraints at the end of the context; shorten the total length of the context; and place constraints at the beginning of the focus |
-|**Lost in the middle**: the model ignores information on the middle of the context | Lost in the Middle | The attention mechanisms are significantly less focused on the middle of the sequence than on the beginning and end. | Place key information at the beginning or end; summarize intermediate content and move forward; avoid burying important information in the middle of context |
-|**Tool result poisoning**: The model is running away from a non-relevant tool output and subsequent multiple wheels are spinning around irrelevant content | Context Poisoning | Tool output is injected without filtering, and large unrelateds dominate attention. | Register processor for tool output; set Token ceiling for single tool output; use "Summary + External Index" mode for large results; implement tool-result clearing |
-|**Infoconflict**: RAG clips and Memoory recall give conflicting preferences or facts | Context Clash | Different sources of information lacked mechanisms for heavy and conflict resolution, and models were randomly selected or stitched in the face of conflicting information | Add cross-source-by-source logic; prioritize time-stamp updates or more authoritative sources when information conflicts occur; highlight "controversial" when conflicts are detected |
-|**Context inflation**: tool results added per round, context approaching window ceilings | Context Rot / Bloat | Historic tool output has not been compressed or cleaned up, the context is growing like snowball, and each round is slower and more expensive | Summary replacement for tool output exceeding N steps; setting the context usage alarm threshold (e. g. 70 per cent); introducing tool-result clearing; moving task status out to Scratchpad |
-|**Repeat injection**: The same knowledge appears in the RAG results and Memoory | Context Redundancy | There is a lack of coordination between the sources of information, and repeat content is valuable token budget without increasing the amount of information | Cross-source heavy at the Context Assembly stage; priority is given to the same content using a higher quality version of the source; the label for duplicate content "has appeared in [source]" |
-|**Context Injecting**: external web pages, RAG clips or tool results require models to ignore old rules | Context Injection | The system doesn't distinguish between "information text" and "directive text". | Identification of sources and credibility for external context; clear reference-only; high-risk actions must be authorized and manually identified |
+| **Constraint oblivion**: the model violates the explicit constraints in System Prompt | Instruction Dilution | Constraint is "drowned" in the long context and attention is diverted to a lot of irrelevant token. | Repeat key constraints at the end of the context; shorten the total length of the context; and place constraints at the beginning of the focus |
+| **Lost in the middle**: the model ignores information on the middle of the context | Lost in the Middle | The attention mechanisms are significantly less focused on the middle of the sequence than on the beginning and end. | Place key information at the beginning or end; summarize intermediate content and move forward; avoid burying important information in the middle of context |
+| **Tool result poisoning**: The model is running away from a non-relevant tool output and subsequent multiple wheels are spinning around irrelevant content | Context Poisoning | Tool output is injected without filtering, and large unrelateds dominate attention. | Register processor for tool output; set Token ceiling for single tool output; use "Summary + External Index" mode for large results; implement tool-result clearing |
+| **Infoconflict**: RAG clips and Memoory recall give conflicting preferences or facts | Context Clash | Different sources of information lacked mechanisms for heavy and conflict resolution, and models were randomly selected or stitched in the face of conflicting information | Add cross-source-by-source logic; prioritize time-stamp updates or more authoritative sources when information conflicts occur; highlight "controversial" when conflicts are detected |
+| **Context inflation**: tool results added per round, context approaching window ceilings | Context Rot / Bloat | Historic tool output has not been compressed or cleaned up, the context is growing like snowball, and each round is slower and more expensive | Summary replacement for tool output exceeding N steps; setting the context usage alarm threshold (e. g. 70 per cent); introducing tool-result clearing; moving task status out to Scratchpad |
+| **Repeat injection**: The same knowledge appears in the RAG results and Memoory | Context Redundancy | There is a lack of coordination between the sources of information, and repeat content is valuable token budget without increasing the amount of information | Cross-source heavy at the Context Assembly stage; priority is given to the same content using a higher quality version of the source; the label for duplicate content "has appeared in [source]" |
+| **Context Injecting**: external web pages, RAG clips or tool results require models to ignore old rules | Context Injection | The system doesn't distinguish between "information text" and "directive text". | Identification of sources and credibility for external context; clear reference-only; high-risk actions must be authorized and manually identified |
 
 ## 4.10 When does context work not be required?
 
 Context Engineering is also following the "on demand" principle. A complex design is not required for:
 
 1. **One-step simple task**: a user asks, a model answer, no tools to call, no multiple rounds of history. Just send System Prompt+ user message.
-
 2. **Single source**: only System Prompt and user messages, no RAG, Memory, tool output. No need for Division.
-
 3. **The context is far below the ceiling of the model**: the total number of Tokens is less than 30 per cent of the ceiling of the model, with simple tasks and few steps. Excessive design of the context line is a waste of engineering resources.
-
 4. **Prototype validation phase**: still checking if "this direction works". V0 is completely acceptable. Context Engineering is a means of optimization, not a precondition.
-
 5. **Short life cycle Agent**: This Agent was abandoned only a few times — for example, one-time data migration script. It's not worth setting up a context line.
 
 A judgement signal: **When you find yourself beginning to write "Please follow Rule X" in System Prompt, indicate that the context is long enough to be bound by the model. This is the signal that introduced Context Engineering.** In turn, if your Agent is running well now — the restraints are being complied with, the tools are not being missed, the users are not complaining about the quality of the answer being reduced — then continue with the current context strategy. **Contex Engineering is a cure, not a healthcare. Don't eat when there's no problem.**
@@ -984,11 +1010,12 @@ python3 -m unittest test_context_engineering.py
 # Node.js 版本
 cd examples/course-05-04-context-engineering/nodejs
 npm start
+
 ```
 
 ---
 
-> **Chapter IV Review.** You now have four perspectives on Agent: RAG that allows it to access external knowledge, Memoory that allows it to remember user and task status, Context Engineering that allows multi-source information to be organized in the context rather than flood each other. These three together make up Agent's context-enhanced capacity-- - It's a question of "where the information for decision-making comes from and how."
+> **Chapter IV Review.** You now have four perspectives on Agent: RAG that allows it to access external knowledge, Memoory that allows it to remember user and task status, Context Engineering that allows multi-source information to be organized in the context rather than flood each other. These three together make up Agent's context-enhanced capacity-- It's a question of "where the information for decision-making comes from and how."
 >
 > Agent, however, faced with a complex task, had another problem that remained unresolved: **information was available, but the sequence of implementation between multiple steps, dependency, failure to restore how to organize?** Naked Rect Cycle has no mission structure, multi-step tasks are easily driftable and do not know where to recover from.
 >

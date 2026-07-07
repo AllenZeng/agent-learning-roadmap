@@ -23,12 +23,13 @@ After this lesson, you will be able to:
 
 1. **Says what Agent is** — Distinguishing between it and the nature of Chatbot, WorldFlow, instead of being fascinated by the image of using LLM Muse.
 2. **judge by "who decides the next step"** — whether the product is a model or a preset rule is driving
-3. **Dismantling any Agent product from a 7-dimensional template** - from sensory experience to structured analysis, no longer in "good use / bad use"
-4. **Explains why the user trusts or does not trust Agent** - understand the reasons behind the design of surprise, loss of control, reliability
+3. **Dismantling any Agent product from a 7-dimensional template** -- from sensory experience to structured analysis, no longer in "good use / bad use"
+4. **Explains why the user trusts or does not trust Agent** -- understand the reasons behind the design of surprise, loss of control, reliability
 
 ---
 
 ## Contents
+
 - [Introduction to the curriculum](#introduction-to-the-curriculum)
 - [Learning objectives](#learning-objectives)
 - [Chapter 1: What is Agent?](#chapter-1-what-is-agent)
@@ -98,6 +99,7 @@ Chatbot's core competence is to understand and generate language. The user enter
 Workflow is a predefined enforcement chain. What each step does, how the data is transmitted and what triggers what branch is determined at the design stage. Although some of the points in Workflow may call LLM (e.g. creating a file, categorizing intent), LLM here is only a "functional module", not a "decision maker." Decision-making is the process that was designed. **Core feature**: the next step will be determined by "pre-established rules".
 
 Typical example of a workflow: smart customer service system
+
 1. Recognize user intent (5 predefined types)
 2. Call the corresponding knowledge base according to intent
 3. LLM Colour Generation Answers
@@ -112,6 +114,7 @@ The fundamental difference between Agent and the preceding is that: **The next s
 **Core feature**: the next step is "model dynamics".
 
 Typical Agent example: Claude Code. "Help me find all the bugs of this project and fix it."
+
 - It decides which files to read first.
 - When you read the code, you decide what diagnostic order to run.
 - When you see the diagnosis, you decide if it's a phenomenon.
@@ -139,6 +142,7 @@ The core idea of Agenic WorkFlow is: **WorkFlow is responsible for the main proc
 This is the common course of practice in the current corporate AI transition. The reason for this is simple: the business landscape usually requires authority, audit, compliance, steady delivery and manual validation, and cannot leave the entire business chain freely to the model; but the model can also provide a more adaptive than the fixed rules in local areas such as information understanding, material screening, abnormal judgement, and recommendations for the next step.
 
 For example, a content audit system:
+
 - The overall process is Workflow: Receive content → Automatic rule check → Initial model screening → manual review
 - But the "model first screening" step is not a simple classification, but a controlled Agent subtask: the model itself determines the angle from which to review, whether policies need to be retrieved, whether to request more context in case of insufficient evidence, final output risk rating, evidence and recommended treatment.
 
@@ -149,6 +153,7 @@ The engineering wisdom of such a design is that there is no need to put "certain
 If you can only remember one concept to distinguish between Agent and other products, remember this:
 
 > **Look who decided the next step.** - Chatbot: User decides the next step (user does not enter, system waits)
+
 - Workflow: Preset process determines the next step (step A is bound to step B)
 - Agent: The model determines the next step according to the dynamics of objectives, status and feedback
 
@@ -169,12 +174,10 @@ Based on the core perspective of who decides the next step, here is a quick-judg
 1. **Target source**: Does the user enter an open target (Agent self-dismantling) or a step-by-step directive (user-led every step)?
    - User input open target, Agent autonomously plan execution path stronger Agent features
    - User step by step to give specific instructions more than Chatbot or WorkFlow
-
 2. **Initiation of action**: whether the action was initiated by the model itself or triggered by a user directive or preset rule?
    - Autostart model →Agent feature
    - User command trigger →Chatbot feature
    - Preset rules trigger →Workflow feature
-
 3. **Strategy adjustment**: Can the system change its strategy independently in the event of an accident?
    - Free to change tools, keywords, paths
    - Only preset abnormal branch can be used to process →Workflow feature
@@ -190,6 +193,7 @@ Don't ask first, "What technology does it use?" Let's start with the question of
 
 ```text
 这个任务，适不适合交给一个会自己判断下一步的系统？
+
 ```
 
 The same product may present a completely different picture in different missions. An Agent is very strong in writing codes, and may be subject to privileges and payment restrictions when ordering tickets; a search type Agent is well suited for sorting, but not necessarily for modifying your local files. So course one is not about ranking the product, but training you to judge whether the mission and product competencies match.
@@ -276,18 +280,15 @@ A lot of people experience the new product as "just a little bit, just a sense."
 
 In the experience of each of the Agents, please always carry these four questions:
 
-1. **When will it make its own decision?** - Which operations it carried out without asking your opinion?
+1. **When will it make its own decision?** -- Which operations it carried out without asking your opinion?
    - Do you think these claims are reasonable?
    - What kind of operation do you think it should be done on its own?
-
-2. **When will it ask me?** - What kind of operation would it stop for confirmation?
+2. **When will it ask me?** -- What kind of operation would it stop for confirmation?
    - Does this stop point make sense? Is it too frequent (obstinate) or too loose (dangerous)?
-
-3. **When did it go wrong?** - Record a specific error. How did it go wrong?
+3. **When did it go wrong?** -- Record a specific error. How did it go wrong?
    - Did it find out? If not, how did you find out?
    - What did it do after the mistake?
-
-4. **When does it surprise me?** - Record a moment that makes you think "Wow, it can do this."
+4. **When does it surprise me?** -- Record a moment that makes you think "Wow, it can do this."
    - Why does this moment impress you?
    - Is the surprise "one-off" or "renewable"?
 
@@ -298,12 +299,14 @@ These four questions correspond to the four core dimensions designed by Agent: *
 One of the most enlightening ways to learn is to test different Agent with the same mission. It shows you how different the "thinking" of different products is in the face of the same goal. Choose a suitable test assignment like "Help me study the important changes in the field of the AI programming tool for the last three months and make a brief."
 
 A good test mission meets four conditions:
+
 - **Need for multi-step reasoning**: Not a single answer.
 - **Tools needed**: external information needed or external systems operated
 - **There is some openness**: there is no only correct answer, allowing for multiple strategies
 - **Verifiable**: There is a way to judge the results for good or bad
 
 The task is assigned to two to three products and then to observe their differences in strategy:
+
 - Who's gonna search for what first?
 - Who spends more time planning?
 - Who has more comprehensive results? Who has more accurate results?
@@ -324,17 +327,17 @@ Here's the 7-dimensional observation frame reference. On the right side is a com
 
 | Dimensions | Observation issues | Recording mode | Claude Code |
 |------|---------|---------|-------------------|
-|**Mission entrance** | Did the user enter an open target, a specific command, or a regular question and answer? | Write Original User Job | "Help me add the tool function under src/utils to the error processing" -- specific instructions, with some openness |
-|**The next decision-making authority** | Who decides the next step? | User / Fixed Process / Model | Models dominate. It was decided to list the directories first, to read the documents individually and to propose changes. Just ask for confirmation for high-risk actions. |
-|**Activities** | What tools or external capabilities can products use? | List tools, data sources or workflow sections Points | File reading and writing, Shell command, code search, Git operation, Web search |
-|**Process visibility** | What steps can users see? | Plans, tool calls, progress, intermediate results | High. Visible plan, milestones and tool call logs; tool caller pre-marked names and parameters; implementation results visible |
-|**User control** | Can users identify, interrupt, modify or take over? | Mark Intervention Node | Any tool calling optional permission/rejection/always allowed; real-time intervention in natural languages; default confirmation for high-risk operations |
-|**Failed and recovered** | What happens when something goes wrong? | Retry, downgrade, clarify, fail to exit | Active search directory, check configuration, change frame attempts when the test file does not exist and clarify to the user after successive failure |
-|**Agent Color Decision** | It's more like Chatbot, Workflow, or Agent? | Give your judgment and give your reasons. | Strong Agen. Auto-decision tools and sequencing of implementation; dynamic adjustments in unexpected feedback; high-risk recognition as security design, non-capacity constraints |
+| **Mission entrance** | Did the user enter an open target, a specific command, or a regular question and answer? | Write Original User Job | "Help me add the tool function under src/utils to the error processing" -- specific instructions, with some openness |
+| **The next decision-making authority** | Who decides the next step? | User / Fixed Process / Model | Models dominate. It was decided to list the directories first, to read the documents individually and to propose changes. Just ask for confirmation for high-risk actions. |
+| **Activities** | What tools or external capabilities can products use? | List tools, data sources or workflow sections Points | File reading and writing, Shell command, code search, Git operation, Web search |
+| **Process visibility** | What steps can users see? | Plans, tool calls, progress, intermediate results | High. Visible plan, milestones and tool call logs; tool caller pre-marked names and parameters; implementation results visible |
+| **User control** | Can users identify, interrupt, modify or take over? | Mark Intervention Node | Any tool calling optional permission/rejection/always allowed; real-time intervention in natural languages; default confirmation for high-risk operations |
+| **Failed and recovered** | What happens when something goes wrong? | Retry, downgrade, clarify, fail to exit | Active search directory, check configuration, change frame attempts when the test file does not exist and clarify to the user after successive failure |
+| **Agent Color Decision** | It's more like Chatbot, Workflow, or Agent? | Give your judgment and give your reasons. | Strong Agen. Auto-decision tools and sequencing of implementation; dynamic adjustments in unexpected feedback; high-risk recognition as security design, non-capacity constraints |
 
 The seven dimensions revolve around the same core issue: **How much "decision" responsibility does the model have in dealing with the task?** --- **Three levels of judgement**:
 
-1. **What drives most behaviour in this product?** - User input, preset rules, or model dynamic decision making?
+1. **What drives most behaviour in this product?** -- User input, preset rules, or model dynamic decision making?
 2. **In what specific scenario did it show the Agent character?** — Is it "search planning" autonomy, or is it a feedback loop when "code generation automatically runs test validation"?
 3. **Which scenes showed it to the bottom of Chatbot or WorkFlow?** — Is it a "selecting only from preset options" or is it a "failure without an apology" error? **A bottom line in judgement**: Don't call it Agent because a product "used LLM". The test is always **"Who's got the decision-making power next."** ---
 
@@ -350,6 +353,7 @@ The seven dimensions revolve around the same core issue: **How much "decision" r
 Keep an eye on which of the tools you use in your day-to-day life are already Agent features -- Do they decide at some point what to do next?
 
 Record 1-2 discoveries, describing:
+
 - In what scenario did it show the Agent character?
 - Why do you think that's Agent's behavior instead of pre-set rules?
 - Does its autonomous decision make you comfortable or uneasy?
@@ -357,6 +361,7 @@ Record 1-2 discoveries, describing:
 ### Practice III: Same job comparison test (chosen)
 
 Select a test task that meets the following conditions:
+
 - It's a multi-step theory.
 - Need tool use
 - There's a certain openness.
@@ -385,12 +390,12 @@ The key to Agent is not "using LLM", but whether it can continue to decide on th
 
 Upon completion of this course, use the following criteria for self-examination:
 
-- I can say the key difference between Agent and Chatbot without looking at it.
-- I can tell you three key differences between Agent and WorldFlow.
-- I understand why "who decides the next step" is the core observation point for Agent.
+- [ ] I can say the key difference between Agent and Chatbot without looking at it.
+- [ ] I can tell you three key differences between Agent and WorldFlow.
+- [ ] I understand why "who decides the next step" is the core observation point for Agent.
 - [ ] My decomposition report covers all 7 dimensions, each with specific observations rather than general perceptions.
 - [ ] I have specific product interaction details in my pen ("Agent did YYY in XXX Operations"), not abstract evaluation ("It's smart")
-- I can explain in my own words why using LLM doesn't mean it's Agent.
+- [ ] I can explain in my own words why using LLM doesn't mean it's Agent.
 - [ ] I can at least give one example of when Agent's autonomous decision-making can make users feel out of control.
 
 ---
@@ -399,7 +404,7 @@ Upon completion of this course, use the following criteria for self-examination:
 
 ### Recommended reading
 
-- **[Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents)** - Anthropic team blog post on Agent design principles. Focusing on "When to use Agent, when not" is highly complementary to the framework of this course.
-- **[OpenAI Agents SDK Document](https://platform.openai.com/docs/guides/agents)** - OpenAI official Ages SDK document shows how they define Agent, tools and hand-over mechanisms.
+- **[Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents)** -- Anthropic team blog post on Agent design principles. Focusing on "When to use Agent, when not" is highly complementary to the framework of this course.
+- **[OpenAI Agents SDK Document](https://platform.openai.com/docs/guides/agents)** -- OpenAI official Ages SDK document shows how they define Agent, tools and hand-over mechanisms.
 - **[What is an AI Agent?](https://blog.google/technology/ai/ai-agents/)** The interpretation of AI Agent by Google official blog complements the Anthropic perspective.
 - **[The Agentic AI Landscape](https://a16z.com/ai-agent-landscape/)** — a16z for analysis of Agent market patterns, suitable for an industry perspective.

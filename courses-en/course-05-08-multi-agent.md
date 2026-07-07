@@ -93,7 +93,9 @@ Agent 上下文窗口（简化示意）：
 │ 问题：它看到了第 1 轮中"为了简化先用明文"的推理，              │
 │ 这个推理会在审查时变成"这是有意为之，不是问题"                 │
 └────────────────────────────────────────────────────────────┘
+
 ```
+
 **The structural root cause of the squeezing of the context**: The context window for single Agent is the "public pool" of all information. The middle product of the creation process is mixed with the final output, and Agent can't distinguish between "this is the final decision" and "this is an abandoned attempt". At the time of the review, the historical information had polluted the judgement.
 
 ### 8.1.3 Serial bottlenecks: undependent tasks queuing
@@ -111,6 +113,7 @@ The knowledge assistant received a research mission: "Help me look into the four
 └─ [6:00-7:00] 汇总四份调研，生成最终报告
 
 总耗时：约 7 分钟
+
 ```
 
 But look closely at these four research missions — they are not dependent on each other. The study Memory does not have to wait for the results of Tool Use. They can be carried out simultaneously. **The structural causes of the serial bottlenecks**: single Agent has only one execution thread. Even if there is no dependency between mandates, there can be only one. This is not a question of the speed of the model — the speed of the model's reasoning, and the total time of queuing four tasks is the sum of four tasks.
@@ -119,7 +122,7 @@ But look closely at these four research missions — they are not dependent on e
 
 A natural idea is: will these problems be solved automatically when a stronger model comes out?
 
-Nope. As these three types of ceiling are structural problems**, not capacity problems**.
+Nope. As these three types of ceiling are structural problems **, not capacity problems**.
 
 - **Role conflict** is not a model that is not smart enough to read it — it is a conflicting goal in the same context. A stronger model might be better transposed between the two objectives, but a pre-emptive "interpretation" would soften the review criteria as long as creation and review shared the same context.
 - **Context squeezing** is not the size of the context window of the model - it is the information structure. The larger window simply plugs in more noise and does not address the structural flaws of the "intermediate reasoning of pollution final judgment".
@@ -174,6 +177,7 @@ The difference between role-playing and the nature of Multi-Agent:
 │ - 审查员的判断    │  │ - 审查员的判断    │  │ - 研究员的推理    │
 │                 │  │                 │  │ - 工程师的妥协    │
 └─────────────────┘  └─────────────────┘  └─────────────────┘
+
 ```
 
 The key difference is not how well it is written in Prompt, but in **every Agent sees things differently and can do different things.**
@@ -184,10 +188,12 @@ The real Multi-Agent splits four dimensions. For example, the knowledge assistan
 
 | Dimensions | Form Agent (self-review) | Multi-Agent（Author + Reviewer） |
 |---|---|---|
-|**Entered differently** | Author and Reviewer are in the same context. Reviewer "sees" the middle reasoning and compromise of Author. | The Author context requires documentation, notes search results, writing tools. Reviewer context **only** final option + review criteria not available for Author's draft and "simplified later." |
-|**Different tools** | The same tool set -- it can write files and make security scans. | Author can write documents and retrieve notes. Reviewer can only read files, run safety scans -- **can't write** to make sure the examiner doesn't quietly "do it again" |
-|**Different goals** | "Full the user's mission" -- the goal is vague and the sub-goals compromise. | Objective: Technical programmes with outputs to meet demand. Objective Reviewer: To find all issues that do not meet safety standards. **Targets do not compromise with each other** |
-|**Different acceptance standards** | "As long as the user thinks it's okay," no objective criteria. | Author standard: Programme fully covers needs. Reviewer standard: review list adopted article by article, any one FAIL as a whole REJECT |**Of these four dimensions, at least two are different, and Multi-Agent is worth it.** If the two Agents have the same input, the same tools, the same goals and the same acceptance criteria - whatever name they are given, they are essentially the same Agent. You're just wasting token and delaying.
+| **Entered differently** | Author and Reviewer are in the same context. Reviewer "sees" the middle reasoning and compromise of Author. | The Author context requires documentation, notes search results, writing tools. Reviewer context **only** final option + review criteria not available for Author's draft and "simplified later." |
+| **Different tools** | The same tool set -- it can write files and make security scans. | Author can write documents and retrieve notes. Reviewer can only read files, run safety scans -- **can't write** to make sure the examiner doesn't quietly "do it again" |
+| **Different goals** | "Full the user's mission" -- the goal is vague and the sub-goals compromise. | Objective: Technical programmes with outputs to meet demand. Objective Reviewer: To find all issues that do not meet safety standards. **Targets do not compromise with each other** |
+| **Different acceptance standards** | "As long as the user thinks it's okay," no objective criteria. | Author standard: Programme fully covers needs. Reviewer standard: review list adopted article by article, any one FAIL as a whole REJECT |
+
+**Of these four dimensions, at least two are different, and Multi-Agent is worth it.** If the two Agents have the same input, the same tools, the same goals and the same acceptance criteria - whatever name they are given, they are essentially the same Agent. You're just wasting token and delaying.
 
 Here's one of the simplest criteria: **If you can't say two Agents, "What difference does it make?", then you don't need two Agents.**
 
@@ -215,7 +221,9 @@ Before introducing Multi-Agent, answer by article:
 □ 视角多样性：是否需要从不同立场、不同假设、不同风险偏好来审视同一个问题？
    （例：技术方案需要同时从成本、安全、可维护性三个角度评估）
    如果单一视角已经能覆盖所有关注点，不需要多视角。
+
 ```
+
 **Introductory judgement**: satisfaction of at least two of these is worth serious consideration. When only one is satisfied, there is usually a simpler method (better Prompt, more detailed tool privileges, predefined checklist) to achieve similar results.
 
 ---
@@ -246,6 +254,7 @@ Executor Agent（执行者）                   Reviewer Agent（审查者）
 │ 目标：完成技术方案          │              │ 目标：找出所有安全问题       │
 │ 验收：方案覆盖需求          │              │ 验收：审查清单逐条通过       │
 └──────────────────────────┘              └──────────────────────────┘
+
 ```
 
 Core skeleton code:
@@ -306,9 +315,10 @@ class ReviewerPattern:
             "unresolved_issues": review.issues,
             "message": "两轮修正仍未通过审查，需要人工裁决"
         }
+
 ```
 
-> **Design element**: Exporter and Reviewer uses separate LLM examples - different Systems Prompt, different tool sets, different context windows.`fix_instructions`Only the specific questions found by Reviewer (e.g., "line 3 lacks input length verification") and no subjective evaluation by Reviewer (e.g., "of poor overall quality"). Let Executor modify it on the basis of facts, rather than being influenced by the subjective opinion of another model. The two-round cap is a protective mechanism — the marginal benefits of the third round of amendment are often insufficient to cover communication costs and decision-making fatigue.
+> **Design element**: Exporter and Reviewer uses separate LLM examples - different Systems Prompt, different tool sets, different context windows. `fix_instructions` Only the specific questions found by Reviewer (e.g., "line 3 lacks input length verification") and no subjective evaluation by Reviewer (e.g., "of poor overall quality"). Let Executor modify it on the basis of facts, rather than being influenced by the subjective opinion of another model. The two-round cap is a protective mechanism — the marginal benefits of the third round of amendment are often insufficient to cover communication costs and decision-making fatigue.
 
 ### 8.3.2 Why independent context is more effective than changing role Prompt
 
@@ -321,7 +331,9 @@ Specifically, Reviewer can't see these things:
 | "In order to facilitate local development, you can store the key with a clear message." | It'll make Reviewer re-understand the word "security breach" to "intentional ad hoc solution." |
 | "The permission model is simplified to an admin, then refined." | Reviewer, seeing this explanation, may no longer mark "the lack of minimal permission" as FAIL |
 | First two versions of the three drafts (released) | Noise - not related to the final scenario, but may confuse the Reviewer's understanding of the programme structure |
-| Executor's uncertainty and hesitation in writing. | It'll create unnecessary suspicion or let go of real flaws. |**The very nature of the context of independence is asymmetrical information** - and **the information deliberately designed is incorrect**. Execuator knows more than Reviewer, but some of the messages Reviewer shouldn't know -- it affects judgment. This is one of the reasons for "blindness" in reality: the reviewer does not know who the author is, not the question of competence, but the design of the system — blocking identity information to make judgement more objective.
+| Executor's uncertainty and hesitation in writing. | It'll create unnecessary suspicion or let go of real flaws. |
+
+**The very nature of the context of independence is asymmetrical information** - and **the information deliberately designed is incorrect**. Execuator knows more than Reviewer, but some of the messages Reviewer shouldn't know -- it affects judgment. This is one of the reasons for "blindness" in reality: the reviewer does not know who the author is, not the question of competence, but the design of the system — blocking identity information to make judgement more objective.
 
 ### 8.3.3 Operational rollback: a single Agent self-review vs Reviewer review
 
@@ -407,6 +419,7 @@ Here's the end-to-end comparison with the Knowledge Assistant, Writing Technolog
 │ 额外成本：+1 分钟（Reviewer 审查 + Author 修正）+ $0.04 token    │
 │ 收益：从"有安全漏洞上线"变为"通过安全审查清单"                      │
 ═══════════════════════════════════════════════════════════════════
+
 ```
 
 ### 8.3.4 Obsolete boundary of Reviewer
@@ -422,12 +435,12 @@ The Reviewer model works, but it works only under certain conditions. Here are i
    2. 密钥是否存储在环境变量或密钥管理服务中？验证方法：grep config 文件中的 key= 模式。
    3. 是否存在非 admin 的角色定义？验证方法：检查权限模块中定义的角色列表。
    4. 第三方依赖是否锁定了版本号？验证方法：检查 requirements.txt 中的版本声明格式。"
+
 ```
+
 **Boundary II: Reviewer lapses when no independent authentication tool is available.** If the Reviewer can only read the text of the scheme and then judge it is not different from the individual Agent self-examination. Reviewer must have a validation tool independent of Executor: read the original profile (rather than read the excurator's description in the program), run linter, retrieve the original security code. Core principle: **Reviewer validates "real things", not Executor "proclaimed things."**
 
-**Boundaries III: Reviewer is too harsh to be locked.** If every recommendation of review is "must be modified," when Excelctor finishes the round, Reviewer finds a new problem... - Look, it's a new problem, not a problem that hasn't been fixed -- and then Execuator changes it, Reviewer discovers a new problem and never appears. Method of amendment: Distinguishing between "must modify" and "recommended to optimize"; must not exceed 5 and the recommendation does not block adoption.
-
-**Boundaries IV: Execuator learned the "prejudice" review list.** This is the most hidden pattern of failure. After a number of times, Execuator learned to proactively add to the program the description "Looks like a security measure" - "This module follows the best practice of safety" - "All inputs have been fully verified" - but these descriptions do not correspond to actual realization. After seeing these statements, Reviewer marked "Save security measures mentioned" in the check list. In practice, however, security measures have not been implemented. Method of amendment: To review the list from "Whether or not to mention" to "Whether or not to implement" - do not check that "the program discusses key management" but check that "the key in the program is actually stored in the environment variable (grep authentication). "
+**Boundaries III: Reviewer is too harsh to be locked.** If every recommendation of review is "must be modified," when Excelctor finishes the round, Reviewer finds a new problem... - Look, it's a new problem, not a problem that hasn't been fixed -- and then Execuator changes it, Reviewer discovers a new problem and never appears. Method of amendment: Distinguishing between "must modify" and "recommended to optimize"; must not exceed 5 and the recommendation does not block adoption. **Boundaries IV: Execuator learned the "prejudice" review list.** This is the most hidden pattern of failure. After a number of times, Execuator learned to proactively add to the program the description "Looks like a security measure" - "This module follows the best practice of safety" - "All inputs have been fully verified" - but these descriptions do not correspond to actual realization. After seeing these statements, Reviewer marked "Save security measures mentioned" in the check list. In practice, however, security measures have not been implemented. Method of amendment: To review the list from "Whether or not to mention" to "Whether or not to implement" - do not check that "the program discusses key management" but check that "the key in the program is actually stored in the environment variable (grep authentication). "
 
 ---
 
@@ -456,6 +469,7 @@ Supervisor Agent                             Worker Agents
 │  - 合成最终输出           │       │  ...                            │
 └─────────────────────────┘       │ Worker 4: 调研 Multi-Agent      │
                                   └─────────────────────────────────┘
+
 ```
 
 Core skeleton code:
@@ -506,6 +520,7 @@ class SupervisorPattern:
             """
         )
         return final
+
 ```
 
 ### 8.4.2 Dismantling quality determines the value of the whole model
@@ -526,8 +541,10 @@ Good dismantling takes four things: **1. Clear borders (include)** Not only "you
             exclude: 不涉及 Tool Use 在 Multi-Agent 协作中的角色（由 Worker 4 覆盖）
   Worker 2: 调研 Multi-Agent 的协作模式、通信协议和故障模式
             exclude: 不涉及单个 Agent 的 Tool Use 机制（由 Worker 1 覆盖）
+
 ```
-**2. Unified output template**Each Worker must output with the same structure, otherwise Supervisor cannot merge automatically.
+
+**2. Unified output template** Each Worker must output with the same structure, otherwise Supervisor cannot merge automatically.
 
 ```text
 输出模板（所有 Worker 共用）：
@@ -541,8 +558,10 @@ Good dismantling takes four things: **1. Clear borders (include)** Not only "you
 - 实践 1（适用场景 + 不适用场景）
 ### 来源引用
 - [来源 1](链接或笔记路径)
+
 ```
-**3. Worker Capability Match**Not all Walkers should be the same model. Research-type Worker may require a strong search capability (networked search, context) and analytical-type Worker may require a strong reasoning capability. assigns the right task to the right workker.**.4. Control of the particle size of dismantling**It was too detailed (10 subtasks) and the cost of communication and aggregation exceeded the implementation benefits. It's too coarse (2 subtasks) and insufficiently parallel. An empirical rule:**Number of sub-tasks = Min (number of separate dimensions that can be used in parallel, number of workr, 5)**. Marginal gains over 5 sub-tasks are generally insufficient to cover coordination costs.
+
+**3. Worker Capability Match** Not all Walkers should be the same model. Research-type Worker may require a strong search capability (networked search, context) and analytical-type Worker may require a strong reasoning capability. assigns the right task to the right workker.**.4. Control of the particle size of dismantling** It was too detailed (10 subtasks) and the cost of communication and aggregation exceeded the implementation benefits. It's too coarse (2 subtasks) and insufficiently parallel. An empirical rule: **Number of sub-tasks = Min (number of separate dimensions that can be used in parallel, number of workr, 5)**. Marginal gains over 5 sub-tasks are generally insufficient to cover coordination costs.
 
 ### 8.4.3 Costs of consolidation - "Three Walkers ran out, Supervisor took longer to merge."
 
@@ -571,7 +590,7 @@ Supervisor 拆解为 3 个子任务 → 3 个 Worker 并行执行
 ├─ 总耗时：50 秒（并行执行）+ 60 秒（合并）= 110 秒
 │  串行耗时：约 120 秒（三个方向 × 40 秒 + 自然汇总 10 秒）
 │  并行收益：几乎为零。引入了 3 倍复杂度，省了 10 秒。
-└─ 
+└─
 
 根因：拆解时没有指定输出模板。三个 Worker 各自按自己的理解输出，
       合并成本抵消了并行收益。
@@ -580,8 +599,10 @@ Supervisor 拆解为 3 个子任务 → 3 个 Worker 并行执行
 1. 拆解时强制指定统一输出模板（结构、字段、长度限制）
 2. 每个 Worker 的输出长度控制在 300 字内（禁止输出"概述"和"背景介绍"）
 3. Worker 只输出"提取后的信息"，不做综合和总结——综合由 Supervisor 负责
+
 ```
-**The core lesson of the rollover**: The parallel value is not "Worker runs fast", but**"Worker's output can be combined directly, without LLM understanding and synthesis"**. If combining steps requires LLM to read through all Worker outputs and "rewrite them," then let one of the Agent write from the beginning.
+
+**The core lesson of the rollover**: The parallel value is not "Worker runs fast", but **"Worker's output can be combined directly, without LLM understanding and synthesis"**. If combining steps requires LLM to read through all Worker outputs and "rewrite them," then let one of the Agent write from the beginning.
 
 ### 8.4.4 Obsolete boundary of Supervisor
 
@@ -603,7 +624,7 @@ Each Worker of Supervisor handles different tasks. Parallel Specialists is a var
 
 ```text
 Supervisor 模式：                    Parallel Specialists 模式：
-                                    
+
 任务 A → Worker 1                   同一个任务
 任务 B → Worker 2                         │
 任务 C → Worker 3               ┌─────────┼─────────┐
@@ -614,8 +635,9 @@ Supervisor 模式：                    Parallel Specialists 模式：
                                     └─────────┼─────────┘
                                               ▼
                                           合并结果
-                                      
+
 不同维度，同一输入
+
 ```
 
 Application scenario: A code requires both correctness, security and performance. A programme needs to assess both technical feasibility, cost and maintenance. A response requires simultaneous examination of factual accuracy, logical completeness and clarity of presentation.
@@ -625,6 +647,7 @@ Application scenario: A code requires both correctness, security and performance
 A central prerequisite for the success of this model is the non-dependence of **dimensions.** If performance analysis requires first knowing the conclusions of correctness analysis, then it cannot go in parallel — it has to run correctness before running performance.
 
 The dimensions design requires two conditions:
+
 1. **Overlapping**: no overlap of attention per dimension. If "right" and "safe" both analyze input validation, 60% of the content repeats.
 2. **Independent**: the result of each dimension can be concluded by simply entering + its own focus, which does not require other dimensions.
 
@@ -688,13 +711,15 @@ class ParallelSpecialists:
                 d["name"]: len(r.findings) for d, r in zip(dimensions, results)
             }
         }
+
 ```
 
 ### 8.5.3 Consolidation rule: conflict does not automatically abate
 
 The most dangerous moment for Parallel Specialists is integration. When two experts make conflicting judgements, the easiest mistake is to allow LLM to choose automatically -- for example, "take a majority" or "let Supervisor decide."
 
-But this auto-dissociation will mask the real problem. If one expert says "safe" and the other says "a loophole," that means at least one expert has a problem with analysis -- - Maybe one of them's focus definition is not clear enough, maybe one of them lacks the key context. Automatically choosing "majority" just covered up the problem. **Consolidation rules**:
+But this auto-dissociation will mask the real problem. If one expert says "safe" and the other says "a loophole," that means at least one expert has a problem with analysis -- Maybe one of them's focus definition is not clear enough, maybe one of them lacks the key context. Automatically choosing "majority" just covered up the problem. **Consolidation rules**:
+
 1. **The same finding automatically removes weight**: two experts identified the same problem (the same location + the same type of problem) and merged it into one article, marked from two dimensions.
 2. **Contradictory judgement does not automatically abate**: labeled as "Different analysis of security dimensions requires manual review" with the specific basis of two experts.
 3. **Source notation**: Each discovery indicates the dimensions from which the discovery was made, so that the reader knows what perspective the discovery was made.
@@ -712,7 +737,7 @@ A common failure of this model:
 
 ## 8.6 Agent's settings and configurations -- how "different" landed.
 
-8.2 The four dimensions of Multi-Agent split were described: different inputs, different tools, different targets, and different acceptance standards. 8.3 to 8.5 The structural design of three modes of collaboration is described. But structural design only solves the question of how to organize between Agents, and it doesn't solve a more advanced question: **How each Agent is configured to make them really different?**
+8. 2 The four dimensions of Multi-Agent split were described: different inputs, different tools, different targets, and different acceptance standards. 8.3 to 8.5 The structural design of three modes of collaboration is described. But structural design only solves the question of how to organize between Agents, and it doesn't solve a more advanced question: **How each Agent is configured to make them really different?**
 
 ### 8.6.1 Write Agent settings instead of Prompt
 
@@ -722,6 +747,7 @@ Multi-Agent's first step is to open the editor to write
 你是研究员。
 你是工程师。
 你是审查员。
+
 ```
 
 It's too early. Prompt is part of Agent's configuration, but not Agent's setting itself. What really should be written first is an **Agent setup card**: it's like a job description, like a running time configuration list. It places duties, inputs, tools, models, parameters, output protocols and failure processing in the same place so that you can judge whether this Agent is really different from other Agents.
@@ -754,13 +780,14 @@ acceptance:
   - 不确定时不能猜测通过，必须标记 insufficient_information
 fallback:
   - 两轮修正仍未通过时进入 human_review
+
 ```
 
-This one's not the key.`agent`Name, but a few sets of constraints:
+This one's not the key. `agent` Name, but a few sets of constraints:
 
 - **Boundaries of responsibility**: it is responsible for what, not what. Reviewer only reviews and does not change; Supervisor only dismantles and aggregates and does not replace Worker research.
 - **Enter boundary**: it can see anything, it can't see anything. Reviewer could not see Author ' s draft and self-defence, which was a prerequisite for an independent review.
-- **Tool boundary**: What tools can it call. Nothing.`write_file`The authority's Reviewer, it's not subject to revision.
+- **Tool boundary**: What tools can it call. Nothing. `write_file` The authority's Reviewer, it's not subject to revision.
 - **Model boundary**: what capacity it requires. Not all Agents use the strongest models, but match model capabilities by duty.
 - **Export boundary**: it must be delivered by what schema. Without structured output, after that, Agent can only re-understand a natural language.
 - **Failed boundary**: What happens when it fails. Retesting, downgrading, changing models, handing over people must be defined in advance.
@@ -771,10 +798,10 @@ If an Agent set card can't be written, this Agent is not clearly designed. This 
 
 | Dimensions | Project Configuration Tool | Take Author + Reviewer, for example |
 |---|---|---|
-|**Entered differently** | Context range declaration in System Prompt + information filter in Runtime | The context of Author contains the results of the notes search, the history of the creation, the draft. Reviewer context is only injected into the final scenario + review criteria filtering out all middle reasoning of Author |
-|**Different tools** | Agent Class White List in Tool Registration Table | Author is registered to write file, search notes, web search. Reviewer registers only read file, run security scan -- no write permission |
-|**Different goals** | Task definition in System Prompt + description of success criteria | Author: "Technology of output to meet demand, covering all demand points". Reviewer: "Find out all problems that do not meet safety standards, give location and evidence by article." |
-|**Different acceptance standards** | Output Schema binding + cessation condition | Author's output is not mandatory. Reviewer output must be`{verdict, checks[], issues[]}`,verdict has two values only. |
+| **Entered differently** | Context range declaration in System Prompt + information filter in Runtime | The context of Author contains the results of the notes search, the history of the creation, the draft. Reviewer context is only injected into the final scenario + review criteria filtering out all middle reasoning of Author |
+| **Different tools** | Agent Class White List in Tool Registration Table | Author is registered to write file, search notes, web search. Reviewer registers only read file, run security scan -- no write permission |
+| **Different goals** | Task definition in System Prompt + description of success criteria | Author: "Technology of output to meet demand, covering all demand points". Reviewer: "Find out all problems that do not meet safety standards, give location and evidence by article." |
+| **Different acceptance standards** | Output Schema binding + cessation condition | Author's output is not mandatory. Reviewer output must be `{verdict, checks[], issues[]}`,verdict has two values only. |
 
 The above table is a quick look map. Below is an itemized list of specific practices and common errors for each configuration dimension.
 
@@ -788,6 +815,7 @@ The most common spelling is:
 
 # Reviewer
 "你是一个安全审查员，请审查这个技术方案的安全性。"
+
 ```
 
 These two Prompt differences are only character names and verbs. They have no definition: what the Reviewer is specifically concerned with, what criteria to judge, what the output must contain, and what to do when it is uncertain. The result is that Reviewer is no different from the individual Agent -- it only knows its name as "censor," but it doesn't know what the censor should do. **Effective Systems Prompt must define five elements.** The following is an example:
@@ -818,17 +846,17 @@ These two Prompt differences are only character names and verbs. They have no de
 C1: 输入校验
     标准：所有用户输入点是否声明了长度和类型校验？
     验证：查看方案中 API 定义的 input schema，确认每个参数有 type 和 max_length。
-    
+
 C2: 密钥管理
     标准：所有密钥和敏感配置是否存储在环境变量或密钥管理服务中？
     验证：搜索方案文本和配置文件中的 key=、secret=、password= 字面量。
           如果找到硬编码值 → FAIL。如果引用环境变量 → PASS。
-    
+
 C3: 权限模型
     标准：是否存在非 admin 的角色定义？是否遵循最小权限原则？
     验证：检查方案中是否定义了多个角色（如 read/write/admin），
           以及每个操作是否声明了所需的最低权限。
-    
+
 C4: 依赖安全
     标准：第三方依赖是否锁定了版本号？
     验证：检查 requirements.txt 或等效文件中的版本声明格式（== 还是 >=）。"
@@ -866,11 +894,13 @@ C4: 依赖安全
 - 方案中没有足够信息判断某个检查项 → passed=false，evidence='insufficient_information'
 - 方案中写了'已遵循安全最佳实践'但没有具体说明 → 不等于 PASS，
   你需要验证的是'实际做了什么'，不是'声称要做什么'
-- 某个 issues 的 severity 不确定是 must_fix 还是 should_fix → 
+- 某个 issues 的 severity 不确定是 must_fix 还是 should_fix →
   按 must_fix 处理，由人工裁决降级
-- 你发现了一个不在审查清单中的安全问题 → 
+- 你发现了一个不在审查清单中的安全问题 →
   仍然报告，severity 标注为 should_fix，在 description 中说明'不在清单中但建议关注'"
+
 ```
+
 **Design principles for five elements**:
 
 - **"Whatever" is more important than "whatever."** It not only prevents Agent from crossing the border (Reviewer evaluated the quality of the code), but also narrows the focus of Agent to focus on its own responsibilities.
@@ -914,7 +944,9 @@ AGENT_TOOL_WHITELIST = {
         #       不修改文件系统
     },
 }
+
 ```
+
 **Iron law for the distribution of tools**:
 
 1. **Agent can perform a dangerous operation and can't approve it at the same time.** Write file and approve deploy are never the same Agent. Merge pr and code review will never be the same Agent. It's not just security considerations -- when the same Agent can "do" and "do" it, it takes a shortcut: do it, do it.
@@ -927,13 +959,13 @@ Not all Agent needs the strongest and most expensive model. The demand for model
 
 | Agent Role | Core competency requirements | Model selection recommendations | Rationale |
 |---|---|---|---|
-|**Executor / Author** | Long text generation, creative expression, integration of multi-source information | The strongest model | Output quality directly impacts the end result, with the highest returns on inputs |
-|**Reviewer** | Detailed comparison, article-by-article check, following structured output format | Medium-power model focusing on command compliance and structured output | No creativity is needed. What is needed is "not to miss the check" and "not to fabricate evidence". temperature should read 0 |
-|**Supervisor (dismantling phase)** | Mission analysis, structural design, boundary definition | The strongest model | Dismantling quality determines the quality of all work and the total cost of the task. There's an extra $ 0.02 to save Worker. |
-|**Supervisor (consolidation phase)** | Reload, formatting, conflict labels | Medium Model | Mainly structural operations - contrast fields, merge lists, check formats. There's no need for in-depth reasoning. |
-|**Worker (research)** | Retrieve + Summary + Output by Template | Medium model, need search tools Okay. | Speed is a priority, requiring multiple running in parallel and cost-sensitive. Output quality is subject to template rather than model capacity |
-|**Worker (analytical)** | Deep reasoning, multistep analysis | Strong Model | Quality analysis determines the quality of decision-making. If Worker's analysis is the basis of Supervisor's decision, it's hard to save input here. |
-|**Debate Participants** | Arguments, rebuttals, multidimensional thinking | Strong Model | Weak models are easy to miss or get into text games in Debate. But if it's just the "singing back" role, you can use the medium model. |
+| **Executor / Author** | Long text generation, creative expression, integration of multi-source information | The strongest model | Output quality directly impacts the end result, with the highest returns on inputs |
+| **Reviewer** | Detailed comparison, article-by-article check, following structured output format | Medium-power model focusing on command compliance and structured output | No creativity is needed. What is needed is "not to miss the check" and "not to fabricate evidence". temperature should read 0 |
+| **Supervisor (dismantling phase)** | Mission analysis, structural design, boundary definition | The strongest model | Dismantling quality determines the quality of all work and the total cost of the task. There's an extra $ 0.02 to save Worker. |
+| **Supervisor (consolidation phase)** | Reload, formatting, conflict labels | Medium Model | Mainly structural operations - contrast fields, merge lists, check formats. There's no need for in-depth reasoning. |
+| **Worker (research)** | Retrieve + Summary + Output by Template | Medium model, need search tools Okay. | Speed is a priority, requiring multiple running in parallel and cost-sensitive. Output quality is subject to template rather than model capacity |
+| **Worker (analytical)** | Deep reasoning, multistep analysis | Strong Model | Quality analysis determines the quality of decision-making. If Worker's analysis is the basis of Supervisor's decision, it's hard to save input here. |
+| **Debate Participants** | Arguments, rebuttals, multidimensional thinking | Strong Model | Weak models are easy to miss or get into text games in Debate. But if it's just the "singing back" role, you can use the medium model. |
 
 The above table selects the model by the Agent role. There's a different angle to be taken into account in the actual project: **What is the strength of the bottom model?** "The Strong Model" is not a single dimension. A model may be strong in reasoning but weak in code, may have long context but inconsistent in following instructions, or may be cheap and fast but not suitable for final adjudication.
 
@@ -941,14 +973,14 @@ Dismantling by capacity type makes model selection clearer:
 
 | Model capacity type | More appropriate, Agent. | Not suitable, Agent. | Reason for selection |
 |---|---|---|---|
-|**Strong reasoning model** | Supervisor Dismantling, Planner, Risk Analyst, Complex Code Reviewer | Lots of simple workker, format conversions Argentina | Suitable for task decomposition, trade-offs, conflict judgement and implied risk identification; high cost, not for mechanical extraction |
-|**Code-capable model** | Code Worker、Test Fixer、Code Reviewer | Word, brief summary, Agent. | Understand project structure, language API, test failure and boundary conditions; waste capacity for non-code tasks |
-|**Context Model** | Research Worker、Document Analyst、Migration Planner | Shortlist Reviewer, One Step Tool Call | It's appropriate to read a lot of information and long documents; but the context is not the same as a more critical judgement, and the noise gets more. |
-|**Strong Command Compliance Model** | Reviewer、Schema Extractor、Policy Checker | Creative Author, Open Brainstom Age | Suitable for fixed processes, fixed schema, article by article; low temperature, emphasis on stability rather than novel |
-|**Low delay/low cost model** | Batch classification | Final adjudicators, complex planners | Fits to multiple, low-risk single task; error can be driven by a subsequent strong model or rule Stay. |
-|**Multimodular Model** | UI Reviewer, Chart Parsing Worker, Screenshot QA Agent | Plain Text Protocol Merge | Value only when input contains screenshots, PDF pages, drafts; should not be used by default for all Agents |
+| **Strong reasoning model** | Supervisor Dismantling, Planner, Risk Analyst, Complex Code Reviewer | Lots of simple workker, format conversions Argentina | Suitable for task decomposition, trade-offs, conflict judgement and implied risk identification; high cost, not for mechanical extraction |
+| **Code-capable model** | Code Worker、Test Fixer、Code Reviewer | Word, brief summary, Agent. | Understand project structure, language API, test failure and boundary conditions; waste capacity for non-code tasks |
+| **Context Model** | Research Worker、Document Analyst、Migration Planner | Shortlist Reviewer, One Step Tool Call | It's appropriate to read a lot of information and long documents; but the context is not the same as a more critical judgement, and the noise gets more. |
+| **Strong Command Compliance Model** | Reviewer、Schema Extractor、Policy Checker | Creative Author, Open Brainstom Age | Suitable for fixed processes, fixed schema, article by article; low temperature, emphasis on stability rather than novel |
+| **Low delay/low cost model** | Batch classification | Final adjudicators, complex planners | Fits to multiple, low-risk single task; error can be driven by a subsequent strong model or rule Stay. |
+| **Multimodular Model** | UI Reviewer, Chart Parsing Worker, Screenshot QA Agent | Plain Text Protocol Merge | Value only when input contains screenshots, PDF pages, drafts; should not be used by default for all Agents |
 
-Here is a practical judgement: **put the strongest model in the worst position of error, not all.** Supervisor debugging the task, leaving all workr running in vain; Reviewer missing the high-risk problem, making the user believe "passed" ; and the final merger fabricated the conclusion, contaminating the final delivery. These positions deserve stronger and more stable models. On the contrary, tasks such as batch extraction fields, template filling, format conversions, i.e. error using a cheap model, are usually captured by a schema check or lower Reviewer. **A common rollover scene**: All Agents have created a "creative" version of the edifice under the téperature of 0.7, with the same model + téperature → Reviewer, which appears to be PASS, but two of the ividences are fictional and the whole review is more dangerous than it is without review (because the user trusts the mark that has been reviewed). **Reviewer's specialty**: Reviewer is the most intriguable character in Multi-Agent -- its judgment is the system's "quality gate". The Reviewer model does not need to be "smart." What is needed is "temperature 0", structured output enforcement, and evidence field requires specific filenames: line numbers. There are one or two imperfect solutions that Execut wrote -- users can fix themselves. Reviewer missed a security check -- users trusted the pass mark, which could lead to an online accident.
+Here is a practical judgement: **put the strongest model in the worst position of error, not all.** Supervisor debugging the task, leaving all workr running in vain; Reviewer missing the high-risk problem, making the user believe "passed"; and the final merger fabricated the conclusion, contaminating the final delivery. These positions deserve stronger and more stable models. On the contrary, tasks such as batch extraction fields, template filling, format conversions, i.e. error using a cheap model, are usually captured by a schema check or lower Reviewer. **A common rollover scene**: All Agents have created a "creative" version of the edifice under the téperature of 0.7, with the same model + téperature → Reviewer, which appears to be PASS, but two of the ividences are fictional and the whole review is more dangerous than it is without review (because the user trusts the mark that has been reviewed). **Reviewer's specialty**: Reviewer is the most intriguable character in Multi-Agent -- its judgment is the system's "quality gate". The Reviewer model does not need to be "smart." What is needed is "temperature 0", structured output enforcement, and evidence field requires specific filenames: line numbers. There are one or two imperfect solutions that Execut wrote -- users can fix themselves. Reviewer missed a security check -- users trusted the pass mark, which could lead to an online accident.
 
 ### 8.6.6 Easing of parameters — different roles, different parameters
 
@@ -956,10 +988,12 @@ The same model, different parameter configurations allow the same model to prese
 
 | Parameters | Executor/Author | Reviewer | Supervisor | Worker (research) |
 |---|---|---|---|---|
-|**Temperature** | 0.3-0.7 |**0-0.1** | Dismantling 0.2-0.3 / Summary 0-0.1 | 0.1-0.3 |
-|**Max Tokens** | Estimated by output x 1.3 |**Projected by structured output** (usually 500-1000, stop if sufficient) | Dismantling 1024 / Summary 2048 | Estimated by template (usually 500-800) |
-|**Stop Sequences** | No Special | JSON Ender`}`Stop After | Same Reviewer | Same Reviewer |
-|**Top P** | 0.9-0.95 |**1.0** (certainty) | 0.95-1.0 | 0.95 |**Key decision-making for parameter design**:
+| **Temperature** | 0.3-0.7 | **0-0.1** | Dismantling 0.2-0.3 / Summary 0-0.1 | 0.1-0.3 |
+| **Max Tokens** | Estimated by output x 1.3 | **Projected by structured output** (usually 500-1000, stop if sufficient) | Dismantling 1024 / Summary 2048 | Estimated by template (usually 500-800) |
+| **Stop Sequences** | No Special | JSON Ender `}` Stop After | Same Reviewer | Same Reviewer |
+| **Top P** | 0.9-0.95 | **1.0**(certainty) | 0.95-1.0 | 0.95 |
+
+**Key decision-making for parameter design**:
 
 - **Reviewer's temperature must be zero or close to zero.** This is the most easily neglected but most influential configuration. When temperature is not 0, the Reviewer field runs different text each time it runs -- This means that the two reviews of the same programme may have different results. For "Quality Gate", certainty is much more important than creativity.
 - **Max Tokens isn't "ceiling," it's "budget".** Too many max tokens set for Reviewer will not allow it to review more carefully -- it will start "additional" after the output of the structured results, "recommends" "commends". Sets just enough max tokens to tell the model: "Exit the requested structure and stop."
@@ -1011,12 +1045,14 @@ AGENT_CONFIGS = {
         "output_template": "templates/research_report.md",  # 强制输出格式
     },
 }
+
 ```
+
 **Three principles of configuration management**:
 
-1.**System Prompt External Documentation.**No long strings to die in code. External files can diff ("What review criteria have been changed this time?"), review, roll back. When the system behaves abnormally, look at the latest System Prompt Diff -- the problem is not code change, it's Prompt change.
-2.**The white list of tools is centralized on the configuration level.**A file with all Agent tool privileges. Add a new hazard tool (e.g.`delete_file`At the time, the examiner was able to see at first sight "what this tool has been assigned to Agent" -- not ten files of grep.
-3.**Configure Change Walk Report.**Changed the review criteria for Reviewer? Changed Supervisor's dismantling strategy? These changes have no less impact than changes in business codes. One review criterion was changed from "Check if there's a specified key" to "Check if there's a key management service"? - Looks like a change in the sentence, which could actually result in the project being adopted. The risk of this change is comparable to the core business logic of the change.
+1. **System Prompt External Documentation.** No long strings to die in code. External files can diff ("What review criteria have been changed this time?"), review, roll back. When the system behaves abnormally, look at the latest System Prompt Diff -- the problem is not code change, it's Prompt change.
+2. **The white list of tools is centralized on the configuration level.** A file with all Agent tool privileges. Add a new hazard tool (e.g. `delete_file` At the time, the examiner was able to see at first sight "what this tool has been assigned to Agent" -- not ten files of grep.
+3. **Configure Change Walk Report.** Changed the review criteria for Reviewer? Changed Supervisor's dismantling strategy? These changes have no less impact than changes in business codes. One review criterion was changed from "Check if there's a specified key" to "Check if there's a key management service"? - Looks like a change in the sentence, which could actually result in the project being adopted. The risk of this change is comparable to the core business logic of the change.
 
 ## 8.7 Communication protocol-Agent cannot "what do you think?"
 
@@ -1026,7 +1062,7 @@ We've talked about the structure of the three modes of collaboration and how eac
 
 The most intuitive means of communication is to allow Agent to speak freely — as human beings do, you talk to me. This is the Group Chat mode: multiple Agents speak freely in a shared conversation.
 
-However, in Multi-Agent, free dialogue is the most expensive, difficult to debug and the easiest to fail. There are three reasons:**1. Information decay.**The original message declines every time it passes between Agent. AgentA's discovery was repeated by AgentB, and then by AgentC's quote - when it came to Supervisor, the original specific judgment became a vague impression.
+However, in Multi-Agent, free dialogue is the most expensive, difficult to debug and the easiest to fail. There are three reasons: **1. Information decay.** The original message declines every time it passes between Agent. AgentA's discovery was repeated by AgentB, and then by AgentC's quote - when it came to Supervisor, the original specific judgment became a vague impression.
 
 ```text
 原始："config.yaml 第 8 行 api_key 字段为明文，存在泄露风险"
@@ -1036,12 +1072,14 @@ However, in Multi-Agent, free dialogue is the most expensive, difficult to debug
 "前面的讨论涉及了安全性方面的考虑"
 ↓ Supervisor 收到：
 "团队讨论了安全性" ← 原始信息完全丢失
+
 ```
-**2. Intentional distortion.**One Agent says "recommended optimization", the other Agent understands "must optimization". The word "recommended" and "must" distinguish between human communication, and the word between Agent is easily lost.**3. Blur decision-making.**Free dialogue has no "decision point". Agent can keep talking about "consent" and "complement" and "advice" and "further consider" -- no one says "discussion is over, and the following is a decision." The final output was not a decision-making exercise, but a summary of the discussions.
+
+**2. Intentional distortion.** One Agent says "recommended optimization", the other Agent understands "must optimization". The word "recommended" and "must" distinguish between human communication, and the word between Agent is easily lost.**3. Blur decision-making.** Free dialogue has no "decision point". Agent can keep talking about "consent" and "complement" and "advice" and "further consider" -- no one says "discussion is over, and the following is a decision." The final output was not a decision-making exercise, but a summary of the discussions.
 
 ### 8.7.2 Design communication formats by collaborative mode
 
-Alternatives to free dialogue are**structured communications**. This is not the definition of a low-to-high protocol hierarchy, but rather the translation of three of the previously mentioned collaboration models into a specific message format: Reviewer needs to review worksheets, Supervisor needs task sheets and reports, and Paallel Specialists needs to show results with dimensions.**Reviewer mode: command-response**Reviewer should not have received a sentence "Look at this program for me," but rather a review sheet. It's clear in the worksheet: what to review, what criteria to review, how to give evidence after failure.
+Alternatives to free dialogue are **structured communications**. This is not the definition of a low-to-high protocol hierarchy, but rather the translation of three of the previously mentioned collaboration models into a specific message format: Reviewer needs to review worksheets, Supervisor needs task sheets and reports, and Paallel Specialists needs to show results with dimensions. **Reviewer mode: command-response** Reviewer should not have received a sentence "Look at this program for me," but rather a review sheet. It's clear in the worksheet: what to review, what criteria to review, how to give evidence after failure.
 
 ```json
 {
@@ -1066,6 +1104,7 @@ Alternatives to free dialogue are**structured communications**. This is not the 
     }
   ]
 }
+
 ```
 
 Reviewer's response will be equally rigid. Note that there is no "overview" field, because "overall is okay" is the kind of bullshit that is the easiest to hide.
@@ -1098,9 +1137,10 @@ Reviewer's response will be equally rigid. Note that there is no "overview" fiel
     }
   ]
 }
+
 ```
 
-This format is suitable for quality gates: security clearance, front-line inspection, programme acceptance, code review. It is characterised by the fact that**both input and output are binding**and Agent cannot circumvent judgement in natural languages.**Supervisor Mode: Template - Fill**When Supervisor dismantles the mission, don't just say, "You go to the research vector database." It should give Worker a filled list of tasks: what to do, what to do, what to deliver.
+This format is suitable for quality gates: security clearance, front-line inspection, programme acceptance, code review. It is characterised by the fact that **both input and output are binding** and Agent cannot circumvent judgement in natural languages. **Supervisor Mode: Template - Fill** When Supervisor dismantles the mission, don't just say, "You go to the research vector database." It should give Worker a filled list of tasks: what to do, what to do, what to deliver.
 
 ```json
 {
@@ -1118,6 +1158,7 @@ This format is suitable for quality gates: security clearance, front-line inspec
   },
   "max_length": 300
 }
+
 ```
 
 Worker, when you return, do not write a long, freely developed text, but complete the template:
@@ -1142,9 +1183,10 @@ Worker, when you return, do not write a long, freely developed text, but complet
   },
   "error": null
 }
+
 ```
 
-This format is suitable for parallel research and aggregation. It doesn't have the Reviewer so rigid, but it limits the output shape through templates to avoid three different reports from Walker.**Parallel Specialists Mode: Dimensions - Mark**The key to Parallel Specialists is not "talk to each other", but to each discovery with its source dimension. In this way, Supervisor is able to focus on the conflict, rather than drawing a vague summary of different perspectives.
+This format is suitable for parallel research and aggregation. It doesn't have the Reviewer so rigid, but it limits the output shape through templates to avoid three different reports from Walker. **Parallel Specialists Mode: Dimensions - Mark** The key to Parallel Specialists is not "talk to each other", but to each discovery with its source dimension. In this way, Supervisor is able to focus on the conflict, rather than drawing a vague summary of different perspectives.
 
 ```json
 {
@@ -1160,6 +1202,7 @@ This format is suitable for parallel research and aggregation. It doesn't have t
     }
   ]
 }
+
 ```
 
 The result of the merger would also be to retain the structure. If two dimensions make the opposite judgement of the same position, not automatically "cut off" but expose the conflict.
@@ -1190,26 +1233,27 @@ The result of the merger would also be to retain the structure. If two dimension
     "performance": 1
   }
 }
+
 ```
 
-This format is suitable for a multi-perspective review of the same product: correctness, safety, performance, cost, user experience. It does not focus on reaching agreement among multiple Agents, but rather on allowing different dimensions of judgement to be tracked, merged and adjudicated.**Core principles of structured communications**:
+This format is suitable for a multi-perspective review of the same product: correctness, safety, performance, cost, user experience. It does not focus on reaching agreement among multiple Agents, but rather on allowing different dimensions of judgement to be tracked, merged and adjudicated. **Core principles of structured communications**:
 
--**Not accepted as "comprehensively all right"**: the results of the review must be specific, article-by-article and supported by evidence.
--**Free text only appears at leaf node**: the description may be a natural language, but the "bones" of communication (state, type, location, severity) must be structured fields.
--**Missing field is better than created field**: If Reviewer cannot find evidence, it is not possible to find evidence.`evidence`Field Filling`"not_found"`Instead of fabricating a description that sounds reasonable.
--**Human readable track**: Structured communication creates a searchable track -- you can grep`"verdict": "rejected"`All rejected reviews are found and the pass rate for each review item is measured.
+- **Not accepted as "comprehensively all right"**: the results of the review must be specific, article-by-article and supported by evidence.
+- **Free text only appears at leaf node**: the description may be a natural language, but the "bones" of communication (state, type, location, severity) must be structured fields.
+- **Missing field is better than created field**: If Reviewer cannot find evidence, it is not possible to find evidence. `evidence ` Field Filling ` "not_found"` Instead of fabricating a description that sounds reasonable.
+- **Human readable track**: Structured communication creates a searchable track -- you can grep `"verdict": "rejected"` All rejected reviews are found and the pass rate for each review item is measured.
 
 ### 8.7.3 From internal communications engagement to Agent protocol
 
-Designed in front of this section`review_request`、`worker_report`、`dimension_analysis`, an internal communication agreement. It is usually sufficient for real projects to do so at an early stage: clear fields, clear status, clear product and clear reasons for failure.
+Designed in front of this section `review_request ` 、` worker_report ` 、 ` dimension_analysis`, an internal communication agreement. It is usually sufficient for real projects to do so at an early stage: clear fields, clear status, clear product and clear reasons for failure.
 
 But when Agent no longer exists in the same code library, the same frame, the same team, the problem goes up further: how does one Agent find another? How do you know what they can do? How is tasking, tracking status, receiving results, handling failures? This requires a more standardized Agent communication protocol.
 
 After 2025, there have been some related attempts in the industry:
 
--**MCP (Model subject Protocol)**: mainly addresses how Agent standardizes connectivity tools, data sources and context.
--**A2A (Agent2AgentProtocol)**: mainly addresses how different Agents discover, commission, exchange information and return products.
--**Agreements such as ACP / ANP are explored**: an attempt to address Agent communications, identity, discovery, multi-modular messages and cross-platform interoperability from different perspectives.
+- **MCP (Model subject Protocol)**: mainly addresses how Agent standardizes connectivity tools, data sources and context.
+- **A2A (Agent2AgentProtocol)**: mainly addresses how different Agents discover, commission, exchange information and return products.
+- **Agreements such as ACP / ANP are explored**: an attempt to address Agent communications, identity, discovery, multi-modular messages and cross-platform interoperability from different perspectives.
 
 The common direction of these agreements is not "to make Agent more free to talk," but the opposite: to tear out the vague parts of the natural language and turn them into verifiable objects of agreement, such as capability descriptions, task status, type of message, product, error and permission.
 
@@ -1219,10 +1263,9 @@ For most business projects, full industry agreements need not be introduced at t
 2. When the number of Agents, team boundaries, tools become more ecologically complex, standard agreements such as MCP/A2A are considered;
 3. Don't treat the agreement as a reliable substitute, it only solves "how to communicate", it doesn't automatically solve "who can trust, who decides, when to stop, what to do wrong."
 
-
 ## 8.8 award, suspension and background - Multi-Agent 'Rules of Traffic'
 
-The collaboration model defines how Agent divides, the communication protocol defines how Agent communicates information. But there is a third level:**the control mechanism**— who decides when, when and how?
+The collaboration model defines how Agent divides, the communication protocol defines how Agent communicates information. But there is a third level: **the control mechanism** — who decides when, when and how?
 
 The Multi-Agent system without this layer is not a "decision-making system" but a "discussion group" -- it's probably a good discussion, but nobody boarded it.
 
@@ -1234,11 +1277,13 @@ There are three types of disagreement in the Multi-Agent system, each of which r
 |---|---|---|---|
 | Reviewer vs Executor | Reviewer ruled Fail, Execuator, that "it's not a problem." | After two rounds of amendment, no manual decision was passed. Exportor should not have the power to overrule Reviewer's judgment | Allowing the subject to rule on the examiner is tantamount to cancelling the review |
 | Worker vs Worker | Worker 1 says, "Framework A supports current output," and Worker 2 says, "No support." | Checks source references. Quoted confrontation (who is more authoritative). It's not clear from the source that there's a difference of fact. | The facts need to be traced, not voted. |
-| Worker vs Worker | Specialist A says "safe," Specialist B says, "a gap." | Mark conflict manual review. No automatic vote or "majority." | To judge conflict means that at least one person has missed or missed it, and it requires a fresh look at it. |**Principles for the design of adjudication mechanisms**:
+| Worker vs Worker | Specialist A says "safe," Specialist B says, "a gap." | Mark conflict manual review. No automatic vote or "majority." | To judge conflict means that at least one person has missed or missed it, and it requires a fresh look at it. |
 
-1.**The adjudicator cannot be a party**. Exportor cannot rule on the reasonableness of the review by Reviewer. Worker cannot rule on the correctness of his output.
-2.**Manual decision superiors automatic decision**. When two Agents make contradictory judgements, it is safer to suspend and request human intervention, rather than to allow the third Agent to "vote" -- the third Agent could also make mistakes.
-3.**The award requires a "final deadline".**Tasks cannot be blocked indefinitely by waiting for a manual decision. Set timeout: Manual decision exceeding N minutes does not respond to the most conservative choice (e.g. Reviewer 's judgement gives priority or suspends the mission and keeps the site).
+**Principles for the design of adjudication mechanisms**:
+
+1. **The adjudicator cannot be a party**. Exportor cannot rule on the reasonableness of the review by Reviewer. Worker cannot rule on the correctness of his output.
+2. **Manual decision superiors automatic decision**. When two Agents make contradictory judgements, it is safer to suspend and request human intervention, rather than to allow the third Agent to "vote" -- the third Agent could also make mistakes.
+3. **The award requires a "final deadline".** Tasks cannot be blocked indefinitely by waiting for a manual decision. Set timeout: Manual decision exceeding N minutes does not respond to the most conservative choice (e.g. Reviewer 's judgement gives priority or suspends the mission and keeps the site).
 
 ### 8.8.2 Conditions for cessation: not unlimited return
 
@@ -1251,7 +1296,9 @@ Multi-Agent's suspension conditions are similar to those of Reflect, but there a
 | Worker and timeout. | Maximum Worker time-consuming x 1.5 | The result of Worker's timeout is discarded, and the report indicates that the data is missing. |
 | Total token consumption | Single task 50K tokens | Stop all Agents, return partial results completed |
 | Can not open message | 3 consecutive rounds of communications with similar content > 90 per cent | Called "dialogue dead" and forced to stop and output the current state. |
-| Error Upgrade | Recoverable error failure (e.g. network overtime becomes disk full) | Stop All Agent, keep the scene and notify the user |**The conditions for stopping must be coded hard and cannot be decided by Agent itself.**Agent has no instinct to stop -- it'll still start a new round of communications confidently on the sixth round. The condition for cessation is a mandatory check on the Runtme layer, unrelated to Agent 's reasoning ability.
+| Error Upgrade | Recoverable error failure (e.g. network overtime becomes disk full) | Stop All Agent, keep the scene and notify the user |
+
+**The conditions for stopping must be coded hard and cannot be decided by Agent itself.** Agent has no instinct to stop -- it'll still start a new round of communications confidently on the sixth round. The condition for cessation is a mandatory check on the Runtme layer, unrelated to Agent 's reasoning ability.
 
 ### 8.8.3 Bottom strategy: what if Walker dies?
 
@@ -1278,8 +1325,10 @@ Supervisor 拆解失败        → 如果拆解方案不满足最小要求（如
 Supervisor 汇总失败        → 返回各 Worker 的原始产出（标注为"未汇总"）
                            不尝试让 LLM 重新汇总——第一次汇总失败的原因
                            可能仍然存在
+
 ```
-**Core principle at the bottom: demotion without silence.**The system can be downgraded to single Agent if Multi-Agent is not available - but cannot pretend Multi-Agent is successful. Missing data, failed worker, skipping check items - all clearly marked in the final output.
+
+**Core principle at the bottom: demotion without silence.** The system can be downgraded to single Agent if Multi-Agent is not available - but cannot pretend Multi-Agent is successful. Missing data, failed worker, skipping check items - all clearly marked in the final output.
 
 ---
 
@@ -1355,7 +1404,9 @@ Reviewer 模式：
 │ 但如果任务是一个低风险的内部备忘录？                                │
 │ 额外成本可能不值得——不是所有场景都需要 Multi-Agent                 │
 └─────────────────────────────────────────────────────────────────┘
+
 ```
+
 **Key Insight**: Token consumption of Multi-Agent is usually 2-5 times that of single Agent. It's not "expensive" -- it's "additional token buys what." If it's the "Face Found" Agent's gonna miss four safety holes," then $0.16 is cheap. If it's "three Agents to discuss 12 rounds, but output is the same as single Agent", every penny is wasted.
 
 ### 8.9.2 Delay magnification: the real cost of communications travel
@@ -1393,7 +1444,9 @@ Reviewer 模式延迟拆解：
 │ 串行（4 × 40 秒 + 10 秒汇总）: ~170 秒                         │
 │ 加速比: 2.5 倍 ✓                                              │
 └──────────────────────────────────────────────────────────────┘
+
 ```
+
 **Key to delayed optimization**:
 - The Reviewer model is inherently slower than the single Agent - one more reasoned delay per round trip. Design to minimize the number of round trips (up to two rounds).
 - The delayed benefits of the Supervisor model come from parallel. If the number of workingrs is small or the task is very different (one workingr 45 seconds, another 10 seconds), the acceleration effect is reduced.
@@ -1401,7 +1454,7 @@ Reviewer 模式延迟拆解：
 
 ### 8.9.3 Long-term costs: Trade complexity and difficulty of taking over
 
-Multi-Agent's most hidden costs are not on the bill, on**maintenance**.
+Multi-Agent's most hidden costs are not on the bill, on **maintenance**.
 
 Three months later, when the new guy took over the system, Ta faced:
 
@@ -1424,15 +1477,18 @@ Multi-Agent 系统：
 │   → 通信协议中某个字段被错误地解析了（检查通信层的序列化逻辑）
 └─ 修改影响面：改了 Reviewer 的审查清单 → 可能影响 Author 的修正策略
                 → 可能影响 Supervisor 的判断逻辑
+
 ```
 
-It's not that Multi-Agent shouldn't be used. It says:**Should only be introduced if you are convinced that the additional maintenance costs can be covered by the value created by Multi-Agent.**If only Agent + good Prompt could do 90 points, the cost of introducing Multi-Agent for 95 points could be three times the maintenance complexity.
+It's not that Multi-Agent shouldn't be used. It says: **Should only be introduced if you are convinced that the additional maintenance costs can be covered by the value created by Multi-Agent.** If only Agent + good Prompt could do 90 points, the cost of introducing Multi-Agent for 95 points could be three times the maintenance complexity.
 
+## 8.10 After-school exercise: Write Supervisor dismantling to implementable
 
-## 8.10 After-school exercise: Write Supervisor dismantling to implementable**Corresponding section**: 8.4 Supervisor model, 8.7 Structured communications, 8.8 Bottom-up strategy.**scene**User request: "Help me study the latest practices in three Agent directions: Memoory, Tool Use, Multi-Agent. The key findings, common failure patterns, recommended practices and sources are exported in each direction."**Binding**- Up to 3 Walkers.
+**Corresponding section**: 8.4 Supervisor model, 8.7 Structured communications, 8.8 Bottom-up strategy. **scene** User request: "Help me study the latest practices in three Agent directions: Memoory, Tool Use, Multi-Agent. The key findings, common failure patterns, recommended practices and sources are exported in each direction."**Binding** - Up to 3 Walkers.
+
 - Each Worker output does not exceed 300 words.
 - Each Worker must give at least two sources.
-- If a Worker is out of time, the final report cannot pretend that the direction has been completed.**Exit requirements**Write a Supervisor distribution plan in the following format:
+- If a Worker is out of time, the final report cannot pretend that the direction has been completed. **Exit requirements** Write a Supervisor distribution plan in the following format:
 
 ```json
 {
@@ -1456,8 +1512,10 @@ It's not that Multi-Agent shouldn't be used. It says:**Should only be introduced
     ""
   ]
 }
+
 ```
-**Criteria for eligibility**- Every submission.`scope`and`exclude`, and the scope of the three Workers cannot clearly overlap.
-- `output_template`Must contain the "Key Discovery / Failed Mode / Recommended Practice / Source" field.
-- `merge_rules`It was important to explain how to weigh, how to deal with conflicts of fact and how to identify sources.
-- `fallback_rules`It is important to explain how the three scenarios of workingrker's timeout, non-resolveable output and insufficient sources are dealt with.
+
+**Criteria for eligibility** - Every submission. `scope ` and ` exclude`, and the scope of the three Workers cannot clearly overlap.
+- `output_template` Must contain the "Key Discovery / Failed Mode / Recommended Practice / Source" field.
+- `merge_rules` It was important to explain how to weigh, how to deal with conflicts of fact and how to identify sources.
+- `fallback_rules` It is important to explain how the three scenarios of workingrker's timeout, non-resolveable output and insufficient sources are dealt with.
