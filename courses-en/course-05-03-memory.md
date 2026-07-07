@@ -104,7 +104,9 @@ History（历史）     —— 小时/天级    —— 会话期间累积       
 Memory（记忆）      —— 天/月/年级   —— 跨会话独立存储        —— 用户主动管理
 ```
 
-Context and State are "in progress" messages, History are "just happened" messages, and the long-term memory in this chapter is "work in progress" messages. The blurring of the borders between the four is the first reason for the Memoory design error -- to save State when it's long, it's dead after the mission; to save History when it's long, it's contaminated by last month's chat. **The long-term Memory entry threshold should be that this message remains valid and meaningful in the new session.** ### 3.3.2 Categorize from genuine dialogue: What should be remembered?
+Context and State are "in progress" messages, History are "just happened" messages, and the long-term memory in this chapter is "work in progress" messages. The blurring of the borders between the four is the first reason for the Memoory design error -- to save State when it's long, it's dead after the mission; to save History when it's long, it's contaminated by last month's chat. **The long-term Memory entry threshold should be that this message remains valid and meaningful in the new session.**
+
+### 3.3.2 Categorize from genuine dialogue: What should be remembered?
 
 The following is an example of a true conference of intellectual assistants, which points out, by article, which should enter the memory and which should not. This marking process itself is at the heart of the Memory design - **the misclassification, and all follow-up mechanisms are in vain**.
 

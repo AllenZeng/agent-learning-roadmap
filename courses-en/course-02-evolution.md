@@ -33,10 +33,10 @@ The course refers to a number of dissertations, research teams and product nodes
 
 After this lesson, you will be able to:
 
-1. **Explains the tradition, Agent. :: The contradiction between rule modelling and an open environment is a fundamental bottleneck.
+1. **Explains the tradition, Agent.**: The contradiction between rule modelling and an open environment is a fundamental bottleneck.
 2. **Description of how LLM changed the core of Agent's decision-making**: a paradigm shift from "manual rule" to "model understanding of objectives and dynamic decision-making".
 3. **To explain why the tool calls appear**: LLM "will say but won't do" Toolformer/Plugins/Function Calling to connect models to the outside world.
-4. **Explains why React is the classic framework for understanding the Agent loop**: Thugt →Action **Observation feedback loop to get Agent from "one-off answer" to "continuing mission."
+4. **Explains why React is the classic framework for understanding the Agent loop**: Thugt →Action Observation feedback loop to get Agent from "one-off answer" to "continuing mission."
 5. **Interprets the evolutionary logic of error and reflection**: separates the internal reasoning of the model from the external feedback of the system, and understands why errors cannot be corrected by the model alone.
 6. **Description of the background to the emergence of Planning and Multi-Agent**: complex tasks require dismantling and division of labour, but each paradigm presents new engineering problems.
 
@@ -155,7 +155,7 @@ This cycle looks simple, but it's very difficult to open up to the real world:
 - Maybe too much.
 - Feedback is not always clear.
 
-The traditional Agent approach has been directed towards finding ways to formalize these things**— translating the blurred world into structures that the system can handle. Researchers from different ages have given different answers, but they all face the same ceiling.
+The traditional Agent approach has been directed towards finding ways to formalize these things— translating the blurred world into structures that the system can handle. Researchers from different ages have given different answers, but they all face the same ceiling.
 
 
 
@@ -247,7 +247,7 @@ LLM didn't make all Agent's problems disappear, but it changed Agent's most crit
 如果规则写不完，系统能不能把"理解目标和判断下一步"交给模型？
 ```
 
-After 2020, a small sample of GPT-3 learning showed that models could understand mission formats; Chain-of-Thought further explained that models could address more complex issues through intermediate reasoning. At this point, LLM is no longer just an answerer, but is beginning to be like a common core of decision-making that is available**: it understands objectives, explains context and tries to judge what to do next.
+After 2020, a small sample of GPT-3 learning showed that models could understand mission formats; Chain-of-Thought further explained that models could address more complex issues through intermediate reasoning. At this point, LLM is no longer just an answerer, but is beginning to be like a common core of decision-making that is available: it understands objectives, explains context and tries to judge what to do next.
 
 It is not that the model must be right — on the contrary, it is often wrong — that is the core issue to be addressed by the whole Agent project. But the change is in **the decision-making mechanism itself**:
 
@@ -577,7 +577,7 @@ A model that answers only once might say:
 你应该先运行测试，然后查看错误日志，再检查相关代码。
 ```
 
-This is a recommendation, not a solution. Models are speculating on the answer rather than interacting with reality**.
+This is a recommendation, not a solution. Models are speculating on the answer rather than interacting with reality.
 
 A system that only calls tools but does not reason can be mechanically implemented:
 
@@ -794,12 +794,14 @@ The distinction can be summarized as follows:
 | Limits | Maybe it's easy, but it's wrong. | Need for engineering design and cost input |
 | Typical representation | COT, TOT, Model self-assessment | Compiler error, failed test, failed Schema verification, rejected by user |
 
-A reliable Agent needs these two layers of capacity to match. The system is prone to "confident error" by internal reasoning alone — every step of the way is very good, but the direction is biased. Through external feedback alone, the system lacks the ability to understand objectives and judge trade-offs — it may mechanically repair a bug, but it is not aware that the bug is worth repairing. The key is not to choose one side, but to allow external feedback to set up checkpoints where models may be wrong and intervene in a timely manner. **### 5.3 How mistakes are spread and amplified in multi-step missions
+A reliable Agent needs these two layers of capacity to match. The system is prone to "confident error" by internal reasoning alone — every step of the way is very good, but the direction is biased. Through external feedback alone, the system lacks the ability to understand objectives and judge trade-offs — it may mechanically repair a bug, but it is not aware that the bug is worth repairing. The key is not to choose one side, but to allow external feedback to set up checkpoints where models may be wrong and intervene in a timely manner. 
+
+### 5.3 How mistakes are spread and amplified in multi-step missions
 
 After understanding the difference between these two layers of capability, look at a more dangerous phenomenon in multi-step missions: mistakes do not just sit there and stay there, but spread and zoom in **along the mission chain.** Assuming Agent is writing a competition analysis:
 
 - First step, it confuses the information of Company A and Company B. It's not a big mistake in itself -- it's just Zhang Li.
-- Second, it is based on a functional comparison of confused information. The comparative analysis itself may be very detailed and of impeccable logic, but the basis of the comparison **is wrong.
+- Second, it is based on a functional comparison of confused information. The comparative analysis itself may be very detailed and of impeccable logic, but the basis of the comparison is wrong.
 - Step three, it gives product advice based on an erroneous comparison. The recommendations appear reasonable and well-justified, but the facts are already contaminated.
 - The final report appears to be structured and well-documented, but the core facts are wrong — and the error has been “cleaned” and made very difficult to detect.
 
@@ -886,7 +888,9 @@ The error makes every step of Agent's cycle more reliable, but it doesn't answer
 
 ## Chapter 6: Planning - When the task is too long, one step at a time is not enough
 
-Planning and the errors and reflections in the previous chapter address the different dimensions of the same core cycle. The error makes one-step decisions more reliable and Planning makes multi-step paths more manageable. Together, they answer one question: **React gives a circle of action, how can it not get out of control in front of a big mission?** ### 6.1 Complex tasks are not a one-step response, but a chain of dependency
+Planning and the errors and reflections in the previous chapter address the different dimensions of the same core cycle. The error makes one-step decisions more reliable and Planning makes multi-step paths more manageable. Together, they answer one question: **React gives a circle of action, how can it not get out of control in front of a big mission?**
+
+### 6.1 Complex tasks are not a one-step response, but a chain of dependency
 
 Suppose you let Agent do one thing:
 

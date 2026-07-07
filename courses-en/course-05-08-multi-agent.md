@@ -131,7 +131,9 @@ This is the rationale behind the existence of Multi-Agent: when the single Agent
 
 ## 8.2 What's the split?
 
-The next step is not "defining Agent's Role" but to find out: **Multi-Agent's Distinction?** ### 8.2.1 Prompt not Multi-Agent
+The next step is not "defining Agent's Role" but to find out: **Multi-Agent's Distinction?**
+
+### 8.2.1 Prompt not Multi-Agent
 
 The easiest mistake: to write "System Prompt" as "create Argentina." Define three roles — researcher, engineer, examiner — to write to each role a piece of System Prompt, and then rotate the same model. It's not Multi-Agent, it's called role-playing.
 
@@ -174,7 +176,9 @@ The difference between role-playing and the nature of Multi-Agent:
 └─────────────────┘  └─────────────────┘  └─────────────────┘
 ```
 
-The key difference is not how well it is written in Prompt, but in **every Agent sees things differently and can do different things.** ### 8.2.2 Four different: input, tools, objectives, acceptance standards
+The key difference is not how well it is written in Prompt, but in **every Agent sees things differently and can do different things.**
+
+### 8.2.2 Four different: input, tools, objectives, acceptance standards
 
 The real Multi-Agent splits four dimensions. For example, the knowledge assistant's "writing technology program + security clearance" scene:
 
@@ -185,7 +189,9 @@ The real Multi-Agent splits four dimensions. For example, the knowledge assistan
 |**Different goals** | "Full the user's mission" -- the goal is vague and the sub-goals compromise. | Objective: Technical programmes with outputs to meet demand. Objective Reviewer: To find all issues that do not meet safety standards. **Targets do not compromise with each other** |
 |**Different acceptance standards** | "As long as the user thinks it's okay," no objective criteria. | Author standard: Programme fully covers needs. Reviewer standard: review list adopted article by article, any one FAIL as a whole REJECT |**Of these four dimensions, at least two are different, and Multi-Agent is worth it.** If the two Agents have the same input, the same tools, the same goals and the same acceptance criteria - whatever name they are given, they are essentially the same Agent. You're just wasting token and delaying.
 
-Here's one of the simplest criteria: **If you can't say two Agents, "What difference does it make?", then you don't need two Agents.** ### 8.2.3 Self-censorship List: Your scenes meet a few
+Here's one of the simplest criteria: **If you can't say two Agents, "What difference does it make?", then you don't need two Agents.**
+
+### 8.2.3 Self-censorship List: Your scenes meet a few
 
 Before introducing Multi-Agent, answer by article:
 
@@ -218,7 +224,9 @@ Before introducing Multi-Agent, answer by article:
 
 Reviewer is the "Hello World" of Multi-Agent -- it only takes two Agents, the simplest mode of communication and the easiest to assess. If not even the Reviewer can't get away, let's not think about Supervisor, Debate or Graph Collaboization.
 
-It solves only one problem: **implementers cannot review their outputs impartially.** ### 8.3.1 Model skeleton: one execution, one review
+It solves only one problem: **implementers cannot review their outputs impartially.**
+
+### 8.3.1 Model skeleton: one execution, one review
 
 ```text
 Executor Agent（执行者）                   Reviewer Agent（审查者）
@@ -585,7 +593,9 @@ Supervisor 拆解为 3 个子任务 → 3 个 Worker 并行执行
 
 ## 8.5 Parallel Specialists: same mission, multiple eyes
 
-Each Worker of Supervisor handles different tasks. Parallel Specialists is a variant: **The same task, with multiple experts analysing it from different dimensions at the same time and then combining it.** ### 8.5.1 Distinction from Supervisor: same input, different dimensions
+Each Worker of Supervisor handles different tasks. Parallel Specialists is a variant: **The same task, with multiple experts analysing it from different dimensions at the same time and then combining it.**
+
+### 8.5.1 Distinction from Supervisor: same input, different dimensions
 
 ```text
 Supervisor 模式：                    Parallel Specialists 模式：
@@ -698,7 +708,9 @@ A common failure of this model:
 
 ## 8.6 Agent's settings and configurations -- how "different" landed.
 
-8.2 The four dimensions of Multi-Agent split were described: different inputs, different tools, different targets, and different acceptance standards. 8.3 to 8.5 The structural design of three modes of collaboration is described. But structural design only solves the question of how to organize between Agents, and it doesn't solve a more advanced question: **How each Agent is configured to make them really different?** ### 8.6.1 Write Agent settings instead of Prompt
+8.2 The four dimensions of Multi-Agent split were described: different inputs, different tools, different targets, and different acceptance standards. 8.3 to 8.5 The structural design of three modes of collaboration is described. But structural design only solves the question of how to organize between Agents, and it doesn't solve a more advanced question: **How each Agent is configured to make them really different?**
+
+### 8.6.1 Write Agent settings instead of Prompt
 
 Multi-Agent's first step is to open the editor to write
 

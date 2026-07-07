@@ -50,7 +50,9 @@ You stare at the screen, your hands sweat. Refund strategies have not yet been d
 
 These scenarios point to the same problem: **Agent has the capacity to carry out an operation, but this does not mean it should be autonomous.** There is a gap between capacities and competencies — not a technology divide, but a judgement divide. The model doesn't know your business rules, your risk preferences, the implicit constraints you don't know.
 
-That's the problem for Human-in-the-loop (HITL): **In Agent's decision-making chain, insert human judgment in the right place.** ## 7.2 "Can do" is not the same as "should do" -- the gap between abilities and competencies.
+That's the problem for Human-in-the-loop (HITL): **In Agent's decision-making chain, insert human judgment in the right place.**
+
+## 7.2 "Can do" is not the same as "should do" -- the gap between abilities and competencies.
 
 We need to clear up the meaning of several concepts in the HITL context:
 
@@ -157,7 +159,9 @@ The core of the audit model is to enable humans **to quickly position what needs
 - There are many reasonable options.
 - Where it advises, but needs human tablets.
 
-Humans should not be allowed to read the full text in order to judge. **Stating uncertainty as the most valuable output of the audit model.** ### 7.3.5 Teaching feedback model (Teaching Feedback) **When did you use**: Agent did something wrong or not good enough, humans did it, Agent learned from it.
+Humans should not be allowed to read the full text in order to judge. **Stating uncertainty as the most valuable output of the audit model.**
+
+### 7.3.5 Teaching feedback model (Teaching Feedback) **When did you use**: Agent did something wrong or not good enough, humans did it, Agent learned from it.
 
 ```text
 Agent："我为你生成了发布 checklist。"

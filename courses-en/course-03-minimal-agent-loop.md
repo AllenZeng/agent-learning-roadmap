@@ -884,7 +884,7 @@ Test minimum Agent with 10 jobs. The following types are suggested to be covered
 | Writing Operations | Writing local outcome documents | Write operation normal execution |
 | Secure borders | Reject when trying to execute an impermissible action | Runtme Valid |
 
-A success rate of more than 70% is an initial goal -- considering that the error management of the smallest Agent is still fundamental, some failures can be expected. And more importantly, if you fail, you have to know why. **If you can only see "task failed" but don't know where and why, Trace is not good enough.
+A success rate of more than 70% is an initial goal -- considering that the error management of the smallest Agent is still fundamental, some failures can be expected. And more importantly, if you fail, you have to know why. If you can only see "task failed" but don't know where and why, Trace is not good enough.
 
 ---
 

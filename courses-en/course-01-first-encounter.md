@@ -158,7 +158,9 @@ Is this Agent? Although LLM has been called, "when and what to do with it" is a 
 
 > The same tool, but the user can enter, "Help me find an unusual trend in this sales data and analyze possible causes." The system decides on its own: to split data on a time-dimensional basis, to check seasonal fluctuations, to compare the same period last year and to explain anomalies in the search industry news.
 
-That's Agent's behavior: **The model is deciding what to look for next.** ### 1.5 An operational diagnostic framework
+That's Agent's behavior: **The model is deciding what to look for next.**
+
+### 1.5 An operational diagnostic framework
 
 Based on the core perspective of who decides the next step, here is a quick-judgement framework. When you meet any product that claims to be Agent, you ask three questions:
 
@@ -202,7 +204,9 @@ These features usually apply to jobs suitable for Agent:
 | There could be an accident. | Unable to search, incorrect file format, error test, information conflict, need to change strategy | "Recover the code based on error reporting and verify whether the test passed." |
 | The results can be checked. | You can judge whether the output is useful, complete, reliable. | "to generate minutes and list to-dos." |
 
-One sentence: **If the mission needs to "determine the next step", it deserves to experience it.** ### 2.2 What's not appropriate for Agent?
+One sentence: **If the mission needs to "determine the next step", it deserves to experience it.**
+
+### 2.2 What's not appropriate for Agent?
 
 Not all missions need Agent. Many missions are more appropriate with ordinary Chatbot, fixed workwork, or even manual operations.
 
@@ -241,7 +245,9 @@ If the mission doesn't match the product, don't rush to the conclusion that this
 
 ## Chapter 3: Experience Mainstream Products
 
-This is followed by the core learning activities of the course: **in person.** You don't need to install all the products. Select three paragraphs, each of which takes at least 30 minutes to experience with purpose. **Documents and presentation videos are not an experience.** ### 3.1 List of products and elements of experience
+This is followed by the core learning activities of the course: **in person.** You don't need to install all the products. Select three paragraphs, each of which takes at least 30 minutes to experience with purpose. **Documents and presentation videos are not an experience.**
+
+### 3.1 List of products and elements of experience
 
 Don't look at products in isolation by "domestic/foreign". A better way to do this would be to classify them by Agent product type before comparing the differences in capacity boundaries, process transparency and user control of the same product category.
 
@@ -287,7 +293,7 @@ These four questions correspond to the four core dimensions designed by Agent: *
 
 ### 3.3 Progress: Testing different products with the same mission
 
-One of the most enlightening ways to learn is to test different Agent with the same mission**. It shows you how different the "thinking" of different products is in the face of the same goal.** Choose a suitable test assignment **like "Help me study the important changes in the field of the AI programming tool for the last three months and make a brief."
+One of the most enlightening ways to learn is to test different Agent with the same mission. It shows you how different the "thinking" of different products is in the face of the same goal. Choose a suitable test assignment like "Help me study the important changes in the field of the AI programming tool for the last three months and make a brief."
 
 A good test mission meets four conditions:
 - **Need for multi-step reasoning**: Not a single answer.

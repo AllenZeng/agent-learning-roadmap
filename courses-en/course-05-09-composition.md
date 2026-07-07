@@ -75,7 +75,9 @@ Sprint 结束后上线，结果：
 3. **User trust overdraft**: first experience poor and users may not give you a second chance
 4. **Team perception overload**: maintainers need to understand five complex subsystems simultaneously
 
-> **Remember one sentence: one capacity, one problem, one assessment. The three principles of "one" are the bottom line for introducing rhythm.** ### 9.1.2 Hidden costs of capabilities
+> **Remember one sentence: one capacity, one problem, one assessment. The three principles of "one" are the bottom line for introducing rhythm.**
+
+### 9.1.2 Hidden costs of capabilities
 
 Every capacity also has a quiet cost in solving problems. Before the decision is taken, the bill is clear:
 

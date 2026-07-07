@@ -122,7 +122,9 @@ V3（接入 Planning）：
 每一步都在往上下文里加东西。如果不加组织，V3 不是更强的 Agent，而是更混乱的 Agent。
 ```
 
-So the core theme of Context Engineering is not "Whether or not to put something in the context," but: **At this stage, what information has to go in, what information has to go back, what information has to go back, what information has to be left outside on demand, what information should be cleaned up, what information should be put back on a cache in a stable prefix — and how these decisions are verified.** ## 4.3 Agent, where does the context come from? — Eight categories of sources and panorama
+So the core theme of Context Engineering is not "Whether or not to put something in the context," but: **At this stage, what information has to go in, what information has to go back, what information has to go back, what information has to be left outside on demand, what information should be cleaned up, what information should be put back on a cache in a stable prefix — and how these decisions are verified.**
+
+## 4.3 Agent, where does the context come from? — Eight categories of sources and panorama
 
 Before we talk about "how to manage," let's see what to manage. At each step of the line of reasoning, Agent has eight possible sources of context:
 
@@ -430,7 +432,9 @@ message[21]: 助手：[工具调用] 执行发布脚本……
 
 For each round of reasoning, the part of Scratchpad relating to the current steps is selectively inserted into the context. Not all of the injections -- the models just need to know "where we are now, what we're going to do next, what we're going to have to do," without seeing a complete history of implementation.
 
-Scratchpad can be written to a file by tool or saved by runningtime state scheme. Key design principles: **Only fields relevant to current decision-making are exposed to the model, while the remaining fields remain in the external state.** ### 4.5.2 Selection of context: Selected from mass information what the current steps need
+Scratchpad can be written to a file by tool or saved by runningtime state scheme. Key design principles: **Only fields relevant to current decision-making are exposed to the model, while the remaining fields remain in the external state.**
+
+### 4.5.2 Selection of context: Selected from mass information what the current steps need
 
 Select to use the most frequent operation in Context Engineering. Its core questions are: **pick out what is really needed in terms of RAG results, Memory recall, tool definition, historical news.** This is different from "crop" in Section 4.4.3. Cutting is passive — the context is too limited. The choice is proactive — screening before injecting context.
 
@@ -671,7 +675,9 @@ The following types of tools are suitable for clean-up rather than compression:
 | The result is over 5000 tokens and low information density. | ❌ | ✅ |
 | Updated version of similar results | ❌ | ✅ (cleaning old versions) |
 
-A practical rule of practice: **if the results of the tool are useful for subsequent decision-making, they are kept in a condensed form. If it's just an intermediate process, then clean it up.** ### 4.6.6 Code skeletons: adjectable result processing Device
+A practical rule of practice: **if the results of the tool are useful for subsequent decision-making, they are kept in a condensed form. If it's just an intermediate process, then clean it up.**
+
+### 4.6.6 Code skeletons: adjectable result processing Device
 
 Do not write dead logic for each tool. Register different treatment strategies by tool using a plug-in result processor:
 
@@ -855,7 +861,9 @@ After 30 samples x 4 groups = 120 assessments, you'll have data support for "wha
 
 The core value of the assessment is not "prove that my strategy is the best" but what strategies are really useful to your type of mission and what strategies are overdesigned. You may find that Group B (Strategic + Budget) has already mentioned the completion rate from 70% to 90%, Group C (plus tool compression) to 93%, but Group D (plus Scratchpad) does not rise or fall -- because your task is rarely more than five steps, and the additional complexity of Scratchpad has introduced a new pattern of failure.
 
-That's the point of the assessment: **from "I think I should add" to "data needs added."** ## 4.8 Evolutionary route: from "all in" to "the context control system"
+That's the point of the assessment: **from "I think I should add" to "data needs added."**
+
+## 4.8 Evolutionary route: from "all in" to "the context control system"
 
 Context Engineering does not need a step in place. As with all enhancements, it should start with the smallest version:
 
@@ -907,7 +915,9 @@ Context Engineering is also following the "on demand" principle. A complex desig
 
 5. **Short life cycle Agent**: This Agent was abandoned only a few times — for example, one-time data migration script. It's not worth setting up a context line.
 
-A judgement signal: **When you find yourself beginning to write "Please follow Rule X" in System Prompt, indicate that the context is long enough to be bound by the model. This is the signal that introduced Context Engineering.** In turn, if your Agent is running well now — the restraints are being complied with, the tools are not being missed, the users are not complaining about the quality of the answer being reduced — then continue with the current context strategy. **Contex Engineering is a cure, not a healthcare. Don't eat when there's no problem.** ### Summary of this chapter
+A judgement signal: **When you find yourself beginning to write "Please follow Rule X" in System Prompt, indicate that the context is long enough to be bound by the model. This is the signal that introduced Context Engineering.** In turn, if your Agent is running well now — the restraints are being complied with, the tools are not being missed, the users are not complaining about the quality of the answer being reduced — then continue with the current context strategy. **Contex Engineering is a cure, not a healthcare. Don't eat when there's no problem.**
+
+### Summary of this chapter
 
 The context is the immediate vision of the current phase of the model ' s decision-making, while the full vision of Agent consists of context, external state, tools, long-term memory.
 
