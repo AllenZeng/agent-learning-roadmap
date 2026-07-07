@@ -1,418 +1,430 @@
-# Chapter 7: Human-in-the-loop - When Agent should not decide for himself
+# Chapter 7: Human-in-the-loop - When an Agent Should Not Decide on Its Own
 
-[Return Course Five Document](./course-05-01-scenario-enhancement.md) | [Previous Chapter](./course-05-06-reflection.md) | [Next chapter](./course-05-08-multi-agent.md)
+[Back to Course Five](./course-05-01-scenario-enhancement.md) | [Previous Chapter](./course-05-06-reflection.md) | [Next Chapter](./course-05-08-multi-agent.md)
 
-## Table of contents of this chapter
+## Chapter Outline
 
-- [7.1 "It made my decision, and I wasn't there."](#71-it-made-my-decision-and-i-wasnt-there)
-- [7.2 "Can do" is not the same as "should do" -- the gap between abilities and competencies.](#72-can-do-is-not-the-same-as-should-do----the-gap-between-abilities-and-competencies)
-- [7.3 Five modes of HITL](#73-five-modes-of-hitl)
+- [7.1 "It made the decision for me, and I was not there"](#71-it-made-the-decision-for-me-and-i-was-not-there)
+- [7.2 "Can do" is not "should do": the gap between capability and permission](#72-can-do-is-not-should-do-the-gap-between-capability-and-permission)
+- [7.3 Five HITL patterns](#73-five-hitl-patterns)
   - [7.3.1 Confirmation](#731-confirmation)
-  - [7.3.2 Clarification model](#732-clarification-model)
-  - [7.3.3 Takeover model (Takeover)](#733-takeover-model-takeover)
-  - [7.3.4 Audit model (review)](#734-audit-model-review)
-  - [7.3.5 Teaching feedback model (Teaching Feedback)](#735-teaching-feedback-model-teaching-feedback)
-  - [7.3.6 Five model comparisons](#736-five-model-comparisons)
-- [7.4 Design decision-making: what to ask, how often and how to present](#74-design-decision-making-what-to-ask-how-often-and-how-to-present)
-  - [7.4.1 Risk classification: which operations require human intervention](#741-risk-classification-which-operations-require-human-intervention)
-  - [7.4.2 Frequency control: Don't be too upset or too comfortable](#742-frequency-control-dont-be-too-upset-or-too-comfortable)
-  - [7.4.3 Context: To enable humans to make quick judgements](#743-context-to-enable-humans-to-make-quick-judgements)
+  - [7.3.2 Clarification](#732-clarification)
+  - [7.3.3 Takeover](#733-takeover)
+  - [7.3.4 Review](#734-review)
+  - [7.3.5 Teaching Feedback](#735-teaching-feedback)
+  - [7.3.6 Comparing the five patterns](#736-comparing-the-five-patterns)
+- [7.4 Design decisions: what to ask, how often to ask, and how to present it](#74-design-decisions-what-to-ask-how-often-to-ask-and-how-to-present-it)
+  - [7.4.1 Risk levels: which actions need human involvement](#741-risk-levels-which-actions-need-human-involvement)
+  - [7.4.2 Frequency control: neither annoying nor careless](#742-frequency-control-neither-annoying-nor-careless)
+  - [7.4.3 Context presentation: helping humans decide quickly](#743-context-presentation-helping-humans-decide-quickly)
 - [7.5 Learning from feedback](#75-learning-from-feedback)
-- [7.6 Evolution course: from "all confirmed" to "precision intervention."](#76-evolution-course-from-all-confirmed-to-precision-intervention)
-- [7.7 HITL 's five reverse modes](#77-hitl-s-five-reverse-modes)
-- [7.8 When don't need HITL](#78-when-dont-need-hitl)
-- Summary of this chapter
-- [Runable Example](#runable-example)
+- [7.6 The evolution path: from "confirm everything" to precise intervention](#76-the-evolution-path-from-confirm-everything-to-precise-intervention)
+- [7.7 Five HITL anti-patterns](#77-five-hitl-anti-patterns)
+- [7.8 When HITL is not needed](#78-when-hitl-is-not-needed)
+- [Chapter Summary](#chapter-summary)
+- [Runnable Example](#runnable-example)
 
 ---
 
-## 7.1 "It made my decision, and I wasn't there."
+## 7.1 "It made the decision for me, and I was not there"
 
-Agent, a knowledge assistant, has access to RAG, Memory, Context Engineering, Planning and Reflection. It retrieves your notes, remembers your preferences, manages context, dismantles tasks, fixes failure. You start to trust it.
+Your knowledge-assistant Agent is now connected to RAG, Memory, Context Engineering, Planning, and Reflection. It can search your notes, remember your preferences, manage context, break down tasks, and recover from mistakes. You begin to trust it.
 
-Then one day, you let it sort out the papers.
-
-```text
-You: "Help me clean up the log files under /tmp/logs for more than 30 days."
-Agent:"Okay. → Call → Start Delete
-```
-
-You suddenly saw a file name flashing... `.env.backup` I don't know. That's the backup file you manually put in last week, not the log. You didn't have time to stop. The papers are gone.
-
-It's not Agent "gets bad." It's done according to your instructions. The problem is: **The task of cleaning up log files has some consequences you didn't say (env backup cannot be deleted), and Agent is not aware of these implied constraints.**
-
-Another scenario: you're testing a guest suit, Agent. The user said, "I want a refund."
+Then one day, you ask it to clean up some files.
 
 ```text
-User: "This product doesn't work. I want a refund."
-Agent:"I'm so sorry for the bad experience. I have submitted you a full refund, which will be returned within three to five working days."
+You: "Clean up log files older than 30 days under /tmp/logs."
+Agent: "Sure." -> calls delete_file -> starts deleting
 ```
 
-You stare at the screen, your hands sweat. Refund strategies have not yet been defined — maximum amounts, conditions for refunds, approval process. Agent made a decision for you.
+Suddenly, you notice a filename flash by: `.env.backup`. That was a backup file you manually placed there last week. It was not a log file. Before you can stop the Agent, the file is gone.
 
-These scenarios point to the same problem: **Agent has the capacity to carry out an operation, but this does not mean it should be autonomous.** There is a gap between capacities and competencies — not a technology divide, but a judgement divide. The model doesn't know your business rules, your risk preferences, the implicit constraints you don't know.
+The Agent did not "turn bad." It followed your instruction. The problem is that "clean up log files" carried hidden constraints you did not spell out. The `.env` backup must not be deleted, but the Agent did not know that.
 
-That's the problem for Human-in-the-loop (HITL): **In Agent's decision-making chain, insert human judgment in the right place.**
-
-## 7.2 "Can do" is not the same as "should do" -- the gap between abilities and competencies.
-
-We need to clear up the meaning of several concepts in the HITL context:
+Here is another scene. You are testing a customer-support Agent. A user says, "I want a refund."
 
 ```text
-Capability: Agent can do anything technically.
-  Example: Agent can call delete file, call refund api, send mail.
-
-Permission: The system allows Agent to perform what it owns.
-  Example: delete file is allowed but requires human confirmation. Refund api is completely prohibited from calling autonomously.
-
-Judgment: Is this a suitable operation for the moment?
-  Example: Delete /tmp/logs/access 2026.log is appropriate. Delete /tmp/logs/.env.backup
+User: "This product does not work for me. I want a refund."
+Agent: "I am sorry for the poor experience. I have submitted a full refund request for you.
+The money will be returned within 3-5 business days."
 ```
 
-The essence of HITL is that **when Agent's ability covers an operation, but the system cannot afford to return judgment to humans when all the rules of judgement are exhausted at the code level.**
+You stare at the screen and feel your palms sweat. The refund policy has not been defined yet. There is no amount limit, no eligibility rule, and no approval flow. The Agent just made a business decision on your behalf.
 
-Why not write the rules in the code? Because:
+Both examples point to the same issue: **an Agent may be able to perform an action, but that does not mean it should perform the action autonomously.** There is a gap between capability and permission. It is not a technical gap. It is a judgment gap. The model does not fully know your business rules, your tolerance for risk, or the hidden constraints that even you may not remember to state.
 
-- `.env.backup` Is that a log file? Not by naming rules, but it is under /tmp/logs directory. Agent didn't judge it.
-- Is the full refund appropriate? Depending on your refund policy, user history, value of orders... it's not a few lines if-else can cover.
+Human-in-the-loop, or HITL, exists to solve this problem: **insert human judgment at the right points in the Agent's decision chain.**
 
-The HITL is not an adequate security mechanism and cannot be a substitute for permission verification, input filtering, tool isolation, audit logs and Guardrails. It is more like an enhanced decision-making mechanism in the line of defence — the introduction of human judgement as an enhancement when Agent's autonomous judgement does not cover the risks.
+## 7.2 "Can do" is not "should do": the gap between capability and permission
 
-## 7.3 Five modes of HITL
+First, define three terms in the HITL context:
 
-HITL is not a simple "play a confirmation box". Depending on the timing and depth of human intervention, there are five models.
+```text
+Capability: what the Agent can technically do.
+  Example: it can call delete_file, call refund_api, or send an email.
+
+Permission: what the system allows the Agent to do autonomously.
+  Example: delete_file is allowed, but requires human confirmation.
+  refund_api is never allowed to run autonomously.
+
+Judgment: whether this specific action is appropriate right now.
+  Example: deleting /tmp/logs/access_2026.log is fine.
+  deleting /tmp/logs/.env.backup is not.
+```
+
+The essence of HITL is this: **when an Agent has the capability to perform an action, but the system cannot exhaustively encode every judgment rule in code, return the judgment to a human.**
+
+Why not just write rules in code?
+
+- Is `.env.backup` a log file? The name says no, but the file is inside `/tmp/logs`. The Agent missed the hidden constraint.
+- Is a full refund appropriate? That depends on refund policy, user history, order amount, delivery status, and more. A few `if` statements will not cover the real decision space.
+
+HITL is not a complete safety mechanism. It does not replace permission checks, input validation, tool isolation, audit logs, or Guardrails, which are covered in Course Six, Chapter 7. HITL is better understood as a **decision-enhancement layer** in the defense stack. When the Agent's autonomous judgment is not enough for the risk involved, human judgment becomes part of the workflow.
+
+## 7.3 Five HITL patterns
+
+HITL is not just "show a confirmation dialog." Depending on when and how deeply the human participates, HITL usually falls into five patterns.
 
 ### 7.3.1 Confirmation
 
-**When to use**: Agent has decided what to do, but the operation is risky and requires human nodding.
+**Use this when** the Agent has already decided what it wants to do, but the action is risky enough to require human approval.
 
 ```text
-Agent:"I will delete the following 12 files:
-  - /tmp/logs/access_20260501.log (32MB, 45 Apogee)
-  - /tmp/logs/error_20260515.log (8MB, 31 Apogee)
-  - ……
-  [Confirmation of implementation] [Cancel] [Modify Scope]"
+Agent: "I will delete the following 12 files:
+  - /tmp/logs/access_20260501.log (32MB, last modified 45 days ago)
+  - /tmp/logs/error_20260515.log (8MB, last modified 31 days ago)
+  - ...
+  [Confirm] [Cancel] [Change scope]"
 ```
 
-Identification of the three design elements of the model:
+Confirmation has three design requirements.
 
-**1. Presentation of "effects" instead of "operations"**
+**1. Show the consequence, not just the operation**
 
 ```text
-❌ W: "Record call confirmation?"
-   Humans do not know what to delete, how much to delete, and what the implications are.
+Poor: "Confirm delete_file?"
+The human cannot tell what will be deleted, how much will be deleted, or what the impact is.
 
-✅ Good: "will delete 12 files totalling 156 MB. These files were last modified over 30 days.
-   Note: /tmp/logs and 3 non-post files (.env.backup, config.json, README),
-   They won't be deleted."
+Better: "12 files will be deleted, freeing 156MB. All files were last modified more than
+30 days ago. Note: there are 3 non-log files under /tmp/logs (.env.backup, config.json,
+README). They will not be deleted."
 ```
 
-**2. Provide intermediate options, more than "Yes/No"**
+**2. Offer middle options, not only yes or no**
 
 ```text
-[Confirm All] [Delete only.log files] [Let me confirm one by one.] [Cancel]
+[Delete all] [Only delete .log files] [Let me review one by one] [Cancel]
 ```
 
-The second option is to give humans a preference for confirmation. The granting of intermediate options has improved the quality of decision-making.
+Binary confirmation pushes people toward "yes" because of decision fatigue. Middle options improve decision quality.
 
-**3. Complete but not lengthy context of confirmation**
+**3. Provide complete but concise context**
 
-Humans need to see what they want to do, why they think they should do it, what risks they have, what they don't.
+The human needs to see what will happen, why the Agent thinks it should happen, what the risks are, and what happens if the action is not taken.
 
-### 7.3.2 Clarification model
+### 7.3.2 Clarification
 
-**When to use**: Agent is uncertain about the user's intentions and needs human clarity.
+**Use this when** the Agent is unsure what the user means and needs the human to define the intent.
 
 ```text
-You said, "Check out the latest article."
-Agent:"'Recent articles' may refer to:
-  A. Recent 7-day articles (3 articles)
-  B. Recently modified articles (8 articles)
-  C. Recent articles (5 articles)
-  What do you mean??"
+You: "Organize the recent articles."
+Agent: "'Recent articles' could mean:
+  A. Articles written in the last 7 days (3 articles)
+  B. Articles modified recently (8 articles)
+  C. Articles opened recently (5 articles)
+  Which one do you mean?"
 ```
 
-Clarify the difference between mode and confirmation mode: Confirm "I have decided, you nod", clarify "I need you to help me decide."
+The difference between clarification and confirmation is simple. Confirmation says, "I have decided, please approve." Clarification says, "I need you to help me decide."
 
-Clarification of the design elements of the model:
+Design requirements for clarification:
 
-- **Specific options are given, rather than an open question.** "Please specify your needs."
-- **Each option is accompanied by a number or an example,** allowing humans to choose on the basis of information rather than speculation.
-- **Provides an "other" option** so that humans can give the answers that Agent didn't consider.
+- **Offer concrete choices instead of throwing back an open-ended question.** Do not say, "Please clarify your request." Say, "Do you mean A, B, or C?"
+- **Attach counts or examples to each option** so the human can choose based on information rather than guesswork.
+- **Include an "Other" path** so the human can provide an answer the Agent did not consider.
 
-### 7.3.3 Takeover model (Takeover)
+### 7.3.3 Takeover
 
-**When to use**: the operation is too complex or too sensitive, Agent should not do it himself, and control should be returned to mankind.
+**Use this when** the action is too complex or too sensitive for the Agent to execute. The Agent should hand control back to the human.
 
 ```text
-Agent:"The database migration script was detected to involve the following operations:
-  - Modify email field type of user tables
-  - Delete deprecated records Table
+Agent: "The database migration script includes the following operations:
+  - Change the type of the email field in the users table
+  - Drop the deprecated_records table
 
-  Such operations require manual execution. I'm ready to move the script:
+  This type of operation requires manual execution. I have prepared the migration script:
   /tmp/migration_20260629.sql
 
-  Please answer 'complete' after execution, and I will continue with the next steps."
+  After you run it, reply 'done' and I will continue with the next steps."
 ```
 
-Essential difference between takeover and confirmation: confirmation is Agent enforcement, human permit. Taking over is **human execution, Agent waiting**. Agent retreats to the auxiliary role -- it is prepared, it explains, it waits, but it does not operate.
+The core difference between confirmation and takeover is this: in confirmation, the Agent executes and the human permits. In takeover, **the human executes and the Agent waits**. The Agent moves into a supporting role. It prepares, explains, and waits, but does not perform the action.
 
-Application of the takeover model:
+Takeover fits situations such as:
 
-- Database Schema Change
-- Production environment deployment
-- Operations involving compliance approval
-- Any operation that does wrong can't just roll back.
+- Database schema changes
+- Production deployments
+- Operations that require compliance approval
+- Any action that cannot be easily rolled back if it goes wrong
 
-### 7.3.4 Audit model (review)
+### 7.3.4 Review
 
-**When the output was completed with**: Agent, but required human examination of quality or selection in multiple programmes.
+**Use this when** the Agent has produced an output, but a human needs to inspect quality or choose among alternatives.
 
 ```text
-Agent:"The technical programme has been completed in four parts:
-  1. Outline of structure (generated)
-  2. API Design (generated)
+Agent: "The technical proposal is ready and has 4 sections:
+  1. Architecture overview (generated)
+  2. API design (generated)
   3. Database design (generated)
-  4. Security considerations (generated, marked 3 to be confirmed)
+  4. Security considerations (generated, with 3 open questions marked)
 
-  [View full text] [Section by section] [Modify a section] [Pass.]"
+  [View full proposal] [Review section by section] [Edit a section] [Approve]"
 ```
 
-The core of the audit model is to enable humans **to quickly position what needs attention**. Agent should take the initiative:
+The point of review mode is to help the human **find the parts that deserve attention quickly**. The Agent should proactively mark:
 
-- It's not certain.
-- There are many reasonable options.
-- Where it advises, but needs human tablets.
+- Areas where it is uncertain
+- Places where multiple reasonable options exist
+- Recommendations that still need human judgment
 
-Humans should not be allowed to read the full text in order to judge. **Stating uncertainty as the most valuable output of the audit model.**
+Do not force the human to read the entire output just to make a decision. **Surfacing uncertainty is the most valuable part of review mode.**
 
-### 7.3.5 Teaching feedback model (Teaching Feedback) 
+### 7.3.5 Teaching Feedback
 
-**When did you use**: Agent did something wrong or not good enough, humans did it, Agent learned from it.
+**Use this when** the Agent made a mistake or produced something inadequate, and the human correction should help it improve.
 
 ```text
-Agent:"I generated a release for you."
-You: "Databack steps are missing in item 3. The inspection order for block 6 is wrong, and it should be pytest instead of unitist."
-Agent:"Amended. I noticed you've been using pytest in this project. I will update it in Memoory:
-  'Project test runner preferences: pytest (non unitttest)'
-  The subsequent checklist generation will automatically include the backup steps of the database."
+Agent: "I generated the release checklist for you."
+You: "Item 3 is missing the database backup step. The check command in item 6 is wrong:
+use pytest, not unittest."
+Agent: "Updated. I noticed this project consistently uses pytest. I will update Memory with:
+  'Project test runner preference: pytest, not unittest.'
+  Future release checklists will also include the database backup step."
 ```
 
-Pedagogical feedback is the intersection of HITL and Memoory. Every human amendment should be captured as reusable knowledge. There are three levels:
+Teaching feedback is where HITL meets Memory. Every correction from the human can become reusable knowledge. There are three levels:
 
-| Level | What did you learn? | Scope of impact |
+| Level | What is learned | Scope |
 |---|---|---|
-| **Immediate amendment** | This time it's right. | Current task only |
-| **Preferences for updates** | Users like pytest | Follow-up to current projects |
-| **Model study** | Release checklist must contain backup data. | Release type assignments for all projects |
+| **Immediate correction** | The current task is fixed | Current task only |
+| **Preference update** | The user prefers pytest | Future tasks in this project |
+| **Pattern learning** | "A release checklist must include database backup" | Release-related tasks across projects |
 
-Pedagogical feedback does not overzealate "self-learning". V0 is enough for immediate correction. The preference for renewal and model learning requires the collaboration of the Memoory system (see chapter III).
+Teaching feedback should not overpromise "automatic learning." For V0, immediate correction is enough. Preference updates and pattern learning require a Memory system, as discussed in Chapter 3.
 
-### 7.3.6 Five model comparisons
+### 7.3.6 Comparing the five patterns
 
-| Mode | Human role | Agent Role | Time for intervention | Typical scene |
+| Pattern | Human role | Agent role | Intervention timing | Typical use case |
 |---|---|---|---|---|
-| **Confirmed** | Licenser | Executor | Before execution | Delete Files, Send Mail, Git Push |
-| **Clarification** | Definer | Executor | After understanding | Fuzzy demand, multi-dimensional command |
-| **Took over** | Executor | Supporters | On implementation | Database migration, production deployment |
-| **Audit** | Reviewer | Creator | After output | Code review, programme review |
-| **Teaching feedback** | Coach. | Learner | After error | Output does not match expectations, preference changes |
+| **Confirmation** | Approver | Executor | Before execution | Deleting files, sending emails, Git push |
+| **Clarification** | Definer | Executor | After understanding is incomplete | Ambiguous requests, multi-meaning instructions |
+| **Takeover** | Executor | Assistant | During execution | Database migration, production deployment |
+| **Review** | Reviewer | Creator | After output | Code review, proposal review |
+| **Teaching Feedback** | Coach | Learner | After an error | Output mismatch, preference changes |
 
-## 7.4 Design decision-making: what to ask, how often and how to present
+## 7.4 Design decisions: what to ask, how often to ask, and how to present it
 
-### 7.4.1 Risk classification: which operations require human intervention
+### 7.4.1 Risk levels: which actions need human involvement
 
-Not all operations need HITL. The classification is based on: **The irreversibility of the operation and the severity of the consequences.**
+Not every action needs HITL. The core classification criteria are **irreversibility** and **severity of consequence**.
 
-| Risk level | Operational characteristics | HITL Mode | Example: |
+| Risk level | Action characteristics | HITL pattern | Examples |
 |---|---|---|---|
-| **Low** | Read-only, no side effects, repeatable | No need to intervene. | Read files, search codes, generate text |
-| of the | Writing but rolling back with small impact | Confirmation (quantity available) | Create/edit files, send drafts |
-| **High** | Writing and difficult to roll back, affecting external systems | Individual confirmation | Delete files, Git committee, API writing |
-| **Key** | Unreversible, compliance/funding/security | Take over or confirm on a case-by-case basis + audit | Database migration, refunds, deployment, change of authority |
+| **Low** | Read-only, no side effects, repeatable | No intervention | Reading files, searching code, generating text |
+| **Medium** | Writes are reversible and limited in scope | Confirmation, often batched | Creating or editing files, sending drafts |
+| **High** | Writes are hard to roll back or affect external systems | Item-by-item confirmation | Deleting files, Git commit, API writes |
+| **Critical** | Irreversible, or involves compliance, money, or security | Takeover, or item-by-item confirmation plus audit | Database migration, refund, deployment, permission changes |
 
-The hierarchy is not once and for all. The risk level of an operation changes with context:
+Risk level is not fixed forever. The same action can move between levels depending on context:
 
-- `delete_file` Remove the risk in the temporary file
-- `delete_file ` Delete ` ~/.ssh/` Key risks
-- `send_email` Send drafts to colleagues
-- `send_email` Group sent to 1,000 users
+- `delete_file` on a temporary file -> medium risk
+- `delete_file` under `~/.ssh/` -> critical risk
+- `send_email` of a draft to a teammate -> medium risk
+- `send_email` to 1,000 customers -> high risk
 
-The risk classification should therefore not be based solely on the name of the tool, but on the parameters and context.
+So risk classification cannot depend only on the tool name. It must consider parameters and context.
 
-### 7.4.2 Frequency control: Don't be too upset or too comfortable
+### 7.4.2 Frequency control: neither annoying nor careless
 
-The hardest thing about HITL design is not "what to ask," but "how often."
+The hardest part of HITL design is not "what should we ask?" It is "how often should we ask?"
 
-**Too often**: Human beings become "confirming robots". Each step points to confirmation that the user will soon develop a muscle memory — a "yes" without looking. HITL is nothing.
+**If you ask too often**, the human becomes a confirmation machine. Every step asks for approval, and the user quickly builds muscle memory: click "confirm" without reading. HITL becomes meaningless.
 
-**Too thin an effect**: Humans lose their sense of what Agent is doing. And when the problem was discovered, Agent had done ten irreversible operations.
+**If you ask too rarely**, the human loses awareness of what the Agent is doing. By the time a problem is noticed, the Agent may have already performed ten irreversible actions.
 
-Several strategies for frequency control:
+Several strategies help control frequency.
 
-**Strategy I: batch confirmation**
+**Strategy 1: batch confirmation**
 
 ```text
-❌ Individual confirmation:
-  "Confirm delete Access 20260501.log?" [Confirm.]
-  "Confirm Delete Error 20260515.log?" [Confirm.]
-  "Confirm delete debug 2026052.log?" [Confirm.]
-  …(12 Number of sessions
+Poor individual confirmations:
+  "Confirm deleting access_20260501.log?" [Confirm]
+  "Confirm deleting error_20260515.log?" [Confirm]
+  "Confirm deleting debug_20260520.log?" [Confirm]
+  ... 12 times
 
-✅ Batch confirmation:
-  "The following 12 files, totalling 156MB, will be deleted. Of these, 11 are .log files and 1 is .txt files.
-   [Confirm All] [Delete only.log files] [Individual confirmation] [Cancel]"
+Better batch confirmation:
+  "12 files will be deleted, freeing 156MB. 11 are .log files and 1 is .txt.
+   [Delete all] [Only delete .log files] [Review one by one] [Cancel]"
 ```
 
-**Strategy II: Building trust**
+**Strategy 2: trust accumulation**
 
-If the user confirms the same operation five times in a row, you can ask: "Do you trust me in the operation of the same file, and don't confirm it item by item?"
+If the user approves the same type of action five times in a row, ask: "Do you want to trust me with similar file operations and stop confirming them one by one?"
 
-**Strategy III: Summary retroactive confirmation**
+**Strategy 3: summary-based checkpointing**
 
-Not to confirm each step before implementation, but to provide a summary after implementation to allow users to confirm the overall direction:
+Instead of confirming every step before execution, provide a summary checkpoint after a phase:
 
 ```text
-"Previous phase completed: 8 relevant documents have been collected for a total of 32KB. Prepare for writing.
- [Go on.] [View List of Documents] [Reorientation]"
+"Previous phase complete: collected 8 relevant documents, 32KB total.
+Ready to move into the writing phase.
+ [Continue] [View document list] [Adjust direction]"
 ```
 
-**Strategy IV: Decline of trust based on session**
+**Strategy 4: session-based trust decay**
 
-In the same session, Agent's judgment of user preferences will be more accurate. But after the break-up, trust should be reset — because mandates may be different.
+Within one session, the Agent's understanding of user preferences usually becomes more accurate. Across sessions, trust should decay or reset because the task may have changed.
 
-### 7.4.3 Context: To enable humans to make quick judgements
+### 7.4.3 Context presentation: helping humans decide quickly
 
-When humans make HITL decisions, they also face a lack of information. You play a confirmation box: "Agent's gonna do a refund operation, confirm?" -- in that case, what do humans think?
+Humans also suffer from missing information when making HITL decisions. If a dialog only says, "Agent wants to execute refund. Confirm?" the human has no real basis for judgment.
 
-OK. HITL design gives a simplified but complete decision-making context when requesting human decision-making:
+A good HITL design gives a **concise but complete decision context**:
 
 ```text
-Agent Request for refund operation:
+Agent requests permission to issue a refund:
 
-▸ User: Zhang III (ID: 12847)
-▸ Order: ORD-20260629-0042
-▸ Amount:¥299.00(full)
-▸ Reason: User feedback "product function inconsistent with description"
-▸ User history: 2 years of registration, prior to 0 refund requests
-▸ Order status: paid, not delivered
+> User: Zhang San (ID: 12847)
+> Order: ORD-20260629-0042
+> Amount: ¥299.00 (full refund)
+> Reason: User says "product functionality does not match the description"
+> User history: registered for 2 years, 0 previous refund requests
+> Order status: paid, not shipped
 
-Agent Judgement: condition of refund is met (7 days without justification, no delivery)
+Agent judgment: eligible for refund under the 7-day no-reason policy because the order has not shipped.
 
-[Approval of refunds] [Refusal and reasons] [Change to manual processing]
+[Approve refund] [Reject and provide reason] [Escalate to human support]
 ```
 
 Key design principles:
 
-1. **Highlighted anomalies**: if "0 previous refund requests" becomes "5 previous refund requests", it should be highlighted in different colours/marks
-2. **Agent's judgement is based on transparency**: not only what Agent wants to do, but also why.
-3. **Provide context-related options**: not only yes/no, but also intermediate options such as "to manual processing"
+1. **Highlight anomalies.** If "0 previous refund requests" becomes "5 previous refund requests," the UI should make that stand out.
+2. **Make the Agent's reasoning visible.** Do not only tell the human what the Agent wants to do. Explain why the Agent reached that judgment.
+3. **Offer context-aware actions.** Do not limit the decision to yes or no. Include options such as "escalate to human support."
 
 ## 7.5 Learning from feedback
 
-HITL every intervention is marked once. Humans say "yes" or "no" and these signals are wasted if they are used only for current decision-making.
+Every HITL intervention is also a label. The human says "yes" or "no." If that signal is used only for the current decision, most of its value is wasted.
 
-Three levels of learning:
+There are three levels of learning.
 
-**Level 1: Immediate application (Always)**
+**Level 1: immediate application (always)**
 
-Human decisions affect the continuing direction of the current task. "No refunds" – Agent stopped the refund process and informed the user.
+The human decision changes the current task. "Reject refund" means the Agent stops the refund flow and tells the user accordingly.
 
-**Level 2: Prefer Update (in collaboration with Memoory)**
+**Level 2: preference update (with Memory)**
 
-When humans repeatedly confirm or reject the same operation, it updates memory:
-
-```text
-"User preference update: The user has confirmed the same operation three times in a row for the file cleanup operation under /tmp/logs.
-Next time, the frequency of confirmation can be reduced. "
-```
-
-**Level III: strategy adjustments (needs manual review)**
-
-Analyzing from HITL data: Which operations have too low pass rate (notation Agent)? Which operators are never rejected (may not need HITL)?
+When the human repeatedly approves or rejects similar actions, update Memory:
 
 ```text
-HITL Data analysis (last 30 days):
-- read_file Recognized: 120, pass rate 100% → Consider removing confirmation
-- delete_file Recognition: 45, pass rate 89% → Keep confirmation.
-- refund Recognition: eight, pass rate 50% → Inadequate identification and consideration of a takeover model
-- send_email Recognition: 30, pass rate 97% → Can be reduced to medium risk operation
+"User preference update: for cleanup operations under /tmp/logs, the user has approved
+similar actions 3 times in a row. Next time, reduce confirmation frequency and use
+batch confirmation."
 ```
 
-This analysis should not be implemented automatically — human beings should review and decide whether to adjust their strategies. The value of HITL data is that it makes policy adjustments sound, rather than the system itself.
+**Level 3: policy adjustment (requires human review)**
 
-## 7.6 Evolution course: from "all confirmed" to "precision intervention."
+Analyze HITL data: Which actions have low approval rates, suggesting the Agent's judgment is weak? Which actions are never rejected, suggesting HITL may no longer be needed?
 
-| Phase | What did you do? | Apply scene |
+```text
+HITL data analysis (last 30 days):
+- read_file confirmations: 120, approval rate 100% -> consider removing confirmation
+- delete_file confirmations: 45, approval rate 89% -> keep confirmation
+- refund confirmations: 8, approval rate 50% -> confirmation is not enough; consider takeover
+- send_email confirmations: 30, approval rate 97% -> may downgrade to medium risk
+```
+
+This analysis should not change policy automatically. Humans should review the data and decide whether to adjust the strategy. The value of HITL data is that it gives policy changes evidence, not that it lets the system rewrite its own rules.
+
+## 7.6 The evolution path: from "confirm everything" to precise intervention
+
+| Phase | What it does | Best fit |
 |---|---|---|
-| **V0: All hands** | All hard-coded high-risk operations are banned. After manual human execution, Agent continues. | Prototype, internal tools |
-| **V1: Critical operation confirmation** | Unified bomb confirmation box for writing (Yes/No) | First version with users |
-| **V2: Risk classification + batch confirmation** | Use different HITL modes by risk level, same operation supports batch confirmation | Users start to use frequently |
-| **V3: Context Presentation + Learning** | Confirm box shows the context of decision-making; rejected preferences are written in Memoory | User trust-building period |
-| **V4: Data-based strategy adjustments** | Adjust risk classification and HITL mode with HITL data | mature products, continuous optimization |
+| **V0: fully manual** | High-risk actions are hard-coded as forbidden. The human performs them manually, then the Agent continues. | Prototypes, internal tools |
+| **V1: confirmation for key actions** | All write actions show a simple yes/no confirmation dialog. | First version with real users |
+| **V2: risk levels plus batch confirmation** | Different HITL patterns are used by risk level. Similar actions can be confirmed in batches. | Users start using the product frequently |
+| **V3: context presentation plus learning** | Confirmation dialogs show decision context. Rejected preferences are written into Memory. | Trust-building stage |
+| **V4: data-driven policy adjustment** | HITL approval data is used to tune risk levels and intervention patterns. | Mature products with ongoing optimization |
 
-Most projects start with V1. V0 is too conservative (Agent can't do anything useful), V4 needs to have enough user volume and use data to make sense.
+Most projects can start at V1. V0 is usually too conservative because the Agent cannot do anything useful. V4 only makes sense once there is enough usage data.
 
-## 7.7 HITL 's five reverse modes
+## 7.7 Five HITL anti-patterns
 
-**Counter-model I: confirmed every step**
+**Anti-pattern 1: confirming every step**
 
-Click the confirmation box before all tools are called. Result: User clicked 15 times in 30 seconds, and didn't look. HITL is nothing. 
+Every tool call shows a confirmation dialog. The result: the user clicks "confirm" 15 times in 30 seconds and reads none of them. HITL becomes meaningless.
 
-**Correct practice**: intervention is limited to high-risk and critical operations. A low-risk operation allows it to be implemented automatically.
+**Better approach**: intervene only for high-risk and critical actions. Let low-risk actions run automatically.
 
-**Anti-model II: insufficient information on confirmation boxes**
+**Anti-pattern 2: confirmation without enough information**
 
 ```text
-"Agent To execute write file, confirm?"
+"Agent wants to execute write_file. Confirm?"
 ```
 
-Users do not know what to write, where to write, why, and what to do. This confirmation box does not give the user any basis for judgement.
+The user does not know what will be written, where it will be written, why it will be written, or what the impact is. This dialog gives no basis for judgment.
 
-**Correct practice**: A path to document, summary of changes, basis of judgement for Agent.
+**Better approach**: show the file path, a change summary, and the Agent's reasoning.
 
-**Counter-model III: HiTL as a security mechanism**
+**Anti-pattern 3: treating HITL as the security mechanism**
 
-Use the HITL to prevent Prompt Intervention or ultra vires operations. "Someone confirmed that no input verification was required."
+Using HITL to prevent prompt injection or unauthorized operations: "A human will confirm it anyway, so we do not need validation."
 
-**Correct practice**: HITL is a decision-making enhancement, not a complete security option. Security requires authority, verification, isolation, audit and Guardrails to work together. Humans also make mistakes -- the attacker can design the context in which humans tend to "confirm".
+**Better approach**: HITL is a decision-enhancement layer, not a complete security system. Security requires permissions, validation, isolation, audit logs, and Guardrails working together. Humans can also be tricked. An attacker can design context that makes "confirm" feel natural.
 
-**Counter-module IV: no timeout**
+**Anti-pattern 4: no timeout handling**
 
-Agent waits for humans to confirm that humans are going to meet. Agent's been waiting.
+The Agent waits for human confirmation. The human goes into a meeting. The Agent waits forever.
 
-**Correct practice**: set timeout. Overtime behaviour depends on operational risk - low-risk operations can continue automatically and high-risk operations should be terminated safely.
+**Better approach**: define timeouts. The timeout behavior depends on risk. Low-risk actions may continue automatically; high-risk actions should stop safely.
 
-**Anti-Model V: All users treated equally** New and senior users see the same frequency of confirmation.
+**Anti-pattern 5: treating all users the same**
 
-**Correct practice**: allows users to adjust the HITL level. The Developer Model can reduce the frequency of confirmation, the Security Model increases the frequency of confirmation. Let users themselves control the degree of autonomy they are willing to assume.
+New users and experienced users see the same confirmation frequency.
 
-## 7.8 When don't need HITL
+**Better approach**: let users adjust their HITL level. "Developer mode" can reduce confirmations. "Safe mode" can increase them. Users should control how much autonomy they are willing to grant.
 
-1. **Low risk Pure information type Agent**: Agent, which answers only questions, does not perform operations, does not have the risk of instrumentic side effects and usually does not need to add HITL before each response. If, however, the output affects high-risk decisions such as medical, legal, financial, security, compliance and so forth, there is still a need for manual audits or clear waivers.
-2. **read-only operation**: if all Agent's tools are read-only (reading files, searching, searching), there are no side effects. The HITL value is almost zero.
-3. **Reversible, low-impact personal operations**: Agent only for your own use and can roll back, without key, privacy, production system or external dispatch. The HITL can reduce the frequency, but it should not be tacitly released for "personal use".
-4. **There is a good automated validation**: the frequency of HITL can be significantly reduced if the tool is implemented with automated tests, lint, type checks as safety nets. Automatic validation is more stable in detectable nature than human confirmation, but is not a substitute for business intent, compliance judgement and user impact assessment.
+## 7.8 When HITL is not needed
 
-## Runable Example
+1. **Low-risk informational Agents**: an Agent that only answers questions and does not execute tools with side effects usually does not need HITL before every response. But if the output affects high-risk decisions in medicine, law, finance, security, or compliance, human review or a clear disclaimer is still needed.
+2. **Read-only operations**: if all tools are read-only, such as reading files, searching, or querying, there are no side effects. HITL adds almost no value.
+3. **Reversible, low-impact personal actions**: for a personal Agent where actions are reversible and do not touch secrets, privacy, production systems, or external communication, HITL frequency can be reduced. But "personal use" should not mean every action is automatically allowed.
+4. **Strong automated validation**: if actions are followed by automated tests, linting, or type checks, HITL frequency can be reduced significantly. Automated validation is more stable than human confirmation for properties that can be checked mechanically. It still cannot replace judgment about business intent, compliance, or user impact.
 
-After this chapter is completed, you can compare the local example of the running course 5 05-07 with the local example of Human-in-the-loop:
+## Chapter Summary
 
-- [Course 5 05-07 Human-in-the-load example](../examples/course-05-07-human-in-the-loop/README.md)
+HITL is not about making the Agent ask for permission at every step. It is about returning judgment to humans at the points where capability exceeds safe autonomous permission. The five core patterns are confirmation, clarification, takeover, review, and teaching feedback. Good HITL design depends on risk classification, frequency control, and context presentation. As the system matures, HITL should evolve from broad confirmations to precise interventions supported by feedback data.
 
-The example generates three scenarios around file cleansing, refund processing and release documents, with two versions of Python and Node.js demonstrating five HITL modes of intervention: confirmation, clarification, taking over, auditing and teaching feedback. You'll see the same. `delete_file` How the operation was determined to be medium, high or critical because of different pathways, reversibility and scope of impact; and how Agent presented consequences, anomalies, grounds for judgement and intermediate options when requesting human judgement.
+## Runnable Example
 
-Example also generated `hitl_audit.jsonl ` and ` hitl_memory.json` First, HITL decision-making itself should be audited rather than confined to bullet windows; and second, human auditing and correction can be converted into reuseable memory, such as "publishing checklist must include back-up steps for databases." This corresponds to the risk classification and context of chapter 7.4 and to feedback learning of 7.5.
+After finishing this chapter, run the local Human-in-the-loop example for Course Five 05-07:
 
-The example is teaching realization, not a complete production safety framework: risk assessment usage rules are achieved, refunds and database migrations do not call on external systems, only printing decision context, subsequent process branches and audit records; running requires manual choice of HITL decision-making, directly by Enter using default options to facilitate continuous observation of the full process. The real system still requires permission verification, tool segregation, input filtering, audit logs and Guardrails.
+- [Course Five 05-07 Human-in-the-loop Example](../examples/course-05-07-human-in-the-loop/README.md)
+
+The example covers three scenarios: file cleanup, refund handling, and release-document generation. It provides both Python and Node.js versions and demonstrates the five HITL patterns: confirmation, clarification, takeover, review, and teaching feedback. You will see how the same `delete_file` action can be classified as medium, high, or critical risk depending on path, reversibility, and impact. You will also see how an Agent should present consequences, anomalies, reasoning, and middle options when asking for human judgment.
+
+The example also generates `hitl_audit.jsonl` and `hitl_memory.json`. These files demonstrate two ideas. First, HITL decisions should be audited instead of existing only as transient dialogs. Second, human review and correction can become reusable Memory, such as "release checklists must include a database backup step." This maps to the risk classification and context-presentation ideas in 7.4, and to feedback learning in 7.5.
+
+The example is a teaching implementation, not a full production safety framework. Risk assessment is rule-based. Refunds and database migrations do not call external systems. The scripts only print decision context, subsequent workflow branches, and audit records. You must manually choose HITL decisions while running the example; pressing Enter uses the default option so you can observe the full flow continuously. A real system still needs permission checks, tool isolation, input validation, audit logs, and Guardrails working together.
 
 ```bash
-# Python Version
+# Python version
 cd examples/course-05-07-human-in-the-loop/python
 python3 hitl_demo.py
 python3 -m unittest test_hitl_demo.py
 
-# Node.js Version
+# Node.js version
 cd examples/course-05-07-human-in-the-loop/nodejs
 npm start
 ```
