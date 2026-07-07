@@ -44,7 +44,6 @@ Go back to 1.1 that knowledge assistant. You spent 20 minutes telling it:
 
 ```text
 以后写技术文章，先给我大纲确认，再展开正文。语气直接，不要营销化。
-
 ```
 
 The next day you open a new session: "Do me a technical article on Agent Memoory." It published a marketing article that started with "In this age of AI"... without giving you an outline. You're staring at the screen: it's all in vain yesterday.
@@ -105,7 +104,6 @@ Context（上下文）   —— 秒/分钟级    —— 每次模型调用时注
 State（状态）       —— 分钟/小时级  —— 任务执行期间保持       —— 任务结束清理
 History（历史）     —— 小时/天级    —— 会话期间累积          —— 会话结束可摘要
 Memory（记忆）      —— 天/月/年级   —— 跨会话独立存储        —— 用户主动管理
-
 ```
 
 Context and State are "in progress" messages, History are "just happened" messages, and the long-term memory in this chapter is "work in progress" messages. The blurring of the borders between the four is the first reason for the Memoory design error -- to save State when it's long, it's dead after the mission; to save History when it's long, it's contaminated by last month's chat. **The long-term Memory entry threshold should be that this message remains valid and meaningful in the new session.**
@@ -131,7 +129,6 @@ Agent：（整理了当天讨论的三个要点）
 
 用户：我们公司下个月的发布计划是……（省略 200 字）                              ← ⑤
 Agent：明白了，这是一个临时计划。
-
 ```
 
 Now, one by one:
@@ -156,7 +153,6 @@ Now, one by one:
     "company_release_plan": "下个月发布……"           // ❌ 已过期但仍在召回
   }
 }
-
 ```
 
 A month later, the user asked, "Do me a Python data analysis article." `language: TypeScript ` and ` writing_style: 先大纲`— Then Agent writes the Python article in the TypeScript example. This is the consequence **of not categorizing the full volume: noise memory contaminates the current task.** ### 3.3.3 At least three labels for a memory
@@ -220,7 +216,6 @@ Memoory's design can be broken down into five pieces:
   -> 存储
   -> 召回
   -> 更新 / 遗忘
-
 ```
 
 But saying "five steps" is too abstract. Next, we follow the knowledge assistants — identifying candidate memories from genuine conversations, making writing decisions, storing them, recalling them in new sessions, finally processing updates and forgetting them. Each step is demonstrated with specific data.
@@ -342,7 +337,6 @@ def identify_memory_candidates(
             })
 
     return candidates
-
 ```
 
 **Run the session session with 3.3.2** and see the output:
@@ -382,7 +376,6 @@ candidates = identify_memory_candidates(
 #     "expires_at": None
 #   }
 # ]
-
 ```
 
 Note that three candidates are identified here -- one word contains three independent preferences. The words "advertisement" and "not marketing" are the same, but they do not have to have the same level of storage. Product-level systems can combine them into a composite preference, with examples of courses to make conflict detection and category particle size more visible and to break them into multiple fine particle size preferences.
@@ -436,7 +429,6 @@ def should_remember(candidate: dict, context: dict) -> tuple[bool, str]:
                 )
 
     return True, "通过所有守卫"
-
 ```
 
 **Decision-making with 3.4.2 candidate 3**:
@@ -459,7 +451,6 @@ def should_remember(candidate: dict, context: dict) -> tuple[bool, str]:
 候选 3: "不要营销化"
   → 与候选 1、2 可以同时生效，不是冲突
   → 决策: ✅ 写入，category = writing_tone 或 writing_style
-
 ```
 
 The eventual inclusion of several articles was decided not by the same sentence, but by subsequent recall and conflict management. The empirical approach is that if the two preferences take effect together, it will be easier to manage to open storage; if they always appear as a whole, it will be simpler to merge into a composite preference. The example of the course chooses to untangle it so that you can see how the size of the crop affects the conflict replacement.
@@ -491,7 +482,6 @@ The production system also distinguishes between **requested heat path** and **b
 后台维护路径：
   会话日志/候选记忆 -> 脱敏 -> 去重 -> 冲突检测 -> 用户确认/自动写入
                     -> 巩固摘要 -> 质量评测 -> 审计记录
-
 ```
 
 Empirical principles: **The call for response that affects the current response is low-delayed, interpretable; references to behaviour that affects the long term should be conservative and auditable.** Visible user command ( "Remember my future use of Python") can be effective immediately in the heat path, but infer preferences, lessons learned, cross-incident consolidation are more appropriate for backstage heterometry. This would not undermine the current mandate even if the back-offices failed; and if the current answers were successful, the unverified noise would not be translated directly into long-term behavioural constraints. **A detail that is often overlooked**: to write in decision-making depends not only on whether "this should or should not be written" but also on "repeated or contradicted existing memory". If the user last said, "The Example Code is TypeScript", this time, "Replace with Python Write the Example", the new writing should **replace** old memories instead of adding a new one. The combination of the two conflicting preferences leads to conflicting signals to the model when recalled, which is worse than the absence of memory. **Category Particle Trap for Conflict Testing**: if Category is too thick (e.g. only) `writing_style ` The result is that the complementary preferences of "writing first" and "not marketing" have been defined as conflicting - they are identical and different in content, and conflict detection would mark one of them as supersed. The right thing to do is to use more finer pellets.` writing_workflow ` vs ` writing_tone` To allow conflict detection to take effect only in terms of the true mutually exclusive dimensions. **Empirical rule: if two memories can take effect at the same time in the same mission, they should not share the same case.** The common failures in writing about decision-making are focused on guard failures and conflict oversight:
@@ -518,7 +508,6 @@ In the case of knowledge assistants, different memory types are suitable for dif
 项目约定 "API 路径统一用 /api/v1/"    → 如果是少量稳定约定，用 profile/key-value；如果是大量项目事实，用语义召回
 任务经验 "上次整理 50 篇文档时先建索引再逐篇处理，效率高 3 倍" → 语义召回
 当前状态 "正在整理文档目录，完成 23/50" → 精确 key-value，任务结束后清理
-
 ```
 
 So the storage choice is not so simple as "key-value, fact vector," but how this memory will be used in the future:
@@ -597,7 +586,6 @@ class AgentMemory:
     def decay():
         # 删除过期记忆；标记 90 天未访问的记忆为 stale
         # 每次会话开始时调用
-
 ```
 
 **Core design decision quick check:**
@@ -637,7 +625,6 @@ The decision-making of the above table is in storage, and a complete memory reco
     {"action": "recall", "timestamp": "2026-06-25T09:05:00", "task": "写 Agent Memory 文章"}
   ]
 }
-
 ```
 
 Note the use of several fields: `category ` (b) Determination of the particle size of conflict detection (the new memory of the Category triggers a replacement check); ` memory_class ` (c) Semantic/Episode/Procedural (corresponding to 3.3.3); ` scope ` (User/Project/Task/Team) determines segregation of competence; ` tier ` (Core/Archival) decides whether to automatically insert context; ` status ` Control of participation in recall (pending candidate/supersed not); ` last_accessed_at ` and ` access_count ` Driver decay and sequencing; ` supersedes ` / ` superseded_by ` Maintenance of the version chain to ensure that old preferences are auditable; ` audit_trail` Record critical operations are the basis for debugging and user visibility.
@@ -682,7 +669,6 @@ recalled = memory.recall(current_task, limit=5)
 # │   created_at: 2026-06-23T11:00                                   │
 # │   影响：Agent 知道这个工作流程过去有效                             │
 # └──────────────────────────────────────────────────────────────────┘
-
 ```
 
 Now Agent received these memories in the context. Prompt:
@@ -706,7 +692,6 @@ Now Agent received these memories in the context. Prompt:
  [用户问题]
  帮我写一篇 Agent Memory 的技术文章。"
 → Agent 先输出大纲，语气直接，等待确认
-
 ```
 
 The most important of this reminder is not format, but **permission level**: Memoory is a user archive and historical reference, not a system command. It should have a lower priority than the system/developer directive and below the explicit requirements of current users. This time, when the user says, "The article is given directly to the body, without an outline", the current request should cover the old writing preferences; when it comes to vouchers, payments, changes in privileges, it cannot serve as a basis for security decisions. **The quality of recall depends on three factors**:
@@ -755,7 +740,6 @@ Memory 系统处理流程：
    → 返回 "conflict_replacing: 与已有记忆冲突，将替换"
 3. write → 新偏好写入（preference_python_abc123），旧偏好被标记 superseded
 4. 旧偏好不删除，降级为历史版本（可审计但不召回）
-
 ```
 
 ```python
@@ -770,7 +754,6 @@ result = memory.write({
 
 # result: {"status": "written", "id": "mem_def456"}
 # 旧 TS 偏好的 status 变为 "superseded"，不再被 recall 返回
-
 ```
 
 **Scene II: Expired clean-up**
@@ -786,7 +769,6 @@ stats = memory.decay()
 # stale 标记不删除记忆，只是在召回时降低分数或提示用户确认
 # 用户下次会话时看到提示：
 # "你有一条写作偏好久未使用（'文章开头用故事引入'），是否仍然需要？"
-
 ```
 
 **Three levels of forgotten mechanisms**:
@@ -809,7 +791,6 @@ Assuming the knowledge assistant has saved three epsodic logs:
 6月23日：用户写 Agent Memory 文章，要求先给大纲确认。
 6月24日：用户写 RAG 文章，再次要求先给大纲确认。
 6月26日：用户写 Context Engineering 文章，直接指出"还是先大纲，不要直接写正文"。
-
 ```
 
 If the originals of each recall were inserted into the context, the model would see a lot of duplicate information and it would be difficult for users to manage. A better approach would be to consolidate the backstage:
@@ -822,7 +803,6 @@ If the originals of each recall were inserted into the context, the model would 
   -> 冲突检查：是否已有写作流程偏好？
   -> 用户确认或自动升级：active_memory
   -> 原始事件保留为 audit / evidence，不默认召回
-
 ```
 
 The consolidated record can be as follows:
@@ -839,7 +819,6 @@ The consolidated record can be as follows:
   "confidence": 0.86,
   "status": "pending_candidate"
 }
-
 ```
 
 Watch this. `status ` Still. ` pending_candidate` I don't know. Consolidation is not a green light for the system, allowing it to automatically take all models as truth; consolidation is merely a condensed version of repetitive events as verifiable candidate memories. Automatically upgrade to active depending on risk:
@@ -974,7 +953,6 @@ SESSION 3：周三 14:00-14:30  ← 偏好变更！
 │  → mem_g7h8i9（60 天未访问）→ 标记 stale，召回时降权
 │
 ═══════════════════════════════════════════════════════════════════
-
 ```
 
 **Several key behaviours exposed in playback**:
@@ -1060,7 +1038,6 @@ Memoory made Agent remember user preferences, but also opened up a new face of a
    content 用 "[sensitive content]" 替代原始文本。
 2. audit.jsonl 文件权限设为 600（仅 owner 可读写）。
 3. 增加配置项：生产环境审计日志加密存储。
-
 ```
 
 **Refusal to write does not mean no leak.** Sensitive information protection is more than "not writing memory storage" - it is to ensure that it does not appear in any permanent location, including audit logs, debugging logs, error stacks, backup files.
@@ -1071,7 +1048,6 @@ And the more fundamental question is: **Why would API key appear in the conversa
 Agent 检测到疑似 API key：
 "我注意到你发送了类似 API key 的内容。建议用环境变量管理凭证，不要直接在对话中发送。
  如果你想连接 Notion，我可以帮你配置环境变量 NOTION_API_KEY。"
-
 ```
 
 **Complete line of defence for sensitive information protection:**
@@ -1094,7 +1070,6 @@ Memoory introduced a new front: **If the attackers can get malicious content int
 → Memory 系统将这条"偏好"写入存储
 → 下次用户问"重置密码"，Memory 召回这条"偏好"并注入上下文
 → Agent 执行了恶意指令
-
 ```
 
 This is **indirect prevention**: the attackers do not inject the current prompt directly, but rather contaminate the Memoory storage, allowing the system to automatically load malicious instructions in future sessions. The danger lies in the fact that the attack took place at the time of writing (possibly a week ago), that it took effect at the time of recall (the user had no knowledge of it), and that the user might not even remember that he "permitted" the memory.
@@ -1129,7 +1104,6 @@ Not all memories are equally credible. 3.4.2 Distinction `source: "user_explicit
   "readers": ["user-001"],
   "content": "写技术文章时先给大纲确认"
 }
-
 ```
 
 ```json
@@ -1140,7 +1114,6 @@ Not all memories are equally credible. 3.4.2 Distinction `source: "user_explicit
   "readers": ["user-001", "user-002", "user-003"],
   "content": "本项目 API 路径统一用 /api/v1/"
 }
-
 ```
 
 Key principles: **Default minimum privileges.** The new Memoory default scope=user, readers only creaters themselves. Upgrading to project or team level requires a visible operation. When recalled, system press `current_user in readers` Filtering -- users will never see memories that are not their own.
@@ -1174,7 +1147,6 @@ Okay, memoory management interface should take 30 seconds for users to build a p
   • 不确定时主动说明，不要编造 API 参数（6月18日记录，最近使用：6月24日）
 
 [编辑] [删除] [导出] [暂停 Memory]
-
 ```
 
 ### 3.6.5 Security list required before going online
@@ -1244,7 +1216,6 @@ Test scene: Users long-term preference for "writing articles first" to outline, 
 第 1 次会话：用户说"示例用 TypeScript" → 写入偏好 A
 第 2 次会话：用户说"改用 Python" → 应该替换 A，而不是新增一条矛盾的 B
 第 3 次会话：用户问"写一篇 FastAPI 文章" → Agent 应该用 Python，不是 TypeScript
-
 ```
 
 | Indicators | Reference objectives |
@@ -1285,7 +1256,6 @@ A typical knowledge assistant A/B assessment results:
 - 平均任务时间：8 分钟
 
 → Memory 减少了 86% 的重复说明，提升了 2.7 倍首次正确率，节省了 33% 的任务时间。
-
 ```
 
 Note, however, that the results of the A/B test and the system indicators of 1-6 dimensions need to be mutually validated. If the system indicator (written/recalled/sorted/excessive personalization/conflict/privileged) is fully positive but the return on the mission is negative - the description of the elements of Memoory itself may be problematic (e.g. all the noise is remembered or the manner in which the recall interferes with model reasoning). The seven dimensions of the assessment are a whole: the system indicator is a "necessary condition" and the return on the mission is a "full condition".
@@ -1322,7 +1292,6 @@ Agent 看到两条矛盾偏好，选了排在前面的那条。
 评测补充指标：
 - 冲突遗留率：存在两条以上同 category 的 active 记忆的比例 → 目标：0
 - 新旧偏好排序正确率：当存在新旧矛盾偏好时，新偏好是否排在前面 → 目标：1.0
-
 ```
 
 **Case II: Inclusion of normal indicators but temporary containment of long-term behaviour**
@@ -1353,7 +1322,6 @@ identify 阶段正确识别了"这次"为临时约束（type=temporary），
 - 临时约束残留率：type=temporary 但未在 expires_at 后清理的比例 → 目标：0
 - 写入 pipeline 旁路率：绕过 should_remember 的 write() 调用次数 → 目标：0
 - type 字段保留率：写入后的 type 与识别阶段一致的比例 → 目标：1.0
-
 ```
 
 **Common lessons from two cases**: System-level aggregation indicators (accuracy, coverage) may be all normal, but user experience is already poor. The assessment cannot be based solely on aggregation — there is a need to set specific tests for known failure patterns so that indicators reflect the problems actually felt by users.
@@ -1389,7 +1357,6 @@ A practical judgment:
 ```text
 如果系统只需要完成当前任务，优先保存任务状态。
 如果系统需要跨任务理解用户或项目，才考虑长期 Memory。
-
 ```
 
 **There is also an easy-to-neglected dimension of judgement**: user experience cost of Memoory. If the user doesn't know what the system remembers, why Agent answers like this, how to correct the wrong memory -- then Memoory may be more confusing than it is. Before introducing Memoory, ask yourself: Can users visualize, understand and manage these memories? Is the system safely handling sensitive information, power segregation and risk prevention? Do you have any way to assess whether memory's helping or causing trouble?
@@ -1417,7 +1384,6 @@ Python：
 ```bash
 cd examples/course-05-03-memory/python
 python3 memory_demo.py --auto
-
 ```
 
 Node.js：
@@ -1425,7 +1391,6 @@ Node.js：
 ```bash
 cd examples/course-05-03-memory/nodejs
 npm run auto
-
 ```
 
 > **Chapter IV Review.** You now have four perspectives on Agent: Site Enhancement (Chapter 1) defines what additional capabilities Agent needs in multiple rounds of interaction; RAG (Chapter 2) solves "what the model doesn't know to look for information"; and Memory (Chapter) solves "state continuity of cross-conferences" and the attendant safety and assessment problems. Agent, however, faced complex tasks with one more unresolved issue —**how to organize the sequence of multi-step tasks**. That's the next chapter Planning to answer.

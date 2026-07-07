@@ -6,7 +6,6 @@ Lesson 3 explains the smallest Agent closed ring:
 
 ```text
 Agent = LLM 决策 + 工具/环境交互 + 状态管理 + 循环控制
-
 ```
 
 Course IV goes deep into the key links between "decision-making" and "implementation": **Tools/environment interface**.
@@ -24,7 +23,6 @@ These problems are not caused by the lack of models. They are rooted in: **The t
 LLM Decision → Tool Selection → Parameter Generation
     → Permission Check → Tool Execution
     → Observation / Feedback → State Update
-
 ```
 
 Each step of the chain is likely to fail, and each step requires a corresponding mechanism. The goal of course IV is not to give you "access to more tools" but to understand how to use them as an optional, implementable, manageable, reusable, auditable **system mechanism**.
@@ -176,7 +174,6 @@ TOOL_READ_FILE = {
         }
     }
 }
-
 ```
 
 Design elements:
@@ -222,7 +219,6 @@ GOOD_TOOL = {
         "required": ["content"]
     }
 }
-
 ```
 
 ### 2.3 Return value structure and error structure
@@ -261,7 +257,6 @@ class ToolResult:
                 "suggested_action": suggested_action,
             }
         )
-
 ```
 
 Core value of structured return: as seen in model `error.code == "file_not_found" ` and ` suggested_action`, so you can just give the next step of a targeted decision, instead of getting a vague "failed" and start guessing.
@@ -294,7 +289,6 @@ The tool selection essentially answers three questions at one decision point:
 
 ```text
 什么时候用工具 → 用哪个工具 → 参数怎么填
-
 ```
 
 Any one of these three steps is wrong, and the tool will fail. And the root cause of the error is often not "no model" but tool definition, context or route design.
@@ -303,7 +297,6 @@ For example, users say:
 
 ```text
 请总结 notes.md 的内容。
-
 ```
 
 Correct behaviour and possible errors:
@@ -314,7 +307,6 @@ Correct behaviour and possible errors:
 错误2：search_web("notes.md")              ← 选错工具（边界混淆）
 错误3：read_file("note.md")               ← 参数填错（少了一个 s）
 错误4：read_file 成功后再次 read_file     ← 重复调用（缺进展判断）
-
 ```
 
 ### 3.2 Three route methods
@@ -325,7 +317,6 @@ The problem is not just the wrong model. The more tools, the more they describe 
 
 ```text
 系统应该让模型在什么范围内做决策？
-
 ```
 
 There are usually three ways to achieve the choice of tools, the core difference being "who has the right to make decisions". **Modalities I: Model ownership**. Inserts a list of tools into the context to allow the model to determine which to call and which to call. **Mode II: Rules route**. The tool is determined by code based on input characteristics. **Mode III: Mixed route**. The rules reduce the pool of candidates first, and models are selected in the pool.
@@ -349,7 +340,6 @@ In the practice of Claude Code/Agent Skills, there is a useful idea: **progressi
 先暴露能力索引。
 模型判断相关后，再加载具体说明。
 真正要执行时，再读取深层文档、示例或脚本。
-
 ```
 
 Putting this idea into a tool mechanism can be divided into three layers:
@@ -392,7 +382,6 @@ A specific example:
 - search_web（用户指定的是本地文件）
 - send_email（无关且有外部副作用）
 - deploy_project（无关且高风险）
-
 ```
 
 This is when the model is not freely chosen among dozens of tools, but is focused on a very small candidate: "The path is clear, so call directly." `read_file` 。"
@@ -424,7 +413,6 @@ A specific debugging case:
 修复：
 - read_file 描述中加上："当用户指定了具体文件名时使用此工具，例如'读取 notes.md'。"
 - search_web 描述中加上："当用户要求搜索广泛信息、最新资讯时使用。不要用于读取用户指定的本地文件。"
-
 ```
 
 Principles for the selection of debugging tools: **Discrete the problem of the definition of tools before adjusting Prompt and finally doubt the capacity of the model.** ---
@@ -444,7 +432,6 @@ execute_tool_call(tool_name, arguments, tools, permissions, logger):
     # 3. 检查权限（deny 优先，默认拒绝）→ 不通过则返回 permission_denied
     # 4. 记录审计日志（谁、什么工具、什么参数、什么时间）
     # 5. 执行工具 → 成功返回结果，异常返回结构化错误（含 retryable 标记）
-
 ```
 
 This is the concrete expression of the core principles of Curriculum III at the tool level: **Model decision-making, Runtime implementation.** The model should not have the opportunity to bypass the permission check, nor should it decide for itself that "not to read the document."
@@ -460,7 +447,6 @@ validate_params(tool_name, arguments, tools):
     # 3. 遍历 arguments → 检查类型匹配（integer 不能传 string）
     #                    → 检查 enum 约束（值必须在允许范围内）
     # 4. 全部通过返回 None，任何失败返回结构化错误
-
 ```
 
 The implementation of tools also requires time-out and retry protection. Core model:
@@ -476,7 +462,6 @@ query_database(sql) → 只读查询，幂等 → 安全重试
 
 @timeout(10s)
 send_email(to, subject, body) → 非幂等 → 不加 retry，防止重复发送
-
 ```
 
 Key findings of the re-test strategy: **Is this operation consistent?** Read the file → to try again. Check the database (read-only) and try again. Sending an email can not simply retry (possibly repeat). The creation of an order cannot simply be repeated (possibly double deduction).
@@ -501,7 +486,6 @@ Compare two errors to return:
     "suggested_action": "请选择 workspace 目录下的文件重试"
   }
 }
-
 ```
 
 Structural error contains at least five fields: error code (%2) `code ` ), readable information (` message ` Whether to try again () ` retryable ` ), recommend next steps ( ` suggested_action ` ) Whether user intervention is required ( ` needs_user` I don't know. These five fields allow the model to make valid judgements in the next round, rather than making wild speculations about the word "failed".
@@ -530,7 +514,6 @@ Observation:
 
 ```text
 Error: failed
-
 ```
 
 The model gets this, and it doesn't know if the file doesn't exist, it doesn't have enough privileges, the disk is full or the network is broken. It can only guess. Wrong guess, wrong next move, wrong user sees Agent in gibberish. **Observation:**
@@ -545,7 +528,6 @@ The model gets this, and it doesn't know if the file doesn't exist, it doesn't h
     "suggested_action": "请确认文件路径是否正确，或使用 list_files 查看 workspace 中的可用文件"
   }
 }
-
 ```
 
 When the model gets this, it makes a reasonable judgment immediately:
@@ -556,7 +538,6 @@ Action: list_files()
 Observation: ["notes.txt", "readme.md", "src/"]
 Thought: 没有 notes.md，但有一个 notes.txt，可能是用户记错了文件名。
 Action: ask_user("没有找到 notes.md，但发现了 notes.txt。您是指这个文件吗？")
-
 ```
 
 This contrast illustrates the central design principle of Observation: **Observation is not reporting on what happened, but is providing the basis for the next round of decision-making.** It should allow models to judge what to do next without speculation.
@@ -602,7 +583,6 @@ Risk classification of tools first:
   L3 WRITE_LOW       — 写入草稿、生成本地临时文件    → confirm（执行前确认）
   L4 WRITE_HIGH      — 修改用户文件、更新数据库记录  → confirm
   L5 DANGEROUS       — 删除、支付、发布、线上配置    → deny（默认禁止）
-
 ```
 
 Risk classification is not once and for all. It will also be judged in relation to operational objects (delegate temporary files vs delete production data), scope of operations (modify a field vs modify the entire table), and user authorization levels.
@@ -614,7 +594,6 @@ There are only two core principles of competence design:
 ```text
 Deny-first：默认拒绝，明确允许。
 最小权限：只给 Agent 当前任务所需的最小工具、最小数据、最小作用域。
-
 ```
 
 Code realization:
@@ -642,7 +621,6 @@ checker.allow("write_file", path in "workspace/output/")
 checker.deny("delete_file")               # 全面禁止
 checker.deny("send_email")
 # 未列出的工具 → 默认拒绝
-
 ```
 
 The main point of this design is that **deny has priority over allow, and non-listed tools are defaulted.** This clears the security boundaries of the access strategy -- you don't have to worry about "if there's a dangerous tool missing," because automatics that are not listed are useless.
@@ -684,7 +662,6 @@ The audit log is the basis for the tool to call security - there's no log, and y
     "error": null
   }
 }
-
 ```
 
 Each of the audit logs answers: who, when, in which task, what tools to adjust, what parameters, the results of the authority check, who confirmed, and the results of the implementation. This is not only a compliance requirement, but also a basis for debugging and user trust.
@@ -730,7 +707,6 @@ handle_user_feedback(state, feedback):
         # 用户修改了参数 → 用修改后的参数重新执行
         state.pending_action = {tool, arguments: modified_args}
     return state
-
 ```
 
 If user feedback does not enter the state, the next round of Agent will make the same decision based on the old context and triggers the same confirmation again — the user will feel that he or she is repeatedly drawn to a system without memory.
@@ -794,7 +770,6 @@ def code_review_template(diff: str) -> str:
 # 启动：两种传输方式
 server.run(transport="stdio")   # 本地子进程，适合开发调试
 server.run(transport="http")    # HTTP + SSE，适合生产环境、多 Agent 共享
-
 ```
 
 This example shows the full picture of MCP Server. Note the choice of two modes of transmission:
@@ -847,7 +822,6 @@ provider.connect_http("weather", "http://tools.internal:8090/sse")
 
 # 所有工具合并为统一 Function Calling Schema → 模型看到的是统一列表
 all_tools = {provider.tools, local_tools}
-
 ```
 
 This Clit example shows the complete way MCP works in Agent: **Two modes of transmission:**
@@ -886,7 +860,6 @@ Suppose you found out that Agent was always following this pattern in the code r
 4. 检查测试覆盖是否足够
 5. 如果改动涉及关键路径，运行相关测试
 6. 按严重程度组织 review 输出
-
 ```
 
 Every mission model has to re-think these steps, waste Token, and occasionally miss the steps. That is the problem that Skill is going to solve: **Stable combination of tools and step experiences are packaged into reusable capability modules.** Tool addresses "what can you do?" (reading files, running tests). Skill solves "how to do a type of job" (code review, document summary, data analysis). The relationship is like the screwdriver and the furniture assembly instructions. The former are tools, the latter tell you what tools, what sequences, how to deal with problems.
@@ -920,7 +893,6 @@ CODE_REVIEW_SKILL = {
         - 不在无 git 仓库的目录使用
         - 不用于审查二进制文件
 }
-
 ```
 
 Skill is not a fixed process - the model can determine whether the recommended steps are fully followed or adjusted to the context. The key difference between this and Workflow is that Workflow is "you have to go in this order," and Skyll is "you should go in this way, but you can judge if you need to adjust."

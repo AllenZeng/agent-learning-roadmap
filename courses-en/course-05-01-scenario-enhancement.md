@@ -13,7 +13,6 @@ This course does not start with conceptual terms but begins with problems. Each 
 ```text
 问题代入（怎么出问题的）→ 技术背景（这个能力怎么来的）→ 思考（设计者当时在想什么）
 → 方案（核心链路 + 代码骨架）→ 迭代路径（从最小版本到生产级）→ 判断边界（什么时候别用）
-
 ```
 
 After school, you don't have to do all seven types of abilities, but you should be able to judge when you face a new scene:
@@ -109,7 +108,6 @@ The seven categories of capacity corresponding to the above seven issues are nat
 │  四者关系：Planning 规划行动、Reflection 根据反馈调整行动、HITL   │
 │  约束行动（边界）、Multi-Agent 扩展行动（规模）。                 │
 └─────────────────────────────────────────────────────────────┘
-
 ```
 
 Why do you make this distinction? Two reasons: **First, introduction order.** In real projects, you usually solve problems of information and then behavior. A person who doesn't even have a clear vision, and you've given it a complicated Planning model for nothing. It did the right task on the wrong message, and the result was wrong. The error clips that RAG retrieves, the outdated preferences recalled by Memory, the unorganized confusion context - the problem of these information dimensions will be magnified by the complex layout of Planning and Multi-Agent. **Second, positioning issues.** When Agent behaves badly, it is a question of information or behaviour. The model answers are inaccurate — are the results of the search not correct (information questions) or are the tasks broken down wrong (behaviour questions)? Agent deletes the document that should not be deleted -- is it without HITL confirmation, or is it the wrong file classification in Memoory? Bringing the problem to the right dimensions will lead to the right direction.

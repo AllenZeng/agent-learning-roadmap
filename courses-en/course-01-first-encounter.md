@@ -193,7 +193,6 @@ Don't ask first, "What technology does it use?" Let's start with the question of
 
 ```text
 这个任务，适不适合交给一个会自己判断下一步的系统？
-
 ```
 
 The same product may present a completely different picture in different missions. An Agent is very strong in writing codes, and may be subject to privileges and payment restrictions when ordering tickets; a search type Agent is well suited for sorting, but not necessarily for modifying your local files. So course one is not about ranking the product, but training you to judge whether the mission and product competencies match.

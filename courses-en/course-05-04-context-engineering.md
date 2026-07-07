@@ -82,7 +82,6 @@ Take a step back and figure out a fundamental question: **What can the model see
 模型不知道上下文之外有任何东西。
 模型不会"想起来"你上次说过什么（除非在上下文里）。
 模型不会"主动去查"什么（除非它决定调用工具，而工具结果又回到上下文里）。
-
 ```
 
 But there's a key distinction, and many beginners will ignore: **The current step of the model can only see the context directly, but the full view of the Agent system is much more than the context.** Agent can also expand its indirect vision by:
@@ -103,7 +102,6 @@ Memory 负责"记什么" ──→ 信息生产者
 工具负责"执行什么"  ──→ 信息生产者（工具结果也是上下文的一部分）
 
 Context Engineering 负责"怎么组织这些生产者的产出" ──→ 信息组织者
-
 ```
 
 Without the organizers, the more the producers, the more messy they are. It's not an issue of efficiency, it's a question of correctness — the model will really “not see” the key information in the context.
@@ -124,7 +122,6 @@ V3（接入 Planning）：
   上下文 = System Prompt + 执行计划 + Memory 召回 + RAG 片段 + 用户消息 + 历史消息 + 工具结果
 
 每一步都在往上下文里加东西。如果不加组织，V3 不是更强的 Agent，而是更混乱的 Agent。
-
 ```
 
 So the core theme of Context Engineering is not "Whether or not to put something in the context," but: **At this stage, what information has to go in, what information has to go back, what information has to go back, what information has to be left outside on demand, what information should be cleaned up, what information should be put back on a cache in a stable prefix — and how these decisions are verified.**
@@ -172,7 +169,6 @@ Before we talk about "how to manage," let's see what to manage. At each step of 
 │  → 启动子 Agent                                      │
 │                                                     │
 └─────────────────────────────────────────────────────┘
-
 ```
 
 The core message of this picture is: **Context Engineering is not "how token" but Agent's running information dispatch system.** You're not managing a static Prompt template, you're managing a dynamic flow of information... Each source is producing information on a continuous basis and you need a movement control layer to determine which enters the model, which stays outside and which needs to be compressed or cached.
@@ -206,7 +202,6 @@ message[6]: 历史消息 1
 ……
 模型看到的是一大坨文本，无法区分哪些是指令、哪些是参考、哪些是历史。
 当上下文变长，"Lost in the Middle"效应会让中间的信息被严重忽略。
-
 ```
 
 **Better practice:**
@@ -239,7 +234,6 @@ message[6]: 历史消息 1
 │ Layer 8: 外部状态索引（不进入上下文，但模型知道可以获取）       │  ← 不注入
 │ - 完整文件路径、数据库行 ID、日志文件位置                     │
 └─────────────────────────────────────────────────────────┘
-
 ```
 
 Each layer is separated by clear markers to help the model's attention mechanism locate information:
@@ -302,7 +296,6 @@ Each layer is separated by clear markers to help the model's attention mechanism
 - 完整日志文件：/tmp/task-log-20260629.txt (8500 tokens)
 - 完整检索结果：12 条匹配的完整内容
 </external_index>
-
 ```
 
 The core value of this tiered approach is **to reduce the probability that key information will be inundated by noise.** Research and practice have shown that intermediate information in the context is more likely to be overlooked, which is often referred to as the "lost in the Middle" effect. Placing behavioral restraints at the beginning, following the current task, at the end of the external index is not always the best formula, but rather a sound engineering inspiration: let the model see the rules and objectives first, and finally see the entry point where information can continue to be obtained.
@@ -372,7 +365,6 @@ Core principles selected: **Sorted according to "Model decision-making dependenc
 - System Prompt 的核心约束（安全规则、输出格式、角色定义）
 - 用户当前消息
 - 当前任务的执行计划和进度
-
 ```
 
 There is an important design option here: **cropping logic should be placed "before the context is inserted" rather than "after the model has read the context".** Once the context has entered the attention window of the model, costing and attention dilution have already occurred. The choice before injection is a proactive management of the Token budget, not an ex post passivity.
@@ -415,7 +407,6 @@ message[21]: 助手：[工具调用] 执行发布脚本……
 
 到第 20 轮，上下文已经超过 50000 tokens。
 模型开始"忘记"用户的发布要求，忽略 README 的约束，甚至重复已完成的步骤。
-
 ```
 
 **Better practice:**
@@ -446,7 +437,6 @@ message[21]: 助手：[工具调用] 执行发布脚本……
     {"decision": "使用 CC BY-SA 4.0 而非 MIT", "reason": "用户明确要求", "confirmed_by": "user"}
   ]
 }
-
 ```
 
 For each round of reasoning, the part of Scratchpad relating to the current steps is selectively inserted into the context. Not all of the injections -- the models just need to know "where we are now, what we're going to do next, what we're going to have to do," without seeing a complete history of implementation.
@@ -500,7 +490,6 @@ Three compression types:
 已讨论第 1 篇关于注意力衰减的内容，用户正在评估如何应用到自己的上下文管线。
 关键决策：用户关注组装阶段的优化，暂不关注训练阶段的改进。
 待确认：是否继续讨论剩余 2 篇。
-
 ```
 
 **Example of tool compression:**
@@ -516,7 +505,6 @@ Three compression types:
 2. src/api/handlers.py - 15 处（使用限流器）
 3-8. 其余 6 个文件共 82 处（测试、配置、文档）
 完整结果索引：/tmp/grep-rate-limiter-20260629.txt
-
 ```
 
 Compression is not an LLM you imagine calling out. The compression itself makes mistakes — the summary may omit key information, may misinterpret the intent, may not synchronize with the current mission state. It is therefore important that the index of the original information be maintained after the compression so that the model can be traced back to the original language, as needed.
@@ -553,7 +541,6 @@ Context management in the production environment also takes into account two iss
 - 本轮 RAG 片段
 - 本轮 Memory 召回
 - 最近工具结果
-
 ```
 
 If the results of the latest tool are inserted in each round between the system command and the definition of the tool, the prefix changes frequently and the benefit of the cache disappears. Cacheful and friendly context layouts are usually: **stabilization rules preceded by dynamic tasks; stabilization content less changed and dynamic content less.**
@@ -595,7 +582,6 @@ Different tools require different thin tactics: **Strategy I: Cut + Mark (suitab
 ……
 [后 50 行]
 总计 1500 行，已显示首尾各 50 行。如需查看完整日志，请指定行号范围。
-
 ```
 
 Key: Interception must be marked with "what to cut" and "how to get what's left." Otherwise, the model may make an erroneous inference based on incomplete information. **Strategy II: Extract + Summary (suitable for code search, document retrieval)**
@@ -616,7 +602,6 @@ Key: Interception must be marked with "what to cut" and "how to get what's left.
 
 3-8. [其他 6 个文件共 97 处匹配，涉及测试和配置文件]
    使用 "grep -n 'context window' <file>" 查看具体行
-
 ```
 
 Key: Structure the search results so that the model can quickly locate the most relevant files, rather than get lost in the 120 line grep output. **Strategy III: Structure + Filter (suitable for API calls, database queries)**
@@ -636,7 +621,6 @@ Key: Structure the search results so that the model can quickly locate the most 
 
 完整数据已写入临时文件 /tmp/query_result_20260629.json
 需要进一步分析时，使用 read_file 工具读取指定字段。
-
 ```
 
 Key: Don't let the model "remember" a lot of structured data. Keep summary and index and place the complete data where the model can be accessed again with tools.
@@ -654,7 +638,6 @@ src/api/handlers.py:23:       limiter = RateLimiter(redis_client)
 src/api/handlers.py:56:       if not limiter.check_limit(user_id):
 ……
 [115 more lines]
-
 ```
 
 The model needs to solve 120 lines, figure out the focus, decide which document to read next. Each step represents an additional cost of reasoning and opportunity for error. **Better tool returns:**
@@ -682,7 +665,6 @@ The model needs to solve 120 lines, figure out the focus, decide which document 
   "other_matches": "其余 6 个文件共 82 处匹配（测试、配置、文档）",
   "suggested_next_action": "read_file('src/api/middleware.py', start_line=40, end_line=160)"
 }
-
 ```
 
 When the model gets this result, it doesn't have to focus in 120 lines. It knows firsthand where the core is, what the key line is, what the next step is. This reduces the second judgement burden of the model and reduces the probability of error.
@@ -718,7 +700,6 @@ The following types of tools are suitable for clean-up rather than compression:
 2. 同类工具结果只保留最后一次（新的 grep 结果替换旧的）
 3. 大型结果不进入 message history，而是保存到外部 store，上下文中只保留结果 ID / 文件路径
 4. 跨轮仍然需要的结果——如用户确认过的决策——应该提取到 Scratchpad，而不是留在工具结果里
-
 ```
 
 **Clean vs compression option:**
@@ -835,7 +816,6 @@ def process_tool_output(tool_name: str, raw_output: str, max_tokens: int) -> Pro
     """对工具输出进行处理后再注入上下文"""
     processor = result_processors.get(tool_name, default_processor)
     return processor.process(raw_output, max_tokens)
-
 ```
 
 The core design of this skeleton:
@@ -870,7 +850,6 @@ So every information that enters the context should have metadata, not just text
   "freshness": "current",
   "instruction_authority": "none"
 }
-
 ```
 
 Key principles: **External information can provide facts that do not cover the rules of the system; tool results can provide observations and do not authorize subsequent operations on their own; Memory can provide preferences that do not bypass current user goals and permission boundaries.** When conflicts occur from different sources, the system will indicate the conflict in a visible manner, rather than allowing the model itself to guess in a series of conflicting texts.
@@ -916,7 +895,6 @@ D 组：分层 + 预算 + 工具压缩 + Scratchpad（V4+）
 - 注入攻击通过率（恶意上下文是否被当成资料而不是指令）
 - 上下文消融结果（移除某类信息后质量是否下降）
 - 人工评分（1-5 分，由你或同事评估回答质量）
-
 ```
 
 After 30 samples x 4 groups = 120 assessments, you'll have data support for "what strategy really works in your scene," rather than sensory involvement.
@@ -1010,7 +988,6 @@ python3 -m unittest test_context_engineering.py
 # Node.js 版本
 cd examples/course-05-04-context-engineering/nodejs
 npm start
-
 ```
 
 ---

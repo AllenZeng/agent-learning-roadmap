@@ -40,7 +40,6 @@ The better order is - let the problem drive into the rhythm:
   -> 评测是否真的变好了
   -> 再观察下一个瓶颈
   -> 循环
-
 ```
 
 Do not join the system because a certain ability is popular in the community. Each capability should be supported by problematic evidence and evaluation methods before entering the system. If you can't say "What problem the user has at what point when there is no RAG," then RAG should not be your first priority.
@@ -62,7 +61,6 @@ Sprint 目标：构建 SuperCodeAgent v1.0
 - 接入 Multi-Agent：一个写代码，一个审代码，一个写测试
 
 Sprint 结束后上线，结果：
-
 ```
 
 **User feedback on first day:**
@@ -111,7 +109,6 @@ Every capacity also has a quiet cost in solving problems. Before the decision is
   RAG + Planning + Reflection + Multi-Agent
   = 800ms + 1.2s + (1.5s × Agent数) + 500ms + 协调等待
   ≈ 5-8 秒（用户感知的"卡顿"）
-
 ```
 
 That is why the introduction of capabilities requires restraint — the waiting time of users, your debugging time, the probability of system error is growing every step.
@@ -150,7 +147,6 @@ Instead of using capability as a binary switch, let's see how complicated they a
                         │  LLM + Tool Use + Loop    │
                         │  处理简单、独立的任务     │
                         └─────────────────────────┘
-
 ```
 
 **The correct way to use this ladder:**
@@ -215,7 +211,6 @@ The following is the actual introduction of the rhythm (simplified) within three
 │  原因：当前五个能力稳定，无明确问题信号                       │
 │  Reflection 和 Multi-Agent 留到有证据时再说                  │
 └─────────────────────────────────────────────────────────┘
-
 ```
 
 **Key observations:**
@@ -231,7 +226,6 @@ Before we talk about the power mix, we need to figure out what the "minimal clos
 
 ```text
 最小闭环 = prompt + LLM 决策 + 工具调用 + 循环控制 + 状态管理
-
 ```
 
 **What can the smallest closed ring do:**
@@ -256,7 +250,6 @@ Before we talk about the power mix, we need to figure out what the "minimal clos
   - "检查你生成的代码有没有 bug" → 需要 Reflection
   - "这个操作太重要，不能让它自己决定" → 需要 Human-in-the-loop
   - "找人审查你的方案" → 需要 Multi-Agent
-
 ```
 
 **Importance of the minimum closed ring as a baseline:** Answer these questions with a minimum closed loop before introducing any enhancements:
@@ -288,7 +281,6 @@ The following six cases cover the most common Agent scene. Each case starts with
 用户询问 → 查询向量化 → 检索 Top-K（K=5-10）
         → 拼接检索结果到 Prompt
         → LLM 生成回答（附带引用标记）
-
 ```
 
 **Assessment of dimensions:**
@@ -311,7 +303,6 @@ The following six cases cover the most common Agent scene. Each case starts with
   → 加载最近的会话摘要
   → 附加到系统 Prompt 中作为上下文
   → 用户可以随时要求"忘记之前的上下文"
-
 ```
 
 **Not introduced:**
@@ -327,7 +318,6 @@ The following six cases cover the most common Agent scene. Each case starts with
       → Memory
         → 稳定运行
           → Planning？（等待问题信号）
-
 ```
 
 ---
@@ -355,7 +345,6 @@ The following six cases cover the most common Agent scene. Each case starts with
       - 确认是自己的判断有误还是代码确实有问题
       - 修正审查意见
   → 输出最终审查报告
-
 ```
 
 **Key design decisions: why first introduce Reflect rather than Multi-Agent?** For the code review scene, the first response is "introducing Multi-Agent, writing one review." But if you examine Agent without the tools to call, the other Agent just says, "Read it again and diff give general advice" -- two blind people can't see it together.
@@ -385,7 +374,6 @@ Verifier Agent（验证者）：
   - 如果 Reviewer 和 Verifier 意见一致 → 采纳
   - 如果意见不一致 → 标记为"需人工审查"
   - 禁止两个 Agent 互相调用形成循环
-
 ```
 
 **Not introduced:**
@@ -400,7 +388,6 @@ Verifier Agent（验证者）：
       → Multi-Agent Reviewer（角色冲突时才分工）
         → 稳定运行
           → Memory？（等待需求证据）
-
 ```
 
 ---
@@ -427,7 +414,6 @@ Verifier Agent（验证者）：
       Step 7: [HITL] 检查运行结果，等待用户确认
   → 每个步骤执行完后更新状态
   → 用户可随时查看进度
-
 ```
 
 **Human-in-the-loop design elements:**
@@ -441,7 +427,6 @@ Verifier Agent（验证者）：
   - 每一步都暂停（确认疲劳）
   - 暂停时信息不足，用户无法判断
   - 超时后自动执行高危操作
-
 ```
 
 **Follow-up questions:**
@@ -471,7 +456,6 @@ Verifier Agent（验证者）：
 
 恢复流程：
   用户重新连接 → 检测未完成任务 → 加载 Checkpoint → 从断点继续
-
 ```
 
 **Not introduced:**
@@ -485,7 +469,6 @@ Verifier Agent（验证者）：
     → Checkpoint（中断恢复需求）
       → 稳定运行
         → Memory？（跨任务偏好是否需要延续）
-
 ```
 
 ---
@@ -526,7 +509,6 @@ This is "the scenario itself requires multiple capabilities to produce the least
   → 判断是否符合退换货条件
   → [HITL] 如需退款 → 生成退款申请 → 等待人工审批
   → [HITL] 审批通过 → 执行退款 → 通知用户
-
 ```
 
 **Follow-up questions:**
@@ -551,7 +533,6 @@ This is "the scenario itself requires multiple capabilities to produce the least
   - 会话级记忆：会话结束后 7 天自动清除
   - 用户级记忆：用户可随时查看和删除
   - 敏感信息（支付、密码）永不记录
-
 ```
 
 **Not introduced:**
@@ -566,7 +547,6 @@ This is "the scenario itself requires multiple capabilities to produce the least
     → Memory（减少重复说明，注意隐私边界）
       → 稳定运行
         → 根据用户满意度数据决定下一步
-
 ```
 
 ---
@@ -596,7 +576,6 @@ But it's not that data analysis doesn't need Planning. Planning is of clear valu
      - 结果是否符合用户意图？→ 对结果做合理性检查
   5. 解释发现
   6. 可选：生成可视化代码（matplotlib / eCharts）
-
 ```
 
 **Reflection for specific applications in the data analysis scene:**
@@ -611,7 +590,6 @@ Reflection 停止条件：
   ❌ 修正 3 次后仍然失败 → 向用户说明情况，请求指导
   ❌ 不确定是否正确 → 标注"需要人工验证"
   ❌ 发现数据源本身有问题 → 报告问题，不继续尝试修复
-
 ```
 
 **Follow-up questions:**
@@ -630,7 +608,6 @@ Reflection 停止条件：
     → Planning（多步骤分析需求明确后）
       → Memory（分析习惯复用需求明确后）
         → 稳定运行
-
 ```
 
 ---
@@ -686,7 +663,6 @@ Memory 存储结构（写作场景）：
     "技术术语首次出现需要解释"
   ]
 }
-
 ```
 
 **Follow-up questions:**
@@ -708,7 +684,6 @@ Memory 存储结构（写作场景）：
   - 发现问题后只修正对应问题，不重写整篇
   - 同类问题修正超过 2 次仍失败 → 标记并请用户介入
   - 纯主观表达质量（"够不够好看"、"语气是否高级"）交给用户或 Reviewer 清单，不用模型自评冒充 Reflection
-
 ```
 
 **Not introduced:**
@@ -722,7 +697,6 @@ Memory 存储结构（写作场景）：
     → Reflection（基于外部信号做质量检查）
       → Planning（长文结构管理）
         → 稳定运行
-
 ```
 
 ---
@@ -738,7 +712,6 @@ I said, "Do what." This subsection says, "Don't do it."
 ```text
 "我们的 Agent 用了 RAG + Memory + Planning + Reflection + Multi-Agent，
   还有 Tool Use、Guardrails、Human-in-the-loop..."
-
 ```
 
 **Problem diagnosis:** Says "what" but says "why." Each ability is added to "if it works." As a result, the system was so complicated that no one could fully understand and no one could be held responsible for it. **The antidote:**
@@ -757,7 +730,6 @@ I said, "Do what." This subsection says, "Don't do it."
 "RAG 的召回率才 78%，等优化到 90% 再上线"
 "Memory 的遗忘策略还没调好，先不上"
 "Planning 有时候会漂移，等我们解决了再发布"
-
 ```
 
 **Diagnosis of the problem:** Waiting for a perfect minimum is equal to never being published. Users prefer a flawed Assistant to wait for a non-existent Assistant. Furthermore, real use feedback is not available without publication and no real optimization without feedback. **The antidote:**
@@ -777,7 +749,6 @@ I said, "Do what." This subsection says, "Don't do it."
 ☐ 性能是否最优？（可以后续优化）
 ☐ 边界情况是否全覆盖？（有些边界只有用了才会发现）
 ☐ 所有评测指标是否达标？（真实数据可能和评测集不同）
-
 ```
 
 ---
@@ -790,7 +761,6 @@ I said, "Do what." This subsection says, "Don't do it."
 "Hacker News 上那篇文章说了，Multi-Agent 是 2024 年最重要的趋势"
 "大家都在用 LangGraph 做 Agent 工作流，我们也应该用"
 "XXX 公司的技术博客说他们的 Agent 用了 Reflection，效果很好"
-
 ```
 
 **Problem diagnosis:** The scene, data, constraints, users are different from you. The solutions that suit them don't necessarily suit you. The replacement of community hot spots with their own problem analysis is the fastest way to introduce unnecessary complexity. **The antidote:**
@@ -805,7 +775,6 @@ I said, "Do what." This subsection says, "Don't do it."
 应该想："他们的代码审查遇到了什么问题？这个问题我也有吗？
         他们用 Multi-Agent 解决了什么？为什么单 Agent 不够？
         我的代码审查流程中，单 Agent 的瓶颈是什么？"
-
 ```
 
 ---
@@ -818,7 +787,6 @@ I said, "Do what." This subsection says, "Don't do it."
 "我们两周前加了 RAG，用户说好像好了一点...其实我也不确定"
 "Memory 加上去了，没看效果，反正应该有用"
 "Planning 的步骤有时候不太对，但大部分时候还行吧"
-
 ```
 
 **Diagnosis of the problem:** Introduction capacity is only the beginning, not the end. The introduction of non-assessed capabilities is tantamount to adding "no impact" variables to the system. Over time, you don't know whether the quality of the system is rising or falling. **The antidote:**
@@ -832,7 +800,6 @@ I said, "Do what." This subsection says, "Don't do it."
 引入后第 1 周：每日评测（快速确认方向是否正确）
 引入后第 2-4 周：每周评测（观察使用模式稳定后的表现）
 引入后第 2 个月起：每月评测（持续监控，防止退化）
-
 ```
 
 ---
@@ -845,7 +812,6 @@ I said, "Do what." This subsection says, "Don't do it."
 RAG 检索到的内容，Memory 也记了一份（重复存储）
 Planning 生成了 5 步计划，但 Reflection 认为第 2 步已经完成（信息不一致）
 Multi-Agent 中的 Agent A 修改了文件，Agent B 不知道（状态不同步）
-
 ```
 
 **Problem diagnosis:** Capabilities are not stand-alone plugins that share status and influence each other ' s behaviour. System behaviour is unpredictable when multiple capacities have different understandings of the same data. **The antidote:**
@@ -861,7 +827,6 @@ Multi-Agent 中的 Agent A 修改了文件，Agent B 不知道（状态不同步
 ☐ Reflection 的修正是否更新了 Planning 的状态？
 ☐ Multi-Agent 中的各 Agent 是否共享同一个 Memory 视图？
 ☐ 一个能力的输出变更是否会破坏另一个能力的输入假设？
-
 ```
 
 When a combination of capabilities begins, they should not be matched by a Prompt ad hoc agreement, but should be carried at the time of operation: a unified State, Trade, Checkpoint, Eval regression and permission boundaries will be carried out in the Harness structure of Course 6. This chapter deals with "shouldn't it be a combination" and course six with "how to stabilize after a combination."
@@ -881,7 +846,6 @@ The following signals indicate that the user ' s needs have clearly exceeded the
 ✅ 竞争对手已经提供了这个能力，用户开始流失
 ✅ 问题的解决方案明确且风险可控
 ✅ 用户明确表示"如果不支持 X 我就没法继续用了"
-
 ```
 
 **Speeding up does not represent a rush.** Even if it accelerates, keep the process of "inclusion of evaluation and observation". The acceleration is the observation cycle (e.g. from 4 weeks to 2 weeks) rather than skipping the evaluation.
@@ -897,7 +861,6 @@ The following signals indicate that you need to stop and digest, rather than con
 🛑 团队成员反映"系统太复杂了，新加入的人看不懂"
 🛑 用户反馈中关于"慢"和"不可靠"的比例在上升
 🛑 你发现自己说不清当前系统有多少个能力在工作
-
 ```
 
 **The suspension is not a failure; it is responsible.** The suspension may include:
@@ -918,7 +881,6 @@ The following signals indicate that you need to stop and digest, rather than con
 ✅ 先引入 RAG，稳定 2 周后引入 Memory：
   "RAG 引入后召回率从 0% 提升到 85%（确定是 RAG 的效果）"
   "2 周后引入 Memory，跨会话衔接准确率从 28% 提升到 80%（确定是 Memory 的效果）"
-
 ```
 
 **Principle II: Assessment indicators always precede new capabilities** If you do not have a running evaluation process, do not introduce new capabilities. The introduction without an evaluation is like walking with your eyes closed -- you don't know if you're going right or if you're going further away from the target. **Principle III: Reissued periodically** Regardless of whether the system is stable or not, a capacity reset is regularly performed:
@@ -931,7 +893,6 @@ The following signals indicate that you need to stop and digest, rather than con
 ☐ 是否有能力可以被降级或移除？
 ☐ 系统整体复杂度是否可以降低？
 ☐ 团队对系统的理解是否充分（新成员能否快速上手）？
-
 ```
 
 ## 9.5 Degradation and removal of capabilities
@@ -985,7 +946,6 @@ Removal capacity needs to be more cautious than introducing capacity, as users m
 第五步：记录决策
   - 为什么移除？当初为什么引入？学到了什么？
   - 这段经验对未来的能力引入决策有什么帮助？
-
 ```
 
 **Degraded better than direct removal:** In many cases, reducing capacity from "active" to "passive" is a better option:
@@ -1002,7 +962,6 @@ Removal capacity needs to be more cautious than introducing capacity, as users m
 
 原状态：Multi-Agent 并行处理
 降级后：默认单 Agent 处理，用户添加 --review 标记时启动 Reviewer
-
 ```
 
 #### Validation of effects after removal
@@ -1052,7 +1011,6 @@ Here are three new scenarios. For each scene:
   → RAG（检索知识库，对比合同条款）
     → HITL（人工确认节点）
       → 稳定运行
-
 ```
 
 </details>
@@ -1086,7 +1044,6 @@ Here are three new scenarios. For each scene:
   → Memory（记住用户偏好）
     → HITL（场景确认）
       → 稳定运行
-
 ```
 
 </details>
@@ -1121,7 +1078,6 @@ Introduction path:
   → Reflection（验证文档-代码一致性）
     → Planning（多文件变更的文档更新编排）
       → 稳定运行
-
 ```
 
 </details>

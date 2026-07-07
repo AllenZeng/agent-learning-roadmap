@@ -25,7 +25,6 @@ Back to 1.1. Agent now has Planning, the four steps of release are no longer mis
 
 ```text
 TypeError: Cannot read properties of undefined (reading 'files')
-
 ```
 
 Agent saw this wrong output. And then what did it do? It goes on to write changelog, final report "Is ready for release."
@@ -87,7 +86,6 @@ A control program can be divided into four steps:
   -> 反馈分类 / 证据分析
   -> 决定处理策略
   -> 重试、降级、转人工或停止
-
 ```
 
 But before going deep, there is a specific frame of reference.
@@ -282,7 +280,6 @@ result = reflection_loop(
     validate=lambda code: run_tests(code),  # 外部测试框架，不是 LLM
     max_retries=3
 )
-
 ```
 
 > **Design elements**: `validate ` It has to be an external certifier -- running tests, checking schema, comparing the original text, not "let the model look again." ` action ` Received ` previous_error` As a handling signal, but only into facts (misrepresentation, failure test name) and not into model self-evaluation.
@@ -319,7 +316,6 @@ Practical judgement:
 ```text
 如果有明确反馈信号，并且自动处理成本低于失败成本，Reflection 值得引入。
 如果只是让模型”再想想”，通常不值得。
-
 ```
 
 > **The story is not over.** Reflecting allows Agent to learn to decide on the next step based on feedback, analyse the reasons for the failure and choose to retest, amend, downgrade or stop. However, one of the conditions for the cessation of Reflection is the “request for manual intervention” - the final safety valve is judged when automatic disposal is no longer possible.
@@ -348,7 +344,6 @@ python3 reflection_demo.py
 # Node.js 版本
 cd examples/course-05-06-reflection/nodejs
 node reflection_demo.mjs
-
 ```
 
 ### Summary of this chapter

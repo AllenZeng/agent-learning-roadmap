@@ -35,7 +35,6 @@ Then one day, you let it sort out the papers.
 ```text
 你："帮我把 /tmp/logs 下超过 30 天的日志文件清理一下。"
 Agent："好的。" → 调用 delete_file → 开始删除
-
 ```
 
 You suddenly saw a file name flashing... `.env.backup` I don't know. That's the backup file you manually put in last week, not the log. You didn't have time to stop. The papers are gone.
@@ -45,7 +44,6 @@ It's not Agent "gets bad." It's done according to your instructions. The problem
 ```text
 用户："这个产品不好用，我要退款。"
 Agent："非常抱歉给您带来了不好的体验。我已为您提交了全额退款申请，款项将在 3-5 个工作日内退回。"
-
 ```
 
 You stare at the screen, your hands sweat. Refund strategies have not yet been defined — maximum amounts, conditions for refunds, approval process. Agent made a decision for you.
@@ -67,7 +65,6 @@ We need to clear up the meaning of several concepts in the HITL context:
 
 判断（Judgment）：这个具体操作在当下是否合适。
   例：删除 /tmp/logs/access_2026.log 是合适的。删除 /tmp/logs/.env.backup 不是。
-
 ```
 
 The essence of HITL is that **when Agent's ability covers an operation, but the system cannot afford to return judgment to humans when all the rules of judgement are exhausted at the code level.** Why not write the rules in the code? Because:
@@ -91,7 +88,6 @@ Agent："我将删除以下 12 个文件：
   - /tmp/logs/error_20260515.log (8MB, 31 天前)
   - ……
   [确认执行] [取消] [修改范围]"
-
 ```
 
 Identification of the three design elements of the model: **1. Presentation of "effects" instead of "operations"**
@@ -103,14 +99,12 @@ Identification of the three design elements of the model: **1. Presentation of "
 ✅ 好："将删除 12 个文件，共 156MB。这些文件上次修改超过 30 天。
    注意：/tmp/logs 目录下还有 3 个非日志文件（.env.backup, config.json, README），
    它们不会被删除。"
-
 ```
 
 **2. Provide intermediate options, more than "Yes/No"**
 
 ```text
 [确认全部] [只删 .log 文件] [让我逐个确认] [取消]
-
 ```
 
 The second option is to give humans a preference for confirmation. The granting of intermediate options has improved the quality of decision-making. **3. Complete but not lengthy context of confirmation** Humans need to see what they want to do, why they think they should do it, what risks they have, what they don't.
@@ -126,7 +120,6 @@ Agent："'最近的文章'可能指：
   B. 最近修改过的文章（共 8 篇）
   C. 最近打开过的文章（共 5 篇）
   你指的是哪种？"
-
 ```
 
 Clarify the difference between mode and confirmation mode: Confirm "I have decided, you nod", clarify "I need you to help me decide."
@@ -150,7 +143,6 @@ Agent："检测到数据库迁移脚本涉及以下操作：
   /tmp/migration_20260629.sql
 
   执行后请回复'已完成'，我会继续后续步骤。"
-
 ```
 
 Essential difference between takeover and confirmation: confirmation is Agent enforcement, human permit. Taking over is **human execution, Agent waiting**. Agent retreats to the auxiliary role -- it is prepared, it explains, it waits, but it does not operate.
@@ -174,7 +166,6 @@ Agent："技术方案已完成，共 4 个部分：
   4. 安全考虑（已生成，标注了 3 个待确认点）
 
   [查看全文] [逐节审核] [修改某节] [通过]"
-
 ```
 
 The core of the audit model is to enable humans **to quickly position what needs attention**. Agent should take the initiative:
@@ -191,7 +182,6 @@ Agent："我为你生成了发布 checklist。"
 Agent："已修正。我注意到你在这个项目中一直使用 pytest。我将在 Memory 中更新：
   '项目 test_runner 偏好：pytest（非 unittest）'
   以后生成 checklist 时也会自动包含数据库备份步骤。"
-
 ```
 
 Pedagogical feedback is the intersection of HITL and Memoory. Every human amendment should be captured as reusable knowledge. There are three levels:
@@ -251,7 +241,6 @@ Several strategies for frequency control: **Strategy I: batch confirmation**
 ✅ 批次确认：
   "将删除以下 12 个文件，共 156MB。其中 11 个为 .log 文件，1 个为 .txt 文件。
    [确认全部] [只删 .log 文件] [逐个确认] [取消]"
-
 ```
 
 **Strategy II: Building trust** If the user confirms the same operation five times in a row, you can ask: "Do you trust me in the operation of the same file, and don't confirm it item by item?"**Strategy III: Summary retroactive confirmation** Not to confirm each step before implementation, but to provide a summary after implementation to allow users to confirm the overall direction:
@@ -259,7 +248,6 @@ Several strategies for frequency control: **Strategy I: batch confirmation**
 ```text
 "上一阶段完成：已收集 8 篇相关文档，共 32KB。准备进入写作阶段。
  [继续] [查看文档列表] [调整方向]"
-
 ```
 
 **Strategy IV: Decline of trust based on session** In the same session, Agent's judgment of user preferences will be more accurate. But after the break-up, trust should be reset — because mandates may be different.
@@ -283,7 +271,6 @@ Agent 请求执行退款操作：
 Agent 判断：符合退款条件（7 天无理由，未发货）
 
 [批准退款] [拒绝并说明原因] [转为人工处理]
-
 ```
 
 Key design principles:
@@ -301,7 +288,6 @@ Three levels of learning: **Level 1: Immediate application (Always)** Human deci
 ```text
 "用户偏好更新：对 /tmp/logs 目录下的文件清理操作，用户已连续 3 次确认同类操作。
 下次可以降低确认频率（批次确认即可）。"
-
 ```
 
 **Level III: strategy adjustments (needs manual review)** Analyzing from HITL data: Which operations have too low pass rate (notation Agent)? Which operators are never rejected (may not need HITL)?
@@ -312,7 +298,6 @@ HITL 数据分析（过去 30 天）：
 - delete_file 确认：45 次，通过率 89%  → 保持确认
 - refund 确认：8 次，通过率 50%       → 确认不够，考虑改为接管模式
 - send_email 确认：30 次，通过率 97%  → 可降低为中风险操作
-
 ```
 
 This analysis should not be implemented automatically — human beings should review and decide whether to adjust their strategies. The value of HITL data is that it makes policy adjustments sound, rather than the system itself.
@@ -335,7 +320,6 @@ Most projects start with V1. V0 is too conservative (Agent can't do anything use
 
 ```text
 "Agent 要执行 write_file，确认？"
-
 ```
 
 Users do not know what to write, where to write, why, and what to do. This confirmation box does not give the user any basis for judgement. **Correct practice**: A path to document, summary of changes, basis of judgement for Agent. **Counter-model III: HiTL as a security mechanism** Use the HITL to prevent Prompt Intervention or ultra vires operations. "Someone confirmed that no input verification was required."**Correct practice**: HITL is a decision-making enhancement, not a complete security option. Security requires authority, verification, isolation, audit and Guardrails to work together. Humans also make mistakes -- the attacker can design the context in which humans tend to "confirm". **Counter-module IV: no timeout** Agent waits for humans to confirm that humans are going to meet. Agent's been waiting. **Correct practice**: set timeout. Overtime behaviour depends on operational risk - low-risk operations can continue automatically and high-risk operations should be terminated safely. **Anti-Model V: All users treated equally** New and senior users see the same frequency of confirmation. **Correct practice**: allows users to adjust the HITL level. The Developer Model can reduce the frequency of confirmation, the Security Model increases the frequency of confirmation. Let users themselves control the degree of autonomy they are willing to assume.
@@ -368,5 +352,4 @@ python3 -m unittest test_hitl_demo.py
 # Node.js 版本
 cd examples/course-05-07-human-in-the-loop/nodejs
 npm start
-
 ```
