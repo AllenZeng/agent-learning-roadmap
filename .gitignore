@@ -15,6 +15,10 @@ __pycache__/
 venv/
 *.egg-info/
 
+# Static site builds
+site/
+docs/
+
 # Node
 node_modules/
 
