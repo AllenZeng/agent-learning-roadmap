@@ -37,11 +37,11 @@ jobs:
         run: |
           mkdir -p docs
           ln -s ../README.md docs/README.md
-          ln -s ../README.zh-CN.md docs/README.zh-CN.md
+          ln -s ../README.en.md docs/README.en.md
           ln -s ../CONTRIBUTING.md docs/CONTRIBUTING.md
-          ln -s ../CONTRIBUTING.zh-CN.md docs/CONTRIBUTING.zh-CN.md
+          ln -s ../CONTRIBUTING.en.md docs/CONTRIBUTING.en.md
           ln -s ../syllabus.md docs/syllabus.md
-          ln -s ../syllabus.zh-CN.md docs/syllabus.zh-CN.md
+          ln -s ../syllabus.en.md docs/syllabus.en.md
           ln -s ../courses docs/courses
           ln -s ../courses-en docs/courses-en
           ln -s ../examples docs/examples
