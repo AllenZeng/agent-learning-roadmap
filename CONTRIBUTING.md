@@ -1,70 +1,69 @@
-# Contributing Guide
+# 贡献指南
 
-[简体中文](CONTRIBUTING.zh-CN.md) | [English](CONTRIBUTING.md)
+感谢你对 Agent 学习路线图的关注！欢迎任何形式的贡献。
 
-Thank you for your interest in Agent Learning Roadmap. Contributions are welcome in any form.
+## 贡献方式
 
-## Ways to Contribute
+### 🐛 内容纠错
 
-### Content Fixes
+如果你发现错别字、链接失效、概念表述不准确等问题：
 
-If you find typos, broken links, unclear wording, or inaccurate concepts:
+1. Fork 本仓库
+2. 在相应的课程文件中修复
+3. 提交 PR，标题使用 `[fix]` 前缀，例如：`[fix] 修正课程三中的 API 调用示例`
 
-1. Fork this repository.
-2. Fix the relevant course file.
-3. Open a pull request with a `[fix]` prefix, for example: `[fix] Correct API call example in lesson 03`.
+这类修复**不需要**提前开 Issue，直接提 PR 即可。
 
-These fixes do not require an Issue first. A direct pull request is fine.
+### 💡 内容补充与优化
 
-### Content Additions and Improvements
+如果你想新增章节、重写某部分内容、或大幅调整课程结构：
 
-If you want to add a new section, rewrite a major part, or change the course structure:
+1. 先开 Issue 描述你的想法
+2. 等待维护者确认后再开始开发
+3. 避免做了大量工作后发现方向不一致
 
-1. Open an Issue first and describe the proposal.
-2. Wait for maintainer confirmation before doing large edits.
-3. Avoid investing heavily before the direction is aligned.
+Issue 标题建议使用 `[提议]` 前缀，例如：`[提议] 课程五增加 Function Calling 实战章节`。
 
-Use a `[proposal]` prefix for the Issue title, for example: `[proposal] Add a Function Calling practice section to lesson 05`.
+### 🌍 翻译
 
-### Translation
+本项目采用双语目录组织：
 
-The project is bilingual. Current language directories are:
+- `courses/`：简体中文课程内容；
+- `courses-en/`：英文课程内容。
 
-- `courses/`: Simplified Chinese course content;
-- `courses-en/`: English course content.
+如果你希望贡献英文或其他语言翻译：
 
-If you want to contribute translations:
+1. 先开 Issue 声明你要翻译的课程
+2. 尽量按照现有语言目录结构创建或更新对应文件
+3. 保持原文技术术语的准确性
+4. 保持链接、示例和图示与原版本一致
 
-1. Open an Issue and state which lesson or document you want to translate.
-2. Keep the translated file parallel to the existing language structure when possible.
-3. Preserve technical accuracy for key terms.
-4. Keep links, examples, and diagrams consistent with the original version.
+### 🔧 代码示例
 
-### Code Examples
+代码示例遵循以下规范：
 
-Code examples should follow these expectations:
+- **语言**：优先使用 Python（课程主线语言）
+- **依赖**：尽可能使用标准库或主流框架（LangChain、OpenAI SDK、AutoGen 等）
+- **可运行**：示例应标注所需依赖和运行环境
+- **注释**：关键步骤应有中文注释说明
 
-- **Languages**: Python and Node.js are preferred when they match the existing example structure.
-- **Dependencies**: Prefer the standard library or mainstream SDKs and frameworks.
-- **Runnable**: Document dependencies and runtime requirements.
-- **Comments**: Add comments only where they clarify non-obvious behavior.
+## PR 规范
 
-## Pull Request Guidelines
+- PR 标题简明描述改动内容
+- PR 描述中说明改动原因和影响范围
+- 一个 PR 只做一件事（修复一个错别字 vs 新增一个章节 → 分开提）
 
-- Use a concise PR title that describes the change.
-- Explain why the change is needed and what files or lessons it affects.
-- Keep one PR focused on one change. For example, a typo fix and a new lesson should be separate PRs.
-- For large course edits, include before/after intent or an outline in the PR description.
+## 沟通渠道
 
-## Communication
+- **问题与讨论**：GitHub Issues
+- **学习交流**：GitHub Discussions
 
-- Questions and proposals: GitHub Issues
-- Learning discussion: GitHub Discussions
+## 行为准则
 
-## Code of Conduct
+- 保持尊重和包容
+- 聚焦于内容本身，避免人身攻击
+- 欢迎不同观点，但需要有建设性
 
-- Be respectful and inclusive.
-- Focus on the content and the technical argument.
-- Different viewpoints are welcome when they are constructive and evidence-based.
+---
 
-Thank you for contributing.
+再次感谢你的贡献！🎉

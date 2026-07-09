@@ -1,218 +1,330 @@
-# Agent Learning Roadmap Syllabus
+# Agent 学习路线图：从最小闭环到产品化系统
 
-[简体中文](syllabus.zh-CN.md) | [English](syllabus.md)
+## 课程设计分层
 
-This syllabus explains the learning structure behind the Agent Learning Roadmap. The course is not ordered by concept popularity. It is ordered by the cognitive layers a learner usually needs when moving from "I have heard of Agents" to "I can design and ship an Agent product."
+这套路线不是按概念热度排序，而是按学习者理解 Agent 产品开发时会遇到的认知层级来设计。
 
-> English status: lessons 01-05 are available in English. Lessons 06-08 are currently available in Chinese and linked as such below.
-
-## Learning Layers
-
-| Layer | Lessons | Core Question |
+| 层级 | 对应课程 | 解决的问题 |
 | --- | --- | --- |
-| Product intuition | Lesson 01 | What does an Agent product look like, and how is it different from a Chatbot or Workflow? |
-| Paradigm understanding | Lesson 02 | Why did LLM Agents, tool use, ReAct, planning, reflection, and multi-agent patterns appear? |
-| Minimal loop | Lesson 03 | What is the smallest working Agent loop? |
-| Tool mechanism | Lesson 04 | How does tool calling become selectable, executable, controllable, reusable, and auditable? |
-| Scenario enhancement | Lesson 05 | When should RAG, Memory, Context Engineering, Planning, Reflection, Human-in-the-loop, or Multi-Agent patterns be introduced? |
-| Runtime engineering | Lesson 06 | How does a minimal Agent become a traceable, recoverable, evaluable, governable runtime harness? |
-| Productization | Lesson 07 | How do Agent capabilities become trusted product experiences? |
-| Integrated practice | Lesson 08 | How do the course concepts come together in a real project? |
+| 感性认知层 | 课程一 | 先看见真实 Agent 产品，区分 Chatbot、Workflow 和 Agent |
+| 范式理解层 | 课程二 | 理解 LLM、工具调用、ReAct、Planning、Reflection、Multi-Agent 为什么出现 |
+| 最小闭环层 | 课程三 | 掌握 Agent 的最小组成：prompt、LLM 决策、工具/环境交互、状态管理、循环控制 |
+| 工具机制层 | 课程四 | 理解工具调用如何变成可选择、可执行、可控、可复用、可审计的机制 |
+| 场景增强层 | 课程五 | 判断什么时候需要 RAG / 外部知识接入、Memory、Planning / Workflow Patterns、Reflection、Multi-Agent |
+| 运行时工程层 | 课程六 | 把最小闭环工程化为可追踪、可恢复、可评测、可治理的 Harness |
+| 产品化运营层 | 课程七 | 解决用户信任、失败恢复、成本延迟、安全合规、指标反馈和持续迭代 |
+| 综合实践层 | 课程八 | 通过项目把知识型、工具型、任务执行型 Agent 串联起来 |
 
 ```text
-Foundation path: product intuition -> paradigm evolution -> minimal Agent loop
-Capability path: tool mechanism -> scenario enhancement capabilities
-Shipping path: runtime engineering -> productization -> project practice
+基础主线：感性认知 -> 范式演进 -> 最小 Agent 闭环
+能力主线：工具机制 -> 场景增强能力
+落地主线：运行时工程 -> 产品化实践 -> 项目实战
 ```
 
-The goal is to avoid treating RAG, Memory, MCP, Skills, Evaluation, and Guardrails as a flat list of "core modules." Learners first build the minimal loop, then learn which capabilities solve which scenario and engineering problems.
+这种分层的目的，是避免把 RAG、Memory、MCP、Skill、Evaluation、Guardrails 等概念都平铺成“核心模块”，而是让学习者先建立最小闭环，再理解哪些能力是为了解决特定场景和工程问题而出现的。
 
-## Table of Contents
+---
 
-- [Learning Layers](#learning-layers)
-- [Lesson 01: First Encounter with Agents](#lesson-01-first-encounter-with-agents)
-- [Lesson 02: Agent Paradigm Evolution](#lesson-02-agent-paradigm-evolution)
-- [Lesson 03: Minimal Agent Loop](#lesson-03-minimal-agent-loop)
-- [Lesson 04: Tool Mechanism](#lesson-04-tool-mechanism)
-- [Lesson 05: Scenario Enhancement Capabilities](#lesson-05-scenario-enhancement-capabilities)
-- [Lesson 06: Harness Runtime Architecture](#lesson-06-harness-runtime-architecture)
-- [Lesson 07: Agent Productization](#lesson-07-agent-productization)
-- [Lesson 08: Project Practice and Ecosystem Tracking](#lesson-08-project-practice-and-ecosystem-tracking)
-- [Recommended Learning Order](#recommended-learning-order)
+## 目录
 
-## Lesson 01: First Encounter with Agents
+- [课程设计分层](#课程设计分层)
+- [课程一：初识 Agent](#课程一初识-agent)
+- [课程二：Agent 范式演进](#课程二agent-范式演进)
+- [课程三：最小 Agent 闭环](#课程三最小-agent-闭环)
+- [课程四：工具机制](#课程四工具机制)
+- [课程五：场景增强能力](#课程五场景增强能力)
+- [课程六：Harness 运行时架构深入](#课程六harness-运行时架构深入)
+- [课程七：Agent 产品化实践](#课程七agent-产品化实践)
+- [课程八：项目实战与生态跟进](#课程八项目实战与生态跟进)
+- [推荐学习顺序](#推荐学习顺序)
 
-Build product intuition before implementation details. The learner first observes real Agent products and learns to distinguish Chatbots, Workflows, and Agents.
+---
 
-### Core Questions
+## 课程一：初识 Agent
 
-- What is an Agent?
-- How is it different from a Chatbot or Workflow?
-- Where does a product show Agent-like behavior?
-- Why do users experience Agents as useful, surprising, unreliable, or hard to control?
+建立感性认知，先看见 Agent 和普通 Chatbot / Workflow 的区别。不讲实现细节，它为课程二的范式理解和课程三的最小闭环提供产品观察样本。
 
-### Core Content
+### 核心问题
 
-- Agent vs Chatbot vs Workflow: the key question is "who decides the next step?"
-- Product observation framework: task entry, decision authority, action capability, process visibility, user control, and failure recovery.
+- Agent 到底是什么？
+- 它和 Chatbot、Workflow 的区别在哪里？
+- 一个产品在什么地方体现出 Agent 特征？
+- 用户为什么会觉得 Agent 有用、失控、惊喜或不可靠？
 
-English lesson: [First Encounter with Agents](courses-en/course-01-first-encounter.md)
+### 核心内容
 
-## Lesson 02: Agent Paradigm Evolution
+- **Agent vs Chatbot vs Workflow**：Chatbot 负责对话回答，Workflow 按固定流程执行，Agent 根据目标、状态和反馈动态决定下一步。判断关键："谁决定下一步"。
+- **产品观察框架**：从任务入口、决策权、行动能力、过程可见性、用户控制权、失败恢复六个维度拆解 Agent 产品。
 
-Understand the Agent paradigm through problem evolution. Each new pattern appears because the previous stage exposes a limitation.
+---
 
-### Core Questions
+## 课程二：Agent 范式演进
 
-- Why did traditional Agents rarely enter everyday user products?
-- What changed when LLMs became the decision core?
-- What problems did Function Calling, Toolformer, Plugins, and MCP solve?
-- Why is ReAct a useful mental model for the Agent loop?
-- Why do Planning, Reflection, and Multi-Agent patterns appear?
+这门课按问题演进来理解 Agent：每一次新方法的出现，都是为了解决前一阶段暴露出来的问题。
 
-### Core Content
+本课是范式理解层，解释概念为什么出现，不要求先掌握全部实现。如果学习者更想先动手，可以先学课程三，做完最小闭环后再回来看本课。
 
-- Traditional Agent -> LLM Agent: from hand-written rules to model-driven goal understanding and dynamic decisions.
-- Key paradigm shifts: Tool Use, ReAct, Planning, Reflection, Multi-Agent, MCP, and Skills.
+### 核心问题
 
-English lesson: [Agent Paradigm Evolution](courses-en/course-02-evolution.md)
+- 传统 Agent 为什么很少进入普通用户的日常应用场景？
+- LLM 出现后，Agent 的决策核心发生了什么变化？
+- Function Calling / Toolformer / Plugins 解决了什么问题？
+- ReAct 为什么适合作为理解 Agent 运行循环的经典框架？
+- Planning、Reflection、Multi-Agent 分别是在什么背景下出现的？
 
-## Lesson 03: Minimal Agent Loop
+### 核心内容
 
-The minimal loop is the foundation. Later capabilities extend this loop rather than replace it.
+- **传统 Agent → LLM Agent**：传统 Agent 受限于封闭规则空间和弱泛化能力；LLM 让 Agent 从"人工写规则"变为"模型理解目标并动态决策"，从"只回答"走向"能调用外部能力"。
+- **关键范式演进**：
+  - **Tool Use**：让 LLM 连接实时信息、私有数据和外部系统。
+  - **ReAct**：将推理-行动-观察放入同一循环，给出 Agent 最小运行时雏形。
+  - **Planning**：复杂任务需要拆解、依赖排序和阶段性目标。
+  - **Reflection**：模型和工具都会产生异常反馈，系统需要基于外部信号决定重试、处理、转人工或停止（区分模型推理能力与运行时决策机制）。
+  - **Multi-Agent**：单 Agent 面临角色混淆、上下文拥挤时，通过角色分工和并行处理解决瓶颈。
 
-### Core Questions
+---
 
-- Why is an Agent more than an LLM call?
-- How does the LLM decide the next step from context and state?
-- How do tool and environment interactions feed back into later decisions?
-- How does state management support multi-step work?
-- How does loop control decide whether to continue, stop, retry, or fail?
+## 课程三：最小 Agent 闭环
 
-### Core Content
+先理解 Agent 最小闭环，后面所有能力都是围绕这个闭环扩展。
+
+### 核心问题
+
+- 一个最小 Agent 为什么不能只有 LLM？
+- LLM 如何根据上下文和状态做下一步决策？
+- 工具/环境交互如何产生反馈，并影响下一轮决策？
+- 状态管理如何支撑多步任务，而不是只处理单轮问答？
+- 循环控制如何判断继续、停止、重试或失败退出？
+
+### 核心内容
+
+核心公式：`Agent = Prompt（行为定义） + LLM 决策 + 工具/环境交互 + State（状态管理） + 循环控制`
+
+| 组成 | 学什么 |
+|---|---|
+| Prompt（行为定义） | System Prompt、角色设定、行为约束 |
+| LLM 决策 | 模型选择、结构化输出、下一步判断 |
+| 工具/环境交互 | Tool Use、Function Calling、外部系统调用 |
+| State（状态管理） | 任务状态、历史消息、工具结果、错误信息 |
+| 循环控制 | 继续/停止判断、最大步数、超时、失败退出 |
+
+运行链路：
+
+![课程三：最小 Agent 运行链路](assets/course-03-minimal-agent-loop.svg)
+
+工程原则：模型负责理解目标和判断下一步，确定性基础设施负责工具执行、权限、安全、状态、恢复和观测。
+
+---
+
+## 课程四：工具机制
+
+理解 Agent 在运行时如何调用工具，以及如何把工具调用设计成可选择、可执行、可控、可复用、可审计的系统机制。
+
+### 核心问题
+
+- Agent 在运行时如何决定是否调用工具？
+- 工具调用为什么经常失败？
+- 如何让模型知道工具能做什么、什么时候该用？
+- 如何让工具执行结果可靠地回到下一轮决策？
+- 如何控制高风险工具调用？
+- 如何把重复任务沉淀成可复用能力？
+
+### 核心内容
+
+| 环节 | 核心问题 | 对应机制 |
+|---|---|---|
+| 工具定义 | 模型不知道有哪些工具、何时使用 | 名称、描述、参数 Schema、工具边界 |
+| 工具选择 | 选错工具或填错参数 | 工具路由、参数校验、tool_choice 控制 |
+| 执行与回填 | 执行失败或结果太长 | 超时、重试、错误结构化、结果摘要 |
+| 权限与安全 | 工具可能造成真实影响 | 风险分级、最小权限、审批、审计 |
+| Human-in-the-loop | 高风险不应自动决策 | 确认、驳回、接管、回滚、审计记录 |
+| MCP | 工具接入方式不统一 | 协议化接入、Client/Server、Tools/Resources/Prompts |
+| Skill | 多工具组合复用 | 步骤经验、默认流程、失败处理、可复用边界 |
+
+---
+
+## 课程五：场景增强能力
+
+课程五将增强能力分为两组：上下文增强（决策依赖的信息从哪来、怎么管）和行为模式增强（复杂任务的执行如何组织、协作、恢复）。
+
+本课是场景判断层，不要求把每个能力都学到工程实现深水区。重点是判断什么时候该引入、什么时候不该引入、引入后增加什么复杂度。
+
+### 核心内容
+
+**第一部分：上下文增强**——获取外部数据、延续历史状态、组织多源信息
+
+| 能力 | 什么时候需要 | 学什么 |
+|---|---|---|
+| RAG / 外部知识接入 | 依赖私有文档、需要引用来源、知识变化快 | Embedding、Chunking、Hybrid Search、Rerank、引用与事实性 |
+| Memory | 需要跨轮、跨会话状态延续 | 短期/长期记忆、用户偏好、记忆更新与遗忘策略 |
+| Context Engineering | 多信息源导致上下文混乱、关键约束被淹没 | 上下文分层、Token 预算、优先级、压缩与结构化 |
+
+**第二部分：行为模式增强**——任务分解与编排、反馈驱动的下一步决策、决策权限边界、多角色分工协作
+
+| 能力 | 什么时候需要 | 学什么 |
+|---|---|---|
+| Planning / Workflow | 任务复杂、步骤多、依赖强 | Chain、Router、ReAct Loop、Plan-Execute、Graph |
+| Reflection | 出现外部反馈后不能继续原路径 | 外部信号触发、反馈分类、处理策略、停止条件 |
+| Human-in-the-loop | 高风险操作不应自动执行、需要人类判断 | 确认/澄清/接管/审核模式、频率控制、反馈学习 |
+| Multi-Agent | 需要角色分工、并行、互审 | 独立上下文、结构化通信、裁决机制、成本边界 |
+
+---
+
+## 课程六：Harness 运行时架构深入
+
+从"写一个 Agent"进入"设计 Agent Runtime"。
+
+课程三关注最小闭环，课程四关注工具机制，课程五关注场景增强。课程六关注工程架构：如何让 Agent 稳定运行、可调试、可评测、可恢复、可治理。
+
+换句话说，Harness 要把 `Context Assembly -> LLM Decision -> Interaction -> Execution -> Observation / Feedback -> State Update -> Stop` 这条循环变成可配置、可追踪、可恢复、可评测的系统。
+
+### 核心问题
+
+- Agent Runtime 由哪些工程环节组成？
+- 每个环节最容易出现什么问题？
+- 如何通过 Context Engineering、Orchestration、Checkpoint、Evaluation、Guardrails、Observability 解决这些问题？
+- Harness 和 Orchestration 的边界是什么？
+- 如何处理上下文压缩、会话恢复、任务委托和调试？
+- 业界常见框架和平台分别在解决哪类工程问题？
+
+### 核心内容
+
+Harness 三层职责：驱动层（调用模型、执行工具）→ 控制层（管理循环、停止、重试、状态迁移）→ 管理层（会话、权限、日志、评测、观测）
+
+| 工程环节 | 常见问题 | 解决机制 |
+|---|---|---|
+| Context Assembly | 上下文太长、关键约束被淹没 | 上下文预算、信息分层、结果压缩、按需召回 |
+| Orchestration | 步骤组织混乱、循环失控 | Chain、Router、ReAct Loop、Plan-Execute、Graph |
+| Execution / State | 失败无法恢复、中断不可继续 | Checkpoint、会话持久化、幂等、重试 |
+| Task Delegation | 子任务探索污染主上下文 | 子代理隔离、摘要回传、权限继承 |
+| Evaluation | 只看最终答案，过程不可验证 | 步骤级评测、工具调用评测、LLM-as-Judge |
+| Guardrails | 越权、注入、低置信度自动执行 | 输入/输出校验、权限控制、分层防御 |
+| Observability | 出错不知原因、成本不可解释 | Trace、Token/Latency/Error 指标、决策归因 |
+
+---
+
+## 课程七：Agent 产品化实践
+
+解决 Agent 从"技术能跑"到"用户愿意用、业务愿意上线、团队能够持续运营"之间的差距。
+
+
+### 核心问题
+
+- 用户为什么觉得 Agent 慢？
+- 用户为什么不信任 Agent？
+- Agent 失败时如何让用户继续掌控局面？
+- 如何控制成本和延迟？
+- 如何证明 Agent 比人工或传统 Workflow 更好？
+- 如何让 Agent 的风险可审计？
+- 如何把线上反馈变成下一轮改进？
+
+### 核心内容
+
+| 产品化问题 | 用户感受 | 对应机制 |
+|---|---|---|
+| Agent 慢 | 不知道它在干什么 | 流式输出、进度展示、步骤解释、延迟拆解 |
+| Agent 不可信 | 不敢让它自动执行 | Human-in-the-loop、可编辑计划、确认节点、回滚 |
+| Agent 容易失败 | 出错后不知怎么办 | 重试、降级、恢复、失败后建议 |
+| Agent 太贵 | 单次成本不可控 | 模型路由、缓存、上下文裁剪、成本上限 |
+| Agent 有风险 | 可能泄露或越权 | 权限隔离、审批、审计、合规 |
+| 价值不清楚 | 不知是否真的更好 | 任务完成率、用户干预率、满意度、ROI |
+
+关键指标：任务完成率（北极星）、工具调用成功率/失败恢复率（诊断）、Token 成本/P95 延迟（成本）。
+
+失败复盘框架：意图理解错误 → 工具选择/参数/执行失败 → 上下文遗漏 → 权限越界 → 过早停止/死循环 → 用户无法接管。
+
+---
+
+## 课程八：项目实战与生态跟进
+
+用完整项目整合知识，同时建立持续跟进生态的习惯。
+
+### 核心内容
+
+三个递进项目：
+
+| 项目 | 难度 | 训练重点 |
+|---|---|---|
+| 个人知识助手 | 入门-中级 | RAG、Memory、引用、上下文管理 |
+| 代码审查 Agent | 中级 | Tool Use、文件读取、测试调用、行内反馈 |
+| 个人任务执行 Agent | 中级-高级 | Planning、状态管理、Human-in-the-loop、产品化 |
+
+每个项目交付：可运行代码、设计文档、评测集、Trace 示例、失败复盘、成本估算。
+
+生态跟进：MCP/A2A、Code Agent、Multi-Agent 框架、模型新能力。跟进原则：先看官方文档确认能力边界，把新概念放回课程分层中判断定位。
+
+---
+
+## 推荐学习顺序
+
+不同角色不需要从同一个入口进入课程。学习顺序应围绕各自最需要建立的判断力来设计，但最终都要回到“最小闭环 -> 能力增强 -> 工程化 -> 产品化”的完整框架中。
+
+### 产品经理
 
 ```text
-Agent = Prompt + LLM Decision + Tool / Environment Interaction + State + Loop Control
+课程一 -> 课程七 -> 课程三 -> 课程四 -> 课程五 -> 课程八
 ```
 
-English lesson: [Minimal Agent Loop](courses-en/course-03-minimal-agent-loop.md)
+重点先建立产品直觉：什么场景适合 Agent，用户为什么愿意信任它，失败如何被产品机制吸收。随后补上最小闭环和工具机制，避免只停留在概念和案例层面。
 
-## Lesson 04: Tool Mechanism
+适合目标：
 
-Tool calling is not just function execution. It is a full mechanism for definition, selection, execution, feedback, permission, audit, and reuse.
+- 判断 Agent 产品机会和边界
+- 设计 Agent 产品形态、交互和指标
+- 和工程团队讨论可行性、风险与迭代路径
 
-### Core Questions
+### 应用工程师 / 全栈工程师
 
-- How does an Agent decide whether to call a tool?
-- Why do tool calls fail?
-- How should tools be described so the model knows when to use them?
-- How should tool results return to the next decision?
-- How should high-risk tools be controlled?
-- How can repeated tool workflows become reusable capabilities?
+```text
+课程三 -> 课程四 -> 课程六 -> 课程七
+```
 
-### Core Content
+重点先掌握 Agent 如何跑起来，再理解工具机制和运行时架构。课程五可以按项目需要选择性学习，例如做知识问答时优先学 RAG / 外部知识接入，做复杂任务时优先学 Planning / Workflow Patterns。
 
-| Stage | Common Problem | Mechanism |
-| --- | --- | --- |
-| Tool definition | The model does not know what tools exist or when to use them | Name, description, parameter schema, usage boundary |
-| Tool selection | Wrong tool or invalid arguments | Routing, validation, `tool_choice` control |
-| Execution and feedback | Failed execution or overly long results | Timeout, retry, structured errors, result summarization |
-| Permission and safety | Tools may have real-world impact | Risk level, least privilege, approval, audit |
-| Human-in-the-loop | High-risk decisions should not be automated | Confirm, reject, take over, roll back |
-| MCP | Tool integration is fragmented | Protocol-based client/server integration |
-| Skill | Repeated tool combinations need reuse | Procedural knowledge, default flow, failure handling |
+适合目标：
 
-English lesson: [Tool Mechanism](courses-en/course-04-tool-mechanism.md)
+- 实现能运行、能调试、能恢复的 Agent 应用
+- 理解 Tool Use、状态管理、权限、安全、评测和观测
+- 把 demo 推进到可上线的工程系统
 
-## Lesson 05: Scenario Enhancement Capabilities
+### 算法 / AI 工程师
 
-Lesson 05 focuses on when to introduce extra capabilities and what complexity each one adds.
+```text
+课程二 -> 课程三 -> 课程五 -> 课程六 -> 课程八
+```
 
-### Core Content
+重点理解 Agent 范式为什么从纯 Chatbot 走向工具调用、规划、反思和多 Agent，再把这些能力放回运行时闭环和工程评测中，而不是只研究单点算法。
 
-Context enhancement:
+适合目标：
 
-| Capability | Use When | Learn |
-| --- | --- | --- |
-| RAG / external knowledge | The Agent needs private documents, sources, or fast-changing knowledge | Embedding, chunking, hybrid search, rerank, citation, factuality |
-| Memory | The Agent needs continuity across turns or sessions | Short-term memory, long-term memory, user preference, update and forgetting |
-| Context Engineering | Multiple sources make context noisy or long | Context layering, token budget, priority, compression, structure |
+- 理解 ReAct、Planning、Reflection、Multi-Agent 等范式的定位
+- 判断哪些能力是模型能力，哪些是系统机制
+- 将算法能力落到可验证的应用链路中
 
-Behavior enhancement:
+### 业务负责人 / 运营人员
 
-| Capability | Use When | Learn |
-| --- | --- | --- |
-| Planning / Workflow | The task has multiple steps and dependencies | Chain, Router, ReAct Loop, Plan-Execute, Graph |
-| Reflection | External feedback requires changing path | Feedback classification, handling strategy, stop condition |
-| Human-in-the-loop | High-risk steps need human judgment | Confirmation, clarification, takeover, review |
-| Multi-Agent | The task benefits from role separation or parallel work | Isolated context, structured communication, arbitration, cost boundary |
+```text
+课程一 -> 课程七 -> 课程八 -> 课程五
+```
 
-English lessons:
+重点先理解 Agent 能解决什么业务问题、不能解决什么问题，以及如何用指标和反馈判断效果。课程五用于补充不同业务场景的能力判断，例如知识密集场景、长期陪伴场景、流程执行场景分别需要什么增强能力。
 
-- [05-01 Scenario Enhancement Capabilities](courses-en/course-05-01-scenario-enhancement.md)
-- [05-02 RAG / External Knowledge Access](courses-en/course-05-02-rag.md)
-- [05-03 Memory](courses-en/course-05-03-memory.md)
-- [05-04 Context Engineering](courses-en/course-05-04-context-engineering.md)
-- [05-05 Planning / Workflow Patterns](courses-en/course-05-05-planning.md)
-- [05-06 Reflection](courses-en/course-05-06-reflection.md)
-- [05-07 Human-in-the-loop](courses-en/course-05-07-human-in-the-loop.md)
-- [05-08 Multi-Agent](courses-en/course-05-08-multi-agent.md)
-- [05-09 Capability Composition](courses-en/course-05-09-composition.md)
+适合目标：
 
-## Lesson 06: Harness Runtime Architecture
+- 识别适合 Agent 的业务流程和用户任务
+- 定义验收标准、失败处理方式和运营指标
+- 与产品、工程团队对齐需求边界
 
-Move from "writing an Agent" to "designing an Agent runtime."
+### 初学者 / 转型学习者
 
-### Core Questions
+```text
+课程一 -> 课程三 -> 课程二 -> 课程四 -> 课程五 -> 课程六 -> 课程七 -> 课程八
+```
 
-- What engineering stages make up an Agent runtime?
-- Where do Agent systems most often fail?
-- How do Context Engineering, Orchestration, Checkpoint, Evaluation, Guardrails, and Observability help?
-- What is the boundary between Harness and Orchestration?
-- How should systems handle context compression, session recovery, delegation, and debugging?
+重点先形成感性认知，再做出最小闭环，然后回到课程二理解范式演进。这样不会在还没见过运行循环前就陷入 ReAct、Planning、Reflection 等概念。
 
-Chinese lesson: [Harness Runtime Architecture](courses/course-06-runtime-architecture.md)
+适合目标：
 
-## Lesson 07: Agent Productization
-
-Turn Agent capability into a product experience that users can trust and operate.
-
-### Core Questions
-
-- How should an Agent product expose uncertainty and process state?
-- How should failure recovery, confirmation, and takeover be designed?
-- How should cost, latency, safety, and evaluation be visible in product decisions?
-- How should metrics drive continued iteration?
-
-Chinese lesson: [Agent Productization](courses/course-07-productization.md)
-
-## Lesson 08: Project Practice and Ecosystem Tracking
-
-Use an integrated project to connect knowledge-based, tool-based, and task-execution Agent patterns.
-
-### Core Questions
-
-- How should a learner scope a realistic Agent project?
-- Which capabilities should be included first?
-- What should be validated before adding more complexity?
-- How should the project keep up with a fast-moving ecosystem?
-
-Chinese lesson: [Project Practice and Ecosystem Tracking](courses/course-08-project-practice.md)
-
-## Recommended Learning Order
-
-For systematic learning:
-
-1. Lesson 01 -> Lesson 02 -> Lesson 03
-2. Lesson 04
-3. Lesson 05, section by section according to scenario needs
-4. Lesson 06 -> Lesson 07
-5. Lesson 08 as an integrated project
-
-For hands-on-first learners:
-
-1. Start with Lesson 03 and build the minimal Agent loop.
-2. Read Lesson 04 when tool calling becomes necessary.
-3. Return to Lesson 02 to understand why the patterns exist.
-4. Add Lesson 05 capabilities only when your project exposes the matching problem.
-5. Use Lessons 06-08 when moving from demo to product.
+- 系统建立 Agent 产品开发知识框架
+- 从体验、原理、工程到产品化完整过一遍
+- 通过项目实战形成可展示的作品

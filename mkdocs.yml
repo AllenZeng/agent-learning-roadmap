@@ -57,8 +57,8 @@ markdown_extensions:
 
 nav:
   - 中文:
-      - 首页: README.zh-CN.md
-      - 课程大纲: syllabus.zh-CN.md
+      - 首页: README.md
+      - 课程大纲: syllabus.md
       - 中文课程:
           - 01 初识 Agent: courses/course-01-first-encounter.md
           - 02 Agent 演进: courses/course-02-evolution.md
@@ -87,8 +87,8 @@ nav:
           - Course 05-07 HITL: examples/course-05-07-human-in-the-loop/README.md
           - Course 05-08 Multi-agent: examples/course-05-08-multi-agent/README.md
   - English:
-      - Home: README.md
-      - Syllabus: syllabus.md
+      - Home: README.en.md
+      - Syllabus: syllabus.en.md
       - English Courses:
           - 01 First Encounter: courses-en/course-01-first-encounter.md
           - 02 Evolution: courses-en/course-02-evolution.md
