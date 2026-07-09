@@ -14,6 +14,8 @@ theme:
   name: material
   language: zh
   features:
+    - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
     - navigation.expand
     - navigation.tracking
@@ -36,15 +38,6 @@ theme:
         icon: material/weather-sunny
         name: 切换到浅色模式
 
-extra:
-  alternate:
-    - name: 中文
-      link: /agent-learning-roadmap/
-      lang: zh
-    - name: English
-      link: /agent-learning-roadmap/en/
-      lang: en
-
 plugins:
   - search
 
@@ -63,32 +56,60 @@ markdown_extensions:
       alternate_style: true
 
 nav:
-  - 首页: README.zh-CN.md
-  - 中文课程:
+  - 中文:
+      - 首页: README.zh-CN.md
       - 课程大纲: syllabus.zh-CN.md
-      - 01 初识 Agent: courses/course-01-first-encounter.md
-      - 02 Agent 演进: courses/course-02-evolution.md
-      - 03 最小 Agent 循环: courses/course-03-minimal-agent-loop.md
-      - 04 工具机制: courses/course-04-tool-mechanism.md
-      - 05-01 场景增强: courses/course-05-01-scenario-enhancement.md
-      - 05-02 RAG: courses/course-05-02-rag.md
-      - 05-03 Memory: courses/course-05-03-memory.md
-      - 05-04 Context Engineering: courses/course-05-04-context-engineering.md
-      - 05-05 Planning: courses/course-05-05-planning.md
-      - 05-06 Reflection: courses/course-05-06-reflection.md
-      - 05-07 Human-in-the-loop: courses/course-05-07-human-in-the-loop.md
-      - 05-08 Multi-agent: courses/course-05-08-multi-agent.md
-      - 05-09 能力组合: courses/course-05-09-composition.md
-      - 06 运行时架构: courses/course-06-runtime-architecture.md
-      - 07 产品化: courses/course-07-productization.md
-      - 08 项目实践: courses/course-08-project-practice.md
-  - 示例代码:
-      - Course 03 Minimal Agent: examples/course-03-minimal-agent/README.md
-      - Course 04 Tool Mechanism: examples/course-04-tool-mechanism/README.md
-      - Course 05-02 RAG: examples/course-05-02-rag/README.md
-      - Course 05-03 Memory: examples/course-05-03-memory/README.md
-      - Course 05-04 Context Engineering: examples/course-05-04-context-engineering/README.md
-      - Course 05-05 Planning: examples/course-05-05-planning/README.md
-      - Course 05-06 Reflection: examples/course-05-06-reflection/README.md
-      - Course 05-07 HITL: examples/course-05-07-human-in-the-loop/README.md
-      - Course 05-08 Multi-agent: examples/course-05-08-multi-agent/README.md
+      - 中文课程:
+          - 01 初识 Agent: courses/course-01-first-encounter.md
+          - 02 Agent 演进: courses/course-02-evolution.md
+          - 03 最小 Agent 循环: courses/course-03-minimal-agent-loop.md
+          - 04 工具机制: courses/course-04-tool-mechanism.md
+          - 05-01 场景增强: courses/course-05-01-scenario-enhancement.md
+          - 05-02 RAG: courses/course-05-02-rag.md
+          - 05-03 Memory: courses/course-05-03-memory.md
+          - 05-04 Context Engineering: courses/course-05-04-context-engineering.md
+          - 05-05 Planning: courses/course-05-05-planning.md
+          - 05-06 Reflection: courses/course-05-06-reflection.md
+          - 05-07 Human-in-the-loop: courses/course-05-07-human-in-the-loop.md
+          - 05-08 Multi-agent: courses/course-05-08-multi-agent.md
+          - 05-09 能力组合: courses/course-05-09-composition.md
+          - 06 运行时架构: courses/course-06-runtime-architecture.md
+          - 07 产品化: courses/course-07-productization.md
+          - 08 项目实践: courses/course-08-project-practice.md
+      - 示例代码:
+          - Course 03 Minimal Agent: examples/course-03-minimal-agent/README.md
+          - Course 04 Tool Mechanism: examples/course-04-tool-mechanism/README.md
+          - Course 05-02 RAG: examples/course-05-02-rag/README.md
+          - Course 05-03 Memory: examples/course-05-03-memory/README.md
+          - Course 05-04 Context Engineering: examples/course-05-04-context-engineering/README.md
+          - Course 05-05 Planning: examples/course-05-05-planning/README.md
+          - Course 05-06 Reflection: examples/course-05-06-reflection/README.md
+          - Course 05-07 HITL: examples/course-05-07-human-in-the-loop/README.md
+          - Course 05-08 Multi-agent: examples/course-05-08-multi-agent/README.md
+  - English:
+      - Home: README.md
+      - Syllabus: syllabus.md
+      - English Courses:
+          - 01 First Encounter: courses-en/course-01-first-encounter.md
+          - 02 Evolution: courses-en/course-02-evolution.md
+          - 03 Minimal Agent Loop: courses-en/course-03-minimal-agent-loop.md
+          - 04 Tool Mechanism: courses-en/course-04-tool-mechanism.md
+          - 05-01 Scenario Enhancement: courses-en/course-05-01-scenario-enhancement.md
+          - 05-02 RAG: courses-en/course-05-02-rag.md
+          - 05-03 Memory: courses-en/course-05-03-memory.md
+          - 05-04 Context Engineering: courses-en/course-05-04-context-engineering.md
+          - 05-05 Planning: courses-en/course-05-05-planning.md
+          - 05-06 Reflection: courses-en/course-05-06-reflection.md
+          - 05-07 Human-in-the-loop: courses-en/course-05-07-human-in-the-loop.md
+          - 05-08 Multi-agent: courses-en/course-05-08-multi-agent.md
+          - 05-09 Composition: courses-en/course-05-09-composition.md
+      - Examples:
+          - Course 03 Minimal Agent: examples/course-03-minimal-agent/README.md
+          - Course 04 Tool Mechanism: examples/course-04-tool-mechanism/README.md
+          - Course 05-02 RAG: examples/course-05-02-rag/README.md
+          - Course 05-03 Memory: examples/course-05-03-memory/README.md
+          - Course 05-04 Context Engineering: examples/course-05-04-context-engineering/README.md
+          - Course 05-05 Planning: examples/course-05-05-planning/README.md
+          - Course 05-06 Reflection: examples/course-05-06-reflection/README.md
+          - Course 05-07 HITL: examples/course-05-07-human-in-the-loop/README.md
+          - Course 05-08 Multi-agent: examples/course-05-08-multi-agent/README.md

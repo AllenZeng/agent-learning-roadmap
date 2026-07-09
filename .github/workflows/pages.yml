@@ -49,11 +49,8 @@ jobs:
           ln -s ../assets docs/assets
           ln -s ../assets-en docs/assets-en
 
-      - name: Build Chinese site
-        run: mkdocs build -f mkdocs.yml
-
-      - name: Build English site
-        run: mkdocs build -f mkdocs.en.yml
+      - name: Build site
+        run: mkdocs build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
