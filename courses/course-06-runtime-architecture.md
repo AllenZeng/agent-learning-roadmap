@@ -36,7 +36,7 @@ Harness 这个词原本指马具。马本身有力量，但没有马具，力量
 
 本章基于 2026 年 7 月的主流实践抽象而来。不同框架的名字不一样：LangGraph 讲 graph state、checkpoint、store、interrupt 和 trace；OpenAI Agents SDK 讲 agent loop、sessions、guardrails、handoffs 和 tracing；Anthropic 的工程实践区分 predefined workflow 和动态 agent，并强调从简单方案开始、在必要时增加复杂度。本章不绑定某个框架 API，而是提炼这些实践背后的运行架构问题。
 
-**从能力层到运行层：本章的阅读地图。**
+## 课程目标
 
 ```text
 能力层：Memory / RAG / Planning / Reflection / Multi-Agent / HITL / Tools
@@ -54,6 +54,8 @@ Harness 这个词原本指马具。马本身有力量，但没有马具，力量
 
 ## 目录
 
+- [课程导言](#课程导言)
+- [课程目标](#课程目标)
 - [6.1 能力越多，Agent 反而越容易失控](#61-能力越多agent-反而越容易失控)
   - [6.1.1 八个能力都合理，组合起来却失控](#611-八个能力都合理组合起来却失控)
   - [6.1.2 Demo 只要能跑，生产必须能解释和恢复](#612-demo-只要能跑生产必须能解释和恢复)
